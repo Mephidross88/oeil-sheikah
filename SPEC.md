@@ -12,7 +12,6 @@ Référence du rando : https://wiki.ootrandomizer.com/index.php?title=Entrance_R
 
 ## Navigation (panneau de gauche)
 - Accès aux trois modules : Tracker, Routeur, Configuration.
-- Bouton « État de la partie » (modale) ; sa pastille compte toutes les options cochées, âges compris.
 - Dans le Tracker uniquement : tout déplier / tout replier, navigation rapide vers les zones, et filtres :
   - Proposer les destinations déjà atteignables ou déjà mappées dans les listes : OFF par défaut.
     Une destination déjà mappée (déjà la cible d'une autre sortie, y compris pour les sorties à sens
@@ -26,22 +25,111 @@ Référence du rando : https://wiki.ootrandomizer.com/index.php?title=Entrance_R
   conserve la configuration.
 
 ## Configuration
+Bloc Progression (voir « Âges et progression calculés » ci-dessous) : âge de départ (Enfant / Adulte),
+Porte du Temps (6 variantes, cf. réglage officiel `open_door_of_time`).
 Bloc Monde : overworld (Vanilla / Aléatoires), intérieurs (Vanilla / Simples / Tous — « Tous » ajoute moulin,
 Temple du Temps, maison de Link, apothicaire, tombe d'Igor), grottes (Vanilla / Aléatoires),
 rivière de la Vallée Gerudo (Vanilla / Aléatoire).
 Bloc Donjons et boss : donjons (Vanilla / Donjons / Donjons + Ganon), boss (Vanilla / Par âge / Complet),
-entrée de la Tour de Ganon (Vanilla / Aléatoire), Forteresse Gerudo (Vanilla / Aléatoires).
+entrée de la Tour de Ganon (Vanilla / Aléatoire), sorties du repaire Gerudo (Vanilla / Aléatoires, ER),
+Forteresse Gerudo — gardiens à libérer (4 « normal » / 1 « rapide » / Ouverte, cf. réglage officiel
+`gerudo_fortress` — distinct du précédent : celui-ci fixe la condition d'obtention de la Carte Gerudo).
 Bloc Apparitions et téléportations : spawns (Aucun / Enfant / Adulte / Tous), chants (Vanilla / Aléatoires),
 hiboux (Vanilla / Aléatoires).
 Bloc Avancé : entrées découplées (Non par défaut), pools mélangés (Non par défaut),
-coûts du routeur (transition 3, chant 15, sauvegarder-recharger 25, changement d'âge 12).
+Chasse à la Triforce (Non par défaut — ajoute le compteur « Morceaux de Triforce » dans le panneau Objets
+avec un objectif réglable, 20 par défaut), coûts du routeur (transition 3, chant 15, sauvegarder-recharger
+25, changement d'âge 12).
 Afficher en tête les incohérences détectées dans les données.
 
-## État de la partie
-Chips à cocher, groupées : Âges, Progression, Équipements, Objets, Chants, Téléportations.
-- « Âge enfant accessible » et « Âge adulte accessible » sont DÉSACTIVÉS par défaut : l'utilisateur coche
-  l'âge de départ de sa seed, puis l'autre quand il devient accessible. Tant qu'aucun n'est coché,
-  un message l'indique dans le Tracker (rien n'est atteignable).
+## Âges et progression calculés
+Aucun réglage manuel : tout se déduit de la Configuration et de l'inventaire (panneau Objets), comme dans
+le vrai randomizer. Calculé dans `computeAges()` / `deriveGame()` (`app.js`), lisible en lecture seule tout
+en haut du panneau Objets (pastilles vertes/grises).
+- **Âge de départ** (réglage Configuration) : toujours acquis.
+- **Autre âge** : acquis si le Temple du Temps (`market::templeoftime_to_templeplaza`) est atteignable dans
+  l'âge de départ ET si la Porte du Temps peut s'ouvrir, selon le réglage `openDoorOfTime` — reproduit le
+  helper `can_open_door_of_time` du randomizer officiel :
+  - `stones_sot` (défaut, fermeture vanilla) : 3 Pierres Spirituelles + Chant du Temps.
+  - `stones` : 3 Pierres Spirituelles seules. `sot` : Chant du Temps seul (n'importe quelle Ocarina).
+  - `stones_oot_sot` / `oot_sot` : idem + Ocarina du Temps (palier 2, pas juste l'Ocarina de Fée).
+  - `open` : aucune condition.
+  Calcul sans dépendance circulaire : une recherche d'atteignabilité dédiée part du spawn de l'âge de
+  départ avec « l'autre âge » provisoirement marqué indisponible.
+- **Epona** : reproduit l'event `Epona` du randomizer (`can_play(Eponas_Song) and is_adult`) → Ocarina
+  (n'importe lequel) + Chant d'Epona appris (le jour n'est pas modélisé).
+- **Raccourci Bois Perdus ↔ Ville Goron** : reproduit l'event `GC Woods Warp Open` (mur à détruire côté
+  Ville Goron) → explosifs (Bombes/Missiles), Feu de Din, Arc (adulte) ou Force (palier ≥ 1) suffisent,
+  une seule fois (état persistant, jamais reperdu — les objets ne se perdent pas dans ce tracker).
+- **Raccourci du Cratère du Péril** : simplification (le graphe de zones de cette appli compresse les
+  nombreuses sous-régions du Cratère du jeu réel) → explosifs (Bombes ou Missiles) suffisent, de façon
+  persistante. Les alternatives Grappin/Bottes des Airs restent gérées séparément dans les connexions
+  (`areas-data.js`), indépendamment de ce raccourci.
+- **Pont/Carte Gerudo** : reproduit `gerudo_fortress == 'open' or can_finish_GerudoFortress` → Carte
+  Gerudo obtenue (objet manuel, la libération des charpentiers est une suite d'épreuves internes au
+  repaire, hors du graphe de sorties) OU réglage Forteresse Gerudo sur « Ouverte ».
+
+## Panneau Objets (droite)
+Zone latérale droite (repliable sur mobile via un bouton dans la barre du haut), pastille = nombre d'objets
+possédés (tous groupes confondus, hors objets masqués — voir « visibilité conditionnelle » plus bas). En
+tête : pastilles en lecture seule de l'état calculé plus haut (âges, Epona, raccourcis). En dessous,
+l'inventaire complet de la partie en cours, groupé comme dans `ITEM_GROUPS` (`app.js`) — chaque catégorie
+est un titre cliquable repliable (chevron, état conservé en session) :
+
+1. **Récompenses** : 3 Pierres Spirituelles, 6 Médaillons de donjon, Morceaux de Triforce (visible
+   seulement si « Chasse à la Triforce » est activée en Configuration ; plafond = réglage associé).
+2. **Équipement** : Épée Kokiri / de Légende / Biggoron (3 objets distincts, pas un objet progressif —
+   dans le jeu ce sont trois pickups différents, l'Épée Biggoron remplaçant le Couteau Cassé du Goron via
+   une quête d'échange), Bouclier Mojo / Hylien / Miroir (3 objets distincts, idem), Bottes Kokiri / de
+   Plomb / des Airs, Tunique Goron / Zora, Force (progressif : Bracelet Goron → Gantelets d'Argent →
+   Gantelets d'Or), Écaille de Zora (progressif : Argent → Or), Bourse (progressif : 99 → 200 → 500 → 999),
+   Skulltulas d'Or (compteur 0–100), Pass Gerudo, Pierre de Souffrance.
+3. **Armes enfant** : Bâton Mojo (progressif : capacité 10 → 20 → 30), Lance-Pierre (progressif :
+   30 → 40 → 50), Boomerang.
+4. **Armes adulte** : Arc (progressif : capacité 30 → 40 → 50), Grappin (progressif : Grappin →
+   Super-Grappin), Masse des Titans, Flèches de Feu / de Glace / de Lumière.
+5. **Armes communes** : Noix Mojo (progressif : capacité 20 → 30 → 40), Bombes (progressif :
+   capacité 30 → 40 → 50), Missiles.
+6. **Objets** : Haricots Magiques, Monocle de Vérité, Bouteilles (compteur 0–4), Lettre de Ruto.
+7. **Magie** : Feu de Din, Vent de Farore, Amour de Nayru.
+8. **Ocarina** : progressif (Ocarina de Fée → Ocarina du Temps).
+9. **Notes d'Ocarina (si mélangées)** : 5 bascules (bouton A, C-Haut, C-Droite, C-Gauche, C-Bas), purement
+   informatives — ne servent qu'à noter quelle note est jouée par quel bouton quand le réglage rando
+   « mélanger les notes d'ocarina » est actif ; non branchées à `sat()` (les chants restent suivis comme
+   des booléens « appris/pas appris », indépendamment du bouton physique).
+10. **Statistiques** : Magie (progressif : Simple → Double), Quarts de Cœur (compteur 0–36), Réceptacles
+    de Cœur (compteur 0–8), Double Défense — purement informatifs, sans effet sur le routeur.
+11. **Chants appris** : Berceuse de Zelda, Chant d'Epona, Chant de Saria, Chant du Soleil, Chant du Temps,
+    Chant des Tempêtes, Chant de l'Épouvantail.
+12. **Chants de téléportation** : Menuet des Bois, Boléro du Feu, Sérénade de l'Eau, Requiem des Esprits,
+    Nocturne de l'Ombre, Prélude de la Lumière.
+
+Chaque objet est une tuile d'icône, absente du dépôt (à fournir par l'utilisateur, repli sur une icône
+générique si le fichier manque) :
+- `bool` / `count` : une seule image `icons/items/<clé>.png` (ex. `truthLens.png`, `kokiriEmerald.png`).
+- `level` : une image par palier non nul `icons/items/<clé>_<palier>.png` (ex. `strength_1.png` = Bracelet
+  Goron, `strength_2.png` = Gantelets d'Argent, `strength_3.png` = Gantelets d'Or). Le palier 0 réutilise
+  l'image du palier 1, grisée (aucun sprite « vide » à fournir). Liste exacte des fichiers attendus :
+  reproductible depuis `ITEM_GROUPS` dans `app.js` (un item `kind:'level'` avec N paliers → `<clé>_1.png`
+  à `<clé>_N.png` ; tout item `kind:'bool'`/`'count'` → `<clé>.png`).
+
+Contrôle, via clic gauche (augmenter/activer) et clic droit (diminuer/désactiver) :
+- `bool` : bascule simple.
+- `level` : avance d'un palier au clic gauche (retour à 0 après le dernier) ; recule au clic droit.
+- `count` : ±1 au clic (±10 avec Majuscule), borné à `[0, max]` (`max` peut dépendre d'un réglage
+  Configuration, ex. Morceaux de Triforce).
+
+Visibilité conditionnelle : un objet peut définir `visible(settings)` dans `ITEM_GROUPS` pour n'apparaître
+que sous certaines conditions de Configuration (seul cas actuel : Morceaux de Triforce).
+
+Les objets à paliers sont aplatis en indicateurs booléens (`deriveGame()` dans `app.js`) avant d'être
+passés à `sat()` : ex. Force ≥ 1 → Bracelet Goron, ≥ 2 → Gantelets d'Argent, ≥ 3 → Gantelets d'Or ; Magie
+≥ 1 → magie disponible ; Ocarina ≥ 1 → ocarina possédée ; Bouteilles ≥ 1 → a une bouteille ; Bâton Mojo
+≥ 1 → bâtons disponibles. Seuls les objets déjà utilisés par `REQUIREMENTS`/`sat()` avant cet ajout
+conditionnent le Tracker/Routeur ; tout le reste (Récompenses hors Pierres Spirituelles, armes enfant/
+adulte/communes hors force/bombes/missiles/arc/grappin/bâtons, Statistiques, notes d'ocarina, chants hors
+ceux déjà câblés) est purement informatif pour l'instant — cf. `SilverScale`/`GoronBracelet`/etc. dans
+`REQUIREMENTS` pour la liste exacte de ce qui compte pour la logique.
 - Les conditions portent sur chaque couple de sorties d'une zone, pas sur la zone entière.
 
 ## Tracker

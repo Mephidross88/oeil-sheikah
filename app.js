@@ -35,6 +35,7 @@ const ICONS = {
   tracker:   S('<path d="M4 5h16M4 12h16M4 19h10"/><circle cx="19" cy="19" r="2"/>'),
   router:    S('<circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.5 6H15a3 3 0 010 6H9a3 3 0 000 6h6.5"/>'),
   config:    S('<path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/>'),
+  bag:       S('<path d="M8 8V6a4 4 0 018 0v2"/><path d="M5.5 8h13l1 12.5a1.5 1.5 0 01-1.5 1.5H6a1.5 1.5 0 01-1.5-1.5z"/>'),
   sword:     S('<path d="M12 1.5l2 3V16h-4V4.5z" fill="currentColor" stroke="none" opacity=".35"/><path d="M12 1.5l2 3V16h-4V4.5zM6.5 16h11M12 16v6M10 22h4"/>'),
   warn:      S('<path d="M12 3.4l9.6 16.6a1 1 0 01-.87 1.5H3.27a1 1 0 01-.87-1.5z"/><path d="M12 9.3v4.4"/><circle cx="12" cy="16.9" r=".9" fill="currentColor" stroke="none"/>'),
 };
@@ -93,13 +94,13 @@ function sat(r, G, age){
     case 'Hookshot': return A && (i.hookshot || i.longshot);
     case 'Longshot': return A && i.longshot;
     case 'Sticks': return C && i.sticks;
-    case 'DinsFire': return i.dinsFire && m.hasMagic;
-    case 'NayrusLove': return i.nayrusLove && m.hasMagic;
+    case 'DinsFire': return i.dinsFire && i.hasMagic;
+    case 'NayrusLove': return i.nayrusLove && i.hasMagic;
     case 'GoronTunic': return A && i.goronTunic;
     case 'IronBoots': return A && i.ironBoots;
     case 'HoverBoots': return A && i.hoverBoots;
     case 'SilverScale': return i.silverScale;
-    case 'TruthLens': return i.truthLens && m.hasMagic;
+    case 'TruthLens': return i.truthLens && i.hasMagic;
     case 'ZeldaLullaby': return oc && s.zeldaLullaby;
     case 'SongOfStorms': return oc && s.songOfStorms;
     case 'SongOfTime': return oc && s.songOfTime;
@@ -108,11 +109,55 @@ function sat(r, G, age){
     case 'LostWoodToGoronVillageUnlocked': return m.lostWoodsGoronShortcut;
     case 'GerudoBridgeFixed': return m.gerudoBridgeFixed;
     case 'CraterShortcutOpened': return m.craterShortcut;
-    case 'GerudoPass': return m.gerudoPass && m.adultAvailable;
+    case 'GerudoPass': return i.gerudoCard && m.adultAvailable;
     case 'AccessToFountain': return i.rutoLetter && m.childAvailable;
     case 'BlueFire': return i.bottle && m.adultAvailable;
   }
   return false;
+}
+/** Porte du Temps : mêmes variantes que le réglage open_door_of_time du randomizer officiel. */
+function canOpenDoorOfTime(mode, it, sg){
+  const stones = it.kokiriEmerald && it.goronRuby && it.zoraSapphire;
+  const sot = it.ocarina >= 1 && sg.songOfTime;
+  const oot = it.ocarina >= 2;
+  switch (mode){
+    case 'open': return true;
+    case 'sot': return sot;
+    case 'oot_sot': return oot && sot;
+    case 'stones': return stones;
+    case 'stones_oot_sot': return stones && oot && sot;
+    default: return stones && sot; // 'stones_sot' : fermeture vanilla (par défaut)
+  }
+}
+/** Aplati les objets progressifs (store.game.items) en indicateurs booléens consommés par sat().
+ * `ages` = { child, adult } déjà résolus par computeAges() : évite toute dépendance circulaire. */
+function deriveGame(raw, settings, ages){
+  const it = raw.items, sg = raw.songs;
+  const hasExplosives = it.bombBag >= 1 || it.bombchus;
+  // Ouverture du raccourci Bois Perdus <-> Ville Goron (event "GC Woods Warp Open" du randomizer) :
+  // explosifs, Feu de Din, Arc (adulte) ou Force suffisent, une fois pour toutes.
+  const gcWoodsWarpOpen = hasExplosives || (it.dinsFire && it.magic >= 1) || (ages.adult && it.bow >= 1) || it.strength >= 1;
+  // Carte Gerudo : obtenue en libérant les charpentiers, ou fournie dès le départ si la Forteresse est "Ouverte".
+  const gerudoCardEff = it.gerudoCard || settings.gerudoFortress === 'open';
+  return {
+    milestone: {
+      childAvailable: ages.child, adultAvailable: ages.adult,
+      // "Epona" (event du randomizer) = adulte + Ocarina + Chant d'Epona appris.
+      epona: it.ocarina >= 1 && sg.eponasSong,
+      lostWoodsGoronShortcut: gcWoodsWarpOpen,
+      craterShortcut: hasExplosives,
+      gerudoBridgeFixed: gerudoCardEff,
+    },
+    songs: sg,
+    items: {
+      bombs: it.bombBag >= 1, bombchus: it.bombchus, titanMass: it.titanMass, bow: it.bow >= 1,
+      goronBracelet: it.strength >= 1, silverGauntlets: it.strength >= 2, goldGauntlets: it.strength >= 3,
+      hookshot: it.hookshot >= 1, longshot: it.hookshot >= 2, sticks: it.sticks >= 1,
+      dinsFire: it.dinsFire, nayrusLove: it.nayrusLove, goronTunic: it.goronTunic, ironBoots: it.ironBoots, hoverBoots: it.hoverBoots,
+      silverScale: it.scale >= 1, truthLens: it.truthLens, ocarina: it.ocarina >= 1, beans: it.beans, bottle: it.bottle >= 1,
+      rutoLetter: it.rutoLetter, hasMagic: it.magic >= 1, gerudoCard: gerudoCardEff,
+    },
+  };
 }
 /** Renvoie le groupe de conditions satisfait (tableau, éventuellement vide) ou null. */
 function connGroup(c, G, age){
@@ -213,8 +258,8 @@ function computeIncoming(eff){
 }
 
 /* ---------- Graphe de déplacement ---------- */
-function makeEdges(state, eff){
-  const G = state.game, C = state.costs, ms = G.milestone;
+function makeEdges(G, C, eff){
+  const ms = G.milestone;
   const spawnOf = { child: eff['spawns::spawn_child'], adult: eff['spawns::spawn_adult'] };
   const warps = Object.entries(WARP_SONGS).filter(([k, song]) => G.items.ocarina && G.songs[song] && eff[k]).map(([k]) => ({ key:k, to:eff[k] }));
 
@@ -253,13 +298,34 @@ function makeEdges(state, eff){
   };
 }
 
-function flood(state, eff, edges){
-  const ms = state.game.milestone, seen = new Set(), nodes = new Set(), q = [];
+function flood(ages, eff, edges){
+  const seen = new Set(), nodes = new Set(), q = [];
   const push = (k, a) => { const id = k + '|' + a; if (!k || seen.has(id)) return; seen.add(id); nodes.add(k); q.push([k, a]); };
-  if (ms.childAvailable) push(eff['spawns::spawn_child'], 'child');
-  if (ms.adultAvailable) push(eff['spawns::spawn_adult'], 'adult');
+  if (ages.child) push(eff['spawns::spawn_child'], 'child');
+  if (ages.adult) push(eff['spawns::spawn_adult'], 'adult');
   while (q.length){ const [k, a] = q.shift(); for (const ed of edges(k, a)) push(ed.to, ed.age); }
   return nodes;
+}
+/** Âge de départ (Configuration) toujours acquis ; l'autre âge se déduit en vérifiant que le Temple du
+ * Temps est atteignable dans l'âge de départ, avec les conditions d'ouverture de la Porte du Temps. */
+function computeAges(store, eff){
+  const settings = store.settings, startAge = settings.startingAge === 'adult' ? 'adult' : 'child';
+  const startKey = eff[startAge === 'child' ? 'spawns::spawn_child' : 'spawns::spawn_adult'];
+  if (!startKey) return { child: startAge === 'child', adult: startAge === 'adult' };
+  const trial = { child: startAge === 'child', adult: startAge === 'adult' };
+  const G = deriveGame(store.game, settings, trial);
+  const edges = makeEdges(G, store.costs, eff);
+  const seen = new Set([startKey + '|' + startAge]), q = [[startKey, startAge]];
+  while (q.length){
+    const [k, a] = q.shift();
+    for (const ed of edges(k, a)){
+      if (!ed.to) continue;
+      const id = ed.to + '|' + ed.age;
+      if (!seen.has(id)){ seen.add(id); q.push([ed.to, ed.age]); }
+    }
+  }
+  const canSwap = seen.has(TOT + '|' + startAge) && canOpenDoorOfTime(settings.openDoorOfTime, store.game.items, store.game.songs);
+  return startAge === 'child' ? { child:true, adult:canSwap } : { child:canSwap, adult:true };
 }
 
 /** Dijkstra sur les états (sortie, âge). */
@@ -285,29 +351,112 @@ function shortest(edges, start, startAge, goal, goalAge){
 
 /* ---------- État persistant ---------- */
 const STORE_KEY = 'ootr-pathfinder-v1';
-const GAME_GROUPS = [
-  { title:'Âges', path:'milestone', items:[['childAvailable','Âge enfant accessible'],['adultAvailable','Âge adulte accessible (Épée de Légende)']] },
-  { title:'Progression', path:'milestone', items:[['epona','Epona disponible'],['hasMagic','Magie disponible'],['lostWoodsGoronShortcut','Raccourci Bois Perdus ↔ Village Goron'],
-    ['craterShortcut','Raccourci du Cratère du Péril'],['gerudoBridgeFixed','Pont Gerudo réparé'],['gerudoPass','Pass Gerudo']] },
-  { title:'Équipements', path:'items', items:[['goronBracelet','Bracelet Goron'],['silverGauntlets',"Gantelets d'Argent"],['goldGauntlets',"Gantelets d'Or"],
-    ['goronTunic','Tunique Goron'],['ironBoots','Bottes de Fer'],['hoverBoots','Bottes des Airs'],['silverScale',"Écaille d'Argent"]] },
-  { title:'Objets', path:'items', items:[['bombs','Bombes'],['bombchus','Missiles'],['titanMass','Masse des Titans'],['bow','Arc'],['hookshot','Grappin'],
-    ['longshot','Super-grappin'],['sticks','Bâtons Mojo'],['dinsFire','Feu de Din'],['nayrusLove','Amour de Nayru'],['ocarina','Ocarina'],
-    ['beans','Haricots Magiques'],['bottle','Bouteille'],['rutoLetter','Lettre de Ruto'],['truthLens','Monocle de Vérité']] },
-  { title:'Chants', path:'songs', items:[['zeldaLullaby','Berceuse de Zelda'],['songOfStorms','Chant des Tempêtes'],['songOfTime','Chant du Temps'],['scarecrowSong',"Chant de l'Épouvantail"]] },
-  { title:'Téléportations', path:'songs', items:[['prelude','Prélude de la Lumière'],['minuet','Menuet des Bois'],['bolero','Boléro du Feu'],
-    ['serenade',"Sérénade de l'Eau"],['nocturne',"Nocturne de l'Ombre"],['requiem','Requiem des Esprits']] },
+// kind: 'bool' (chip on/off), 'level' (objet progressif, stages = libellés par palier, palier 0 = aucun),
+// 'count' (compteur libre 0..max, purement informatif). `max` peut être une fonction (settings)=>nombre
+// pour un plafond réglable en Configuration. `visible(settings)` masque l'objet si la fonction renvoie faux.
+const ITEM_GROUPS = [
+  { title:'Récompenses', path:'items', items:[
+    { key:'kokiriEmerald', label:'Émeraude Kokiri', kind:'bool' },
+    { key:'goronRuby', label:'Rubis Goron', kind:'bool' },
+    { key:'zoraSapphire', label:'Saphir Zora', kind:'bool' },
+    { key:'forestMedallion', label:'Médaillon de la Forêt', kind:'bool' },
+    { key:'fireMedallion', label:'Médaillon du Feu', kind:'bool' },
+    { key:'waterMedallion', label:"Médaillon de l'Eau", kind:'bool' },
+    { key:'spiritMedallion', label:"Médaillon de l'Esprit", kind:'bool' },
+    { key:'shadowMedallion', label:"Médaillon de l'Ombre", kind:'bool' },
+    { key:'lightMedallion', label:'Médaillon de la Lumière', kind:'bool' },
+    { key:'triforcePieces', label:'Morceaux de Triforce', kind:'count', max:s => s.triforceHuntMax, visible:s => s.triforceHunt },
+  ]},
+  { title:'Équipement', path:'items', items:[
+    { key:'kokiriSword', label:'Épée Kokiri', kind:'bool' },
+    { key:'masterSword', label:'Épée de Légende', kind:'bool' },
+    { key:'biggoronSword', label:'Épée Biggoron', kind:'bool' },
+    { key:'dekuShield', label:'Bouclier Mojo', kind:'bool' },
+    { key:'hylianShield', label:'Bouclier Hylien', kind:'bool' },
+    { key:'mirrorShield', label:'Bouclier Miroir', kind:'bool' },
+    { key:'kokiriBoots', label:'Bottes Kokiri', kind:'bool' },
+    { key:'ironBoots', label:'Bottes de Plomb', kind:'bool' },
+    { key:'hoverBoots', label:'Bottes des Airs', kind:'bool' },
+    { key:'goronTunic', label:'Tunique Goron', kind:'bool' },
+    { key:'zoraTunic', label:'Tunique Zora', kind:'bool' },
+    { key:'strength', label:'Force', kind:'level', stages:['Aucune','Bracelet Goron',"Gantelets d'Argent","Gantelets d'Or"] },
+    { key:'scale', label:'Écaille de Zora', kind:'level', stages:['Aucune',"Écaille d'Argent","Écaille d'Or"] },
+    { key:'wallet', label:'Bourse', kind:'level', stages:['Bourse (99)','Grande Bourse (200)','Bourse de Géant (500)','Bourse de Magnat (999)'] },
+    { key:'skulltulaTokens', label:"Skulltulas d'Or", kind:'count', max:100 },
+    { key:'gerudoCard', label:'Pass Gerudo', kind:'bool' },
+    { key:'stoneOfAgony', label:'Pierre de Souffrance', kind:'bool' },
+  ]},
+  { title:'Armes enfant', path:'items', items:[
+    { key:'sticks', label:'Bâton Mojo', kind:'level', stages:['Aucun','10','20','30'] },
+    { key:'slingshot', label:'Lance-Pierre', kind:'level', stages:['Aucun','30','40','50'] },
+    { key:'boomerang', label:'Boomerang', kind:'bool' },
+  ]},
+  { title:'Armes adulte', path:'items', items:[
+    { key:'bow', label:'Arc', kind:'level', stages:['Aucun','30','40','50'] },
+    { key:'hookshot', label:'Grappin', kind:'level', stages:['Aucun','Grappin','Super-Grappin'] },
+    { key:'titanMass', label:'Masse des Titans', kind:'bool' },
+    { key:'fireArrows', label:'Flèches de Feu', kind:'bool' },
+    { key:'iceArrows', label:'Flèches de Glace', kind:'bool' },
+    { key:'lightArrows', label:'Flèches de Lumière', kind:'bool' },
+  ]},
+  { title:'Armes communes', path:'items', items:[
+    { key:'nuts', label:'Noix Mojo', kind:'level', stages:['Aucune','20','30','40'] },
+    { key:'bombBag', label:'Bombes', kind:'level', stages:['Aucune','30','40','50'] },
+    { key:'bombchus', label:'Missiles', kind:'bool' },
+  ]},
+  { title:'Objets', path:'items', items:[
+    { key:'beans', label:'Haricots Magiques', kind:'bool' },
+    { key:'truthLens', label:'Monocle de Vérité', kind:'bool' },
+    { key:'bottle', label:'Bouteilles', kind:'count', max:4 },
+    { key:'rutoLetter', label:'Lettre de Ruto', kind:'bool' },
+  ]},
+  { title:'Magie', path:'items', items:[
+    { key:'dinsFire', label:'Feu de Din', kind:'bool' },
+    { key:'faroresWind', label:'Vent de Farore', kind:'bool' },
+    { key:'nayrusLove', label:'Amour de Nayru', kind:'bool' },
+  ]},
+  { title:'Ocarina', path:'items', items:[
+    { key:'ocarina', label:'Ocarina', kind:'level', stages:['Aucune',"Ocarina de Fée","Ocarina du Temps"] },
+  ]},
+  { title:"Notes d'Ocarina (si mélangées)", path:'items', items:[
+    { key:'noteA', label:'Bouton A', kind:'bool' },
+    { key:'noteCUp', label:'C-Haut', kind:'bool' },
+    { key:'noteCRight', label:'C-Droite', kind:'bool' },
+    { key:'noteCLeft', label:'C-Gauche', kind:'bool' },
+    { key:'noteCDown', label:'C-Bas', kind:'bool' },
+  ]},
+  { title:'Statistiques', path:'items', items:[
+    { key:'magic', label:'Magie', kind:'level', stages:['Aucune','Simple','Double'] },
+    { key:'heartPieces', label:'Quarts de Cœur', kind:'count', max:36 },
+    { key:'heartContainers', label:'Réceptacles de Cœur', kind:'count', max:8 },
+    { key:'doubleDefense', label:'Double Défense', kind:'bool' },
+  ]},
+  { title:'Chants appris', path:'songs', items:[
+    { key:'zeldaLullaby', label:'Berceuse de Zelda', kind:'bool' }, { key:'eponasSong', label:"Chant d'Epona", kind:'bool' },
+    { key:'sariasSong', label:'Chant de Saria', kind:'bool' }, { key:'sunsSong', label:'Chant du Soleil', kind:'bool' },
+    { key:'songOfTime', label:'Chant du Temps', kind:'bool' }, { key:'songOfStorms', label:'Chant des Tempêtes', kind:'bool' },
+    { key:'scarecrowSong', label:"Chant de l'Épouvantail", kind:'bool' },
+  ]},
+  { title:'Chants de téléportation', path:'songs', items:[
+    { key:'minuet', label:'Menuet des Bois', kind:'bool' }, { key:'bolero', label:'Boléro du Feu', kind:'bool' },
+    { key:'serenade', label:"Sérénade de l'Eau", kind:'bool' }, { key:'requiem', label:'Requiem des Esprits', kind:'bool' },
+    { key:'nocturne', label:"Nocturne de l'Ombre", kind:'bool' }, { key:'prelude', label:'Prélude de la Lumière', kind:'bool' },
+  ]},
 ];
+const itemMax = it => typeof it.max === 'function' ? it.max(store.settings) : it.max;
+const itemVisible = it => !it.visible || it.visible(store.settings);
 function defaults(){
-  const game = { milestone:{}, items:{}, songs:{} };
-  GAME_GROUPS.forEach(g => g.items.forEach(([k]) => { game[g.path][k] = false; }));
+  const game = { items:{}, songs:{} };
+  ITEM_GROUPS.forEach(g => g.items.forEach(it => { game[g.path][it.key] = it.kind === 'bool' ? false : 0; }));
   return {
     version:1,
     settings:{ overworld:false, interiors:'off', grottos:false, gerudoRiver:false, dungeons:'off', bosses:'off', ganonTower:false, hideout:false,
-      spawns:'none', warps:false, owls:false, decoupled:false, mixedPools:false },
+      spawns:'none', warps:false, owls:false, decoupled:false, mixedPools:false,
+      startingAge:'child', openDoorOfTime:'stones_sot', gerudoFortress:'normal',
+      triforceHunt:false, triforceHuntMax:20 },
     costs:{ transition:3, warp:15, reset:25, age:12 },
     game, mappings:{},
-    ui:{ view:'tracker', collapsed:{},
+    ui:{ view:'tracker', collapsed:{}, itemsCollapsed:{},
       filters:{ showReachableTargets:false, showInaccessibleAreas:false, showDiscovered:true, showVanilla:true },
       router:{ fromArea:'', fromExit:'', fromAge:'child', toArea:'', toExit:'', toAge:'any' } },
   };
@@ -336,8 +485,10 @@ watch(store, () => {
 
 const effC = computed(() => computeEff(store));
 const incC = computed(() => computeIncoming(effC.value));
-const edgesC = computed(() => makeEdges(store, effC.value));
-const reachC = computed(() => flood(store, effC.value, edgesC.value));
+const agesC = computed(() => computeAges(store, effC.value));
+const gameC = computed(() => deriveGame(store.game, store.settings, agesC.value));
+const edgesC = computed(() => makeEdges(gameC.value, store.costs, effC.value));
+const reachC = computed(() => flood(agesC.value, effC.value, edgesC.value));
 
 /* ---------- Mutations ---------- */
 function clearMapping(src){
@@ -467,7 +618,7 @@ const DestPicker = {
 const App = {
   components:{ TypeIcon, Seg, DestPicker },
   setup(){
-    const navOpen = ref(false), modal = ref(null), tip = reactive({ show:false, key:null, style:{} });
+    const navOpen = ref(false), itemsOpen = ref(false), modal = ref(null), tip = reactive({ show:false, key:null, style:{} });
     const backup = reactive({ text:'', msg:'', ok:true });
     const ui = store.ui, s = store.settings;
 
@@ -480,7 +631,7 @@ const App = {
     function rowInfo(e){
       if (e.specialTag) return { mode:'auto', target:effC.value[e.key] };
       if (!isRandomized(e, store.settings)) return { mode:'vanilla', target:e.vanilla };
-      if (!isUnlocked(e, store.game)) return { mode:'locked', target:null, reason:lockedReason(e) };
+      if (!isUnlocked(e, gameC.value)) return { mode:'locked', target:null, reason:lockedReason(e) };
       const t = store.mappings[e.key];
       return t && EXIT[t] ? { mode:'set', target:t } : { mode:'open', target:null };
     }
@@ -488,9 +639,9 @@ const App = {
     // Spawns randomisés (Configuration > spawns) mais pas encore renseignés : aucun point de départ connu,
     // donc rien n'est calculable comme atteignable tant qu'ils ne sont pas notés.
     const missingSpawns = computed(() => {
-      const ms = store.game.milestone, eff = effC.value, out = [];
-      if (ms.childAvailable && isRandomized(EXIT['spawns::spawn_child'], store.settings) && !eff['spawns::spawn_child']) out.push('Enfant');
-      if (ms.adultAvailable && isRandomized(EXIT['spawns::spawn_adult'], store.settings) && !eff['spawns::spawn_adult']) out.push('Adulte');
+      const ages = agesC.value, eff = effC.value, out = [];
+      if (ages.child && isRandomized(EXIT['spawns::spawn_child'], store.settings) && !eff['spawns::spawn_child']) out.push('Enfant');
+      if (ages.adult && isRandomized(EXIT['spawns::spawn_adult'], store.settings) && !eff['spawns::spawn_adult']) out.push('Adulte');
       return out;
     });
 
@@ -515,7 +666,36 @@ const App = {
       }).filter(Boolean);
     });
 
-    const gameCount = computed(() => GAME_GROUPS.reduce((n, g) => n + g.items.filter(([k]) => store.game[g.path][k]).length, 0));
+    const itemActive = v => typeof v === 'boolean' ? v : v > 0;
+    const gameCount = computed(() => ITEM_GROUPS.reduce((n, g) => n + g.items.filter(it => itemVisible(it) && itemActive(store.game[g.path][it.key])).length, 0));
+    function setCount(path, key, max, v){ store.game[path][key] = Math.max(0, Math.min(max, Math.round(v) || 0)); }
+    const brokenIcons = reactive({});
+    function itemTitle(path, it){
+      const v = store.game[path][it.key];
+      if (it.kind === 'level') return `${it.label} — ${it.stages[v]}`;
+      if (it.kind === 'count') return `${it.label} : ${v}`;
+      return it.label;
+    }
+    // Objets à paliers : une image par palier (ex. strength_1/2/3.png) ; le palier 0 réutilise l'image
+    // du palier 1, grisée (classe .off), faute de sprite « aucun objet ».
+    function iconKeyOf(path, it){
+      const v = store.game[path][it.key];
+      return it.kind === 'level' ? `${it.key}_${Math.max(1, v)}` : it.key;
+    }
+    function iconSrc(path, it){ return 'icons/items/' + iconKeyOf(path, it) + '.png'; }
+    function clickItem(ev, path, it){
+      const v = store.game[path][it.key];
+      if (it.kind === 'bool') store.game[path][it.key] = !v;
+      else if (it.kind === 'level') store.game[path][it.key] = v >= it.stages.length - 1 ? 0 : v + 1;
+      else setCount(path, it.key, itemMax(it), v + (ev.shiftKey ? 10 : 1));
+    }
+    function rightClickItem(ev, path, it){
+      const v = store.game[path][it.key];
+      if (it.kind === 'bool') store.game[path][it.key] = false;
+      else if (it.kind === 'level') store.game[path][it.key] = v <= 0 ? it.stages.length - 1 : v - 1;
+      else setCount(path, it.key, itemMax(it), v - (ev.shiftKey ? 10 : 1));
+    }
+    function toggleItemGroup(title){ ui.itemsCollapsed[title] = !ui.itemsCollapsed[title]; }
 
     function toggleArea(id){ ui.collapsed[id] = !ui.collapsed[id]; }
     function setAll(collapsed){ AREAS.forEach(a => { ui.collapsed[a.id] = collapsed; }); }
@@ -533,7 +713,7 @@ const App = {
     /* Infobulle des connexions internes */
     const tipData = computed(() => {
       if (!tip.key) return null;
-      const e = EXIT[tip.key], G = store.game, ms = G.milestone;
+      const e = EXIT[tip.key], G = gameC.value, ms = G.milestone;
       const ages = [ms.childAvailable && 'child', ms.adultAvailable && 'adult'].filter(Boolean);
       return { title:e.label, items:e.connections.map(c => {
         const ok = ages.filter(a => connGroup(c, G, a));
@@ -608,8 +788,10 @@ const App = {
 
     const savedAt = computed(() => lastSaved.value ? lastSaved.value.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit', second:'2-digit' }) : null);
 
-    return { store, ui, s, views, navOpen, modal, tip, tipData, backup, stats, missingSpawns, visibleAreas, gameCount, ICONS, GAME_GROUPS, AREA, EXIT, DATA_ERRORS,
-      iconKey, areaName, toggleArea, setAll, jump, go, showTip, hideTip, toggleTip, setMapping, clearMapping,
+    return { store, ui, s, views, navOpen, itemsOpen, modal, tip, tipData, backup, stats, missingSpawns, visibleAreas, gameCount, ages:agesC, derived:gameC,
+      ICONS, ITEM_GROUPS, AREA, EXIT, DATA_ERRORS,
+      iconKey, areaName, toggleArea, setAll, jump, go, showTip, hideTip, toggleTip, setMapping, clearMapping, setCount,
+      brokenIcons, itemTitle, clickItem, rightClickItem, itemActive, iconKeyOf, iconSrc, itemVisible, toggleItemGroup,
       routerAreas, exitsOf, swap, route, edgeLabel, ageLabel, openBackup, copyBackup, importBackup, resetAll, savedAt, TYPE_LABEL };
   },
   template:`
@@ -617,6 +799,7 @@ const App = {
   <header class="topbar">
     <button @click="navOpen=!navOpen" aria-label="Menu" v-html="ICONS.menu"></button>
     <span class="tri" v-html="ICONS.triforce"></span><span>Pathfinder d'Hyrule</span>
+    <button class="topbar-items" @click="itemsOpen=!itemsOpen" aria-label="Objets" v-html="ICONS.bag"></button>
   </header>
 
   <aside class="side">
@@ -627,7 +810,6 @@ const App = {
         <span v-html="v.icon"></span>{{v.label}}
         <span v-if="v.id==='tracker'" class="nav-meta">{{stats.mapped}}/{{stats.editable}}</span></button>
     </nav>
-    <button class="state-btn" @click="modal='game'">État de la partie <span class="count">{{gameCount}}</span></button>
 
     <section v-if="ui.view==='tracker'" class="side-sec">
       <div class="side-row"><button class="side-btn" @click="setAll(false)">Tout déplier</button><button class="side-btn" @click="setAll(true)">Tout replier</button></div>
@@ -650,7 +832,6 @@ const App = {
       <button class="danger-btn" @click="modal='reset'">Tout remettre à zéro</button>
     </div>
   </aside>
-  <div class="scrim" @click="navOpen=false"></div>
 
   <main class="main">
     <!-- ================= TRACKER ================= -->
@@ -658,10 +839,6 @@ const App = {
       <div class="page-head"><h1>Tracker</h1>
         <p class="lede">{{stats.mapped}} sorties découvertes sur {{stats.editable}} randomisées.</p></div>
       <div class="container">
-        <div v-if="!store.game.milestone.childAvailable && !store.game.milestone.adultAvailable" class="warn-box">
-          <span class="warn-box-ic" v-html="ICONS.warn"></span>
-          <div><b>Aucun âge n'est encore accessible.</b> Indiquez l'âge de départ dans <a href="#" @click.prevent="modal='game'">État de la partie</a> :
-          les zones atteignables et le routeur en dépendent.</div></div>
         <div v-if="missingSpawns.length" class="warn-box">
           <span class="warn-box-ic" v-html="ICONS.warn"></span>
           <div><b>Spawn {{missingSpawns.join(' et ')}} non renseigné{{missingSpawns.length>1?'s':''}}.</b> Les spawns sont randomisés
@@ -781,6 +958,18 @@ const App = {
       <div v-if="DATA_ERRORS.length" class="errors"><b>{{DATA_ERRORS.length}} incohérence{{DATA_ERRORS.length>1?'s':''}} dans les données</b>
         <ul><li v-for="(er,i) in DATA_ERRORS" :key="i">{{er}}</li></ul></div>
       <div class="cgrid">
+        <section class="cblock"><h2>Progression</h2><p>Détermine automatiquement les âges accessibles, Epona et les raccourcis (voir panneau Objets).</p>
+          <div class="copt"><div><div class="t">Âge de départ</div></div><seg v-model="s.startingAge" :options="[['child','Enfant'],['adult','Adulte']]"></seg></div>
+          <div class="copt"><div><div class="t">Porte du Temps</div><div class="h">Condition pour devenir l'autre âge au Temple du Temps.</div></div>
+            <select class="sel" v-model="s.openDoorOfTime" style="max-width:280px">
+              <option value="stones_sot">Pierres Spirituelles + Chant du Temps</option>
+              <option value="stones">Pierres Spirituelles seules</option>
+              <option value="stones_oot_sot">Pierres + Ocarina du Temps + Chant du Temps</option>
+              <option value="sot">Chant du Temps seul</option>
+              <option value="oot_sot">Ocarina du Temps + Chant du Temps</option>
+              <option value="open">Ouverte (aucune condition)</option>
+            </select></div>
+        </section>
         <section class="cblock"><h2>Monde</h2><p>Zones extérieures, bâtiments et grottes.</p>
           <div class="copt"><div><div class="t">Sorties de l'overworld</div></div><seg v-model="s.overworld" :options="[[false,'Vanilla'],[true,'Aléatoires']]"></seg></div>
           <div class="copt"><div><div class="t">Intérieurs</div><div class="h">« Tous » ajoute le moulin, le Temple du Temps, la maison de Link, l'apothicaire et la tombe d'Igor.</div></div>
@@ -794,8 +983,10 @@ const App = {
           <div class="copt"><div><div class="t">Boss</div><div class="h">« Par âge » mélange les boss enfant entre eux et les boss adulte entre eux.</div></div>
             <seg v-model="s.bosses" :options="[['off','Vanilla'],['age','Par âge'],['full','Complet']]"></seg></div>
           <div class="copt"><div><div class="t">Entrée de la Tour de Ganon</div></div><seg v-model="s.ganonTower" :options="[[false,'Vanilla'],[true,'Aléatoire']]"></seg></div>
-          <div class="copt"><div><div class="t">Forteresse Gerudo</div><div class="h">Entrées du repaire des voleurs, mélangées avec les intérieurs.</div></div>
+          <div class="copt"><div><div class="t">Sorties du repaire Gerudo</div><div class="h">Entrées du repaire des voleurs, mélangées avec les intérieurs.</div></div>
             <seg v-model="s.hideout" :options="[[false,'Vanilla'],[true,'Aléatoires']]"></seg></div>
+          <div class="copt"><div><div class="t">Forteresse Gerudo — gardiens à libérer</div><div class="h">« Ouverte » donne la Carte Gerudo dès le départ (voir panneau Objets).</div></div>
+            <seg v-model="s.gerudoFortress" :options="[['normal','4 (normal)'],['fast','1 (rapide)'],['open','Ouverte']]"></seg></div>
         </section>
         <section class="cblock"><h2>Apparitions et téléportations</h2><p>Destinations à sens unique : elles s'ajoutent aux entrées existantes.</p>
           <div class="copt"><div><div class="t">Points d'apparition</div></div><seg v-model="s.spawns" :options="[['none','Aucun'],['child','Enfant'],['adult','Adulte'],['all','Tous']]"></seg></div>
@@ -807,6 +998,10 @@ const App = {
             <seg v-model="s.decoupled" :options="[[false,'Non'],[true,'Oui']]"></seg></div>
           <div class="copt"><div><div class="t">Pools mélangés</div><div class="h">Proposer toutes les destinations, quel que soit le type de sortie.</div></div>
             <seg v-model="s.mixedPools" :options="[[false,'Non'],[true,'Oui']]"></seg></div>
+          <div class="copt"><div><div class="t">Chasse à la Triforce</div><div class="h">Ajoute le compteur « Morceaux de Triforce » dans le panneau Objets.</div></div>
+            <seg v-model="s.triforceHunt" :options="[[false,'Non'],[true,'Oui']]"></seg></div>
+          <div class="copt" v-if="s.triforceHunt"><div><div class="t">Morceaux de Triforce requis</div></div>
+            <input type="number" min="1" max="100" v-model.number="s.triforceHuntMax" style="width:90px"></div>
           <div class="copt" style="display:block"><div class="t">Coûts du routeur</div><div class="h">Même unité que les coûts de déplacement des données.</div>
             <div class="costs">
               <div class="field"><label for="c1">Transition</label><input id="c1" type="number" min="0" v-model.number="store.costs.transition"></div>
@@ -819,6 +1014,43 @@ const App = {
     </template>
   </main>
 
+  <aside class="side side-right" :class="{open:itemsOpen}">
+    <div class="side-right-head">
+      <h3>Objets <span class="count">{{gameCount}}</span></h3>
+      <button @click="itemsOpen=false" aria-label="Fermer" v-html="ICONS.close"></button>
+    </div>
+    <div class="side-right-body">
+      <div class="side-title">Progression (calculée)</div>
+      <div class="status-strip">
+        <span class="status-pill" :class="{on:ages.child}">Enfant</span>
+        <span class="status-pill" :class="{on:ages.adult}">Adulte</span>
+        <span class="status-pill" :class="{on:derived.milestone.epona}">Epona</span>
+        <span class="status-pill" :class="{on:derived.milestone.lostWoodsGoronShortcut}">Bois Perdus ↔ Goron</span>
+        <span class="status-pill" :class="{on:derived.milestone.craterShortcut}">Raccourci Cratère</span>
+        <span class="status-pill" :class="{on:derived.milestone.gerudoBridgeFixed}">Pont/Carte Gerudo</span>
+      </div>
+      <p class="note">Déterminé automatiquement à partir de la Configuration et des objets ci-dessous — voir SPEC.md.</p>
+      <template v-for="g in ITEM_GROUPS" :key="g.title">
+        <button type="button" class="side-title group-head" @click="toggleItemGroup(g.title)" :aria-expanded="!ui.itemsCollapsed[g.title]">
+          <span v-html="ICONS.chevron" :class="{collapsed:ui.itemsCollapsed[g.title]}"></span>{{g.title}}</button>
+        <div v-if="!ui.itemsCollapsed[g.title]" class="icon-grid">
+          <template v-for="it in g.items" :key="it.key">
+          <button v-if="itemVisible(it)" type="button" class="icon-tile" :class="{off:!itemActive(store.game[g.path][it.key])}"
+            :aria-label="it.label" :title="itemTitle(g.path, it)"
+            @click="clickItem($event, g.path, it)" @contextmenu.prevent="rightClickItem($event, g.path, it)">
+            <img v-if="!brokenIcons[iconKeyOf(g.path,it)]" :src="iconSrc(g.path,it)" :alt="it.label" @error="brokenIcons[iconKeyOf(g.path,it)]=true">
+            <span v-else class="icon-fallback" v-html="ICONS.bag"></span>
+            <span v-if="it.kind==='count'" class="icon-badge count">{{store.game[g.path][it.key]}}</span>
+          </button>
+          </template>
+        </div>
+      </template>
+      <p class="note">Clic gauche : augmenter / activer. Clic droit : diminuer / désactiver. Majuscule + clic sur un compteur : ±10.</p>
+    </div>
+  </aside>
+
+  <div class="scrim" @click="navOpen=false; itemsOpen=false"></div>
+
   <!-- Infobulle -->
   <div v-if="tip.show && tipData" class="tip" :style="tip.style" role="tooltip">
     <h4>Depuis « {{tipData.title}} », à pied</h4>
@@ -830,15 +1062,7 @@ const App = {
   <!-- Modales -->
   <div v-if="modal" class="overlay" @mousedown.self="modal=null">
     <div class="modal" role="dialog" aria-modal="true">
-      <template v-if="modal==='game'">
-        <header><h3>État de la partie</h3><button @click="modal=null" aria-label="Fermer" v-html="ICONS.close"></button></header>
-        <div class="body">
-          <template v-for="g in GAME_GROUPS" :key="g.title"><h4>{{g.title}}</h4>
-            <div class="chips"><button v-for="it in g.items" :key="it[0]" class="chip" :class="{on:store.game[g.path][it[0]]}" :aria-pressed="store.game[g.path][it[0]]"
-              @click="store.game[g.path][it[0]] = !store.game[g.path][it[0]]">{{it[1]}}</button></div></template>
-        </div>
-      </template>
-      <template v-else-if="modal==='backup'">
+      <template v-if="modal==='backup'">
         <header><h3>Exporter ou importer</h3><button @click="modal=null" aria-label="Fermer" v-html="ICONS.close"></button></header>
         <div class="body">
           <p style="margin-top:0">La partie est enregistrée automatiquement dans ce navigateur. Pour la transférer ailleurs, copiez ce texte puis collez-le dans l'autre navigateur et cliquez sur « Importer ».</p>
