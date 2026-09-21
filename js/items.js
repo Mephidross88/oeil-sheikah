@@ -2,6 +2,8 @@
 // kind: 'bool' (chip on/off), 'level' (objet progressif, stages = libellés par palier, palier 0 = aucun),
 // 'count' (compteur libre 0..max, purement informatif). `max` peut être une fonction (settings)=>nombre
 // pour un plafond réglable en Configuration. `visible(settings)` masque l'objet si la fonction renvoie faux.
+// `locked:true` (objet `bool` uniquement) : toujours possédé, non désactivable (équipement de départ
+// jamais réellement obtenu en jeu, ex. Tunique/Bottes Kokiri) — la tuile ignore les clics.
 const ITEM_GROUPS = [
   { title:'Récompenses', path:'items', items:[
     { key:'kokiriEmerald', label:'Émeraude Kokiri', kind:'bool', icon:'rewards/stones/forest.png' },
@@ -22,10 +24,10 @@ const ITEM_GROUPS = [
     { key:'dekuShield', label:'Bouclier Mojo', kind:'bool', icon:'equipment/shields/deku.png' },
     { key:'hylianShield', label:'Bouclier Hylien', kind:'bool', icon:'equipment/shields/hylian.png' },
     { key:'mirrorShield', label:'Bouclier Miroir', kind:'bool', icon:'equipment/shields/mirror.png' },
-    { key:'kokiriBoots', label:'Bottes Kokiri', kind:'bool', icon:'equipment/boots/kokiri.png' },
+    { key:'kokiriBoots', label:'Bottes Kokiri', kind:'bool', icon:'equipment/boots/kokiri.png', locked:true },
     { key:'ironBoots', label:'Bottes de Plomb', kind:'bool', icon:'equipment/boots/iron.png' },
     { key:'hoverBoots', label:'Bottes des Airs', kind:'bool', icon:'equipment/boots/hover.png' },
-    { key:'kokiriTunic', label:'Tunique Kokiri', kind:'bool', icon:'equipment/tunics/kokiri.png' },
+    { key:'kokiriTunic', label:'Tunique Kokiri', kind:'bool', icon:'equipment/tunics/kokiri.png', locked:true },
     { key:'goronTunic', label:'Tunique Goron', kind:'bool', icon:'equipment/tunics/goron.png' },
     { key:'zoraTunic', label:'Tunique Zora', kind:'bool', icon:'equipment/tunics/zora.png' },
     { key:'strength', label:'Force', kind:'level', stages:['Aucune','Bracelet Goron',"Gantelets d'Argent","Gantelets d'Or"],

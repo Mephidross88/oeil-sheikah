@@ -50,14 +50,23 @@ const App = {
       }).filter(Boolean);
     });
 
-    const itemActive = v => typeof v === 'boolean' ? v : v > 0;
+    const itemActive = (it, v) => it.locked || (typeof v === 'boolean' ? v : v > 0);
     function setCount(path, key, max, v){ store.game[path][key] = Math.max(0, Math.min(max, Math.round(v) || 0)); }
     const brokenIcons = reactive({});
     function itemTitle(path, it){
       const v = store.game[path][it.key];
+      if (it.locked) return `${it.label} (toujours possédé)`;
       if (it.kind === 'level') return `${it.label} — ${it.stages[v]}`;
       if (it.kind === 'count') return `${it.label} : ${v}`;
       return it.label;
+    }
+    // Pastille grise tant que l'objet n'est pas à son maximum, dorée une fois au maximum
+    // (ex. Skulltulas : gris jusqu'à 99, doré à 100 ; Arc : gris à 30/40, doré à 50).
+    function itemMaxed(path, it){
+      const v = store.game[path][it.key];
+      if (it.kind === 'count') return v >= itemMax(it);
+      if (it.kind === 'level' && it.sizes) return v >= it.stages.length - 1;
+      return false;
     }
     // Chemin d'icône : convention par défaut icons/items/<clé>[_<palier>].png, sauf si l'objet définit
     // `icon` (chemin fixe, relatif à icons/) ou `icons` (tableau de chemins, un par palier non nul).
@@ -76,12 +85,14 @@ const App = {
     // un objet déjà au maximum (ou non progressif déjà obtenu) ignore le clic gauche, et un objet
     // non obtenu ignore le clic droit.
     function clickItem(ev, path, it){
+      if (it.locked) return;
       const v = store.game[path][it.key];
       if (it.kind === 'bool'){ if (!v) store.game[path][it.key] = true; }
       else if (it.kind === 'level'){ if (v < it.stages.length - 1) store.game[path][it.key] = v + 1; }
       else setCount(path, it.key, itemMax(it), v + (ev.shiftKey ? 10 : 1));
     }
     function rightClickItem(ev, path, it){
+      if (it.locked) return;
       const v = store.game[path][it.key];
       if (it.kind === 'bool'){ if (v) store.game[path][it.key] = false; }
       else if (it.kind === 'level'){ if (v > 0) store.game[path][it.key] = v - 1; }
@@ -183,7 +194,7 @@ const App = {
     return { store, ui, s, views, navOpen, itemsOpen, modal, tip, tipData, backup, stats, missingSpawns, visibleAreas, ages:agesC, derived:gameC,
       ICONS, ITEM_GROUPS, AREA, EXIT, DATA_ERRORS,
       iconKey, areaName, toggleArea, setAll, jump, go, showTip, hideTip, toggleTip, setMapping, clearMapping, setCount,
-      brokenIcons, itemTitle, clickItem, rightClickItem, itemActive, iconSrc, itemVisible, toggleItemGroup,
+      brokenIcons, itemTitle, itemMaxed, clickItem, rightClickItem, itemActive, iconSrc, itemVisible, toggleItemGroup,
       routerAreas, exitsOf, swap, route, edgeLabel, ageLabel, openBackup, copyBackup, importBackup, resetAll, savedAt, TYPE_LABEL };
   },
   template:`
@@ -427,13 +438,13 @@ const App = {
           <span v-html="ICONS.chevron" :class="{collapsed:ui.itemsCollapsed[g.title]}"></span>{{g.title}}</button>
         <div v-if="!ui.itemsCollapsed[g.title]" class="icon-grid">
           <template v-for="it in g.items" :key="it.key">
-          <button v-if="itemVisible(it)" type="button" class="icon-tile" :class="{off:!itemActive(store.game[g.path][it.key])}"
-            :aria-label="it.label" :title="itemTitle(g.path, it)"
+          <button v-if="itemVisible(it)" type="button" class="icon-tile" :class="{off:!itemActive(it, store.game[g.path][it.key])}"
+            :disabled="it.locked" :aria-label="it.label" :title="itemTitle(g.path, it)"
             @click="clickItem($event, g.path, it)" @contextmenu.prevent="rightClickItem($event, g.path, it)">
             <img v-if="!brokenIcons[iconSrc(g.path,it)]" :src="iconSrc(g.path,it)" :alt="it.label" @error="brokenIcons[iconSrc(g.path,it)]=true">
             <span v-else class="icon-fallback" v-html="ICONS.bag"></span>
-            <span v-if="it.kind==='count'" class="icon-badge count">{{store.game[g.path][it.key]}}</span>
-            <span v-else-if="it.sizes && it.sizes[store.game[g.path][it.key]]" class="icon-badge">{{it.sizes[store.game[g.path][it.key]]}}</span>
+            <span v-if="it.kind==='count'" class="icon-badge" :class="{maxed:itemMaxed(g.path,it)}">{{store.game[g.path][it.key]}}</span>
+            <span v-else-if="it.sizes && it.sizes[store.game[g.path][it.key]]" class="icon-badge" :class="{maxed:itemMaxed(g.path,it)}">{{it.sizes[store.game[g.path][it.key]]}}</span>
           </button>
           </template>
         </div>

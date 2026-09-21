@@ -2,7 +2,7 @@
 const STORE_KEY = 'ootr-pathfinder-v1';
 function defaults(){
   const game = { items:{}, songs:{} };
-  ITEM_GROUPS.forEach(g => g.items.forEach(it => { game[g.path][it.key] = it.kind === 'bool' ? false : 0; }));
+  ITEM_GROUPS.forEach(g => g.items.forEach(it => { game[g.path][it.key] = it.locked ? true : it.kind === 'bool' ? false : 0; }));
   return {
     version:1,
     settings:{ overworld:false, interiors:'off', grottos:false, gerudoRiver:false, dungeons:'off', bosses:'off', ganonTower:false, hideout:false,

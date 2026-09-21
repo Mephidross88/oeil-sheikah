@@ -99,15 +99,16 @@ svg{display:block}
 .status-pill.on{border-color:var(--green);color:var(--green);background:var(--green-soft)}
 .icon-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(40px,1fr));gap:5px;margin-bottom:6px}
 .icon-tile{position:relative;aspect-ratio:1;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);padding:4px;display:grid;place-items:center;overflow:visible}
-.icon-tile:hover{border-color:var(--gold)}
+.icon-tile:not(:disabled):hover{border-color:var(--gold)}
+.icon-tile:disabled{cursor:default}
 .icon-tile img{width:100%;height:100%;object-fit:contain}
 .icon-tile.off{opacity:.32;filter:grayscale(1)}
 .icon-tile:not(.off){border-color:var(--gold);background:var(--gold-soft)}
 .icon-fallback{width:60%;height:60%;color:var(--muted)}
 .icon-fallback svg{width:100%;height:100%}
-.icon-badge{position:absolute;right:-4px;bottom:-4px;min-width:16px;height:16px;padding:0 3px;border-radius:999px;background:var(--gold);color:#1c1a12;
+.icon-badge{position:absolute;right:-4px;bottom:-4px;min-width:16px;height:16px;padding:0 3px;border-radius:999px;background:var(--muted);color:#fff;
   font-size:10px;font-weight:700;display:grid;place-items:center;line-height:1;box-shadow:0 0 0 2px var(--surface)}
-.icon-badge.count{background:var(--ocarina);color:#fff}
+.icon-badge.maxed{background:var(--gold);color:#1c1a12}
 
 .main{padding:30px clamp(16px,3vw,40px) 60px;min-width:0}
 .page-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 18px;margin-bottom:20px;max-width:1240px}
