@@ -367,12 +367,13 @@ const DestPicker = {
   data:() => ({ open:false, q:'', hl:0, pos:{}, ICONS }),
   computed:{
     all(){
-      if (!this.open) return { groups:[], flat:[], hidden:0 };
+      if (!this.open) return { groups:[], flat:[] };
       const reach = reachC.value, show = store.ui.filters.showReachableTargets, nq = norm(this.q.trim());
-      let hidden = 0; const byArea = new Map();
+      const used = new Set(Object.entries(store.mappings).filter(([k]) => k !== this.source).map(([, v]) => v));
+      const byArea = new Map();
       for (const e of candidatesFor(this.source)){
-        const r = reach.has(e.key);
-        if (r && !show){ hidden++; continue; }
+        const r = reach.has(e.key) || used.has(e.key);
+        if (r && !show) continue;
         const an = AREA[e.areaId].name;
         if (nq && !norm(e.label + ' ' + an).includes(nq)) continue;
         if (!byArea.has(e.areaId)) byArea.set(e.areaId, { id:e.areaId, name:an, options:[] });
@@ -380,7 +381,7 @@ const DestPicker = {
       }
       const groups = [...byArea.values()], flat = [];
       groups.forEach(g => g.options.forEach(o => { o.idx = flat.length; flat.push(o); }));
-      return { groups, flat, hidden };
+      return { groups, flat };
     },
   },
   methods:{
@@ -433,7 +434,6 @@ const DestPicker = {
         </template>
         <div v-if="!all.flat.length" class="pg-empty">{{ q ? 'Aucune destination ne correspond au filtre.' : 'Aucune destination libre dans ce pool.' }}</div>
       </div>
-      <div v-if="all.hidden" class="pg-note">{{all.hidden}} destination{{all.hidden>1?'s':''}} déjà atteignable{{all.hidden>1?'s':''}} masquée{{all.hidden>1?'s':''}}. Option dans le panneau de gauche.</div>
     </div></div>`,
 };
 
@@ -595,7 +595,7 @@ const App = {
 
     <section v-if="ui.view==='tracker'" class="side-sec">
       <div class="side-row"><button class="side-btn" @click="setAll(false)">Tout déplier</button><button class="side-btn" @click="setAll(true)">Tout replier</button></div>
-      <label class="check"><input type="checkbox" v-model="ui.filters.showReachableTargets">Proposer les destinations déjà atteignables</label>
+      <label class="check"><input type="checkbox" v-model="ui.filters.showReachableTargets">Proposer les destinations déjà atteignables ou déjà mappées</label>
       <label class="check"><input type="checkbox" v-model="ui.filters.showInaccessibleAreas">Afficher les zones non atteintes</label>
       <label class="check"><input type="checkbox" v-model="ui.filters.showDiscovered">Afficher les sorties découvertes</label>
       <label class="check"><input type="checkbox" v-model="ui.filters.showVanilla">Afficher les sorties non randomisées</label>

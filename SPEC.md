@@ -14,9 +14,11 @@ Référence du rando : https://wiki.ootrandomizer.com/index.php?title=Entrance_R
 - Accès aux trois modules : Tracker, Routeur, Configuration.
 - Bouton « État de la partie » (modale) ; sa pastille compte toutes les options cochées, âges compris.
 - Dans le Tracker uniquement : tout déplier / tout replier, navigation rapide vers les zones, et filtres :
-  - Proposer les destinations déjà atteignables dans les listes : OFF par défaut.
-    Si OFF, la liste l'indique (« N destinations déjà atteignables masquées »).
-    Si ON, elles sont affichées en grisé avec la mention « Atteignable ».
+  - Proposer les destinations déjà atteignables ou déjà mappées dans les listes : OFF par défaut.
+    Une destination déjà mappée (déjà la cible d'une autre sortie, y compris pour les sorties à sens
+    unique — hiboux, chants, spawns, rivière Gerudo — qui ne « consomment » pas leur cible) est traitée
+    comme une destination atteignable : masquée si OFF, affichée en grisé avec la mention « Atteignable »
+    si ON.
   - Afficher les zones non atteintes (aucun chemin connu n'y mène) : OFF par défaut.
   - Afficher les sorties découvertes : ON par défaut.
   - Afficher les sorties non randomisées : ON par défaut.
