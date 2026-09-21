@@ -140,7 +140,7 @@ function poolOf(e){
 const isTwoWay = e => { const p = poolOf(e); return !!p && !['oneway','boss','bossroom','pad'].includes(p); };
 const POOL_LABEL = { overworld:'extérieurs', interior:'intérieurs', grotto:'grottes', dungeon:'donjons', boss:'salles de boss', oneway:'destinations' };
 
-function isEditable(e, s){
+function isRandomized(e, s){
   if (e.destOnly || e.specialTag) return false;
   switch (e.shuffleTag){
     case 'spawn':
@@ -162,20 +162,39 @@ function isEditable(e, s){
   }
   return false;
 }
+// Une sortie à sens unique (spawn, chant) n'est réellement connue du joueur qu'une fois débloquée dans sa partie :
+// spawn enfant/adulte avec l'âge correspondant accessible, chant avec l'ocarina et le chant lui-même appris.
+function isUnlocked(e, G){
+  if (e.shuffleTag === 'spawn'){
+    if (e.id === 'spawn_child') return G.milestone.childAvailable;
+    if (e.id === 'spawn_adult') return G.milestone.adultAvailable;
+  }
+  if (e.shuffleTag === 'warp'){
+    const song = WARP_SONGS[e.key];
+    return !!(song && G.items.ocarina && G.songs[song]);
+  }
+  return true;
+}
+function lockedReason(e){
+  if (e.id === 'spawn_child') return "Débloqué quand l'âge enfant est accessible";
+  if (e.id === 'spawn_adult') return "Débloqué quand l'âge adulte est accessible";
+  if (e.shuffleTag === 'warp') return "Débloqué avec l'Ocarina et le chant appris";
+  return '';
+}
 
 /** Cibles effectives de toutes les sorties (null = inconnue). */
 function computeEff(state){
   const s = state.settings, m = state.mappings, eff = {};
   for (const e of ALL_EXITS){
     if (e.destOnly || e.specialTag) continue;
-    eff[e.key] = isEditable(e, s) ? (m[e.key] && EXIT[m[e.key]] ? m[e.key] : null) : e.vanilla;
+    eff[e.key] = isRandomized(e, s) ? (m[e.key] && EXIT[m[e.key]] ? m[e.key] : null) : e.vanilla;
   }
   // Téléporteurs bleus : on ressort devant l'entrée qui mène au donjon dont on a franchi la porte de boss.
   for (const r of BOSS_ROOMS){
     const door = BOSS_DOORS.find(d => eff[d.key] === r.key);
     if (!door){ eff[r.key] = null; continue; }
     const x = dungeonExitOf(door.areaId);
-    if (x && isEditable(x, s)) eff[r.key] = eff[x.key] || null;
+    if (x && isRandomized(x, s)) eff[r.key] = eff[x.key] || null;
     else eff[r.key] = (BOSS_ROOMS.find(b => b.areaId === door.areaId) || r).vanilla;
   }
   return eff;
@@ -339,7 +358,7 @@ function candidatesFor(srcKey){
       && (s.mixedPools || ['overworld','interior','pad'].includes(poolOf(e))));
   }
   return ALL_EXITS.filter(e => {
-    if (e.key === srcKey || e.areaId === SPAWN_AREA || !isTwoWay(e) || !isEditable(e, s)) return false;
+    if (e.key === srcKey || e.areaId === SPAWN_AREA || !isTwoWay(e) || !isRandomized(e, s)) return false;
     if (!s.mixedPools && poolOf(e) !== pool) return false;
     if ((inc[e.key]||[]).some(k => k !== srcKey && isTwoWay(EXIT[k]))) return false;
     if (!s.decoupled && store.mappings[e.key] && store.mappings[e.key] !== srcKey) return false;
@@ -453,10 +472,20 @@ const App = {
 
     function rowInfo(e){
       if (e.specialTag) return { mode:'auto', target:effC.value[e.key] };
-      if (!isEditable(e, store.settings)) return { mode:'vanilla', target:e.vanilla };
+      if (!isRandomized(e, store.settings)) return { mode:'vanilla', target:e.vanilla };
+      if (!isUnlocked(e, store.game)) return { mode:'locked', target:null, reason:lockedReason(e) };
       const t = store.mappings[e.key];
       return t && EXIT[t] ? { mode:'set', target:t } : { mode:'open', target:null };
     }
+
+    // Spawns randomisés (Configuration > spawns) mais pas encore renseignés : aucun point de départ connu,
+    // donc rien n'est calculable comme atteignable tant qu'ils ne sont pas notés.
+    const missingSpawns = computed(() => {
+      const ms = store.game.milestone, eff = effC.value, out = [];
+      if (ms.childAvailable && isRandomized(EXIT['spawns::spawn_child'], store.settings) && !eff['spawns::spawn_child']) out.push('Enfant');
+      if (ms.adultAvailable && isRandomized(EXIT['spawns::spawn_adult'], store.settings) && !eff['spawns::spawn_adult']) out.push('Adulte');
+      return out;
+    });
 
     const stats = computed(() => {
       let editable = 0, mapped = 0;
@@ -572,7 +601,7 @@ const App = {
 
     const savedAt = computed(() => lastSaved.value ? lastSaved.value.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit', second:'2-digit' }) : null);
 
-    return { store, ui, s, views, navOpen, modal, tip, tipData, backup, stats, visibleAreas, gameCount, ICONS, GAME_GROUPS, AREA, EXIT, DATA_ERRORS,
+    return { store, ui, s, views, navOpen, modal, tip, tipData, backup, stats, missingSpawns, visibleAreas, gameCount, ICONS, GAME_GROUPS, AREA, EXIT, DATA_ERRORS,
       iconKey, areaName, toggleArea, setAll, jump, go, showTip, hideTip, toggleTip, setMapping, clearMapping,
       routerAreas, exitsOf, swap, route, edgeLabel, ageLabel, openBackup, copyBackup, importBackup, resetAll, savedAt, TYPE_LABEL };
   },
@@ -626,6 +655,11 @@ const App = {
           <span class="warn-box-ic" v-html="ICONS.warn"></span>
           <div><b>Aucun âge n'est encore accessible.</b> Indiquez l'âge de départ dans <a href="#" @click.prevent="modal='game'">État de la partie</a> :
           les zones atteignables et le routeur en dépendent.</div></div>
+        <div v-if="missingSpawns.length" class="warn-box">
+          <span class="warn-box-ic" v-html="ICONS.warn"></span>
+          <div><b>Spawn {{missingSpawns.join(' et ')}} non renseigné{{missingSpawns.length>1?'s':''}}.</b> Les spawns sont randomisés
+          (Configuration) mais leur destination n'est pas encore notée dans le Tracker : sans point de départ connu,
+          rien n'est calculable comme atteignable.</div></div>
         <div v-if="stats.editable===0" class="warn-box">
           <span class="warn-box-ic" v-html="ICONS.warn"></span>
           <div><b>Aucune sortie n'est randomisée.</b> Choisissez les options de votre seed dans
@@ -655,12 +689,14 @@ const App = {
               <div v-if="s.decoupled" class="c-from"><button v-for="f in r.from" :key="f.key" class="loc link" @click="jump(EXIT[f.key].areaId, f.key)"><b>{{f.area}}</b><span>{{f.label}}</span></button></div>
               <div class="c-dest">
                 <dest-picker v-if="r.mode==='open'" :source="r.e.key" @choose="k => setMapping(r.e.key, k)"></dest-picker>
+                <span v-else-if="r.mode==='locked'" class="muted">{{r.reason}}</span>
                 <button v-else-if="r.target" class="loc link" @click="jump(EXIT[r.target].areaId, r.target)"><b>{{areaName(r.target)}}</b><span>{{EXIT[r.target].label}}</span></button>
                 <span v-else class="muted">Dépend de l'entrée du donjon, pas encore connue</span>
               </div>
               <div v-if="r.mode!=='open'" class="c-ind">
                 <span v-if="r.mode==='vanilla'" class="badge v" title="Sortie non randomisée">V</span>
                 <span v-else-if="r.mode==='auto'" class="badge a" title="Calculé automatiquement : le téléporteur bleu ramène devant l'entrée du donjon">A</span>
+                <span v-else-if="r.mode==='locked'" class="badge l" :title="r.reason">?</span>
                 <button v-else class="badge x" title="Effacer cette destination" aria-label="Effacer cette destination" @click="clearMapping(r.e.key)" v-html="ICONS.close"></button>
               </div>
             </div>

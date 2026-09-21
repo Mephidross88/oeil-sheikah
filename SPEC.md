@@ -55,17 +55,25 @@ Une carte dépliable par zone, avec progression (sorties renseignées / randomis
    identique à la destination (colonne 5 renommée « Sortie associée » dans ce cas).
 5. « Va vers » (« Sortie associée » si entrées découplées désactivées) :
    - non randomisée : destination vanilla ;
-   - randomisée et non renseignée : liste déroulante avec filtre texte, groupée par zone,
+   - randomisée mais pas encore débloquée dans la partie (spawn dont l'âge n'est pas encore accessible,
+     chant dont l'Ocarina ou le chant lui-même ne sont pas encore appris) : message indiquant la condition
+     de déblocage, pas de liste déroulante ;
+   - randomisée, débloquée et non renseignée : liste déroulante avec filtre texte, groupée par zone,
      ne proposant que les destinations libres et du même type (sauf pools mélangés) ;
    - randomisée et renseignée : destination choisie.
    Cliquer une destination ou une provenance fait défiler vers la ligne correspondante.
 6. Indicateur à droite : « V » si vanilla ; rien si à renseigner (la liste occupe l'espace) ;
-   croix pour effacer si renseignée ; « A » si calculée automatiquement (téléporteur bleu).
+   croix pour effacer si renseignée ; « A » si calculée automatiquement (téléporteur bleu) ;
+   « ? » si randomisée mais pas encore débloquée (survol : condition de déblocage).
 
 Règles :
 - Entrées couplées par défaut : noter A → B renseigne aussi B → A. Effacer l'une efface l'autre.
 - Spawns, chants, hiboux, rivière Gerudo : sorties à sens unique ; on ne peut pas y « entrer ».
   Leur destination s'ajoute aux entrées existantes sans la consommer.
+- Spawn enfant/adulte et chants de téléportation : non éditables tant qu'ils ne sont pas débloqués dans la
+  partie (spawn → âge correspondant accessible ; chant → Ocarina et ce chant appris), pour éviter de noter
+  une destination qu'on ne peut pas encore réellement connaître. Une destination déjà notée avant un
+  décochage reste conservée (juste masquée le temps que la condition redevienne vraie).
 - Plateformes de téléportation (destinationOnly) : on peut y arriver, pas les prendre ; non affichées comme lignes.
 - Téléporteurs bleus : non éditables ; ils ramènent devant l'entrée qui mène au donjon
   dont on a franchi la porte de boss.

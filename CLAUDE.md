@@ -30,8 +30,14 @@ et le mettre à jour quand une règle change.
   automatiquement (retour devant l'entrée qui mène au donjon dont on a franchi la porte de boss).
 
 ## Logique (app.js)
-- `isEditable(exit, settings)` : sortie randomisée selon la configuration.
-- `computeEff()` : cible effective de chaque sortie (mapping utilisateur, vanilla ou calcul boss).
+- `isRandomized(exit, settings)` : sortie randomisée selon la configuration (détermine le mode `vanilla` vs le reste).
+- `isUnlocked(exit, game)` : sortie à sens unique (spawn/chant) effectivement connaissable dans la partie en cours
+  (spawn enfant/adulte avec l'âge correspondant accessible, chant avec Ocarina + chant appris). Tant que ce n'est
+  pas le cas, la sortie est `isRandomized` mais pas éditable (mode `locked` dans `rowInfo`) : pas de liste
+  déroulante tant que le joueur ne peut pas réellement connaître cette destination.
+- `computeEff()` : cible effective de chaque sortie (mapping utilisateur, vanilla ou calcul boss). Se base sur
+  `isRandomized` seul (pas `isUnlocked`) : une destination déjà notée reste connue même si l'état de la partie
+  qui l'a débloquée est ensuite décoché.
 - Entrées couplées par défaut : `setMapping(A, B)` écrit aussi `B → A` (sauf `settings.decoupled`, sens uniques, boss).
 - Pools (`poolOf`) : les listes ne proposent que des destinations du même type, sauf `settings.mixedPools`.
   Hiboux, chants, spawns, rivière Gerudo = sens unique, ne consomment pas leur destination.

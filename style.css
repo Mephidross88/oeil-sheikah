@@ -120,6 +120,7 @@ svg{display:block}
 .badge.x{background:var(--surface-2);color:var(--muted);border:1px solid var(--line)}
 .badge.x:hover{background:var(--red-soft);color:var(--red);border-color:var(--red)}
 .badge.x svg{width:12px;height:12px}
+.badge.l{background:var(--surface-2);color:var(--muted);border:1px dashed var(--line)}
 .muted{color:var(--muted)}
 .ticon{width:26px;height:26px;display:grid;place-items:center;border-radius:7px}
 .ticon svg,.ticon img{width:19px;height:19px}
