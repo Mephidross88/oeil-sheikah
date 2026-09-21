@@ -6,14 +6,14 @@ const { createApp, reactive, computed, watch, ref, nextTick } = Vue;
 
 /* ---------- Icônes (remplaçables : mettre une URL/data-URI dans CUSTOM_ICONS) ---------- */
 const CUSTOM_ICONS = {
-  overworld: 'icons/overworld.png',
-  interior: 'icons/interior.png',
-  grotto: 'icons/grotto.png',
-  dungeon: 'icons/dungeon.png',
-  boss: 'icons/boss.png',
-  owl: 'icons/owl.png',
-  warp: 'icons/warp.png',
-  spawn: 'icons/spawn.png'
+  overworld: 'icons/exits/overworld.png',
+  interior: 'icons/exits/interior.png',
+  grotto: 'icons/exits/grotto.png',
+  dungeon: 'icons/exits/dungeon.png',
+  boss: 'icons/exits/boss.png',
+  owl: 'icons/exits/owl.png',
+  warp: 'icons/exits/warp.png',
+  spawn: 'icons/exits/spawn.png'
 };
 const S = (p, extra='') => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" ${extra}>${p}</svg>`;
 const ICONS = {
@@ -356,15 +356,15 @@ const STORE_KEY = 'ootr-pathfinder-v1';
 // pour un plafond réglable en Configuration. `visible(settings)` masque l'objet si la fonction renvoie faux.
 const ITEM_GROUPS = [
   { title:'Récompenses', path:'items', items:[
-    { key:'kokiriEmerald', label:'Émeraude Kokiri', kind:'bool' },
-    { key:'goronRuby', label:'Rubis Goron', kind:'bool' },
-    { key:'zoraSapphire', label:'Saphir Zora', kind:'bool' },
-    { key:'forestMedallion', label:'Médaillon de la Forêt', kind:'bool' },
-    { key:'fireMedallion', label:'Médaillon du Feu', kind:'bool' },
-    { key:'waterMedallion', label:"Médaillon de l'Eau", kind:'bool' },
-    { key:'spiritMedallion', label:"Médaillon de l'Esprit", kind:'bool' },
-    { key:'shadowMedallion', label:"Médaillon de l'Ombre", kind:'bool' },
-    { key:'lightMedallion', label:'Médaillon de la Lumière', kind:'bool' },
+    { key:'kokiriEmerald', label:'Émeraude Kokiri', kind:'bool', icon:'rewards/stones/forest.png' },
+    { key:'goronRuby', label:'Rubis Goron', kind:'bool', icon:'rewards/stones/fire.png' },
+    { key:'zoraSapphire', label:'Saphir Zora', kind:'bool', icon:'rewards/stones/water.png' },
+    { key:'forestMedallion', label:'Médaillon de la Forêt', kind:'bool', icon:'rewards/medallions/forest.png' },
+    { key:'fireMedallion', label:'Médaillon du Feu', kind:'bool', icon:'rewards/medallions/fire.png' },
+    { key:'waterMedallion', label:"Médaillon de l'Eau", kind:'bool', icon:'rewards/medallions/water.png' },
+    { key:'spiritMedallion', label:"Médaillon de l'Esprit", kind:'bool', icon:'rewards/medallions/spirit.png' },
+    { key:'shadowMedallion', label:"Médaillon de l'Ombre", kind:'bool', icon:'rewards/medallions/shadow.png' },
+    { key:'lightMedallion', label:'Médaillon de la Lumière', kind:'bool', icon:'rewards/medallions/light.png' },
     { key:'triforcePieces', label:'Morceaux de Triforce', kind:'count', max:s => s.triforceHuntMax, visible:s => s.triforceHunt },
   ]},
   { title:'Équipement', path:'items', items:[
@@ -676,13 +676,17 @@ const App = {
       if (it.kind === 'count') return `${it.label} : ${v}`;
       return it.label;
     }
-    // Objets à paliers : une image par palier (ex. strength_1/2/3.png) ; le palier 0 réutilise l'image
-    // du palier 1, grisée (classe .off), faute de sprite « aucun objet ».
-    function iconKeyOf(path, it){
+    // Chemin d'icône : convention par défaut icons/items/<clé>[_<palier>].png, sauf si l'objet définit
+    // `icon` (chemin fixe, relatif à icons/) ou `icons` (tableau de chemins, un par palier non nul).
+    // Objets à paliers : le palier 0 réutilise l'image du palier 1, grisée (classe .off).
+    function iconSrc(path, it){
       const v = store.game[path][it.key];
-      return it.kind === 'level' ? `${it.key}_${Math.max(1, v)}` : it.key;
+      if (it.kind === 'level'){
+        if (it.icons) return 'icons/' + it.icons[Math.max(1, v) - 1];
+        return 'icons/items/' + it.key + '_' + Math.max(1, v) + '.png';
+      }
+      return 'icons/' + (it.icon || 'items/' + it.key + '.png');
     }
-    function iconSrc(path, it){ return 'icons/items/' + iconKeyOf(path, it) + '.png'; }
     function clickItem(ev, path, it){
       const v = store.game[path][it.key];
       if (it.kind === 'bool') store.game[path][it.key] = !v;
@@ -791,7 +795,7 @@ const App = {
     return { store, ui, s, views, navOpen, itemsOpen, modal, tip, tipData, backup, stats, missingSpawns, visibleAreas, gameCount, ages:agesC, derived:gameC,
       ICONS, ITEM_GROUPS, AREA, EXIT, DATA_ERRORS,
       iconKey, areaName, toggleArea, setAll, jump, go, showTip, hideTip, toggleTip, setMapping, clearMapping, setCount,
-      brokenIcons, itemTitle, clickItem, rightClickItem, itemActive, iconKeyOf, iconSrc, itemVisible, toggleItemGroup,
+      brokenIcons, itemTitle, clickItem, rightClickItem, itemActive, iconSrc, itemVisible, toggleItemGroup,
       routerAreas, exitsOf, swap, route, edgeLabel, ageLabel, openBackup, copyBackup, importBackup, resetAll, savedAt, TYPE_LABEL };
   },
   template:`
@@ -1038,7 +1042,7 @@ const App = {
           <button v-if="itemVisible(it)" type="button" class="icon-tile" :class="{off:!itemActive(store.game[g.path][it.key])}"
             :aria-label="it.label" :title="itemTitle(g.path, it)"
             @click="clickItem($event, g.path, it)" @contextmenu.prevent="rightClickItem($event, g.path, it)">
-            <img v-if="!brokenIcons[iconKeyOf(g.path,it)]" :src="iconSrc(g.path,it)" :alt="it.label" @error="brokenIcons[iconKeyOf(g.path,it)]=true">
+            <img v-if="!brokenIcons[iconSrc(g.path,it)]" :src="iconSrc(g.path,it)" :alt="it.label" @error="brokenIcons[iconSrc(g.path,it)]=true">
             <span v-else class="icon-fallback" v-html="ICONS.bag"></span>
             <span v-if="it.kind==='count'" class="icon-badge count">{{store.game[g.path][it.key]}}</span>
           </button>

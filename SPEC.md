@@ -105,13 +105,24 @@ est un titre cliquable repliable (chevron, état conservé en session) :
     Nocturne de l'Ombre, Prélude de la Lumière.
 
 Chaque objet est une tuile d'icône, absente du dépôt (à fournir par l'utilisateur, repli sur une icône
-générique si le fichier manque) :
-- `bool` / `count` : une seule image `icons/items/<clé>.png` (ex. `truthLens.png`, `kokiriEmerald.png`).
-- `level` : une image par palier non nul `icons/items/<clé>_<palier>.png` (ex. `strength_1.png` = Bracelet
-  Goron, `strength_2.png` = Gantelets d'Argent, `strength_3.png` = Gantelets d'Or). Le palier 0 réutilise
-  l'image du palier 1, grisée (aucun sprite « vide » à fournir). Liste exacte des fichiers attendus :
-  reproductible depuis `ITEM_GROUPS` dans `app.js` (un item `kind:'level'` avec N paliers → `<clé>_1.png`
-  à `<clé>_N.png` ; tout item `kind:'bool'`/`'count'` → `<clé>.png`).
+générique si le fichier manque). Convention par défaut, calculée par `iconSrc()` (`app.js`), tous les
+chemins étant relatifs à `icons/` :
+- `bool` / `count` : une seule image `items/<clé>.png` (ex. `items/truthLens.png`).
+- `level` : une image par palier non nul `items/<clé>_<palier>.png` (ex. `items/strength_1.png` = Bracelet
+  Goron, `items/strength_2.png` = Gantelets d'Argent, `items/strength_3.png` = Gantelets d'Or). Le palier 0
+  réutilise l'image du palier 1, grisée (aucun sprite « vide » à fournir). Liste exacte des fichiers
+  attendus par défaut : reproductible depuis `ITEM_GROUPS` dans `app.js` (un item `kind:'level'` avec N
+  paliers → `<clé>_1.png` à `<clé>_N.png` ; tout item `kind:'bool'`/`'count'` → `<clé>.png`).
+
+**Chemin personnalisé** : pour ranger les icônes autrement que par la convention plate ci-dessus (ex. les
+regrouper par thème), ajouter directement dans la définition de l'objet, en `ITEM_GROUPS` :
+- `icon:'<chemin>'` sur un item `bool`/`count` (ex. `icon:'rewards/stones/forest.png'` pour l'Émeraude
+  Kokiri, plutôt que `items/kokiriEmerald.png`).
+- `icons:['<chemin_palier_1>','<chemin_palier_2>', ...]` sur un item `level` (un chemin par palier non
+  nul, même ordre que `stages`).
+Chemins toujours relatifs à `icons/`. Aucune autre modification nécessaire : `iconSrc()` bascule
+automatiquement sur le chemin personnalisé dès qu'il est présent, sinon retombe sur la convention par
+défaut ci-dessus.
 
 Contrôle, via clic gauche (augmenter/activer) et clic droit (diminuer/désactiver) :
 - `bool` : bascule simple.
