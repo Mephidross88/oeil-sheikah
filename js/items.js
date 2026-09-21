@@ -60,21 +60,34 @@ const ITEM_GROUPS = [
     { key:'rutoLetter', label:'Lettre de Ruto', kind:'bool' },
   ]},
   { title:"Objets d'échange (Enfant)", path:'items', items:[
-    // Chaîne unique (un seul objet en main à la fois, l'ancien est échangé contre le suivant).
-    { key:'childTradeItem', label:"Objet d'échange", kind:'level',
-      stages:['Aucun','Œuf Bizarre','Poule','Lettre de Zelda','Masque de Keaton','Masque du Crâne','Masque Effrayant','Capuche de Lapin'] },
-    // Conservés (obtenus par échange de bouteille, ne remplacent pas la chaîne ci-dessus).
+    // En rando, chaque objet est un pickup indépendant trouvable dans n'importe quel ordre et
+    // conservé (pas de « remplacement » comme en vanilla) : tous des bascules séparées.
+    { key:'weirdEgg', label:'Œuf Bizarre', kind:'bool' },
+    { key:'chicken', label:'Poule', kind:'bool' },
+    { key:'zeldasLetter', label:'Lettre de Zelda', kind:'bool' },
+    { key:'keatonMask', label:'Masque de Keaton', kind:'bool' },
+    { key:'skullMask', label:'Masque du Crâne', kind:'bool' },
+    { key:'spookyMask', label:'Masque Effrayant', kind:'bool' },
+    { key:'bunnyHood', label:'Capuche de Lapin', kind:'bool' },
     { key:'goronMask', label:'Masque Goron', kind:'bool' },
     { key:'zoraMask', label:'Masque Zora', kind:'bool' },
     { key:'gerudoMask', label:'Masque Gerudo', kind:'bool' },
     { key:'maskOfTruth', label:'Masque de Vérité', kind:'bool' },
   ]},
   { title:"Objets d'échange (Adulte)", path:'items', items:[
-    // Chaîne unique (Œuf de Poche / Cocotte de Poche sont les deux objets de départ possibles,
-    // un seul des deux existe dans une seed donnée : regroupés en un seul palier).
-    { key:'adultTradeItem', label:"Objet d'échange", kind:'level',
-      stages:['Aucun','Œuf/Cocotte de Poche','Cojiro','Champignon Étrange','Potion Étrange','Scie du Braconnier',
-        'Épée Cassée','Ordonnance','Œil de Grenouille','Gouttes Oculaires','Reçu'] },
+    // Idem : Œuf de Poche et Cocotte de Poche sont les deux objets de départ possibles de la
+    // chaîne (un seul existe réellement dans une seed donnée), suivis séparément comme le reste.
+    { key:'pocketEgg', label:'Œuf de Poche', kind:'bool' },
+    { key:'pocketCucco', label:'Cocotte de Poche', kind:'bool' },
+    { key:'cojiro', label:'Cojiro', kind:'bool' },
+    { key:'oddMushroom', label:'Champignon Étrange', kind:'bool' },
+    { key:'oddPotion', label:'Potion Étrange', kind:'bool' },
+    { key:'poachersSaw', label:'Scie du Braconnier', kind:'bool' },
+    { key:'brokenSword', label:'Épée Cassée', kind:'bool' },
+    { key:'prescription', label:'Ordonnance', kind:'bool' },
+    { key:'eyeballFrog', label:'Œil de Grenouille', kind:'bool' },
+    { key:'eyedrops', label:'Gouttes Oculaires', kind:'bool' },
+    { key:'claimCheck', label:'Reçu', kind:'bool' },
   ]},
   { title:'Magie', path:'items', items:[
     { key:'dinsFire', label:'Feu de Din', kind:'bool' },

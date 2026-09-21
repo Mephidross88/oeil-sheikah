@@ -90,16 +90,17 @@ repliable (chevron, état conservé en session) :
 5. **Armes communes** : Noix Mojo (progressif : capacité 20 → 30 → 40), Bombes (progressif :
    capacité 30 → 40 → 50), Missiles.
 6. **Objets** : Haricots Magiques, Monocle de Vérité, Bouteilles (compteur 0–4), Lettre de Ruto.
-7. **Objets d'échange (Enfant)** : un seul objet « Objet d'échange » progressif (0 = aucun) représentant la
-   chaîne où chaque objet remplace le précédent — Œuf Bizarre → Poule → Lettre de Zelda → Masque de Keaton
-   → Masque du Crâne → Masque Effrayant → Capuche de Lapin — plus, séparément, les masques *conservés*
-   (obtenus par échange de bouteille, ils ne remplacent rien) : Masque Goron, Masque Zora, Masque Gerudo,
-   Masque de Vérité.
-8. **Objets d'échange (Adulte)** : un seul objet « Objet d'échange » progressif (0 = aucun), même principe —
-   Œuf/Cocotte de Poche (les deux objets de départ possibles de la seed, un seul existe réellement,
-   regroupés en un palier) → Cojiro → Champignon Étrange → Potion Étrange → Scie du Braconnier → Épée
-   Cassée → Ordonnance → Œil de Grenouille → Gouttes Oculaires → Reçu (menant à l'Épée Biggoron, déjà
-   suivie séparément dans Équipement).
+7. **Objets d'échange (Enfant)** : Œuf Bizarre, Poule, Lettre de Zelda, Masque de Keaton, Masque du Crâne,
+   Masque Effrayant, Capuche de Lapin, Masque Goron, Masque Zora, Masque Gerudo, Masque de Vérité — 11
+   bascules indépendantes. En vanilla ces objets s'échangent l'un contre l'autre (le précédent disparaît),
+   mais en rando chacun est un pickup placé séparément, trouvable dans n'importe quel ordre et jamais
+   perdu : pas d'objet progressif ici, un objet obtenu reste affiché comme obtenu même si sa version
+   vanilla aurait normalement été échangée depuis longtemps.
+8. **Objets d'échange (Adulte)** : même principe, 11 bascules indépendantes — Œuf de Poche, Cocotte de
+   Poche (les deux objets de départ possibles de la chaîne ; un seul existe réellement dans une seed
+   donnée, mais les deux sont suivis au cas où), Cojiro, Champignon Étrange, Potion Étrange, Scie du
+   Braconnier, Épée Cassée, Ordonnance, Œil de Grenouille, Gouttes Oculaires, Reçu (menant à l'Épée
+   Biggoron, déjà suivie séparément dans Équipement).
 9. **Magie** : Feu de Din, Vent de Farore, Amour de Nayru.
 10. **Ocarina** : progressif (Ocarina de Fée → Ocarina du Temps).
 11. **Notes d'Ocarina (si mélangées)** : 5 bascules (bouton A, C-Haut, C-Droite, C-Gauche, C-Bas), purement
