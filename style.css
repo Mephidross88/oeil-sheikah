@@ -102,6 +102,8 @@ svg{display:block}
 .row:first-child{border-top:0}
 .row-head{min-height:0;padding-top:9px;padding-bottom:7px;font-family:var(--serif);font-size:15px;color:var(--muted);background:var(--surface-2)}
 .row.m-open .c-dest{grid-column:5 / 7}
+.rows.no-from .row{grid-template-columns:28px 28px minmax(140px,1.15fr) minmax(210px,1.35fr) 32px}
+.rows.no-from .row.m-open .c-dest{grid-column:4 / 6}
 .row.flash{animation:flash 1.6s ease-out}
 @keyframes flash{0%,30%{background:var(--gold-soft)}100%{background:transparent}}
 .c-name{font-size:16.5px}
@@ -283,6 +285,7 @@ select.sel:hover{border-color:var(--gold)}
   .c-from:empty{display:none}
   .c-from:not(:empty)::before{content:"Accessible depuis";font-size:12.5px;color:var(--muted);display:block}
   .row:not(.m-open) .c-dest::before{content:"Va vers";font-size:12.5px;color:var(--muted);display:block}
+  .no-from .row:not(.m-open) .c-dest::before{content:"Sortie associée"}
   .area-prog .bar{display:none}
   .rline{grid-template-columns:1fr 1fr;align-items:end}
   .rline .rtag{grid-column:1 / -1;padding:0}

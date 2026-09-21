@@ -3,6 +3,8 @@
 Tracker et routeur d'entrées pour Ocarina of Time Randomizer (Entrance Randomizer).
 Application 100 % client, sans build : ouvrir `index.html` dans un navigateur suffit.
 Interface et textes en français.
+Le comportement attendu est décrit dans `SPEC.md` : le lire avant toute évolution fonctionnelle,
+et le mettre à jour quand une règle change.
 
 ## Fichiers
 - `index.html` : squelette, charge Vue 3 (CDN jsDelivr, build global), puis `areas-data.js`, puis `app.js`.

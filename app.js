@@ -644,15 +644,15 @@ const App = {
               {{va.mapped}}/{{va.editable}}</span>
             <span v-else class="area-prog">Non randomisée</span>
           </button>
-          <div v-if="!ui.collapsed[va.area.id]" class="rows">
-            <div class="row row-head"><span></span><span></span><span>Sortie</span><span>Accessible depuis</span><span>Va vers</span><span></span></div>
+          <div v-if="!ui.collapsed[va.area.id]" class="rows" :class="{'no-from':!s.decoupled}">
+            <div class="row row-head"><span></span><span></span><span>Sortie</span><span v-if="s.decoupled">Accessible depuis</span><span>{{s.decoupled?'Va vers':'Sortie associée'}}</span><span></span></div>
             <div v-for="r in va.rows" :key="r.e.key" class="row" :class="'m-'+r.mode" :id="'row-'+r.e.key">
               <type-icon :type="iconKey(r.e)"></type-icon>
               <button class="globe" :class="{none:!r.e.connections.length}" :aria-label="'Connexions depuis '+r.e.label"
                 @mouseenter="r.e.connections.length && showTip($event,r.e.key)" @mouseleave="hideTip" @focus="r.e.connections.length && showTip($event,r.e.key)" @blur="hideTip"
                 @click.stop="r.e.connections.length && toggleTip($event,r.e.key)" v-html="ICONS.globe"></button>
               <div class="c-name">{{r.e.label}}</div>
-              <div class="c-from"><button v-for="f in r.from" :key="f.key" class="loc link" @click="jump(EXIT[f.key].areaId, f.key)"><b>{{f.area}}</b><span>{{f.label}}</span></button></div>
+              <div v-if="s.decoupled" class="c-from"><button v-for="f in r.from" :key="f.key" class="loc link" @click="jump(EXIT[f.key].areaId, f.key)"><b>{{f.area}}</b><span>{{f.label}}</span></button></div>
               <div class="c-dest">
                 <dest-picker v-if="r.mode==='open'" :source="r.e.key" @choose="k => setMapping(r.e.key, k)"></dest-picker>
                 <button v-else-if="r.target" class="loc link" @click="jump(EXIT[r.target].areaId, r.target)"><b>{{areaName(r.target)}}</b><span>{{EXIT[r.target].label}}</span></button>
