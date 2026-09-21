@@ -80,7 +80,7 @@ repliable (chevron, état conservé en session) :
 2. **Équipement** : Épée Kokiri / de Légende / Biggoron (3 objets distincts, pas un objet progressif —
    dans le jeu ce sont trois pickups différents, l'Épée Biggoron remplaçant le Couteau Cassé du Goron via
    une quête d'échange), Bouclier Mojo / Hylien / Miroir (3 objets distincts, idem), Bottes Kokiri / de
-   Plomb / des Airs, Tunique Goron / Zora, Force (progressif : Bracelet Goron → Gantelets d'Argent →
+   Plomb / des Airs, Tunique Kokiri / Goron / Zora, Force (progressif : Bracelet Goron → Gantelets d'Argent →
    Gantelets d'Or), Écaille de Zora (progressif : Argent → Or), Bourse (progressif : 99 → 200 → 500 → 999),
    Skulltulas d'Or (compteur 0–100), Pass Gerudo, Pierre de Souffrance.
 3. **Armes enfant** : Bâton Mojo (progressif : capacité 10 → 20 → 30), Lance-Pierre (progressif :
