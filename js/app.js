@@ -50,7 +50,7 @@ const App = {
       }).filter(Boolean);
     });
 
-    const itemActive = (it, v) => it.locked || (typeof v === 'boolean' ? v : v > 0);
+    const itemActive = (it, v) => it.locked || it.neverEmpty || (typeof v === 'boolean' ? v : v > 0);
     function setCount(path, key, max, v){ store.game[path][key] = Math.max(0, Math.min(max, Math.round(v) || 0)); }
     const brokenIcons = reactive({});
     function itemTitle(path, it){

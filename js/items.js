@@ -4,6 +4,9 @@
 // pour un plafond réglable en Configuration. `visible(settings)` masque l'objet si la fonction renvoie faux.
 // `locked:true` (objet `bool` uniquement) : toujours possédé, non désactivable (équipement de départ
 // jamais réellement obtenu en jeu, ex. Tunique/Bottes Kokiri) — la tuile ignore les clics.
+// `neverEmpty:true` (objet `level` uniquement) : le palier 0 est déjà un objet réellement possédé (pas
+// « aucun »), donc jamais affiché grisé — mais reste augmentable/diminuable normalement (ex. Bourse : le
+// palier de base à 99 rubis n'est ni un choix ni supprimable, contrairement aux paliers supérieurs).
 const ITEM_GROUPS = [
   { title:'Récompenses', path:'items', items:[
     { key:'kokiriEmerald', label:'Émeraude Kokiri', kind:'bool', icon:'rewards/stones/forest.png' },
@@ -35,7 +38,7 @@ const ITEM_GROUPS = [
     { key:'scale', label:'Écaille de Zora', kind:'level', stages:['Aucune',"Écaille d'Argent","Écaille d'Or"],
       icons:['equipment/scales/silver.png','equipment/scales/golden.png'] },
     { key:'wallet', label:'Bourse', kind:'level', stages:['Bourse (99)','Grande Bourse (200)','Bourse de Géant (500)','Bourse de Magnat (999)'],
-      sizes:['99','200','500','999'] },
+      sizes:['99','200','500','999'], neverEmpty:true },
     { key:'skulltulaTokens', label:"Skulltulas d'Or", kind:'count', max:100, icon:'equipment/skulltula.png' },
     { key:'gerudoCard', label:'Pass Gerudo', kind:'bool' },
     { key:'stoneOfAgony', label:'Pierre de Souffrance', kind:'bool', icon:'items/stone_of_agony.png' },
