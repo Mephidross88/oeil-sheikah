@@ -41,16 +41,17 @@ const ITEM_GROUPS = [
     { key:'boomerang', label:'Boomerang', kind:'bool', icon:'weapons/boomerang.png' },
   ]},
   { title:'Armes adulte', path:'items', items:[
-    { key:'bow', label:'Arc', kind:'level', stages:['Aucun','30','40','50'], sizes:['','30','40','50'] },
-    { key:'hookshot', label:'Grappin', kind:'level', stages:['Aucun','Grappin','Super-Grappin'] },
+    { key:'bow', label:'Arc', kind:'level', stages:['Aucun','30','40','50'], sizes:['','30','40','50'], icon:'weapons/bow.png' },
+    { key:'hookshot', label:'Grappin', kind:'level', stages:['Aucun','Grappin','Super-Grappin'],
+      icons:['weapons/hookshot.png','weapons/longshot.png'] },
     { key:'titanMass', label:'Masse des Titans', kind:'bool', icon:'weapons/hammer.png' },
-    { key:'fireArrows', label:'Flèches de Feu', kind:'bool' },
-    { key:'iceArrows', label:'Flèches de Glace', kind:'bool' },
-    { key:'lightArrows', label:'Flèches de Lumière', kind:'bool' },
+    { key:'fireArrows', label:'Flèches de Feu', kind:'bool', icon:'weapons/arrow_fire.png' },
+    { key:'iceArrows', label:'Flèches de Glace', kind:'bool', icon:'weapons/arrow_ice.png' },
+    { key:'lightArrows', label:'Flèches de Lumière', kind:'bool', icon:'weapons/arrow_light.png' },
   ]},
   { title:'Armes communes', path:'items', items:[
-    { key:'nuts', label:'Noix Mojo', kind:'level', stages:['Aucune','20','30','40'], sizes:['','20','30','40'] },
-    { key:'bombBag', label:'Bombes', kind:'level', stages:['Aucune','30','40','50'], sizes:['','30','40','50'] },
+    { key:'nuts', label:'Noix Mojo', kind:'level', stages:['Aucune','20','30','40'], sizes:['','20','30','40'], icon:'weapons/nuts.png' },
+    { key:'bombBag', label:'Bombes', kind:'level', stages:['Aucune','30','40','50'], sizes:['','30','40','50'], icon:'weapons/bombs.png' },
     { key:'bombchus', label:'Missiles', kind:'bool', icon:'weapons/missiles.png' },
   ]},
   { title:'Objets', path:'items', items:[
@@ -90,12 +91,13 @@ const ITEM_GROUPS = [
     { key:'claimCheck', label:'Reçu', kind:'bool' },
   ]},
   { title:'Magie', path:'items', items:[
-    { key:'dinsFire', label:'Feu de Din', kind:'bool' },
-    { key:'faroresWind', label:'Vent de Farore', kind:'bool' },
-    { key:'nayrusLove', label:'Amour de Nayru', kind:'bool' },
+    { key:'dinsFire', label:'Feu de Din', kind:'bool', icon:'magic/din.png' },
+    { key:'faroresWind', label:'Vent de Farore', kind:'bool', icon:'magic/farore.png' },
+    { key:'nayrusLove', label:'Amour de Nayru', kind:'bool', icon:'magic/nayru.png' },
   ]},
   { title:'Ocarina', path:'items', items:[
-    { key:'ocarina', label:'Ocarina', kind:'level', stages:['Aucune',"Ocarina de Fée","Ocarina du Temps"] },
+    { key:'ocarina', label:'Ocarina', kind:'level', stages:['Aucune',"Ocarina de Fée","Ocarina du Temps"],
+      icons:['items/ocarina_fairy.png','items/ocarina_time.png'] },
   ]},
   { title:"Notes d'Ocarina (si mélangées)", path:'items', items:[
     { key:'noteA', label:'Bouton A', kind:'bool' },
