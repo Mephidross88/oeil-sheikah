@@ -489,7 +489,7 @@ const App = {
 
     const stats = computed(() => {
       let editable = 0, mapped = 0;
-      for (const e of ALL_EXITS){ const r = rowInfo(e); if (r.mode === 'open' || r.mode === 'set'){ editable++; if (r.mode === 'set') mapped++; } }
+      for (const e of ALL_EXITS){ const r = rowInfo(e); if (r.mode !== 'vanilla' && r.mode !== 'auto'){ editable++; if (r.mode === 'set') mapped++; } }
       return { editable, mapped };
     });
 
@@ -499,7 +499,7 @@ const App = {
         const reachable = area.id === SPAWN_AREA || area.exits.some(e => reach.has(e.key));
         if (!reachable && !f.showInaccessibleAreas) return null;
         const all = area.exits.filter(e => !e.destOnly).map(e => ({ e, ...rowInfo(e) }));
-        const editable = all.filter(r => r.mode === 'open' || r.mode === 'set').length;
+        const editable = all.filter(r => r.mode !== 'vanilla' && r.mode !== 'auto').length;
         const mapped = all.filter(r => r.mode === 'set').length;
         const rows = all.filter(r => (f.showVanilla || (r.mode !== 'vanilla' && r.mode !== 'auto')) && (f.showDiscovered || r.mode !== 'set'));
         if (!rows.length) return null;
