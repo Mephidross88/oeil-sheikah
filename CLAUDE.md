@@ -7,13 +7,34 @@ Le comportement attendu est décrit dans `SPEC.md` : le lire avant toute évolut
 et le mettre à jour quand une règle change.
 
 ## Fichiers
-- `index.html` : squelette, charge Vue 3 (CDN jsDelivr, build global), puis `areas-data.js`, puis `app.js`.
-- `app.js` : toute la logique et les composants Vue (templates en chaînes, pas de SFC).
+- `index.html` : squelette, charge Vue 3 (CDN jsDelivr, build global), puis `areas-data.js`, puis les fichiers
+  de `js/` **dans l'ordre listé ci-dessous** (scripts classiques, pas de modules ES : chaque fichier partage
+  le même scope global de haut niveau, comme s'il s'agissait d'un seul fichier — un `const`/`function` déclaré
+  dans un fichier est directement utilisable dans les suivants ; ne pas redéclarer un identifiant existant).
+  1. `js/icons.js` : destructuration de l'API Vue globale, icônes SVG inline (`ICONS`), icônes de types de
+     sortie personnalisables (`CUSTOM_ICONS`), libellés de types (`TYPE_LABEL`).
+  2. `js/data.js` : transforme `window.AREAS_DATA` (fourni par `areas-data.js`) en structures internes
+     (`AREAS`, `AREA`, `EXIT`, `ALL_EXITS`, `BOSS_ROOMS`/`BOSS_DOORS`, etc.).
+  3. `js/logic.js` : toute la logique pure (sans Vue) — conditions (`sat`, `REQUIREMENTS`), dérivation de
+     l'inventaire (`deriveGame`, `canOpenDoorOfTime`), pools de randomisation, `computeEff`, graphe de
+     déplacement (`makeEdges`, `flood`, `computeAges`), `shortest` (Dijkstra).
+  4. `js/items.js` : `ITEM_GROUPS` (catalogue du panneau Objets) et ses helpers (`itemMax`, `itemVisible`).
+  5. `js/state.js` : persistance (`defaults`, `merge`, `load`, `store`, sauvegarde auto), les `computed`
+     dérivés au niveau module (`effC`, `agesC`, `gameC`, `edgesC`, `reachC`), et les mutations du mapping
+     (`setMapping`, `clearMapping`, `candidatesFor`).
+  6. `js/components.js` : composants Vue réutilisables (`TypeIcon`, `Seg`, `DestPicker`).
+  7. `js/app.js` : le composant racine `App` (template complet) + `createApp(...).mount('#app')`.
 - `style.css` : styles, variables de thème dans `:root` (clair + sombre).
 - `areas-data.js` : données (`window.AREAS_DATA`). Gros fichier : ne le lire que si la tâche porte sur les données.
+- `icons/` : images. `icons/exits/` (types de sortie), `icons/items/` (convention par défaut du panneau
+  Objets) et `icons/rewards/...` (chemins personnalisés d'exemple) — voir SPEC.md > Panneau Objets pour la
+  convention de nommage et comment personnaliser un chemin par objet (`icon`/`icons` dans `ITEM_GROUPS`).
 
 ## Contraintes
 - Pas d'outil de build, pas de modules ES, pas de dépendance hors CDN. Doit marcher en `file://`.
+  La séparation en plusieurs fichiers dans `js/` reste de simples `<script>` classiques : ne jamais y
+  introduire `import`/`export`, ni changer l'ordre de chargement dans `index.html` sans vérifier les
+  dépendances (un fichier ne peut utiliser que ce qui est déclaré dans un fichier chargé avant lui).
 - Sauvegarde automatique dans `localStorage` (clé `ootr-pathfinder-v1`) à chaque changement de `store`.
   Tout nouveau champ persistant doit avoir une valeur dans `defaults()` (fusion via `merge()` au chargement).
 
@@ -29,7 +50,7 @@ et le mettre à jour quand une règle change.
 - `specialTag` boss_child / boss_adult : salles de boss ; leur sortie est le téléporteur bleu, calculée
   automatiquement (retour devant l'entrée qui mène au donjon dont on a franchi la porte de boss).
 
-## Logique (app.js)
+## Logique (js/logic.js, js/state.js)
 - `isRandomized(exit, settings)` : sortie randomisée selon la configuration (détermine le mode `vanilla` vs le reste).
 - `isUnlocked(exit, game)` : sortie à sens unique (spawn/chant) effectivement connaissable dans la partie en cours
   (spawn enfant/adulte avec l'âge correspondant accessible, chant avec Ocarina + chant appris). Tant que ce n'est

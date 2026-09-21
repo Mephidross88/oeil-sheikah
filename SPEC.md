@@ -44,7 +44,7 @@ Afficher en tête les incohérences détectées dans les données.
 
 ## Âges et progression calculés
 Aucun réglage manuel : tout se déduit de la Configuration et de l'inventaire (panneau Objets), comme dans
-le vrai randomizer. Calculé dans `computeAges()` / `deriveGame()` (`app.js`), lisible en lecture seule tout
+le vrai randomizer. Calculé dans `computeAges()` / `deriveGame()` (`js/logic.js`), lisible en lecture seule tout
 en haut du panneau Objets (pastilles vertes/grises).
 - **Âge de départ** (réglage Configuration) : toujours acquis.
 - **Autre âge** : acquis si le Temple du Temps (`market::templeoftime_to_templeplaza`) est atteignable dans
@@ -73,7 +73,7 @@ en haut du panneau Objets (pastilles vertes/grises).
 Zone latérale droite (repliable sur mobile via un bouton dans la barre du haut), pastille = nombre d'objets
 possédés (tous groupes confondus, hors objets masqués — voir « visibilité conditionnelle » plus bas). En
 tête : pastilles en lecture seule de l'état calculé plus haut (âges, Epona, raccourcis). En dessous,
-l'inventaire complet de la partie en cours, groupé comme dans `ITEM_GROUPS` (`app.js`) — chaque catégorie
+l'inventaire complet de la partie en cours, groupé comme dans `ITEM_GROUPS` (`js/items.js`) — chaque catégorie
 est un titre cliquable repliable (chevron, état conservé en session) :
 
 1. **Récompenses** : 3 Pierres Spirituelles, 6 Médaillons de donjon, Morceaux de Triforce (visible
@@ -105,13 +105,13 @@ est un titre cliquable repliable (chevron, état conservé en session) :
     Nocturne de l'Ombre, Prélude de la Lumière.
 
 Chaque objet est une tuile d'icône, absente du dépôt (à fournir par l'utilisateur, repli sur une icône
-générique si le fichier manque). Convention par défaut, calculée par `iconSrc()` (`app.js`), tous les
+générique si le fichier manque). Convention par défaut, calculée par `iconSrc()` (`js/app.js`), tous les
 chemins étant relatifs à `icons/` :
 - `bool` / `count` : une seule image `items/<clé>.png` (ex. `items/truthLens.png`).
 - `level` : une image par palier non nul `items/<clé>_<palier>.png` (ex. `items/strength_1.png` = Bracelet
   Goron, `items/strength_2.png` = Gantelets d'Argent, `items/strength_3.png` = Gantelets d'Or). Le palier 0
   réutilise l'image du palier 1, grisée (aucun sprite « vide » à fournir). Liste exacte des fichiers
-  attendus par défaut : reproductible depuis `ITEM_GROUPS` dans `app.js` (un item `kind:'level'` avec N
+  attendus par défaut : reproductible depuis `ITEM_GROUPS` dans `js/items.js` (un item `kind:'level'` avec N
   paliers → `<clé>_1.png` à `<clé>_N.png` ; tout item `kind:'bool'`/`'count'` → `<clé>.png`).
 
 **Chemin personnalisé** : pour ranger les icônes autrement que par la convention plate ci-dessus (ex. les
@@ -133,7 +133,7 @@ Contrôle, via clic gauche (augmenter/activer) et clic droit (diminuer/désactiv
 Visibilité conditionnelle : un objet peut définir `visible(settings)` dans `ITEM_GROUPS` pour n'apparaître
 que sous certaines conditions de Configuration (seul cas actuel : Morceaux de Triforce).
 
-Les objets à paliers sont aplatis en indicateurs booléens (`deriveGame()` dans `app.js`) avant d'être
+Les objets à paliers sont aplatis en indicateurs booléens (`deriveGame()` dans `js/logic.js`) avant d'être
 passés à `sat()` : ex. Force ≥ 1 → Bracelet Goron, ≥ 2 → Gantelets d'Argent, ≥ 3 → Gantelets d'Or ; Magie
 ≥ 1 → magie disponible ; Ocarina ≥ 1 → ocarina possédée ; Bouteilles ≥ 1 → a une bouteille ; Bâton Mojo
 ≥ 1 → bâtons disponibles. Seuls les objets déjà utilisés par `REQUIREMENTS`/`sat()` avant cet ajout
