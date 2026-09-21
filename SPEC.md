@@ -107,18 +107,26 @@ Chaque objet est une tuile d'icône, absente du dépôt (à fournir par l'utilis
 générique si le fichier manque). Convention par défaut, calculée par `iconSrc()` (`js/app.js`), tous les
 chemins étant relatifs à `icons/` :
 - `bool` / `count` : une seule image `items/<clé>.png` (ex. `items/truthLens.png`).
-- `level` : une image par palier non nul `items/<clé>_<palier>.png` (ex. `items/strength_1.png` = Bracelet
-  Goron, `items/strength_2.png` = Gantelets d'Argent, `items/strength_3.png` = Gantelets d'Or). Le palier 0
-  réutilise l'image du palier 1, grisée (aucun sprite « vide » à fournir). Liste exacte des fichiers
-  attendus par défaut : reproductible depuis `ITEM_GROUPS` dans `js/items.js` (un item `kind:'level'` avec N
-  paliers → `<clé>_1.png` à `<clé>_N.png` ; tout item `kind:'bool'`/`'count'` → `<clé>.png`).
+- `level` **sans** `sizes` (le modèle change visuellement d'un palier à l'autre) : une image par palier non
+  nul `items/<clé>_<palier>.png` (ex. `items/strength_1.png` = Bracelet Goron, `items/strength_2.png` =
+  Gantelets d'Argent, `items/strength_3.png` = Gantelets d'Or). Le palier 0 réutilise l'image du palier 1,
+  grisée (aucun sprite « vide » à fournir).
+- `level` **avec** `sizes` (seule la capacité change, pas le modèle — Arc, Lance-Pierre, Bâton Mojo, Noix
+  Mojo, Bombes, Bourse) : une seule image `items/<clé>.png`, quel que soit le palier ; le palier courant
+  s'affiche via une pastille numérique (`sizes[palier]`, ex. « 10 »/« 20 »/« 30 » pour le Bâton Mojo),
+  masquée si `sizes[palier]` est une chaîne vide (palier 0 = non obtenu pour tout sauf la Bourse, qui a
+  toujours au moins la bourse de base : `sizes[0] = '99'`).
+
+Liste exacte des fichiers attendus par défaut : reproductible depuis `ITEM_GROUPS` dans `js/items.js` — un
+item `kind:'bool'`/`'count'`, ou `level` avec `sizes` → `<clé>.png` ; un item `level` sans `sizes`, avec N
+paliers → `<clé>_1.png` à `<clé>_N.png`.
 
 **Chemin personnalisé** : pour ranger les icônes autrement que par la convention plate ci-dessus (ex. les
 regrouper par thème), ajouter directement dans la définition de l'objet, en `ITEM_GROUPS` :
-- `icon:'<chemin>'` sur un item `bool`/`count` (ex. `icon:'rewards/stones/forest.png'` pour l'Émeraude
-  Kokiri, plutôt que `items/kokiriEmerald.png`).
-- `icons:['<chemin_palier_1>','<chemin_palier_2>', ...]` sur un item `level` (un chemin par palier non
-  nul, même ordre que `stages`).
+- `icon:'<chemin>'` sur un item `bool`/`count`, ou `level` avec `sizes` (ex. `icon:'rewards/stones/forest.png'`
+  pour l'Émeraude Kokiri, plutôt que `items/kokiriEmerald.png`).
+- `icons:['<chemin_palier_1>','<chemin_palier_2>', ...]` sur un item `level` **sans** `sizes` (un chemin par
+  palier non nul, même ordre que `stages`).
 Chemins toujours relatifs à `icons/`. Aucune autre modification nécessaire : `iconSrc()` bascule
 automatiquement sur le chemin personnalisé dès qu'il est présent, sinon retombe sur la convention par
 défaut ci-dessus.

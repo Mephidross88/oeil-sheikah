@@ -64,7 +64,9 @@ const App = {
     // Objets à paliers : le palier 0 réutilise l'image du palier 1, grisée (classe .off).
     function iconSrc(path, it){
       const v = store.game[path][it.key];
-      if (it.kind === 'level'){
+      // `sizes` : seule la capacité change (arc, lance-pierre, bâton, noix, bombes, bourse) ->
+      // une seule icône, la pastille de taille indique le palier (voir template).
+      if (it.kind === 'level' && !it.sizes){
         if (it.icons) return 'icons/' + it.icons[Math.max(1, v) - 1];
         return 'icons/items/' + it.key + '_' + Math.max(1, v) + '.png';
       }
@@ -431,6 +433,7 @@ const App = {
             <img v-if="!brokenIcons[iconSrc(g.path,it)]" :src="iconSrc(g.path,it)" :alt="it.label" @error="brokenIcons[iconSrc(g.path,it)]=true">
             <span v-else class="icon-fallback" v-html="ICONS.bag"></span>
             <span v-if="it.kind==='count'" class="icon-badge count">{{store.game[g.path][it.key]}}</span>
+            <span v-else-if="it.sizes && it.sizes[store.game[g.path][it.key]]" class="icon-badge">{{it.sizes[store.game[g.path][it.key]]}}</span>
           </button>
           </template>
         </div>
