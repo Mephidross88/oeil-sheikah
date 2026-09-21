@@ -6,7 +6,14 @@ const { createApp, reactive, computed, watch, ref, nextTick } = Vue;
 
 /* ---------- Icônes (remplaçables : mettre une URL/data-URI dans CUSTOM_ICONS) ---------- */
 const CUSTOM_ICONS = {
-  // overworld: 'icons/overworld.png', interior: 'icons/interior.png', ...
+  overworld: 'icons/overworld.png',
+  interior: 'icons/interior.png',
+  grotto: 'icons/grotto.png',
+  dungeon: 'icons/dungeon.png',
+  boss: 'icons/boss.png',
+  owl: 'icons/owl.png',
+  warp: 'icons/warp.png',
+  spawn: 'icons/spawn.png'
 };
 const S = (p, extra='') => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" ${extra}>${p}</svg>`;
 const ICONS = {
