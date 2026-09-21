@@ -43,7 +43,7 @@ svg{display:block}
 .side{position:sticky;top:env(safe-area-inset-top,0px);height:calc(100vh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));overflow-y:auto;
   background:var(--ink);color:var(--ink-text);padding:22px 18px 18px;display:flex;flex-direction:column;gap:18px;z-index:30}
 .brand{display:flex;align-items:center;gap:12px;padding:0 4px}
-.brand .tri{width:38px;height:38px;color:var(--gold);flex:none}
+.brand .brand-mark{width:38px;height:38px;color:var(--gold);flex:none}
 .brand-name{font-family:var(--serif);font-size:21px;font-weight:700;letter-spacing:.01em;line-height:1.1;color:#fff}
 .brand-sub{font-size:13.5px;color:var(--ink-muted)}
 .nav{display:flex;flex-direction:column;gap:2px}
@@ -304,7 +304,7 @@ select.sel:hover{border-color:var(--gold)}
     padding:calc(10px + env(safe-area-inset-top,0px)) 14px 10px;margin-top:calc(-1 * env(safe-area-inset-top,0px))}
   .topbar button{background:none;border:0;color:#fff;width:36px;height:36px;display:grid;place-items:center;border-radius:8px}
   .topbar svg{width:22px;height:22px}
-  .topbar .tri{width:24px;height:24px;color:var(--gold)}
+  .topbar .brand-mark{width:24px;height:24px;color:var(--gold)}
   .topbar span{font-family:var(--serif);font-size:19px;font-weight:700}
   .side{position:fixed;left:0;top:0;bottom:0;height:auto;width:min(310px,86vw);transform:translateX(-102%);transition:transform .2s;
     padding-top:calc(22px + env(safe-area-inset-top,0px));padding-bottom:calc(18px + env(safe-area-inset-bottom,0px))}

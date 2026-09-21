@@ -5,7 +5,7 @@ const REQUIREMENTS = ['Adult','Child','Epona','Explosive','TitanMass','Bow','Gor
 const REQ_LABEL = {
   AccessToFountain:'Accès à la Fontaine Zora', Adult:'Adulte', BlueFire:'Feu bleu', Bow:'Arc', CanUseBeans:'Haricots magiques', Child:'Enfant',
   CraterShortcutOpened:'Raccourci du Cratère', DinsFire:'Feu de Din', Epona:'Epona', Explosive:'Explosifs', GerudoBridgeFixed:'Pont Gerudo réparé',
-  GerudoPass:'Pass Gerudo', GoldGauntlets:"Gantelets d'Or", GoronBracelet:'Bracelet Goron', GoronTunic:'Tunique Goron', Hookshot:'Grappin',
+  GerudoPass:'Carte Gerudo', GoldGauntlets:"Gantelets d'Or", GoronBracelet:'Bracelet Goron', GoronTunic:'Tunique Goron', Hookshot:'Grappin',
   HoverBoots:'Bottes des Airs', IronBoots:'Bottes de Fer', Longshot:'Super-grappin', LostWoodToGoronVillageUnlocked:'Raccourci Bois Perdus ↔ Goron',
   NayrusLove:'Amour de Nayru', ScarecrowSong:"Chant de l'Épouvantail", SilverGauntlets:"Gantelets d'Argent", SilverScale:"Écaille d'Argent",
   SongOfStorms:'Chant des Tempêtes', SongOfTime:'Chant du Temps', Sticks:'Bâtons Mojo', TitanMass:'Masse des Titans', TruthLens:'Monocle de Vérité',

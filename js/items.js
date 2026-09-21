@@ -40,7 +40,7 @@ const ITEM_GROUPS = [
     { key:'wallet', label:'Bourse', kind:'level', stages:['Bourse (99)','Grande Bourse (200)','Bourse de Géant (500)','Bourse de Magnat (999)'],
       sizes:['99','200','500','999'], neverEmpty:true },
     { key:'skulltulaTokens', label:"Skulltulas d'Or", kind:'count', max:100, icon:'equipment/skulltula.png' },
-    { key:'gerudoCard', label:'Pass Gerudo', kind:'bool', icon:'items/gerudo.png' },
+    { key:'gerudoCard', label:'Carte Gerudo', kind:'bool', icon:'items/gerudo.png' },
     { key:'stoneOfAgony', label:'Pierre de Souffrance', kind:'bool', icon:'items/stone_of_agony.png' },
   ]},
   { title:'Armes enfant', path:'items', items:[

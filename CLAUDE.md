@@ -1,6 +1,6 @@
-# Pathfinder d'Hyrule
+# L'Œil Sheikah
 
-Tracker et routeur d'entrées pour Ocarina of Time Randomizer (Entrance Randomizer).
+Tracker d'objets et routeur d'entrées pour Ocarina of Time Randomizer (Entrance Randomizer, ER).
 Application 100 % client, sans build : ouvrir `index.html` dans un navigateur suffit.
 Interface et textes en français.
 Le comportement attendu est décrit dans `SPEC.md` : le lire avant toute évolution fonctionnelle,

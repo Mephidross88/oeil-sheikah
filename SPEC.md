@@ -1,7 +1,8 @@
-# Cahier des charges fonctionnel
+# Cahier des charges fonctionnel — L'Œil Sheikah
 
-Objectif : aider à parcourir une seed d'Ocarina of Time Randomizer avec Entrance Randomizer (ER),
-en notant la destination réelle de chaque sortie et en calculant le chemin le plus court entre deux points.
+Objectif : suivre l'inventaire complet d'une partie et calculer le chemin le plus court entre deux points,
+sur une seed d'Ocarina of Time Randomizer avec Entrance Randomizer (ER), en notant la destination réelle
+de chaque sortie.
 Référence du rando : https://wiki.ootrandomizer.com/index.php?title=Entrance_Randomizer
 
 ## Principes
@@ -82,7 +83,7 @@ repliable (chevron, état conservé en session) :
    une quête d'échange), Bouclier Mojo / Hylien / Miroir (3 objets distincts, idem), Bottes Kokiri / de
    Plomb / des Airs, Tunique Kokiri / Goron / Zora, Force (progressif : Bracelet Goron → Gantelets d'Argent →
    Gantelets d'Or), Écaille de Zora (progressif : Argent → Or), Bourse (progressif : 99 → 200 → 500 → 999),
-   Skulltulas d'Or (compteur 0–100), Pass Gerudo, Pierre de Souffrance.
+   Skulltulas d'Or (compteur 0–100), Carte Gerudo, Pierre de Souffrance.
 3. **Armes enfant** : Bâton Mojo (progressif : capacité 10 → 20 → 30), Lance-Pierre (progressif :
    30 → 40 → 50), Boomerang.
 4. **Armes adulte** : Arc (progressif : capacité 30 → 40 → 50), Grappin (progressif : Grappin →

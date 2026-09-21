@@ -201,13 +201,13 @@ const App = {
 <div class="shell" :class="{'nav-open':navOpen}">
   <header class="topbar">
     <button @click="navOpen=!navOpen" aria-label="Menu" v-html="ICONS.menu"></button>
-    <span class="tri" v-html="ICONS.triforce"></span><span>Pathfinder d'Hyrule</span>
+    <span class="brand-mark" v-html="ICONS.eye"></span><span>L'Œil Sheikah</span>
     <button class="topbar-items" @click="itemsOpen=!itemsOpen" aria-label="Objets" v-html="ICONS.bag"></button>
   </header>
 
   <aside class="side">
-    <div class="brand"><span class="tri" v-html="ICONS.triforce"></span>
-      <div><div class="brand-name">Pathfinder d'Hyrule</div><div class="brand-sub">Entrance Randomizer</div></div></div>
+    <div class="brand"><span class="brand-mark" v-html="ICONS.eye"></span>
+      <div><div class="brand-name">L'Œil Sheikah</div><div class="brand-sub">Tout voir, tout savoir</div></div></div>
     <nav class="nav">
       <button v-for="v in views" :key="v.id" class="nav-item" :class="{active:ui.view===v.id}" @click="go(v.id)">
         <span v-html="v.icon"></span>{{v.label}}
