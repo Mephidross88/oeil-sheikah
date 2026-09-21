@@ -90,17 +90,27 @@ repliable (chevron, état conservé en session) :
 5. **Armes communes** : Noix Mojo (progressif : capacité 20 → 30 → 40), Bombes (progressif :
    capacité 30 → 40 → 50), Missiles.
 6. **Objets** : Haricots Magiques, Monocle de Vérité, Bouteilles (compteur 0–4), Lettre de Ruto.
-7. **Magie** : Feu de Din, Vent de Farore, Amour de Nayru.
-8. **Ocarina** : progressif (Ocarina de Fée → Ocarina du Temps).
-9. **Notes d'Ocarina (si mélangées)** : 5 bascules (bouton A, C-Haut, C-Droite, C-Gauche, C-Bas), purement
-   informatives — ne servent qu'à noter quelle note est jouée par quel bouton quand le réglage rando
-   « mélanger les notes d'ocarina » est actif ; non branchées à `sat()` (les chants restent suivis comme
-   des booléens « appris/pas appris », indépendamment du bouton physique).
-10. **Statistiques** : Magie (progressif : Simple → Double), Quarts de Cœur (compteur 0–36), Réceptacles
+7. **Objets d'échange (Enfant)** : un seul objet « Objet d'échange » progressif (0 = aucun) représentant la
+   chaîne où chaque objet remplace le précédent — Œuf Bizarre → Poule → Lettre de Zelda → Masque de Keaton
+   → Masque du Crâne → Masque Effrayant → Capuche de Lapin — plus, séparément, les masques *conservés*
+   (obtenus par échange de bouteille, ils ne remplacent rien) : Masque Goron, Masque Zora, Masque Gerudo,
+   Masque de Vérité.
+8. **Objets d'échange (Adulte)** : un seul objet « Objet d'échange » progressif (0 = aucun), même principe —
+   Œuf/Cocotte de Poche (les deux objets de départ possibles de la seed, un seul existe réellement,
+   regroupés en un palier) → Cojiro → Champignon Étrange → Potion Étrange → Scie du Braconnier → Épée
+   Cassée → Ordonnance → Œil de Grenouille → Gouttes Oculaires → Reçu (menant à l'Épée Biggoron, déjà
+   suivie séparément dans Équipement).
+9. **Magie** : Feu de Din, Vent de Farore, Amour de Nayru.
+10. **Ocarina** : progressif (Ocarina de Fée → Ocarina du Temps).
+11. **Notes d'Ocarina (si mélangées)** : 5 bascules (bouton A, C-Haut, C-Droite, C-Gauche, C-Bas), purement
+    informatives — ne servent qu'à noter quelle note est jouée par quel bouton quand le réglage rando
+    « mélanger les notes d'ocarina » est actif ; non branchées à `sat()` (les chants restent suivis comme
+    des booléens « appris/pas appris », indépendamment du bouton physique).
+12. **Statistiques** : Magie (progressif : Simple → Double), Quarts de Cœur (compteur 0–36), Réceptacles
     de Cœur (compteur 0–8), Double Défense — purement informatifs, sans effet sur le routeur.
-11. **Chants appris** : Berceuse de Zelda, Chant d'Epona, Chant de Saria, Chant du Soleil, Chant du Temps,
+13. **Chants appris** : Berceuse de Zelda, Chant d'Epona, Chant de Saria, Chant du Soleil, Chant du Temps,
     Chant des Tempêtes, Chant de l'Épouvantail.
-12. **Chants de téléportation** : Menuet des Bois, Boléro du Feu, Sérénade de l'Eau, Requiem des Esprits,
+14. **Chants de téléportation** : Menuet des Bois, Boléro du Feu, Sérénade de l'Eau, Requiem des Esprits,
     Nocturne de l'Ombre, Prélude de la Lumière.
 
 Chaque objet est une tuile d'icône, absente du dépôt (à fournir par l'utilisateur, repli sur une icône

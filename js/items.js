@@ -59,6 +59,23 @@ const ITEM_GROUPS = [
     { key:'bottle', label:'Bouteilles', kind:'count', max:4 },
     { key:'rutoLetter', label:'Lettre de Ruto', kind:'bool' },
   ]},
+  { title:"Objets d'échange (Enfant)", path:'items', items:[
+    // Chaîne unique (un seul objet en main à la fois, l'ancien est échangé contre le suivant).
+    { key:'childTradeItem', label:"Objet d'échange", kind:'level',
+      stages:['Aucun','Œuf Bizarre','Poule','Lettre de Zelda','Masque de Keaton','Masque du Crâne','Masque Effrayant','Capuche de Lapin'] },
+    // Conservés (obtenus par échange de bouteille, ne remplacent pas la chaîne ci-dessus).
+    { key:'goronMask', label:'Masque Goron', kind:'bool' },
+    { key:'zoraMask', label:'Masque Zora', kind:'bool' },
+    { key:'gerudoMask', label:'Masque Gerudo', kind:'bool' },
+    { key:'maskOfTruth', label:'Masque de Vérité', kind:'bool' },
+  ]},
+  { title:"Objets d'échange (Adulte)", path:'items', items:[
+    // Chaîne unique (Œuf de Poche / Cocotte de Poche sont les deux objets de départ possibles,
+    // un seul des deux existe dans une seed donnée : regroupés en un seul palier).
+    { key:'adultTradeItem', label:"Objet d'échange", kind:'level',
+      stages:['Aucun','Œuf/Cocotte de Poche','Cojiro','Champignon Étrange','Potion Étrange','Scie du Braconnier',
+        'Épée Cassée','Ordonnance','Œil de Grenouille','Gouttes Oculaires','Reçu'] },
+  ]},
   { title:'Magie', path:'items', items:[
     { key:'dinsFire', label:'Feu de Din', kind:'bool' },
     { key:'faroresWind', label:'Vent de Farore', kind:'bool' },
