@@ -543,7 +543,7 @@ const App = {
     });
     function showTip(ev, key){
       const r = ev.currentTarget.getBoundingClientRect(), vw = window.innerWidth, vh = window.innerHeight;
-      const left = Math.max(8, Math.min(r.right + 10, vw - 390));
+      const left = Math.max(8, Math.min(r.right + 10, vw - 450));
       tip.key = key; tip.show = true;
       tip.style = r.top < vh * 0.55 ? { left:left+'px', top:(r.top - 6)+'px' } : { left:left+'px', bottom:(vh - r.bottom - 6)+'px' };
     }
