@@ -40,7 +40,7 @@ const ITEM_GROUPS = [
     { key:'wallet', label:'Bourse', kind:'level', stages:['Bourse (99)','Grande Bourse (200)','Bourse de Géant (500)','Bourse de Magnat (999)'],
       sizes:['99','200','500','999'], neverEmpty:true },
     { key:'skulltulaTokens', label:"Skulltulas d'Or", kind:'count', max:100, icon:'equipment/skulltula.png' },
-    { key:'gerudoCard', label:'Pass Gerudo', kind:'bool' },
+    { key:'gerudoCard', label:'Pass Gerudo', kind:'bool', icon:'items/gerudo.png' },
     { key:'stoneOfAgony', label:'Pierre de Souffrance', kind:'bool', icon:'items/stone_of_agony.png' },
   ]},
   { title:'Armes enfant', path:'items', items:[
@@ -66,14 +66,14 @@ const ITEM_GROUPS = [
     { key:'beans', label:'Haricots Magiques', kind:'bool', icon:'items/bean.png' },
     { key:'truthLens', label:'Monocle de Vérité', kind:'bool', icon:'items/lens_truth.png' },
     { key:'bottle', label:'Bouteilles', kind:'count', max:4 },
-    { key:'rutoLetter', label:'Lettre de Ruto', kind:'bool' },
+    { key:'rutoLetter', label:'Lettre de Ruto', kind:'bool', icon:'items/ruto_letter.png' },
   ]},
   { title:"Objets d'échange (Enfant)", path:'items', items:[
     // En rando, chaque objet est un pickup indépendant trouvable dans n'importe quel ordre et
     // conservé (pas de « remplacement » comme en vanilla) : tous des bascules séparées.
     { key:'weirdEgg', label:'Œuf Bizarre', kind:'bool', icon:'trade/child/egg.png' },
-    { key:'chicken', label:'Poule', kind:'bool' },
-    { key:'zeldasLetter', label:'Lettre de Zelda', kind:'bool' },
+    { key:'chicken', label:'Poule', kind:'bool', icon:'trade/child/cucco.png' },
+    { key:'zeldasLetter', label:'Lettre de Zelda', kind:'bool', icon:'trade/child/letter.png' },
     { key:'keatonMask', label:'Masque de Keaton', kind:'bool', icon:'trade/child/mask_keaton.png' },
     { key:'skullMask', label:'Masque du Crâne', kind:'bool', icon:'trade/child/mask_skull.png' },
     { key:'spookyMask', label:'Masque Effrayant', kind:'bool', icon:'trade/child/mask_spooky.png' },
@@ -86,18 +86,17 @@ const ITEM_GROUPS = [
   { title:"Objets d'échange (Adulte)", path:'items', items:[
     // Idem : Œuf de Poche et Cocotte de Poche sont les deux objets de départ possibles de la
     // chaîne (un seul existe réellement dans une seed donnée), suivis séparément comme le reste.
-    // Un seul visuel existe pour les deux (œuf éclos en cocotte), partagé le temps d'une icône dédiée.
     { key:'pocketEgg', label:'Œuf de Poche', kind:'bool', icon:'trade/adult/egg.png' },
-    { key:'pocketCucco', label:'Cocotte de Poche', kind:'bool', icon:'trade/adult/egg.png' },
+    { key:'pocketCucco', label:'Cocotte de Poche', kind:'bool', icon:'trade/adult/pocket_cucco.png' },
     { key:'cojiro', label:'Cojiro', kind:'bool', icon:'trade/adult/cojiro.png' },
     { key:'oddMushroom', label:'Champignon Étrange', kind:'bool', icon:'trade/adult/mushroom.png' },
     { key:'oddPotion', label:'Potion Étrange', kind:'bool', icon:'trade/adult/potion.png' },
     { key:'poachersSaw', label:'Scie du Braconnier', kind:'bool', icon:'trade/adult/saw.png' },
-    { key:'brokenSword', label:'Épée Cassée', kind:'bool' },
+    { key:'brokenSword', label:'Épée Cassée', kind:'bool', icon:'trade/adult/broken.png' },
     { key:'prescription', label:'Ordonnance', kind:'bool', icon:'trade/adult/prescription.png' },
     { key:'eyeballFrog', label:'Œil de Grenouille', kind:'bool', icon:'trade/adult/frog.png' },
     { key:'eyedrops', label:'Gouttes Oculaires', kind:'bool', icon:'trade/adult/drops.png' },
-    { key:'claimCheck', label:'Reçu', kind:'bool' },
+    { key:'claimCheck', label:'Reçu', kind:'bool', icon:'trade/adult/claim.png' },
   ]},
   { title:'Magie', path:'items', items:[
     { key:'dinsFire', label:'Feu de Din', kind:'bool', icon:'magic/din.png' },
