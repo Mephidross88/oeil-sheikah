@@ -70,11 +70,10 @@ en haut du panneau Objets (pastilles vertes/grises).
   repaire, hors du graphe de sorties) OU réglage Forteresse Gerudo sur « Ouverte ».
 
 ## Panneau Objets (droite)
-Zone latérale droite (repliable sur mobile via un bouton dans la barre du haut), pastille = nombre d'objets
-possédés (tous groupes confondus, hors objets masqués — voir « visibilité conditionnelle » plus bas). En
-tête : pastilles en lecture seule de l'état calculé plus haut (âges, Epona, raccourcis). En dessous,
-l'inventaire complet de la partie en cours, groupé comme dans `ITEM_GROUPS` (`js/items.js`) — chaque catégorie
-est un titre cliquable repliable (chevron, état conservé en session) :
+Zone latérale droite (repliable sur mobile via un bouton dans la barre du haut). En tête : pastilles en
+lecture seule de l'état calculé plus haut (âges, Epona, raccourcis). En dessous, l'inventaire complet de la
+partie en cours, groupé comme dans `ITEM_GROUPS` (`js/items.js`) — chaque catégorie est un titre cliquable
+repliable (chevron, état conservé en session) :
 
 1. **Récompenses** : 3 Pierres Spirituelles, 6 Médaillons de donjon, Morceaux de Triforce (visible
    seulement si « Chasse à la Triforce » est activée en Configuration ; plafond = réglage associé).
@@ -124,9 +123,11 @@ Chemins toujours relatifs à `icons/`. Aucune autre modification nécessaire : `
 automatiquement sur le chemin personnalisé dès qu'il est présent, sinon retombe sur la convention par
 défaut ci-dessus.
 
-Contrôle, via clic gauche (augmenter/activer) et clic droit (diminuer/désactiver) :
-- `bool` : bascule simple.
-- `level` : avance d'un palier au clic gauche (retour à 0 après le dernier) ; recule au clic droit.
+Contrôle, via clic gauche (augmenter/activer) et clic droit (diminuer/désactiver), sans jamais boucler :
+un objet déjà au maximum (ou déjà obtenu s'il n'est pas progressif) ignore le clic gauche, un objet non
+obtenu ignore le clic droit.
+- `bool` : activé / désactivé.
+- `level` : avance d'un palier au clic gauche, jusqu'au dernier ; recule au clic droit, jusqu'à 0.
 - `count` : ±1 au clic (±10 avec Majuscule), borné à `[0, max]` (`max` peut dépendre d'un réglage
   Configuration, ex. Morceaux de Triforce).
 

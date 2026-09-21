@@ -51,7 +51,6 @@ const App = {
     });
 
     const itemActive = v => typeof v === 'boolean' ? v : v > 0;
-    const gameCount = computed(() => ITEM_GROUPS.reduce((n, g) => n + g.items.filter(it => itemVisible(it) && itemActive(store.game[g.path][it.key])).length, 0));
     function setCount(path, key, max, v){ store.game[path][key] = Math.max(0, Math.min(max, Math.round(v) || 0)); }
     const brokenIcons = reactive({});
     function itemTitle(path, it){
@@ -71,16 +70,19 @@ const App = {
       }
       return 'icons/' + (it.icon || 'items/' + it.key + '.png');
     }
+    // Clic gauche = augmenter/activer, clic droit = diminuer/désactiver ; jamais de bouclage :
+    // un objet déjà au maximum (ou non progressif déjà obtenu) ignore le clic gauche, et un objet
+    // non obtenu ignore le clic droit.
     function clickItem(ev, path, it){
       const v = store.game[path][it.key];
-      if (it.kind === 'bool') store.game[path][it.key] = !v;
-      else if (it.kind === 'level') store.game[path][it.key] = v >= it.stages.length - 1 ? 0 : v + 1;
+      if (it.kind === 'bool'){ if (!v) store.game[path][it.key] = true; }
+      else if (it.kind === 'level'){ if (v < it.stages.length - 1) store.game[path][it.key] = v + 1; }
       else setCount(path, it.key, itemMax(it), v + (ev.shiftKey ? 10 : 1));
     }
     function rightClickItem(ev, path, it){
       const v = store.game[path][it.key];
-      if (it.kind === 'bool') store.game[path][it.key] = false;
-      else if (it.kind === 'level') store.game[path][it.key] = v <= 0 ? it.stages.length - 1 : v - 1;
+      if (it.kind === 'bool'){ if (v) store.game[path][it.key] = false; }
+      else if (it.kind === 'level'){ if (v > 0) store.game[path][it.key] = v - 1; }
       else setCount(path, it.key, itemMax(it), v - (ev.shiftKey ? 10 : 1));
     }
     function toggleItemGroup(title){ ui.itemsCollapsed[title] = !ui.itemsCollapsed[title]; }
@@ -176,7 +178,7 @@ const App = {
 
     const savedAt = computed(() => lastSaved.value ? lastSaved.value.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit', second:'2-digit' }) : null);
 
-    return { store, ui, s, views, navOpen, itemsOpen, modal, tip, tipData, backup, stats, missingSpawns, visibleAreas, gameCount, ages:agesC, derived:gameC,
+    return { store, ui, s, views, navOpen, itemsOpen, modal, tip, tipData, backup, stats, missingSpawns, visibleAreas, ages:agesC, derived:gameC,
       ICONS, ITEM_GROUPS, AREA, EXIT, DATA_ERRORS,
       iconKey, areaName, toggleArea, setAll, jump, go, showTip, hideTip, toggleTip, setMapping, clearMapping, setCount,
       brokenIcons, itemTitle, clickItem, rightClickItem, itemActive, iconSrc, itemVisible, toggleItemGroup,
@@ -404,7 +406,7 @@ const App = {
 
   <aside class="side side-right" :class="{open:itemsOpen}">
     <div class="side-right-head">
-      <h3>Objets <span class="count">{{gameCount}}</span></h3>
+      <h3>Objets</h3>
       <button @click="itemsOpen=false" aria-label="Fermer" v-html="ICONS.close"></button>
     </div>
     <div class="side-right-body">
