@@ -262,7 +262,7 @@ const App = {
             <span v-if="!va.reachable" class="pill">Non atteinte</span>
             <span v-if="va.editable" class="area-prog">
               <span class="bar" :class="{done:va.mapped===va.editable}"><i :style="{width:(100*va.mapped/va.editable)+'%'}"></i></span>
-              {{va.mapped}}/{{va.editable}}</span>
+              <span class="count">{{va.mapped}}/{{va.editable}}</span></span>
             <span v-else class="area-prog">Non randomisée</span>
           </button>
           <div v-if="!ui.collapsed[va.area.id]" class="rows" :class="{'no-from':!s.decoupled}">
