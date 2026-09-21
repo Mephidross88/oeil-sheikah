@@ -29,6 +29,7 @@ const ICONS = {
   router:    S('<circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.5 6H15a3 3 0 010 6H9a3 3 0 000 6h6.5"/>'),
   config:    S('<path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/>'),
   sword:     S('<path d="M12 1.5l2 3V16h-4V4.5z" fill="currentColor" stroke="none" opacity=".35"/><path d="M12 1.5l2 3V16h-4V4.5zM6.5 16h11M12 16v6M10 22h4"/>'),
+  warn:      S('<path d="M12 3.4l9.6 16.6a1 1 0 01-.87 1.5H3.27a1 1 0 01-.87-1.5z"/><path d="M12 9.3v4.4"/><circle cx="12" cy="16.9" r=".9" fill="currentColor" stroke="none"/>'),
 };
 const TYPE_LABEL = { overworld:'Extérieur', interior:'Intérieur', grotto:'Grotte', dungeon:'Donjon', boss:'Boss', owl:'Hibou', warp:'Téléportation', spawn:'Point d\u2019apparition' };
 
@@ -621,11 +622,14 @@ const App = {
       <div class="page-head"><h1>Tracker</h1>
         <p class="lede">{{stats.mapped}} sorties découvertes sur {{stats.editable}} randomisées.</p></div>
       <div class="container">
-        <div v-if="!store.game.milestone.childAvailable && !store.game.milestone.adultAvailable" class="empty" style="margin-bottom:12px">
-          <b>Aucun âge n'est encore accessible.</b> Indiquez l'âge de départ dans <a href="#" @click.prevent="modal='game'">État de la partie</a> :
-          les zones atteignables et le routeur en dépendent.</div>
-        <div v-if="stats.editable===0" class="empty"><b>Aucune sortie n'est randomisée.</b> Choisissez les options de votre seed dans
-          <a href="#" @click.prevent="go('config')">Configuration</a> pour commencer à noter les destinations.</div>
+        <div v-if="!store.game.milestone.childAvailable && !store.game.milestone.adultAvailable" class="warn-box">
+          <span class="warn-box-ic" v-html="ICONS.warn"></span>
+          <div><b>Aucun âge n'est encore accessible.</b> Indiquez l'âge de départ dans <a href="#" @click.prevent="modal='game'">État de la partie</a> :
+          les zones atteignables et le routeur en dépendent.</div></div>
+        <div v-if="stats.editable===0" class="warn-box">
+          <span class="warn-box-ic" v-html="ICONS.warn"></span>
+          <div><b>Aucune sortie n'est randomisée.</b> Choisissez les options de votre seed dans
+          <a href="#" @click.prevent="go('config')">Configuration</a> pour commencer à noter les destinations.</div></div>
         <div v-else-if="!visibleAreas.length" class="empty"><b>Rien à afficher avec les filtres actuels.</b>
           Cochez « Afficher les sorties découvertes » ou « Afficher les zones non atteintes » dans le panneau de gauche.</div>
 
@@ -693,9 +697,11 @@ const App = {
       </div>
 
       <div v-if="route.state==='idle'" class="empty" style="margin-top:20px">Choisissez une sortie de départ et une sortie d'arrivée : l'itinéraire se calcule tout seul.</div>
-      <div v-else-if="route.state==='none'" class="empty" style="margin-top:20px"><b>Aucun itinéraire connu.</b>
+      <div v-else-if="route.state==='none'" class="warn-box" style="margin-top:20px">
+        <span class="warn-box-ic" v-html="ICONS.warn"></span>
+        <div><b>Aucun itinéraire connu.</b>
         Il manque soit des sorties découvertes entre ces deux points, soit un objet ou un chant dans l'état de la partie.
-        Vérifiez aussi que l'âge demandé est accessible.</div>
+        Vérifiez aussi que l'âge demandé est accessible.</div></div>
       <template v-else>
         <div class="rsum">
           <div class="stat"><b>{{route.cost}}</b><span>coût estimé</span></div>
