@@ -1,5 +1,5 @@
 /* ---------- État persistant ---------- */
-const STORE_KEY = 'ootr-pathfinder-v1';
+const STORE_KEY = 'oeil-sheikah-v1';
 function defaults(){
   const game = { items:{}, songs:{} };
   ITEM_GROUPS.forEach(g => g.items.forEach(it => { game[g.path][it.key] = it.locked ? true : it.kind === 'bool' ? false : 0; }));

@@ -35,7 +35,7 @@ et le mettre à jour quand une règle change.
   La séparation en plusieurs fichiers dans `js/` reste de simples `<script>` classiques : ne jamais y
   introduire `import`/`export`, ni changer l'ordre de chargement dans `index.html` sans vérifier les
   dépendances (un fichier ne peut utiliser que ce qui est déclaré dans un fichier chargé avant lui).
-- Sauvegarde automatique dans `localStorage` (clé `ootr-pathfinder-v1`) à chaque changement de `store`.
+- Sauvegarde automatique dans `localStorage` (clé `oeil-sheikah-v1`) à chaque changement de `store`.
   Tout nouveau champ persistant doit avoir une valeur dans `defaults()` (fusion via `merge()` au chargement).
 
 ## Modèle de données
