@@ -159,6 +159,11 @@ que sous certaines conditions de Configuration (seul cas actuel : Morceaux de Tr
 Objet verrouillé (`locked:true`, uniquement pour `bool`) : toujours affiché comme possédé, la tuile ignore
 les clics — pour l'équipement de départ jamais réellement « obtenu » en jeu (Tunique Kokiri, Bottes Kokiri).
 
+Palier de base toujours possédé (`neverEmpty:true`, uniquement pour `level`) : le palier 0 n'est pas
+« aucun » mais un objet réellement possédé (ex. Bourse : palier de base à 99 rubis) — jamais affiché grisé,
+mais reste augmentable/diminuable normalement (contrairement à `locked`, sans plancher artificiel puisque
+le palier 0 est déjà le minimum réel).
+
 Les objets à paliers sont aplatis en indicateurs booléens (`deriveGame()` dans `js/logic.js`) avant d'être
 passés à `sat()` : ex. Force ≥ 1 → Bracelet Goron, ≥ 2 → Gantelets d'Argent, ≥ 3 → Gantelets d'Or ; Magie
 ≥ 1 → magie disponible ; Ocarina ≥ 1 → ocarina possédée ; Bouteilles ≥ 1 → a une bouteille ; Bâton Mojo
