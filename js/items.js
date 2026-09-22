@@ -119,7 +119,7 @@ const ITEM_GROUPS = [
       icons:['statistics/magic_small.png','statistics/magic_large.png'] },
     { key:'heartPieces', label:'Quarts de Cœur', kind:'count', max:36, icon:'statistics/heart_piece.png' },
     { key:'heartContainers', label:'Réceptacles de Cœur', kind:'count', max:8, icon:'statistics/heart_container.png' },
-    { key:'doubleDefense', label:'Double Défense', kind:'bool' },
+    { key:'doubleDefense', label:'Double Défense', kind:'bool', icon:'statistics/double_defense.png' },
   ]},
   { title:'Chants appris', path:'songs', items:[
     { key:'zeldaLullaby', label:'Berceuse de Zelda', kind:'bool', icon:'songs/zl.png' },
