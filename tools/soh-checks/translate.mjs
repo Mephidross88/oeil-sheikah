@@ -233,7 +233,7 @@ export const PHRASES = {
   'Storms Grotto':N('grotte des tempêtes','f'), 'Open Grotto':N('grotte ouverte','f'), 'Redead Grotto':N('grotte aux ReDeads','f'),
   'Wolfos Grotto':N('grotte aux Wolfos','f'), 'Tektite Grotto':N('grotte aux Tektites','f'), 'Cow Grotto':N('grotte à la vache','f'),
   'Scrub Grotto':N('grotte des pestes','f'), 'Fairy Grotto':N('grotte des fées','f'), 'Fountain Grotto':N('grotte de la fontaine','f'),
-  'Deku Theater':N('Théâtre Mojo'), 'Deku Theatre':N('Théâtre Mojo'), 'Near Shortcuts Grotto':N('grotte près des raccourcis','f'),
+  'Deku Scrub Grotto':N('grotte des pestes Mojo','f'), 'Deku Theater':N('Théâtre Mojo'), 'Deku Theatre':N('Théâtre Mojo'), 'Near Shortcuts Grotto':N('grotte près des raccourcis','f'),
   'Near Market Grotto':N('grotte près du bourg','f'), 'Southeast Grotto':N('grotte sud-est','f'), 'Upper Grotto':N('grotte du haut','f'),
   'Windmill':N('moulin'), 'Water Trial':N('épreuve de l\'eau','f'), 'Forest Trial':N('épreuve de la forêt','f'),
   'Fire Trial':N('épreuve du feu','f'), 'Light Trial':N('épreuve de la lumière','f'), 'Shadow Trial':N('épreuve de l\'ombre','f'),
@@ -377,7 +377,8 @@ const TYPE_HEAD = { POT:'Jarre', GRASS:'Herbe', CRATE:'Caisse', SMALL_CRATE:'Pet
 
 function findHead(str, type){
   for (const [en, fr, pos] of HEADS){
-    if (pos === 'start' && /FAIRY/.test(type)) continue;
+    // objets en tête (« GS … », « Deku Scrub … », « Trade … ») : seulement pour leurs types, pas « Deku Scrub Grotto Beehive »
+    if (pos === 'start' && !['SKULL_TOKEN', 'SCRUB', 'ADULT_TRADE', 'STANDARD', 'BOSS_HEART_OR_OTHER_REWARD', 'TREE', 'NLTREE'].includes(type)) continue;
     if (pos === 'start' && (str === en || str.startsWith(en + ' '))) return { head:fr, rest:str.slice(en.length).trim(), pos:'start' };
     if (pos !== 'start' && (str === en || str.endsWith(' ' + en))) return { head:fr, rest:str.slice(0, str.length - en.length).trim(), pos:'end' };
   }
