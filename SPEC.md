@@ -290,6 +290,9 @@ regrouper par thème), ajouter directement dans la définition de l'objet, en `I
   pour l'Émeraude Kokiri, plutôt que `items/kokiriEmerald.png`).
 - `icons:['<chemin_palier_1>','<chemin_palier_2>', ...]` sur un item `level` **sans** `sizes` (un chemin par
   palier non nul, même ordre que `stages`).
+Format des icônes : PNG carré à fond transparent, **192 px de côté** (net jusqu'à une densité ×3 pour les
+plus grandes tuiles, ~65 px) ; réduire toute nouvelle image à cette taille avant de l'ajouter.
+
 Chemins toujours relatifs à `icons/`. Aucune autre modification nécessaire : `iconSrc()` bascule
 automatiquement sur le chemin personnalisé dès qu'il est présent, sinon retombe sur la convention par
 défaut ci-dessus.
