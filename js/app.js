@@ -43,6 +43,7 @@ const App = {
         const set = r.mode === 'set', gi = ENTRANCE_GROUPS.findIndex(g => g[1].includes(e.type));
         editable++; if (set) mapped++;
         if (gi >= 0){ byGroup[gi][2]++; if (set) byGroup[gi][1]++; }
+        if (e.areaId === SPAWN_AREA) continue; // apparitions et chants : pas une zone du jeu
         const z = zones[e.areaId] = zones[e.areaId] || { got:0, total:0 }; z.total++; if (set) z.got++;
       }
       const zl = Object.values(zones), left = editable - mapped, zonesDone = zl.filter(z => z.got === z.total).length;

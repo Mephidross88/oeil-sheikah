@@ -66,7 +66,8 @@ et le mettre à jour quand une règle change.
   Tout nouveau champ persistant doit avoir une valeur dans `defaults()` (fusion via `merge()` au chargement).
 
 ## Modèle de données
-- Zone : `{ id, name, exits[] }`. Sortie : `{ id, label, soh, type, shuffleTag, vanillaTargetExitId, connections?, destinationOnly?, specialTag? }`
+- Zone : `{ id, name, exits[] }` — les 32 zones du tracker de checks de SoH (id = RCAREA en minuscules, même découpage
+  que la page Checks) + la pseudo-zone `spawns` (apparitions, chants de téléportation). Sortie : `{ id, label, soh, type, shuffleTag, vanillaTargetExitId, connections?, destinationOnly?, specialTag? }`
   (`label` = nom SoH traduit, `soh` = nom exact du tracker d'entrées de SoH, affiché au survol).
 - Clé d'une sortie : `"zoneId::exitId"`.
 - « Cible » d'une sortie T = l'endroit où l'on apparaît : on se trouve à l'emplacement de la sortie T.

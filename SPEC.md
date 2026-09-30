@@ -400,8 +400,14 @@ check) ; règles dans `js/checks.js`.
 
 ## Entrées
 Cadre « Entrées » de la bande de progression (voir plus haut), dès qu'au moins une sortie est randomisée :
-sorties découvertes / randomisées, restantes, zones complètes, et détail Overworld / Intérieurs / Grottes / Donjons /
+sorties découvertes / randomisées, restantes, zones complètes (mêmes zones que la page Checks ; la pseudo-zone
+« Apparitions et chants » n'est pas comptée), et détail Overworld / Intérieurs / Grottes / Donjons /
 Sens unique (types présents seulement).
+Les zones sont celles du tracker de checks de SoH (32 : 20 zones d'overworld et 12 donjons, découpage de
+`GetAreaFromScene` — ex. le Château d'Hyrule séparé du Bourg, le Temple du Temps dans le Bourg, le Repaire des
+Voleurs dans la Forteresse), plus « Apparitions et chants » (id `spawns`) pour les apparitions et les chants de
+téléportation, qui ne sont pas des lieux. Identifiants en minuscules des zones SoH (`hyrule_field`,
+`zoras_river`…), regroupement fait par `tools/soh-entrances/regroup_areas.mjs`.
 Une carte dépliable par zone, avec progression (sorties renseignées / randomisées). Une ligne par sortie :
 1. Icône du type (extérieur, intérieur, grotte, donjon, boss, hibou, téléportation, spawn).
 2. Globe : au survol, liste des sorties atteignables à pied dans la même zone, avec coût ;

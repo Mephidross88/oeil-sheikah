@@ -2,8 +2,8 @@
 const RAW = window.AREAS_DATA || [];
 const SPAWN_AREA = 'spawns';
 const TOT = 'market::templeoftime_to_templeplaza';            // point de changement d'âge
-const INSIDE_NODES = new Set([                                   // intérieurs de donjons rangés dans une zone extérieure
-  'kakariko::well_to_kak','zora_fountain::ic_to_fountain','gerudo_fortress::gtg_to_gt','market::ganon_to_castle','market::tower_to_castle']);
+const INSIDE_NODES = new Set([                                   // entrées intérieures de donjons sans salle de boss (pas de retour par sauvegarde)
+  'bottom_of_the_well::well_to_kak','ice_cavern::ic_to_fountain','gerudo_training_ground::gtg_to_gt','ganons_castle::ganon_to_castle','ganons_castle::tower_to_castle']);
 const WARP_SONGS = { 'spawns::warp_pol':'prelude','spawns::warp_mof':'minuet','spawns::warp_bof':'bolero','spawns::warp_sow':'serenade','spawns::warp_nos':'nocturne','spawns::warp_ros':'requiem' };
 
 const AREAS = RAW.map(a => ({ id:a.id, name:a.name, exits:(a.exits||[]).map(e => ({
