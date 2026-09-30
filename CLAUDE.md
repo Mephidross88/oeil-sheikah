@@ -48,6 +48,8 @@ et le mettre à jour quand une règle change.
 - `areas-data.js` : données (`window.AREAS_DATA`). Gros fichier : ne le lire que si la tâche porte sur les données.
 - `checks-data.js` : checks SoH (`window.CHECKS_DATA`), **fichier généré** (voir son en-tête et SPEC.md > Checks) ;
   gros fichier, ne pas le lire en entier ni l'éditer à la main pour autre chose qu'une retouche ponctuelle.
+- `tools/soh-checks/` : scripts Node lancés à la main (jamais chargés par l'appli) qui régénèrent `checks-data.js`
+  depuis les sources de SoH ; traductions des libellés dans `translate.mjs`. Mode d'emploi dans son `README.md`.
 - `icons/` : images. `icons/exits/` (types de sortie), `icons/items/` (convention par défaut du panneau
   Objets) et `icons/rewards/...` (chemins personnalisés d'exemple) — voir SPEC.md > Panneau Objets pour la
   convention de nommage et comment personnaliser un chemin par objet (`icon`/`icons` dans `ITEM_GROUPS`).
