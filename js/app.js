@@ -9,6 +9,7 @@ const App = {
     const views = [
       { id:'entrances', label:'Entrées', icon:ICONS.entrances },
       { id:'router', label:'Routeur', icon:ICONS.router },
+      { id:'checks', label:'Checks', icon:ICONS.checks },
       { id:'config', label:'Configuration', icon:ICONS.config },
     ];
     if (!views.some(v => v.id === ui.view)) ui.view = views[0].id;
@@ -168,6 +169,29 @@ const App = {
     // Objets de donjon « Au départ » : cases pleines, non cliquables (évite les oublis et les erreurs).
     const atStart = id => ({ maps:mapsAtStart(id, s), keys:keysAtStart(id, s), bossKey:bossKeyAtStart(id, s) });
 
+    /* Checks (js/checks.js) : zones avec leurs checks listés (mélangés, version active), filtres et compteurs */
+    const cf = ui.checks;
+    const checkAreasC = computed(() => {
+      const q = norm(cf.q.trim()), done = store.game.checks, ex = s.excluded;
+      return CHECK_AREAS.map(a => {
+        const all = CHECKS_BY_AREA[a.id] || [], quest = areaQuest(a.id);
+        const listed = all.filter(checkListed), counted = listed.filter(c => !ex[c.id]);
+        const got = counted.filter(c => done[c.id]).length;
+        let shown = listed.filter(c => (cf.showExcluded || !ex[c.id]) && !(cf.hideDone && done[c.id]));
+        if (q && !norm(a.label).includes(q)) shown = shown.filter(c => norm(c.label + ' ' + c.soh).includes(q));
+        // version inconnue : checks propres à Vanilla ou MQ masqués (seuls les checks communs sont listés)
+        const hiddenQuest = a.dungeon && !quest ? all.filter(c => c.quest !== 'B' && checkShuffled(c, s, cf.alwaysGS)).length : 0;
+        return { area:a, quest, checks:shown, total:counted.length, got, hiddenQuest, editQuest:!!a.dungeon && cells(a.dungeon).quest };
+      }).filter(x => q ? x.checks.length : (x.total || x.hiddenQuest || x.checks.length));
+    });
+    const checkStats = computed(() => checkAreasC.value.reduce((r, x) => ({ total:r.total + x.total, got:r.got + x.got }), { total:0, got:0 }));
+    const toggleCheckArea = id => { cf.collapsed[id] = !cf.collapsed[id]; };
+    function setAllChecks(collapsed){ CHECK_AREAS.forEach(a => { cf.collapsed[a.id] = collapsed; }); }
+    function jumpCheck(id){
+      cf.collapsed[id] = false; navOpen.value = false;
+      nextTick(() => { const el = document.getElementById('carea-' + id); if (el) el.scrollIntoView({ behavior:'smooth', block:'start' }); });
+    }
+
     /* Configuration Ship of Harkinian (js/config.js) */
     const decoupled = computed(() => isDecoupled(s));
     // Cartes de l'onglet courant, chacune avec ses options visibles (règles de visibilité de SoH) ; une carte
@@ -239,6 +263,13 @@ const App = {
             if (ui.importQuests && configKeyRing(d.id, s) === null){ store.game.dungeons[d.id].keyRing = drawn === 'Yes' ? 'yes' : 'no'; rings++; }
           });
         }
+        // Checks exclus à la génération (« excludedLocations », absent s'il n'y en a aucun) : réglage de la seed, pas un spoil.
+        Object.keys(s.excluded).forEach(k => { delete s.excluded[k]; });
+        let excl = 0;
+        for (const name of Array.isArray(data.excludedLocations) ? data.excludedLocations : []){
+          const c = CHECK_BY_SOH[name];
+          if (c){ s.excluded[c.id] = true; excl++; } else notes.push(`Check exclu inconnu ignoré : « ${name} ».`);
+        }
         const started = applyStartingItems(s);
         // Statut Vanilla / MQ (facultatif) : seulement pour les donjons que la configuration laisse au hasard.
         // SoH n'écrit « masterQuestDungeons » que s'il y a au moins un donjon MQ.
@@ -256,7 +287,8 @@ const App = {
           title:`Configuration importée : ${count} option${count>1?'s':''}, ${tricks} astuce${tricks>1?'s':''} activée${tricks>1?'s':''}`
             + (started ? `, ${started} objet${started>1?'s':''} de départ coché${started>1?'s':''}` : '')
             + (quests ? `, version de ${quests} donjon${quests>1?'s':''} renseignée` : '')
-            + (rings ? `, trousseaux de ${rings} donjon${rings>1?'s':''} renseignés` : '') + '.' };
+            + (rings ? `, trousseaux de ${rings} donjon${rings>1?'s':''} renseignés` : '')
+            + (excl ? `, ${excl} check${excl>1?'s':''} exclu${excl>1?'s':''}` : '') + '.' };
       };
       reader.readAsText(file);
     }
@@ -295,6 +327,7 @@ const App = {
     return { store, ui, s, views, navOpen, itemsOpen, modal, tip, tipData, backup, stats, missingSpawns, visibleAreas,
       ICONS, ITEMS_PAGE, ITEM_BY_KEY, DUNGEONS, DUNGEON_BY_ID, CHECKLISTS, AREA, EXIT, DATA_ERRORS,
       iconKey, areaName, toggleArea, setAll, jump, go, showTip, hideTip, toggleTip, setMapping, clearMapping,
+      checkAreasC, checkStats, toggleCheckArea, setAllChecks, jumpCheck, setCheck, setExcluded, CHECK_AREA,
       panelSkills, panelChecklists, cells, dungeonRows, skeletonShown, atStart, visibleKeys,
       CONFIG_TABS, TRICK_LEVELS, decoupled, configCards, trickFilter, tricksOn, trickGroups, setTricks, importReport, importSpoiler,
       itemVisible, tierLabel, iconSrc, checklistModal, openChecklist, setChecklist, checklistStats,
@@ -316,7 +349,8 @@ const App = {
     <nav class="nav">
       <button v-for="v in views" :key="v.id" class="nav-item" :class="{active:ui.view===v.id}" @click="go(v.id)">
         <span v-html="v.icon"></span>{{v.label}}
-        <span v-if="v.id==='entrances'" class="nav-meta">{{stats.mapped}}/{{stats.editable}}</span></button>
+        <span v-if="v.id==='entrances'" class="nav-meta">{{stats.mapped}}/{{stats.editable}}</span>
+        <span v-if="v.id==='checks'" class="nav-meta">{{checkStats.got}}/{{checkStats.total}}</span></button>
     </nav>
 
     <section v-if="ui.view==='entrances'" class="side-sec">
@@ -330,6 +364,19 @@ const App = {
         <button v-for="va in visibleAreas" :key="va.area.id" @click="jump(va.area.id)">
           <span>{{va.area.name}}</span>
           <span v-if="va.editable" class="zp" :class="{done:va.mapped===va.editable}">{{va.mapped}}/{{va.editable}}</span></button>
+      </div>
+    </section>
+
+    <section v-if="ui.view==='checks'" class="side-sec">
+      <div class="side-row"><button class="side-btn" @click="setAllChecks(false)">Tout déplier</button><button class="side-btn" @click="setAllChecks(true)">Tout replier</button></div>
+      <label class="check"><input type="checkbox" v-model="ui.checks.hideDone">Masquer les checks faits</label>
+      <label class="check"><input type="checkbox" v-model="ui.checks.showExcluded">Afficher les checks exclus</label>
+      <label class="check" title="Comme l'option du tracker de SoH : lister les Skulltulas même si elles ne sont pas mélangées"><input type="checkbox" v-model="ui.checks.alwaysGS">Toujours afficher les Skulltulas</label>
+      <div class="side-title">Zones</div>
+      <div class="zone-nav">
+        <button v-for="x in checkAreasC" :key="x.area.id" @click="jumpCheck(x.area.id)">
+          <span>{{x.area.label}}</span>
+          <span v-if="x.total" class="zp" :class="{done:x.got===x.total}">{{x.got}}/{{x.total}}</span></button>
       </div>
     </section>
 
@@ -398,6 +445,40 @@ const App = {
     </template>
 
     <!-- ================= ROUTEUR ================= -->
+    <!-- ================= CHECKS ================= -->
+    <template v-if="ui.view==='checks'">
+      <div class="page-head"><h1>Checks</h1>
+        <p class="lede">{{checkStats.got}} fait{{checkStats.got>1?'s':''}} sur {{checkStats.total}}, selon la configuration de la seed. Clic gauche : fait, clic droit : à faire.</p></div>
+      <input class="checks-search" type="search" v-model="ui.checks.q" placeholder="Rechercher un check ou une zone…" aria-label="Rechercher un check">
+      <div v-if="!checkAreasC.length" class="empty"><b>Aucun check à afficher.</b>
+        {{ui.checks.q ? 'Aucun résultat pour cette recherche.' : 'Vérifiez la Configuration ou les filtres du panneau de gauche.'}}</div>
+      <article v-for="x in checkAreasC" :key="x.area.id" class="area check-area" :id="'carea-'+x.area.id"
+        :class="{collapsed:ui.checks.collapsed[x.area.id]}">
+        <button class="area-head" @click="toggleCheckArea(x.area.id)" :aria-expanded="!ui.checks.collapsed[x.area.id]">
+          <span class="chev" v-html="ICONS.chevron"></span>
+          <h2>{{x.area.label}}</h2>
+          <span v-if="x.area.dungeon" class="dg-quest-pill" :class="questClass(x.area.dungeon)" :title="questTitle(x.area.dungeon)"
+            @click.stop="cycleDungeonQuest(x.area.dungeon)" @contextmenu.prevent.stop="cycleDungeonQuest(x.area.dungeon,true)">{{questLabel(x.area.dungeon)}}</span>
+          <span class="area-prog">
+            <span class="bar" :class="{done:x.total && x.got===x.total}"><i :style="{width:(x.total ? 100*x.got/x.total : 0)+'%'}"></i></span>
+            <span class="count">{{x.got}}/{{x.total}}</span></span>
+        </button>
+        <div v-if="!ui.checks.collapsed[x.area.id]" class="check-body">
+          <p v-if="x.hiddenQuest" class="quest-note">Version du donjon inconnue : {{x.hiddenQuest}} check{{x.hiddenQuest>1?'s':''}} propre{{x.hiddenQuest>1?'s':''}} à la version Vanilla ou Master Quest {{x.hiddenQuest>1?'sont masqués':'est masqué'}}.
+            Indiquez la version avec le badge « ? » (ou dans le panneau Objets).</p>
+          <ul v-if="x.checks.length" class="check-list-grid">
+            <li v-for="c in x.checks" :key="c.id" class="check-item" :class="{done:store.game.checks[c.id], excluded:s.excluded[c.id]}">
+              <button type="button" class="ci-main" :title="c.soh" @click="setCheck(c.id,true)" @contextmenu.prevent="setCheck(c.id,false)">
+                <span class="cr-mark" v-html="store.game.checks[c.id] ? ICONS.check : ICONS.circleO"></span><span class="ci-label">{{c.label}}</span></button>
+              <button type="button" class="ci-ex" :title="s.excluded[c.id] ? 'Réintégrer ce check' : 'Exclure ce check (ne compte plus)'"
+                @click="setExcluded(c.id, !s.excluded[c.id])">{{s.excluded[c.id] ? '↺' : '⊘'}}</button>
+            </li>
+          </ul>
+          <p v-else class="quest-note">{{x.total ? 'Tous les checks de cette zone sont faits.' : 'Aucun check listé.'}}</p>
+        </div>
+      </article>
+    </template>
+
     <template v-if="ui.view==='router'">
       <div class="page-head"><h1>Routeur</h1><p class="lede">Chemin le plus court entre deux sorties, selon ce que vous avez découvert et l'état de la partie.</p></div>
       <div class="rform">

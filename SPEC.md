@@ -6,8 +6,8 @@ de chaque sortie.
 Référence du rando : https://wiki.ootrandomizer.com/index.php?title=Entrance_Randomizer
 
 > **Transition en cours vers Ship of Harkinian.** L'application migre progressivement de OoT Randomizer
-> vers le randomizer de Ship of Harkinian (SoH) 9.2.3. Déjà alignés sur SoH : le panneau Objets et la
-> Configuration (réglages et astuces de SoH). La logique d'accessibilité de `js/logic.js` et les données des
+> vers le randomizer de Ship of Harkinian (SoH) 9.2.3. Déjà alignés sur SoH : le panneau Objets, la
+> Configuration (réglages et astuces de SoH) et la liste des Checks (sans logique d'accessibilité pour l'instant). La logique d'accessibilité de `js/logic.js` et les données des
 > Entrées/du Routeur restent celles d'OoT Randomizer, simplement branchées sur les réglages SoH équivalents
 > (voir « Configuration > Correspondance avec Entrées et Routeur ») ; elles seront revues avec la liste
 > des checks puis la logique SoH.
@@ -19,7 +19,8 @@ Référence du rando : https://wiki.ootrandomizer.com/index.php?title=Entrance_R
 - Interface claire, graphique, en français, utilisable sur mobile.
 
 ## Navigation (panneau de gauche)
-- Accès aux trois modules : Entrées (anciennement « Tracker », id `entrances`), Routeur, Configuration.
+- Accès aux quatre modules : Entrées (anciennement « Tracker », id `entrances`), Routeur, Checks, Configuration
+  (compteur « faits / total » à côté de Checks).
 - Dans Entrées uniquement : tout déplier / tout replier, navigation rapide vers les zones, et filtres :
   - Proposer les destinations déjà atteignables ou déjà mappées dans les listes : OFF par défaut.
     Une destination déjà mappée (déjà la cible d'une autre sortie, y compris pour les sorties à sens
@@ -331,6 +332,48 @@ adulte/communes hors force/bombes/missiles/arc/grappin/bâtons, Statistiques, no
 ceux déjà câblés) est purement informatif pour l'instant — cf. `SilverScale`/`GoronBracelet`/etc. dans
 `REQUIREMENTS` pour la liste exacte de ce qui compte pour la logique.
 - Les conditions portent sur chaque couple de sorties d'une zone, pas sur la zone entière.
+
+## Checks
+Liste des checks de la seed, par zone, pour les cocher au fil de la partie. Données : `checks-data.js`
+(`window.CHECKS_DATA`), **généré** depuis les sources de SoH 9.2.3 (commit `cb71e22` : `location_list.cpp`,
+`Shuffle*.cpp`, `fishsanity.cpp` pour les métadonnées, `location_access/**` pour la région de logique de chaque
+check) ; règles dans `js/checks.js`.
+
+- **Contenu** : 2 447 checks (sur 2 513 dans SoH : sont écartés ceux que le tracker de SoH n'affiche jamais —
+  pierres à potins, indices fixes, coffres intermédiaires de la chasse au trésor, Lettre de Zelda, Triforce
+  complète, Ganon). Chaque check : id SoH (`RC_…` sans préfixe), zone (32 zones SoH, dont les 12 donjons),
+  type SoH (`RCTYPE`), version (commun / Vanilla / MQ), libellé français, nom SoH exact (celui du spoiler,
+  affiché au survol), région de logique (pour la future logique), et pour certains : n° d'objet en boutique,
+  n° de poisson de l'étang.
+- **Libellés français** générés : table écrite à la main pour les checks importants (PNJ, récompenses, chants,
+  objets uniques), sinon règles — objet en tête (Coffre, Jarre, Herbe, Caisse, Skulltula, Peste Mojo, Fée…),
+  numéro, qualificatifs accordés (« Coffre gauche », « Jarre droite »), lieu avec articles et contractions
+  (« de la salle du boss », « près de l'entrée »), âge en suffixe « (enfant) ».
+- **Checks listés** (reprise de `IsCheckShuffled` du tracker de SoH, `checkShuffled`) : seulement ceux que la
+  configuration mélange — jarres / herbes / caisses / objets au sol / Skulltulas selon Overworld / Donjons /
+  Partout, arbres, buissons, ruches, vaches, fées (4 options), grenouilles, pestes Mojo (« Uniques » = les 3
+  toujours mélangées), marchands, boutiques (avec N objets par boutique : les N premiers dans l'ordre de
+  mélange de SoH 7, 5, 8, 6, 3, 1, 4, 2 ; « Aléatoire » : les 7 possibles), chants, ocarinas, épées, œuf,
+  Carte Gerudo, clés de la Forteresse (4, ou seulement celle de la cellule à 1 torche en « Rapide »),
+  cartes / boussoles / clés / clés de boss (sauf « Vanilla »), poche de Link, loche / poissons de l'étang
+  (les N premiers, adultes si séparés par âge) / poissons de l'overworld, récompense des 100 Skulltulas, quête
+  d'échange adulte (Anju adulte et le Certificat toujours). Écart volontaire : le marchand de haricots est listé
+  avec « Haricots seuls » (le tracker de SoH le masque par erreur). Préférence « Toujours afficher les
+  Skulltulas » (comme l'option du tracker de SoH).
+- **Version des donjons** : seuls les checks de la version active (V / MQ, voir Panneau Objets > Version des
+  donjons) sont listés. Version inconnue : seuls les checks communs, avec une note « n checks propres à la
+  version Vanilla ou Master Quest sont masqués » ; badge V / MQ / ? dans l'en-tête de la zone, cliquable comme
+  dans le panneau Objets (même état).
+- **Checks exclus** (`settings.excluded`) : importés du spoiler (`excludedLocations`, réglage de la seed, pas
+  un spoil ; remplacés à chaque import) ou réglés à la main (bouton ⊘ au survol, ↺ pour réintégrer). Exclus :
+  masqués et hors compteurs, sauf filtre « Afficher les checks exclus » (en italique).
+- **Interface** : zones repliables (même présentation que les Entrées) avec barre de progression et compteur
+  « faits / total » ; checks sur 2 colonnes (1 sur mobile) ; clic gauche = fait, clic droit = à faire
+  (`game.checks`, stockage creux `{ id: true }`) ; recherche (libellé FR, nom SoH ou nom de zone) ; panneau
+  de gauche : tout déplier / replier, « Masquer les checks faits », « Afficher les checks exclus »,
+  « Toujours afficher les Skulltulas », navigation vers les zones avec leurs compteurs.
+- **À venir (branche logique)** : accessibilité de chaque check (conditions SoH par région), lien avec les
+  Entrées et le Routeur.
 
 ## Entrées
 Une carte dépliable par zone, avec progression (sorties renseignées / randomisées). Une ligne par sortie :

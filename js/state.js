@@ -1,7 +1,7 @@
 /* ---------- État persistant ---------- */
 const STORE_KEY = 'oeil-sheikah-v1';
 function defaults(){
-  const game = { items:{}, songs:{}, dungeons:{}, checklists:{} };
+  const game = { items:{}, songs:{}, dungeons:{}, checklists:{}, checks:{} };
   ITEM_GROUPS.forEach(g => g.items.forEach(it => { game[g.path][it.key] = it.locked ? true : it.kind === 'bool' ? false : 0; }));
   DUNGEONS.forEach(d => { game.dungeons[d.id] = { map:false, compass:false, keys:0, bossKey:false, soul:false, quest:'', keyRing:'', ringGot:false }; });
   Object.entries(CHECKLISTS).forEach(([name, c]) => {
@@ -12,10 +12,13 @@ function defaults(){
     version:1,
     // Réglages Ship of Harkinian (js/config.js) : valeurs SoH exactes, + astuces de logique activées.
     settings:{ ...Object.fromEntries(SETTINGS_DEF.map(d => [d.key, d.def])),
-      tricks:Object.fromEntries(TRICKS.map(t => [t.key, false])) },
+      tricks:Object.fromEntries(TRICKS.map(t => [t.key, false])),
+      // Checks exclus à la génération de la seed (« excludedLocations » du spoiler, ou réglés à la main) : { id: true }
+      excluded:{} },
     costs:{ transition:3, warp:15, reset:25, age:12 },
     game, mappings:{},
     ui:{ view:'entrances', collapsed:{}, configTab:'logic', importQuests:false, spoilerPrompt:true,
+      checks:{ q:'', hideDone:false, showExcluded:false, alwaysGS:false, collapsed:{} },
       filters:{ showReachableTargets:false, showInaccessibleAreas:false, showDiscovered:true, showVanilla:true },
       router:{ fromArea:'', fromExit:'', fromAge:'child', toArea:'', toExit:'', toAge:'any' } },
   };
@@ -227,3 +230,12 @@ function addDungeonKeys(id, delta){
   const max = dungeonMaxKeys(id) ?? Math.max(def.maxKeys || 0, def.mqKeys || 0);
   d.keys = Math.max(0, Math.min(max, d.keys + delta));
 }
+
+/* ---------- Checks (page Checks, js/checks.js) ---------- */
+// Version du donjon d'une zone ('Vanilla' | 'MQ' | '' inconnue) ; les zones hors donjon n'ont que des checks communs.
+const areaQuest = area => CHECK_AREA[area].dungeon ? dungeonQuest(CHECK_AREA[area].dungeon) : 'Vanilla';
+// Check listé : mélangé selon la configuration et de la version active de son donjon (exclus compris).
+const checkListed = c => checkShuffled(c, store.settings, store.ui.checks.alwaysGS) && checkQuestActive(c, areaQuest(c.area));
+// Clic gauche = fait, clic droit = pas fait (même règle que les icônes du panneau Objets). Stockage creux { id: true }.
+function setCheck(id, on){ if (on) store.game.checks[id] = true; else delete store.game.checks[id]; }
+function setExcluded(id, on){ if (on) store.settings.excluded[id] = true; else delete store.settings.excluded[id]; }

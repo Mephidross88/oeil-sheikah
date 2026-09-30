@@ -2,14 +2,14 @@
 
 Tracker d'objets et routeur d'entrées pour Ocarina of Time Randomizer (Entrance Randomizer, ER), en cours de
 migration vers le randomizer de Ship of Harkinian (voir SPEC.md). Modules : Entrées (id `entrances`),
-Routeur, Configuration, plus le panneau Objets.
+Routeur, Checks, Configuration, plus le panneau Objets.
 Application 100 % client, sans build : ouvrir `index.html` dans un navigateur suffit.
 Interface et textes en français.
 Le comportement attendu est décrit dans `SPEC.md` : le lire avant toute évolution fonctionnelle,
 et le mettre à jour quand une règle change.
 
 ## Fichiers
-- `index.html` : squelette, charge Vue 3 (CDN jsDelivr, build global), puis `areas-data.js`, puis les fichiers
+- `index.html` : squelette, charge Vue 3 (CDN jsDelivr, build global), puis `areas-data.js` et `checks-data.js`, puis les fichiers
   de `js/` **dans l'ordre listé ci-dessous** (scripts classiques, pas de modules ES : chaque fichier partage
   le même scope global de haut niveau, comme s'il s'agissait d'un seul fichier — un `const`/`function` déclaré
   dans un fichier est directement utilisable dans les suivants ; ne pas redéclarer un identifiant existant).
@@ -31,17 +31,23 @@ et le mettre à jour quand une règle change.
      métadonnées) ; `DUNGEONS`/`DUNGEON_BY_ID` (carte/boussole/petites clés/clé de boss par donjon) et
      `CHECKLISTS` (lieux à cocher — clés hors donjon, trous à haricots). Ces trois derniers sont pour
      l'instant purement informatifs (pas encore branchés à la logique d'accessibilité, voir SPEC.md).
-  6. `js/state.js` : persistance (`defaults`, `merge`, `load`, `store`, sauvegarde auto), les `computed`
+  6. `js/checks.js` : checks de SoH (`CHECK_AREAS`, `CHECKS`, `CHECK_BY_ID`, `CHECK_BY_SOH`, `CHECKS_BY_AREA`)
+     construits depuis `window.CHECKS_DATA`, et règles pures d'affichage : `checkShuffled` (check mélangé selon la
+     configuration, reprise d'`IsCheckShuffled` du tracker de SoH) et `checkQuestActive` (version V/MQ).
+  7. `js/state.js` : persistance (`defaults`, `merge`, `load`, `store`, sauvegarde auto), les `computed`
      dérivés au niveau module (`effC`, `agesC`, `gameC`, `edgesC`, `reachC`), les mutations du mapping
      (`setMapping`, `clearMapping`, `candidatesFor`), les helpers de tuile d'objet partagés par `App` et
      `ItemTile` (`itemActive`, `iconSrc`, `itemTitle`, `itemMaxed`, `clickItem`, `rightClickItem`), et les
      mutations des check-lists/donjons (`setChecklist`, `checklistStats`, `setDungeonFlag`,
-     `addDungeonKeys`, `dungeonQuest`/`dungeonMaxKeys`/`cycleDungeonQuest` — version Vanilla/MQ, `dungeonKeyRing`/`setKeyRing`/`dungeonKeysDone` — trousseaux et clé squelette), et `applyStartingItems` (objets de départ de la configuration → panneau Objets).
-  7. `js/components.js` : composants Vue réutilisables (`TypeIcon`, `Seg`, `DestPicker`, `ItemTile`).
-  8. `js/app.js` : le composant racine `App` (template complet, dont le panneau Objets et ses modales de
+     `addDungeonKeys`, `dungeonQuest`/`dungeonMaxKeys`/`cycleDungeonQuest` — version Vanilla/MQ, `dungeonKeyRing`/`setKeyRing`/`dungeonKeysDone` — trousseaux et clé squelette), et `applyStartingItems` (objets de départ de la configuration → panneau Objets), et pour la page Checks `areaQuest`,
+     `checkListed`, `setCheck`, `setExcluded`.
+  8. `js/components.js` : composants Vue réutilisables (`TypeIcon`, `Seg`, `DestPicker`, `ItemTile`).
+  9. `js/app.js` : le composant racine `App` (template complet, dont le panneau Objets et ses modales de
      pointage) + `createApp(...).mount('#app')`.
 - `style.css` : styles, variables de thème dans `:root` (clair + sombre).
 - `areas-data.js` : données (`window.AREAS_DATA`). Gros fichier : ne le lire que si la tâche porte sur les données.
+- `checks-data.js` : checks SoH (`window.CHECKS_DATA`), **fichier généré** (voir son en-tête et SPEC.md > Checks) ;
+  gros fichier, ne pas le lire en entier ni l'éditer à la main pour autre chose qu'une retouche ponctuelle.
 - `icons/` : images. `icons/exits/` (types de sortie), `icons/items/` (convention par défaut du panneau
   Objets) et `icons/rewards/...` (chemins personnalisés d'exemple) — voir SPEC.md > Panneau Objets pour la
   convention de nommage et comment personnaliser un chemin par objet (`icon`/`icons` dans `ITEM_GROUPS`).
