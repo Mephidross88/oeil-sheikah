@@ -241,8 +241,8 @@ Puis :
    les boutons carrés « Clés des portes » (option « Lock Overworld Doors »), « Trous à haricots » (option « Âmes
    de haricot »), chacun visible seulement si son option est active (carte masquée s'il n'en reste aucun) :
    compteur obtenu/total, cliquables pour
-   ouvrir une modale de pointage — liste de lieux à cocher, 2 colonnes, bascule au clic
-   (`toggleChecklist`, `checklistStats` dans `js/state.js`). Catalogue des lieux dans `CHECKLISTS`
+   ouvrir une modale de pointage — liste de lieux à cocher, 2 colonnes, clic gauche = coché, clic droit = décoché
+   (`setChecklist`, `checklistStats` dans `js/state.js`). Catalogue des lieux dans `CHECKLISTS`
    (`js/items.js`). **Purement informatif pour l'instant** : pas encore branché au Routeur (voir encadré
    ci-dessus) — l'intention à terme est qu'un trou à haricot plante une connexion fixe dans le graphe, et
    qu'un lieu « Clés des portes » coché débloque l'accès à ce qu'il y a derrière la porte, mais les
@@ -260,11 +260,11 @@ Puis :
    boussole, petites clés (compteur, clic augmente/diminue), clé de boss (la Caverne de Glace n'a ni petites
    clés ni clé de boss) — voir
    `DUNGEONS`/`DUNGEON_BY_ID` dans
-   `js/items.js`, mutations `toggleDungeonFlag`/`addDungeonKeys` dans `js/state.js`). **Purement informatif
+   `js/items.js`, mutations `setDungeonFlag`/`addDungeonKeys` dans `js/state.js`). **Purement informatif
    pour l'instant**, comme les check-lists ci-dessus — petites clés attendues `maxKeys` (Vanilla) / `mqKeys`
    (MQ) selon la version du donjon (pastille à côté du nom, voir Configuration > Version des donjons). Exception : la Carte Gerudo (objet `gerudoCard`
    d'`ITEM_GROUPS`, déjà utilisé par la logique) est affichée sous les petites clés du Repaire, à la manière
-   d'une clé de boss (champ `card` du donjon dans `DUNGEONS`), clic = coche/décoche.
+   d'une clé de boss (champ `card` du donjon dans `DUNGEONS`), clic gauche = obtenue, clic droit = retirée.
 
 Chaque objet est une tuile d'icône, absente du dépôt (à fournir par l'utilisateur, repli sur une icône
 générique si le fichier manque). Convention par défaut, calculée par `iconSrc()` (`js/state.js`), tous les
@@ -294,7 +294,9 @@ Chemins toujours relatifs à `icons/`. Aucune autre modification nécessaire : `
 automatiquement sur le chemin personnalisé dès qu'il est présent, sinon retombe sur la convention par
 défaut ci-dessus.
 
-Contrôle, via clic gauche (augmenter/activer) et clic droit (diminuer/désactiver), sans jamais boucler :
+Contrôle, via clic gauche (augmenter/activer) et clic droit (diminuer/désactiver), sans jamais boucler — règle
+commune à toutes les icônes du panneau (tuiles, cases de donjon, trousseau, Carte Gerudo, lignes des
+check-lists ; seule exception, la version V/MQ d'un donjon, qui tourne : gauche = suivante, droite = précédente) :
 un objet déjà au maximum (ou déjà obtenu s'il n'est pas progressif) ignore le clic gauche, un objet non
 obtenu ignore le clic droit.
 - `bool` : activé / désactivé.

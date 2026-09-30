@@ -180,7 +180,8 @@ function tradeStats(id){
 /* ---------- Check-lists de lieux (clés hors donjon, trous à haricots) ---------- */
 // Purement informatif pour l'instant (voir CHECKLISTS dans js/items.js) : bascule coché/décoché,
 // pas encore branché au Routeur.
-function toggleChecklist(name, id){ const c = store.game.checklists[name]; c[id] = !c[id]; }
+// Clic gauche = cocher, clic droit = décocher (même règle que les tuiles d'objets).
+function setChecklist(name, id, on){ store.game.checklists[name][id] = on; }
 function checklistStats(name){
   const c = store.game.checklists[name], locations = CHECKLISTS[name].locations;
   return { got:locations.filter(l => c[l.id]).length, total:locations.length };
@@ -188,7 +189,8 @@ function checklistStats(name){
 
 /* ---------- Objets de donjon (carte / boussole / petites clés / clé de boss) ---------- */
 // Purement informatif pour l'instant (voir DUNGEONS dans js/items.js), pas encore branché au Routeur.
-function toggleDungeonFlag(id, field){ const d = store.game.dungeons[id]; d[field] = !d[field]; }
+// Clic gauche = obtenu, clic droit = retiré (carte, boussole, âme, clé de boss).
+function setDungeonFlag(id, field, on){ store.game.dungeons[id][field] = on; }
 // Statut effectif d'un donjon : imposé par la configuration, sinon noté par le joueur ('' = inconnu).
 const dungeonQuest = id => configQuest(id, store.settings) || store.game.dungeons[id].quest || '';
 // Petites clés attendues selon le statut ; null si le statut est inconnu et que Vanilla et MQ diffèrent.
@@ -213,7 +215,7 @@ function dungeonKeyRing(id){
   if (g.keyRing === 'no' || g.keys > 0) return false;
   return null;
 }
-function toggleKeyRing(id){ const g = store.game.dungeons[id]; g.ringGot = !g.ringGot; }
+function setKeyRing(id, on){ store.game.dungeons[id].ringGot = on; }
 // Serrures du donjon toutes ouvrables : trousseau obtenu, clé squelette ou toutes les petites clés.
 function dungeonKeysDone(id){
   const g = store.game.dungeons[id], max = dungeonMaxKeys(id);
