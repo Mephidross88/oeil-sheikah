@@ -9,7 +9,8 @@ Le comportement attendu est décrit dans `SPEC.md` : le lire avant toute évolut
 et le mettre à jour quand une règle change.
 
 ## Fichiers
-- `index.html` : squelette, charge Vue 3 (CDN jsDelivr, build global), puis `areas-data.js` et `checks-data.js`, puis les fichiers
+- `index.html` : squelette, charge Vue 3 (CDN jsDelivr, build global), puis `areas-data.js`, `checks-data.js` et
+  `soh-logic-data.js`, puis les fichiers
   de `js/` **dans l'ordre listé ci-dessous** (scripts classiques, pas de modules ES : chaque fichier partage
   le même scope global de haut niveau, comme s'il s'agissait d'un seul fichier — un `const`/`function` déclaré
   dans un fichier est directement utilisable dans les suivants ; ne pas redéclarer un identifiant existant).
@@ -34,16 +35,22 @@ et le mettre à jour quand une règle change.
   6. `js/checks.js` : checks de SoH (`CHECK_AREAS`, `CHECKS`, `CHECK_BY_ID`, `CHECK_BY_SOH`, `CHECKS_BY_AREA`)
      construits depuis `window.CHECKS_DATA`, et règles pures d'affichage : `checkShuffled` (check mélangé selon la
      configuration, reprise d'`IsCheckShuffled` du tracker de SoH) et `checkQuestActive` (version V/MQ).
-  7. `js/state.js` : persistance (`defaults`, `merge`, `load`, `store`, sauvegarde auto), les `computed`
-     dérivés au niveau module (`effC`, `agesC`, `gameC`, `edgesC`, `reachC`), les mutations du mapping
+  7. `js/soh-logic.js` : moteur de la logique SoH (portage de `logic.cpp`, `location_access.cpp`, `fill.cpp`).
+     Contexte global `L` lu par les conditions de `soh-logic-data.js` (âge/moment courants, `HasItem`/`CanUse`
+     sur l'inventaire du panneau Objets, options via `L.opt(RSK)`, astuces, événements, fonctions de logique),
+     et `computeSoh(settings, game, links?)` → `{ access:{RR: bits}, events, checks:{RC: bits} }` (bits : `CD`
+     enfant jour, `CN` enfant nuit, `AD`/`AN` adulte ; `links` : entrées mélangées `{ 'RR_A>RR_B': 'RR_C' }`).
+     Pur (sans Vue), lit `store` seulement via ses arguments.
+  8. `js/state.js` : persistance (`defaults`, `merge`, `load`, `store`, sauvegarde auto), les `computed`
+     dérivés au niveau module (`effC`, `agesC`, `gameC`, `edgesC`, `reachC`, `sohC` — logique SoH), les mutations du mapping
      (`setMapping`, `clearMapping`, `candidatesFor`), les helpers de tuile d'objet partagés par `App` et
      `ItemTile` (`itemActive`, `iconSrc`, `itemTitle`, `itemMaxed`, `clickItem`, `rightClickItem`), et les
      mutations des check-lists/donjons (`setChecklist`, `checklistStats`, `setDungeonFlag`,
      `addDungeonKeys`, `dungeonQuest`/`dungeonMaxKeys`/`cycleDungeonQuest` — version Vanilla/MQ, `dungeonKeyRing`/`setKeyRing`/`dungeonKeysDone` — trousseaux et clé squelette), et `applyStartingItems` (objets de départ de la configuration → panneau Objets), et pour la page Checks `areaQuest`,
      `checkListed`, `setCheck`, `setExcluded`.
-  8. `js/components.js` : composants Vue réutilisables (`TypeIcon`, `Seg`, `DestPicker`, `ItemTile`,
+  9. `js/components.js` : composants Vue réutilisables (`TypeIcon`, `Seg`, `DestPicker`, `ItemTile`,
      `ProgressCard` — cadre de progression des pages Checks et Entrées).
-  9. `js/app.js` : le composant racine `App` (template complet, dont le panneau Objets et ses modales de
+  10. `js/app.js` : le composant racine `App` (template complet, dont le panneau Objets et ses modales de
      pointage) + `createApp(...).mount('#app')`.
 - `style.css` : styles, variables de thème dans `:root` (clair + sombre).
 - `areas-data.js` : données (`window.AREAS_DATA`). Gros fichier : ne le lire que si la tâche porte sur les données.
@@ -53,8 +60,12 @@ et le mettre à jour quand une règle change.
   depuis les sources de SoH ; traductions des libellés dans `translate.mjs`. Mode d'emploi dans son `README.md`.
 - `soh-logic-data.js` : logique de SoH (`window.SOH_LOGIC` : 1 026 régions avec événements, checks et sorties, conditions
   converties en fonctions JS sur le contexte global `L`), **fichier généré** par `tools/soh-logic/extract_logic.mjs`
-  (sources téléchargées par `tools/soh-checks/fetch_sources.mjs`). Pas encore chargé par `index.html` : le moteur
-  (`js/soh-logic.js`) est en cours de construction sur la branche `logique`.
+  (sources téléchargées par `tools/soh-checks/fetch_sources.mjs`), plus les prix vanilla des boutiques/pestes/marchands
+  et la table des entrées de SoH (`entrances` : numéro ENTR, type, région de départ, région d'arrivée vanilla).
+  Gros fichier : ne le lire que par extraits (grep sur un `RR_…` ou `RC_…`).
+- `tools/soh-logic/` : `extract_logic.mjs` (régénère `soh-logic-data.js`) et `replay_spoilers.mjs` (test du moteur :
+  rejoue des spoilers SoH sphère par sphère, voir SPEC.md > Logique Ship of Harkinian ; à relancer après toute
+  modification de `js/soh-logic.js` ou de la conversion).
 - `tools/soh-entrances/apply_names.mjs` : table sortie ↔ entrée du tracker d'entrées de SoH et traductions ; réécrit les
   champs `label` / `soh` de `areas-data.js` (relancer après toute modification de la table).
 - `icons/` : images. `icons/exits/` (types de sortie), `icons/items/` (convention par défaut du panneau
@@ -106,5 +117,5 @@ et le mettre à jour quand une règle change.
 - Coûts réglables dans `store.costs`.
 
 ## Débogage
-`window.__PF` expose `store`, `effC`, `reachC`, `edgesC`, `shortest`, `candidatesFor`, `setMapping`, `EXIT`
-pour tester dans la console du navigateur.
+`window.__PF` expose `store`, `effC`, `reachC`, `edgesC`, `shortest`, `candidatesFor`, `setMapping`, `EXIT`,
+`sohC`, `computeSoh`, `L`, `SOH` pour tester dans la console du navigateur.

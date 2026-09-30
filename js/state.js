@@ -62,6 +62,8 @@ const agesC = computed(() => computeAges(store, effC.value));
 const gameC = computed(() => deriveGame(store.game, store.settings, agesC.value));
 const edgesC = computed(() => makeEdges(gameC.value, store.costs, effC.value));
 const reachC = computed(() => flood(agesC.value, effC.value, edgesC.value));
+// Logique Ship of Harkinian (js/soh-logic.js) : régions, événements et checks accessibles avec l'inventaire noté.
+const sohC = computed(() => computeSoh(store.settings, store.game));
 
 /* ---------- Mutations ---------- */
 function clearMapping(src){

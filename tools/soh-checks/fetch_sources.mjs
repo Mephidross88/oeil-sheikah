@@ -17,8 +17,12 @@ const wanted = tree.tree.map(e => e.path).filter(p =>
   /^soh\/soh\/Enhancements\/randomizer\/(location_list|location|fishsanity|randomizer_check_objects|Shuffle[A-Za-z]+)\.cpp$/.test(p) ||
   // logique (tools/soh-logic) : régions, fonctions de logique, entrées, options
   /^soh\/soh\/Enhancements\/randomizer\/(location_access|logic|entrance|settings|randomizer_entrance_tracker)\.(cpp|h)$/.test(p) ||
+  // moteur d'exploration (recherche des checks accessibles) : fill.cpp et le tracker de checks
+  /^soh\/soh\/Enhancements\/randomizer\/(3drando\/fill|randomizer_check_tracker)\.(cpp|hpp|h)$/.test(p) ||
   /^soh\/soh\/Enhancements\/randomizer\/(RandomizerOptions|randomizerTypes|dungeon)\.h$/.test(p));
-wanted.push('soh/soh/util.cpp', 'soh/soh/Enhancements/randomizer/randomizerEnums/RandomizerOptions.h');
+wanted.push('soh/soh/util.cpp', 'soh/soh/Enhancements/randomizer/randomizerEnums/RandomizerOptions.h',
+  // entrées : numéros ENTR_* (table des entrées du jeu) et décalages des grottes
+  'soh/include/tables/entrance_table.h', 'soh/soh/Enhancements/randomizer/randomizerEnums/RandomizerMiscEnums.h');
 
 for (const p of wanted){
   const dest = path.join(SRC, p.startsWith(RANDO) ? p.slice(RANDO.length) : path.basename(p));

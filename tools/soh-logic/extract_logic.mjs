@@ -108,9 +108,10 @@ function convert(cpp){
     return `(L.opt("${rsk}") ${op === 'Is' ? '===' : '!=='} ${RO[ro]})`;
   });
   s = s.replace(/ctx->GetOption\((RSK_\w+)\)(\.Get\(\))?/g, (_, rsk) => { usedOptions.add(rsk); return `L.opt("${rsk}")`; });
-  s = s.replace(/ctx->GetTrickOption\((RT_\w+)\)/g, (_, rt) => { usedTricks.add(rt); return `L.trick("${rt}")`; });
+  s = s.replace(/ctx->GetTrickOption\((RT_\w+)\)(?:\.Get\(\))?/g, (_, rt) => { usedTricks.add(rt); return `L.trick("${rt}")`; });
   s = s.replace(/ctx->GetDungeon\((?:Rando::)?(\w+)\)->IsMQ\(\)/g, 'L.mq("$1")');
-  s = s.replace(/ctx->GetDungeon\((?:Rando::)?(\w+)\)->IsVanilla\(\)/g, '!L.mq("$1")');
+  // IsVanilla n'est pas « !IsMQ » : version inconnue (non notée) -> les deux branches sont explorées
+  s = s.replace(/ctx->GetDungeon\((?:Rando::)?(\w+)\)->IsVanilla\(\)/g, 'L.vanilla("$1")');
   s = s.replace(/ctx->GetTrial\((?:Rando::)?(\w+)\)->IsSkipped\(\)/g, 'L.trialSkipped("$1")');
   s = s.replace(/\(bool\)/g, '').replace(/static_cast<[^>]+>/g, '');
   s = s.replace(/logic->/g, 'L.');
@@ -119,7 +120,7 @@ function convert(cpp){
   s = s.replace(new RegExp('(?<![.\\w])(' + FREE_FUNCS.join('|') + ')\\(', 'g'), 'L.$1(');
   s = s.replace(/Rando::/g, '');
   // constantes d'énumérations -> chaînes
-  s = s.replace(/(?<!["\w.])((?:RG|RE|ED|RR|LOGIC|RC|SCENE|RA|TK|RAND_INF|ITEM|QUEST|UPG|RHT|RO|TRIAL)_[A-Z0-9_]+)\b/g, (x) => {
+  s = s.replace(/(?<!["\w.])((?:RG|RE|ED|RR|LOGIC|RC|SCENE|RA|TK|RAND_INF|ITEM|QUEST|UPG|RHT|RO|TRIAL|WL)_[A-Z0-9_]+)\b/g, (x) => {
     if (x.startsWith('RO_')){ if (!(x in RO)) unknown.add(x); return String(RO[x]); }
     return `"${x}"`;
   });
@@ -197,6 +198,43 @@ const spirit = {};
   }
 }
 
+// Prix vanilla (et objet vanilla) des boutiques, pestes Mojo et marchands (location_list.cpp) : GetCheckPrice
+// renvoie en suivi le prix minimal d'un check non identifié, soit le prix vanilla avec les réglages par défaut.
+const prices = {};
+{
+  const LL = stripComments(read('location_list.cpp'));
+  const re = /locationTable\[(RC_\w+)\]\s*=\s*Location::\w+\(/g; let m;
+  while ((m = re.exec(LL))){
+    const open = m.index + m[0].length - 1, args = splitArgs(LL.slice(open + 1, matchClose(LL, open)));
+    if (!args.some(a => /^RCTYPE_(SHOP|SCRUB|MERCHANT)$/.test(a))) continue;
+    const price = +args[args.length - 1], item = args.find(a => /^RG_\w+$/.test(a));
+    const type = args.find(a => /^RCTYPE_(SHOP|SCRUB|MERCHANT)$/.test(a)).slice(7);
+    if (!Number.isFinite(price)) throw new Error('prix introuvable pour ' + m[1]);
+    prices[m[1]] = [price, item, type];
+  }
+}
+
+// Entrées de SoH (entrance.cpp, entranceShuffleTable) : [numéro ENTR, type, région de départ, région d'arrivée vanilla].
+// Numéros : position dans la table des entrées du jeu (entrance_table.h) ; grottes : 0x700 + n (entrée), 0x800 + n (sortie).
+const entrances = [];
+{
+  const ENTR = {};
+  for (const m of read('entrance_table.h').matchAll(/\/\*\s*0x([0-9A-Fa-f]+)\s*\*\/\s*DEFINE_ENTRANCE\((ENTR_\w+)/g)) ENTR[m[2]] = parseInt(m[1], 16);
+  const GROTTO = {};
+  for (const m of read('randomizerEnums/RandomizerMiscEnums.h').matchAll(/\/\*\s*0x([0-9A-Fa-f]+)\s*\*\/\s*RANDO_ENUM_ITEM\((GROTTO_\w+_OFFSET)\)/g)) GROTTO[m[2]] = parseInt(m[1], 16);
+  const EC = stripComments(read('entrance.cpp'));
+  const start = EC.indexOf('entranceShuffleTable = {'), open = EC.indexOf('{', start), body = EC.slice(open, matchClose(EC, open) + 1);
+  for (const m of body.matchAll(/\{\s*EntranceType::(\w+),\s*(RR_\w+),\s*(RR_\w+),\s*([^}]+?)\s*\}/g)){
+    const idx = m[4].trim();
+    let n = ENTR[idx];
+    const g = idx.match(/ENTRANCE_GROTTO_(LOAD|EXIT)\((GROTTO_\w+_OFFSET)\)/);
+    if (g) n = (g[1] === 'LOAD' ? 0x700 : 0x800) + GROTTO[g[2]];
+    if (n === undefined || Number.isNaN(n)) throw new Error('numéro d\'entrée inconnu : ' + idx);
+    if (!regions[m[2]] || !regions[m[2]].exits.some(([to]) => to === m[3])) throw new Error(`sortie ${m[2]} -> ${m[3]} absente`);
+    entrances.push([n, m[1], m[2], m[3]]);
+  }
+}
+
 // ---------- vérification et écriture ----------
 let count = 0, bad = 0;
 const check = (where, js) => { count++; try { new Function('L', 'return ' + js); } catch (e){ bad++; console.warn('Syntaxe JS invalide', where, js.slice(0, 200)); } };
@@ -215,10 +253,14 @@ lines.push(`/* Logique du randomizer de Ship of Harkinian 9.2.3 (commit cb71e22)
    regions : { RR : { name, scene, time (le temps y passe), events:[[LOGIC, cond]], checks:[[RC, cond]], exits:[[RR, cond]] } }
              (events peut valoir "grottoEvents" : événements génériques des grottes)
    spirit  : { RR : [childKeys, childRevKeys, adultKeys, adultRevKeys, childAccess, adultAccess, reverseAccess] }
-   options : { RSK : { name (nom SoH), list | numeric:{min, step}, def (index par défaut) } } — options lues par la logique */`);
+   options : { RSK : { name (nom SoH), list | numeric:{min, step}, def (index par défaut) } } — options lues par la logique
+   prices  : { RC : [prix vanilla, objet vanilla RG, 'SHOP' | 'SCRUB' | 'MERCHANT'] } — boutiques, pestes Mojo et marchands
+   entrances : [[numéro ENTR, type SoH, région de départ, région d'arrivée vanilla]] — entrées mélangeables (entrance.cpp) */`);
 lines.push('window.SOH_LOGIC = {');
 lines.push('  options:' + JSON.stringify(opts) + ',');
 lines.push('  tricks:' + JSON.stringify([...usedTricks].sort()) + ',');
+lines.push('  prices:' + JSON.stringify(prices) + ',');
+lines.push('  entrances:' + JSON.stringify(entrances) + ',');
 lines.push('  grottoEvents:[' + grotto.map(([id, js]) => `[${JSON.stringify(id.replace(/"/g, ''))}, ${js}]`).join(', ') + '],');
 lines.push('  spirit:{');
 for (const [rr, d] of Object.entries(spirit)) lines.push(`    ${rr}:[${d.join(', ')}],`);
@@ -240,7 +282,7 @@ const funcs = {};
 for (const m of out.matchAll(/\bL\.([A-Za-z]+)\(/g)) funcs[m[1]] = (funcs[m[1]] || 0) + 1;
 const props = {};
 for (const m of out.matchAll(/\bL\.([A-Za-z]+)\b(?!\()/g)) props[m[1]] = (props[m[1]] || 0) + 1;
-console.log(`${Object.keys(regions).length} régions, ${count} conditions (${bad} invalides), ${usedOptions.size} options, ${usedTricks.size} astuces — ${Math.round(out.length / 1024)} Ko`);
+console.log(`${entrances.length} entrées ; ${Object.keys(regions).length} régions, ${count} conditions (${bad} invalides), ${usedOptions.size} options, ${usedTricks.size} astuces — ${Math.round(out.length / 1024)} Ko`);
 console.log('Fonctions L.* :', Object.entries(funcs).sort((a, b) => b[1] - a[1]).map(([k, n]) => `${k}(${n})`).join(' '));
 console.log('Propriétés L.* :', Object.keys(props).join(' '));
 if (unknown.size) console.log('À vérifier :', [...unknown].slice(0, 30));

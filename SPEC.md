@@ -7,7 +7,8 @@ Référence du rando : https://wiki.ootrandomizer.com/index.php?title=Entrance_R
 
 > **Transition en cours vers Ship of Harkinian.** L'application migre progressivement de OoT Randomizer
 > vers le randomizer de Ship of Harkinian (SoH) 9.2.3. Déjà alignés sur SoH : le panneau Objets, la
-> Configuration (réglages et astuces de SoH) et la liste des Checks (sans logique d'accessibilité pour l'instant). La logique d'accessibilité de `js/logic.js` et les données des
+> Configuration (réglages et astuces de SoH) et la liste des Checks. La logique de SoH est portée (voir « Logique
+> Ship of Harkinian ») mais pas encore affichée ; la logique d'accessibilité de `js/logic.js` et les données des
 > Entrées/du Routeur restent celles d'OoT Randomizer, simplement branchées sur les réglages SoH équivalents
 > (voir « Configuration > Correspondance avec Entrées et Routeur ») ; elles seront revues avec la liste
 > des checks puis la logique SoH.
@@ -44,9 +45,13 @@ Réglages du randomizer de **Ship of Harkinian 9.2.3 « Ackbar Delta »**, repri
 l'utilisateur ; ne pas se fier à la branche `develop`, qui a d'autres options). Données dans `js/config.js`
 (`SETTINGS_DEF`, `TRICKS`, `CONFIG_TABS`).
 
-- **Périmètre** : seulement les options qui changent la logique, les checks ou les objets suivis (163 sur
-  231). Ignorées (`SETTINGS_IGNORED`) : prix et pondérations des boutiques, pestes Mojo et marchands,
-  indices, pièges de glace, réserve d'objets, multiplicateur de dégâts, « All Locations Reachable », et les
+- **Périmètre** : seulement les options qui changent la logique, les checks ou les objets suivis (184 sur
+  231). Les prix des boutiques, pestes Mojo et marchands en font partie : la logique de SoH exige de pouvoir
+  payer le prix **minimal** d'un check non identifié, qui dépend du réglage (Vanilla → prix vanilla ; Équilibrés
+  → 0 ; Fixes → le prix fixé ; Fourchette → le minimum ; Selon la bourse → 0, 1, 100, 201 ou 501 selon la
+  première bourse de poids non nul). Affichés seulement si le type de lieu est mélangé (comme SoH), mais
+  toujours utilisés. Ignorées (`SETTINGS_IGNORED`) : bornes hautes, poids « magnat » et « prix abordables »
+  des prix, indices, pièges de glace, réserve d'objets, multiplicateur de dégâts, « All Locations Reachable », et les
   options sans case dans le menu de SoH (« Shuffle Entrances », calculée ; « Shuffle Chest Minigame », forcée
   à « Off » à la génération).
 - **Valeurs** : stockées telles que dans SoH (ex. `'Deku Only'`, `'Dungeon rewards'`), défauts de SoH ;
@@ -158,6 +163,43 @@ en haut du panneau Objets (pastilles vertes/grises).
   (`areas-data.js`), indépendamment de ce raccourci.
 - **Pont/Carte Gerudo** : Carte Gerudo obtenue (objet manuel, la libération des charpentiers est une suite
   d'épreuves internes au repaire, hors du graphe de sorties), y compris avec des charpentiers « Libres ».
+
+## Logique Ship of Harkinian
+Portage fidèle de la logique du randomizer de SoH 9.2.3 (commit `cb71e22`), en cours de branchement (étapes :
+1. extraction, 2. moteur — **fait** ; 3. âges et accessibilité des checks dans l'interface ; 4. entrées reliées
+aux passages SoH ; 5. Routeur sur le graphe SoH). Tant que l'étape 3 n'est pas faite, rien n'est affiché.
+- **Données** (`soh-logic-data.js`, généré par `tools/soh-logic/extract_logic.mjs` depuis `location_access/**`,
+  `location_access.cpp`, `settings.cpp`, `location_list.cpp`) : 1 026 régions, avec leurs événements (`LOGIC_…`),
+  checks et sorties, conditions C++ converties en fonctions JavaScript ; options lues par la logique ; prix et
+  objet vanilla des boutiques, pestes Mojo et marchands ; les 296 entrées mélangeables (`entrance.cpp`) avec leur
+  numéro d'entrée du jeu (celui des spoilers), leur type et la sortie de région correspondante.
+- **Moteur** (`js/soh-logic.js`) : fonctions de `logic.cpp` (objets, ennemis, niveau d'eau, Temple de l'Esprit…)
+  et recherche de `fill.cpp` (`ReachabilitySearch`) en mode « checks disponibles » du tracker de SoH : chaque
+  région a quatre accès (enfant / adulte × jour / nuit) ; on part de la racine avec l'âge de départ, on propage
+  par les sorties, le temps qui passe (régions où le temps s'écoule : jour et nuit, pour la région et la
+  racine), le changement d'âge au Temple du Temps, et les événements, jusqu'à ce que plus rien ne change.
+  Résultat (`computeSoh`, `sohC`) : accès de chaque région, événements obtenus, et pour chaque check les états
+  âge/moment où il est faisable. Entrées mélangées : `computeSoh` accepte des liaisons « sortie → région d'arrivée
+  réelle » (la sortie garde sa condition, seule l'arrivée change, comme `Entrance::Connect` de SoH) ; elles seront
+  alimentées par les destinations notées dans Entrées à l'étape 4.
+- **Inventaire** : celui du panneau Objets, jamais les objets placés dans la seed. Objets non mélangés possédés
+  d'office (capacités, langues, touches d'ocarina, canne à pêche, âmes de haricot, bourse enfant, capacités de
+  base des bâtons et noix), cartes/clés « Au départ », Carte Gerudo offerte (charpentiers libres, carte non
+  mélangée), clé squelette, trousseau obtenu (toutes les petites clés). Temple du Feu Vanilla avec clés dans le
+  donjon : +1 petite clé (porte du sous-sol ouverte d'office par SoH).
+- **Boutiques et pestes non mélangées** : les atteindre donne l'événement de leur objet vanilla (bâtons Mojo →
+  accès aux bâtons, noix, missiles, poisson, insectes, fée, flamme bleue), comme SoH.
+- **Écarts assumés** avec le tracker de SoH : donjons terminés = ceux dont le boss est battable en logique (et non
+  les téléporteurs bleus empruntés) ; épreuves de Ganon passées seulement si « Aucune » ou 0 ; haricots plantés
+  seulement avec « Haricots déjà plantés » + haricots au départ ; version de donjon inconnue → branches Vanilla et
+  MQ toutes deux explorées ; prix vus en jeu non suivis (prix minimal). Dans l'appli, les entrées sont pour
+  l'instant celles du jeu vanilla (étape 4).
+- **Validation** (outil de test, jamais dans l'appli) : `node tools/soh-logic/replay_spoilers.mjs <dossier>`
+  rejoue chaque spoiler sphère par sphère en ramassant tous les objets accessibles, avec les entrées du spoiler
+  (`entrances` : l'entrée `index` mène là où mène normalement l'entrée `override`) ; tous les lieux du playthrough
+  et du spoiler doivent être atteints. Résultat actuel : 30/30 spoilers 9.2.3 conformes, dont 3 à entrées
+  mélangées et découplées, couvrant donjons MQ, trousseaux, petites clés vanilla et quête d'échange adulte non
+  mélangée.
 
 ## Panneau Objets (droite)
 Zone latérale droite, étroite (repliable sur mobile via un bouton dans la barre du haut), pas une page à

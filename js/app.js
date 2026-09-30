@@ -915,4 +915,4 @@ const app = createApp(App);
 app.config.globalProperties.REQ_LABEL = REQ_LABEL;
 app.mount('#app');
 document.addEventListener('click', ev => { /* ferme l'infobulle en tactile */ if (!ev.target.closest('.globe')) { const t = document.querySelector('.tip'); if (t) window.dispatchEvent(new Event('scroll')); } });
-window.__PF = { store, effC, reachC, edgesC, shortest, candidatesFor, setMapping, EXIT };
+window.__PF = { store, effC, reachC, edgesC, shortest, candidatesFor, setMapping, EXIT, sohC, computeSoh, L, SOH };
