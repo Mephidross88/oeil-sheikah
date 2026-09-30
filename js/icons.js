@@ -38,6 +38,7 @@ const ICONS = {
   swap:      S('<path d="M7 4v16M7 20l-3-3M7 20l3-3M17 20V4M17 4l-3 3M17 4l3 3"/>'),
   entrances: S('<path d="M4 5h16M4 12h16M4 19h10"/><circle cx="19" cy="19" r="2"/>'),
   router:    S('<circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.5 6H15a3 3 0 010 6H9a3 3 0 000 6h6.5"/>'),
+  checks:    S('<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 12.5l3 3 5-6"/>'),
   config:    S('<path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/>'),
   bag:       S('<path d="M8 8V6a4 4 0 018 0v2"/><path d="M5.5 8h13l1 12.5a1.5 1.5 0 01-1.5 1.5H6a1.5 1.5 0 01-1.5-1.5z"/>'),
   sword:     S('<path d="M12 1.5l2 3V16h-4V4.5z" fill="currentColor" stroke="none" opacity=".35"/><path d="M12 1.5l2 3V16h-4V4.5zM6.5 16h11M12 16v6M10 22h4"/>'),

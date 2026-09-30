@@ -6,8 +6,8 @@ de chaque sortie.
 Référence du rando : https://wiki.ootrandomizer.com/index.php?title=Entrance_Randomizer
 
 > **Transition en cours vers Ship of Harkinian.** L'application migre progressivement de OoT Randomizer
-> vers le randomizer de Ship of Harkinian (SoH) 9.2.3. Déjà alignés sur SoH : le panneau Objets et la
-> Configuration (réglages et astuces de SoH). La logique d'accessibilité de `js/logic.js` et les données des
+> vers le randomizer de Ship of Harkinian (SoH) 9.2.3. Déjà alignés sur SoH : le panneau Objets, la
+> Configuration (réglages et astuces de SoH) et la liste des Checks (sans logique d'accessibilité pour l'instant). La logique d'accessibilité de `js/logic.js` et les données des
 > Entrées/du Routeur restent celles d'OoT Randomizer, simplement branchées sur les réglages SoH équivalents
 > (voir « Configuration > Correspondance avec Entrées et Routeur ») ; elles seront revues avec la liste
 > des checks puis la logique SoH.
@@ -19,7 +19,7 @@ Référence du rando : https://wiki.ootrandomizer.com/index.php?title=Entrance_R
 - Interface claire, graphique, en français, utilisable sur mobile.
 
 ## Navigation (panneau de gauche)
-- Accès aux trois modules : Entrées (anciennement « Tracker », id `entrances`), Routeur, Configuration.
+- Accès aux quatre modules : Entrées (anciennement « Tracker », id `entrances`), Routeur, Checks, Configuration.
 - Dans Entrées uniquement : tout déplier / tout replier, navigation rapide vers les zones, et filtres :
   - Proposer les destinations déjà atteignables ou déjà mappées dans les listes : OFF par défaut.
     Une destination déjà mappée (déjà la cible d'une autre sortie, y compris pour les sorties à sens
@@ -332,12 +332,77 @@ ceux déjà câblés) est purement informatif pour l'instant — cf. `SilverScal
 `REQUIREMENTS` pour la liste exacte de ce qui compte pour la logique.
 - Les conditions portent sur chaque couple de sorties d'une zone, pas sur la zone entière.
 
+## Checks
+Liste des checks de la seed, par zone, pour les cocher au fil de la partie. Données : `checks-data.js`
+(`window.CHECKS_DATA`), **généré** depuis les sources de SoH 9.2.3 (commit `cb71e22` : `location_list.cpp`,
+`Shuffle*.cpp`, `fishsanity.cpp` pour les métadonnées, `location_access/**` pour la région de logique de chaque
+check) ; règles dans `js/checks.js`.
+
+- **Contenu** : 2 447 checks (sur 2 513 dans SoH : sont écartés ceux que le tracker de SoH n'affiche jamais —
+  pierres à potins, indices fixes, coffres intermédiaires de la chasse au trésor, Lettre de Zelda, Triforce
+  complète, Ganon). Chaque check : id SoH (`RC_…` sans préfixe), zone (32 zones SoH, dont les 12 donjons),
+  type SoH (`RCTYPE`), version (commun / Vanilla / MQ), libellé français, nom SoH exact (celui du spoiler,
+  affiché au survol), région de logique (pour la future logique), et pour certains : n° d'objet en boutique,
+  n° de poisson de l'étang.
+- **Libellés français** générés : table écrite à la main pour les checks importants (PNJ, récompenses, chants,
+  objets uniques), sinon règles — objet en tête (Coffre, Jarre, Herbe, Caisse, Skulltula, Peste Mojo, Fée…),
+  numéro, qualificatifs accordés (« Coffre gauche », « Jarre droite »), lieu avec articles et contractions
+  (« de la salle du boss », « près de l'entrée »), âge en suffixe « (enfant) ».
+- **Checks listés** (reprise de `IsCheckShuffled` du tracker de SoH, `checkShuffled`) : seulement ceux que la
+  configuration mélange — jarres / herbes / caisses / objets au sol / Skulltulas selon Overworld / Donjons /
+  Partout, arbres, buissons, ruches, vaches, fées (4 options), grenouilles, pestes Mojo (« Uniques » = les 3
+  toujours mélangées), marchands, boutiques (avec N objets par boutique : les N premiers dans l'ordre de
+  mélange de SoH 7, 5, 8, 6, 3, 1, 4, 2 ; « Aléatoire » : les 7 possibles), chants, ocarinas, épées, œuf,
+  Carte Gerudo, clés de la Forteresse (4, ou seulement celle de la cellule à 1 torche en « Rapide »),
+  cartes / boussoles / clés / clés de boss (sauf « Vanilla »), poche de Link, loche / poissons de l'étang
+  (les N premiers, adultes si séparés par âge) / poissons de l'overworld, récompense des 100 Skulltulas, quête
+  d'échange adulte (Anju adulte et le Certificat toujours). Écart volontaire : le marchand de haricots est listé
+  avec « Haricots seuls » (le tracker de SoH le masque par erreur). Préférence « Suivre aussi les
+  Skulltulas non mélangées » (option « Always show Gold Skulltulas » du tracker de SoH : utile pour les
+  récompenses de la Maison des Skulltulas quand les symboles ne sont pas mélangés).
+- **Version des donjons** : seuls les checks de la version active (V / MQ, voir Panneau Objets > Version des
+  donjons) sont listés. Version inconnue : seuls les checks communs, avec une note « n checks propres à la
+  version Vanilla ou Master Quest sont masqués » ; badge V / MQ / ? dans l'en-tête de la zone, cliquable comme
+  dans le panneau Objets (même état).
+- **Checks exclus** (`settings.excluded`) : importés du spoiler (`excludedLocations`, réglage de la seed, pas
+  un spoil ; remplacés à chaque import) ou réglés à la main (bouton ⊘ au survol, ↺ pour réintégrer). Exclus :
+  masqués et hors compteurs, sauf filtre « Afficher les checks exclus » (en italique).
+- **Catégories** (16, déduites du type et du constructeur SoH, champ `cat`) : Coffres, Skulltulas, Boss (récompenses
+  de donjon et réceptacles), Chants, PNJ et événements, Objets au sol (rubis, cœurs, quarts de cœur et clés posés),
+  Pestes Mojo, Boutiques et marchands, Vaches, Fées, Poissons, Ruches, Jarres, Caisses, Herbes, Arbres et buissons.
+  Icône `icons/checks/<catégorie>.png` (chest, skulltula, boss, song, npc, freestanding, scrub, shop, cow, fairy, fish,
+  beehive, pot, crate, grass, tree) ; en attendant l'image, pastille de couleur avec l'initiale.
+- **Âge** (Enfant / Adulte / Les deux, champ `age`) : fourni par la logique (à venir) ; tant qu'il est inconnu, pas
+  de pastille et le filtre d'âge est grisé.
+- **Filtres** (barre au-dessus de la liste) : recherche (libellé FR, nom SoH ou zone) ; âge (Tous / Enfant / Adulte) ;
+  « Masquer les checks faits » ; « Masquer les zones terminées » ; pastilles de catégorie avec le nombre restant
+  (clic : afficher / masquer la catégorie, clic droit : seulement celle-ci, ou tout réafficher ; « Tout afficher »).
+  Les checks suivis = listés, non exclus, dans les catégories et l'âge choisis : compteurs, barres et zones
+  terminées en dépendent. Panneau de gauche : tout déplier / replier, « Afficher les checks exclus », « Suivre
+  aussi les Skulltulas non mélangées », zones groupées Overworld / Donjons avec mini-barre et restants (✓ si terminée).
+- **Progression globale** : grand cadre en haut à droite de la page — anneau de pourcentage, « faits / total »
+  en grand, restants, zones terminées, et détail Overworld / Donjons. Il porte sur tous les checks suivis
+  (catégories et âge choisis, hors exclus), indépendamment de la recherche et des zones masquées.
+- **Zones** : repliables (présentation des Entrées) ; en-tête avec badge V / MQ / ? (donjons), restants par catégorie
+  (icône + nombre), barre et « faits / suivis », « Terminée » quand tout est fait ; emplacement prévu pour le nombre
+  de checks faisables (logique). Checks sur 2 colonnes (1 sur mobile) : icône de catégorie, libellé, pastille
+  d'âge, coche ; un clic (gauche) bascule fait / à faire (`game.checks`, stockage creux `{ id: true }`) ; nom SoH
+  au survol ; ⊘ au survol pour exclure.
+- **À venir (branche logique)** : âge et accessibilité de chaque check (conditions SoH par région), nombre de checks
+  faisables par zone, checks non faisables grisés, lien avec les Entrées et le Routeur.
+
 ## Entrées
 Une carte dépliable par zone, avec progression (sorties renseignées / randomisées). Une ligne par sortie :
 1. Icône du type (extérieur, intérieur, grotte, donjon, boss, hibou, téléportation, spawn).
 2. Globe : au survol, liste des sorties atteignables à pied dans la même zone, avec coût ;
    en noir si accessible avec l'état actuel, en rouge sinon avec la condition. Grisé si aucune connexion.
-3. Nom de la sortie.
+3. Nom de la sortie : nom du tracker d'entrées de SoH (`randomizer_entrance_tracker.cpp`, commit `cb71e22`),
+   traduit en français sans le préfixe de zone (déjà affiché), nom SoH exact au survol (champ `soh`) — y compris
+   dans les listes de destinations (recherche aussi sur le nom SoH) et le Routeur. Convention SoH : côté
+   extérieur « Entrée de la maison de Mido », côté intérieur « Maison de Mido » (la sortie qu'on prend depuis
+   l'intérieur). Correspondance sortie ↔ entrée SoH et traductions : `tools/soh-entrances/apply_names.mjs`
+   (réécrit `areas-data.js`). Repaire des Voleurs : appariement des 13 portes déduit des noms extérieurs, à
+   confirmer en jeu.
 4. « Accessible depuis » : zone et sortie qui mènent ici (plusieurs possibles, ex. chant + entrée).
    Colonne masquée si les entrées découplées ne sont pas activées : la provenance est alors
    identique à la destination (colonne 5 renommée « Sortie associée » dans ce cas).

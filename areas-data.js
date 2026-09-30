@@ -6,14 +6,16 @@ window.AREAS_DATA = [
     "exits": [
       {
         "id": "spawn_child",
-        "label": "Spawn Enfant",
+        "label": "Apparition enfant",
+        "soh": "Child Spawn",
         "type": "warp",
         "shuffleTag": "spawn",
         "vanillaTargetExitId": "kokiri_forest::links_to_kf"
       },
       {
         "id": "spawn_adult",
-        "label": "Spawn Adulte",
+        "label": "Apparition adulte",
+        "soh": "Adult Spawn",
         "type": "warp",
         "shuffleTag": "spawn",
         "vanillaTargetExitId": "market::templeoftime_to_templeplaza"
@@ -21,6 +23,7 @@ window.AREAS_DATA = [
       {
         "id": "warp_pol",
         "label": "Prélude de la Lumière",
+        "soh": "Prelude of Light",
         "type": "warp",
         "shuffleTag": "warp",
         "vanillaTargetExitId": "market::prelude_pad"
@@ -28,6 +31,7 @@ window.AREAS_DATA = [
       {
         "id": "warp_mof",
         "label": "Menuet des Bois",
+        "soh": "Minuet of Forest",
         "type": "warp",
         "shuffleTag": "warp",
         "vanillaTargetExitId": "meadow::minuet_pad"
@@ -35,6 +39,7 @@ window.AREAS_DATA = [
       {
         "id": "warp_bof",
         "label": "Boléro du Feu",
+        "soh": "Bolero of Fire",
         "type": "warp",
         "shuffleTag": "warp",
         "vanillaTargetExitId": "death_mountain_crater::bolero_pad"
@@ -42,6 +47,7 @@ window.AREAS_DATA = [
       {
         "id": "warp_sow",
         "label": "Sérénade de l'Eau",
+        "soh": "Serenade of Water",
         "type": "warp",
         "shuffleTag": "warp",
         "vanillaTargetExitId": "lake_hylia::serenade_pad"
@@ -49,6 +55,7 @@ window.AREAS_DATA = [
       {
         "id": "warp_nos",
         "label": "Nocturne de l'Ombre",
+        "soh": "Nocturne of Shadow",
         "type": "warp",
         "shuffleTag": "warp",
         "vanillaTargetExitId": "graveyard::nocturne_pad"
@@ -56,6 +63,7 @@ window.AREAS_DATA = [
       {
         "id": "warp_ros",
         "label": "Requiem des Esprits",
+        "soh": "Requiem of Spirit",
         "type": "warp",
         "shuffleTag": "warp",
         "vanillaTargetExitId": "colossus::requiem_pad"
@@ -68,7 +76,8 @@ window.AREAS_DATA = [
     "exits": [
       {
         "id": "hf_to_lw",
-        "label": "Pont des Bois Perdus",
+        "label": "Sortie boisée",
+        "soh": "Hyrule Field Wooded Exit",
         "type": "overworld",
         "shuffleTag": "overworld",
         "vanillaTargetExitId": "lost_woods::lwbridge_to_hf",
@@ -196,7 +205,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "hf_to_river",
-        "label": "Rivière Zora",
+        "label": "Sortie de la rivière",
+        "soh": "Hyrule Field River Exit",
         "type": "overworld",
         "shuffleTag": "overworld",
         "vanillaTargetExitId": "zora_river::river_to_hf",
@@ -324,7 +334,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "hf_to_kak",
-        "label": "Village Cocorico",
+        "label": "Sortie de l'escalier",
+        "soh": "Hyrule Field Stairs Exit",
         "type": "overworld",
         "shuffleTag": "overworld",
         "vanillaTargetExitId": "kakariko::kak_to_hf",
@@ -452,7 +463,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "hf_to_market",
-        "label": "Place du Marché",
+        "label": "Sortie du pont-levis",
+        "soh": "Hyrule Field Drawbridge Exit",
         "type": "overworld",
         "shuffleTag": "overworld",
         "vanillaTargetExitId": "market::market_to_hf",
@@ -580,7 +592,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "hf_to_ranch",
-        "label": "Ranch Lon Lon",
+        "label": "Sortie centrale",
+        "soh": "Hyrule Field Center Exit",
         "type": "overworld",
         "shuffleTag": "overworld",
         "vanillaTargetExitId": "lonlon_ranch::ranch_to_hf",
@@ -708,7 +721,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "hf_to_gv",
-        "label": "Vallée Gerudo",
+        "label": "Chemin rocheux",
+        "soh": "Hyrule Field Rocky Path",
         "type": "overworld",
         "shuffleTag": "overworld",
         "vanillaTargetExitId": "gerudo_valley::gv_to_hf",
@@ -836,7 +850,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "hf_to_lake",
-        "label": "Lac Hylia",
+        "label": "Sortie de la clôture",
+        "soh": "Hyrule Field Fence Exit",
         "type": "overworld",
         "shuffleTag": "overworld",
         "vanillaTargetExitId": "lake_hylia::lake_to_hf",
@@ -964,7 +979,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "hf_to_kakarikogrotto",
-        "label": "Grotte (Cocorico)",
+        "label": "Entrée de la grotte de l'arbre du pont de pierre",
+        "soh": "HF Stone Bridge Tree Grotto Entry",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "hf_field::kakarikogrotto_to_hf",
@@ -1083,14 +1099,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "kakarikogrotto_to_hf",
-        "label": "Sortie de la grotte (Cocorico)",
+        "label": "Grotte de l'arbre du pont de pierre",
+        "soh": "HF Stone Bridge Tree Grotto",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "hf_field::hf_to_kakarikogrotto"
       },
       {
         "id": "hf_to_marketgrotto",
-        "label": "Grotte (Place du Marché)",
+        "label": "Entrée de la grotte du rocher près du bourg",
+        "soh": "HF Near Market Boulder Grotto Entry",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "hf_field::marketgrotto_to_hf",
@@ -1209,14 +1227,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "marketgrotto_to_hf",
-        "label": "Sortie de la grotte (Place du Marché)",
+        "label": "Grotte du rocher près du bourg",
+        "soh": "HF Near Market Boulder Grotto",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "hf_field::hf_to_marketgrotto"
       },
       {
         "id": "hf_to_divinggrotto",
-        "label": "Grotte (Plongée)",
+        "label": "Entrée de la grotte de l'arbre nord-ouest",
+        "soh": "HF Northwest Tree Grotto Entry",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "hf_field::divingrotto_to_hf",
@@ -1335,14 +1355,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "divingrotto_to_hf",
-        "label": "Sortie de la grotte (Plongée)",
+        "label": "Grotte aux Tektites",
+        "soh": "HF Tektite Grotto",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "hf_field::hf_to_divinggrotto"
       },
       {
         "id": "hf_to_fairygrotto",
-        "label": "Grotte (Fontaine des Fées)",
+        "label": "Entrée de la grotte du rocher nord-ouest",
+        "soh": "HF Northwest Boulder Grotto Entry",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "hf_field::fairygrotto_to_hf",
@@ -1461,14 +1483,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "fairygrotto_to_hf",
-        "label": "Sortie de la grotte (Fontaine des Fées)",
+        "label": "Grotte des fées",
+        "soh": "HF Fairy Grotto",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "hf_field::hf_to_fairygrotto"
       },
       {
         "id": "hf_to_cowgrotto",
-        "label": "Grotte (Vache)",
+        "label": "Entrée de la grotte du cercle de pierres ouest",
+        "soh": "HF West Rock Circle Grotto Entry",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "hf_field::cowgrotto_to_hf",
@@ -1587,14 +1611,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "cowgrotto_to_hf",
-        "label": "Sortie de la grotte (Vache)",
+        "label": "Grotte à la vache",
+        "soh": "HF Cow Grotto",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "hf_field::hf_to_cowgrotto"
       },
       {
         "id": "hf_to_fencegrotto",
-        "label": "Grotte (Barrières)",
+        "label": "Entrée de la grotte clôturée",
+        "soh": "HF Fenced Grotto Entry",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "hf_field::fencegrotto_to_hf",
@@ -1713,14 +1739,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "fencegrotto_to_hf",
-        "label": "Sortie de la grotte (Barrières)",
+        "label": "Grotte clôturée des pestes Mojo",
+        "soh": "HF Fenced Deku Scrub Grotto",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "hf_field::hf_to_fencegrotto"
       },
       {
         "id": "hf_to_opengrotto",
-        "label": "Grotte (Ouverte)",
+        "label": "Entrée de la grotte ouverte sud",
+        "soh": "HF South Open Grotto Entry",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "hf_field::opengrotto_to_hf",
@@ -1848,14 +1876,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "opengrotto_to_hf",
-        "label": "Sortie de la grotte (Ouverte)",
+        "label": "Grotte ouverte",
+        "soh": "HF Open Grotto",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "hf_field::hf_to_opengrotto"
       },
       {
         "id": "hf_to_forestgrotto",
-        "label": "Grotte (Forêt)",
+        "label": "Entrée de la grotte du rocher sud-est",
+        "soh": "HF Southeast Boulder Grotto Entry",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "hf_field::forestgrotto_to_hf",
@@ -1974,7 +2004,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "forestgrotto_to_hf",
-        "label": "Sortie de la grotte (Forêt)",
+        "label": "Grotte sud-est",
+        "soh": "HF Southeast Grotto",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "hf_field::hf_to_forestgrotto"
@@ -1987,7 +2018,8 @@ window.AREAS_DATA = [
     "exits": [
       {
         "id": "market_to_hf",
-        "label": "Plaine d'Hyrule",
+        "label": "Entrée du bourg, sortie sud",
+        "soh": "Market Entrance South Exit",
         "type": "overworld",
         "shuffleTag": "overworld",
         "vanillaTargetExitId": "hf_field::hf_to_market",
@@ -2004,7 +2036,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "entrance_to_market",
-        "label": "Place du Marché",
+        "label": "Entrée du bourg, sortie nord",
+        "soh": "Market Entrance North Exit",
         "type": "overworld",
         "shuffleTag": "overworld",
         "vanillaTargetExitId": "market::market_to_entrance",
@@ -2021,7 +2054,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "market_to_entrance",
-        "label": "Sortie de la Place du Marché",
+        "label": "Place du marché, sortie sud",
+        "soh": "Market South Exit",
         "type": "overworld",
         "shuffleTag": "overworld",
         "vanillaTargetExitId": "market::entrance_to_market",
@@ -2110,7 +2144,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "market_to_templeplaza",
-        "label": "Parvis du Temple du Temps",
+        "label": "Sortie vers le temple",
+        "soh": "Market Temple Exit",
         "type": "overworld",
         "shuffleTag": "overworld",
         "vanillaTargetExitId": "market::templeplaza_to_market",
@@ -2199,7 +2234,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "templeplaza_to_market",
-        "label": "Sortie du Parvis du Temple du Temps",
+        "label": "Parvis du temple, sortie des pierres à potins",
+        "soh": "ToT Courtyard Gossip Stones Exit",
         "type": "overworld",
         "shuffleTag": "overworld",
         "vanillaTargetExitId": "market::market_to_templeplaza",
@@ -2212,7 +2248,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "market_to_castle",
-        "label": "Vers les châteaux",
+        "label": "Sortie vers le château",
+        "soh": "Market Castle Exit",
         "type": "overworld",
         "shuffleTag": "overworld",
         "vanillaTargetExitId": "market::castle_to_market",
@@ -2301,7 +2338,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "castle_to_market",
-        "label": "Sortie des châteaux",
+        "label": "Abords du château, sortie sud",
+        "soh": "Castle Grounds South Exit",
         "type": "overworld",
         "shuffleTag": "overworld",
         "vanillaTargetExitId": "market::market_to_castle",
@@ -2347,7 +2385,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "market_to_guardtower",
-        "label": "Tour de Garde",
+        "label": "Entrée du poste de garde",
+        "soh": "MK Entrance Guard House Entry",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "market::guardtower_to_market",
@@ -2364,14 +2403,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "guardtower_to_market",
-        "label": "Sortie de la Tour de Garde",
+        "label": "Poste de garde",
+        "soh": "Guard House",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "market::market_to_guardtower"
       },
       {
         "id": "market_to_chestgame",
-        "label": "Chasse au Trésor",
+        "label": "Entrée de la chasse au trésor",
+        "soh": "MK Treasure Chest Game Entry",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "market::chestgame_to_market",
@@ -2455,14 +2496,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "chestgame_to_market",
-        "label": "Sortie de la Chasse au Trésor",
+        "label": "Chasse au trésor",
+        "soh": "Treasure Chest Game",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "market::market_to_chestgame"
       },
       {
         "id": "market_to_bowling",
-        "label": "Bowling Teigneux",
+        "label": "Entrée du Bowling Teigneux",
+        "soh": "MK Bombchu Bowling Entry",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "market::bowling_to_market",
@@ -2546,14 +2589,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "bowling_to_market",
-        "label": "Sortie du Bowling Teigneux",
+        "label": "Bowling Teigneux",
+        "soh": "Bombchu Bowling",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "market::market_to_bowling"
       },
       {
         "id": "market_to_bazaar",
-        "label": "Bazar",
+        "label": "Entrée du bazar",
+        "soh": "MK Bazaar Entry",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "market::bazaar_to_market",
@@ -2637,14 +2682,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "bazaar_to_market",
-        "label": "Sortie du Bazar",
+        "label": "Bazar",
+        "soh": "MK Bazaar",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "market::market_to_bazaar"
       },
       {
         "id": "market_to_potions",
-        "label": "Apothicaire",
+        "label": "Entrée de l'apothicaire",
+        "soh": "MK Potion Shop Entry",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "market::potions_to_market",
@@ -2728,14 +2775,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "potions_to_market",
-        "label": "Sortie de l'Apothicaire",
+        "label": "Apothicaire",
+        "soh": "MK Potion Shop",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "market::market_to_potions"
       },
       {
         "id": "market_to_shooting",
-        "label": "Jeu d'adresse",
+        "label": "Entrée du stand de tir",
+        "soh": "MK Shooting Gallery Entry",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "market::shooting_to_market",
@@ -2819,14 +2868,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "shooting_to_market",
-        "label": "Sortie du Jeu d'adresse",
+        "label": "Stand de tir",
+        "soh": "MK Shooting Gallery",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "market::market_to_shooting"
       },
       {
         "id": "market_to_masks",
-        "label": "Foire aux Masques",
+        "label": "Entrée de la foire aux masques",
+        "soh": "MK Mask Shop Entry",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "market::masks_to_market",
@@ -2910,14 +2961,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "masks_to_market",
-        "label": "Sortie de la Foire aux Masques",
+        "label": "Foire aux masques",
+        "soh": "Mask Shop",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "market::market_to_masks"
       },
       {
         "id": "market_to_bombchushop",
-        "label": "Magasin de missiles",
+        "label": "Entrée de la boutique de missiles",
+        "soh": "MK Bombchu Shop Entry",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "market::bombchushop_to_market",
@@ -3001,14 +3054,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "bombchushop_to_market",
-        "label": "Sortie du magasin de missiles",
+        "label": "Boutique de missiles",
+        "soh": "Bombchu Shop",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "market::market_to_bombchushop"
       },
       {
         "id": "market_to_backhouse",
-        "label": "Maison de la ruelle",
+        "label": "Entrée de la maison de l'homme en vert",
+        "soh": "MK Man-in-Green House Entry",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "market::backhouse_to_market",
@@ -3092,14 +3147,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "backhouse_to_market",
-        "label": "Sortie de la maison de la ruelle",
+        "label": "Maison de l'homme en vert",
+        "soh": "Man-in-Green's House",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "market::market_to_backhouse"
       },
       {
         "id": "castle_to_adultgreatfairy",
-        "label": "Fontaine de la Grande Fée (Adulte)",
+        "label": "Derrière le pilier",
+        "soh": "OGC Behind Pillar",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "market::adultgreatfairy_to_castle",
@@ -3121,14 +3178,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "adultgreatfairy_to_castle",
-        "label": "Sortie de la Fontaine de la Grande Fée (Adulte)",
+        "label": "Fontaine de la Grande Fée (Château de Ganon)",
+        "soh": "OGC Great Fairy Fountain",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "market::castle_to_adultgreatfairy"
       },
       {
         "id": "castle_to_childgreatfairy",
-        "label": "Fontaine de la Grande Fée (Enfant)",
+        "label": "Passage sous le rocher",
+        "soh": "HC Boulder Crawlspace",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "market::childgreatfairy_to_castle",
@@ -3150,14 +3209,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "childgreatfairy_to_castle",
-        "label": "Sortie de la Fontaine de la Grande Fée (Enfant)",
+        "label": "Fontaine de la Grande Fée (Château d'Hyrule)",
+        "soh": "HC Great Fairy Fountain",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "market::castle_to_childgreatfairy"
       },
       {
         "id": "castle_to_grotto",
-        "label": "Grotte (Chant des Tempêtes)",
+        "label": "Entrée de la grotte des tempêtes",
+        "soh": "HC Storms Grotto Entry",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "market::grotto_to_castle",
@@ -3179,14 +3240,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "grotto_to_castle",
-        "label": "Sortie de la grotte (Chant des Tempêtes)",
+        "label": "Grotte des tempêtes",
+        "soh": "HC Storms Grotto",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "market::castle_to_grotto"
       },
       {
         "id": "templeplaza_to_templeoftime",
-        "label": "Temple du Temps",
+        "label": "Parvis, entrée du temple",
+        "soh": "ToT Courtyard Temple Entry",
         "type": "interior",
         "shuffleTag": "interior_all",
         "vanillaTargetExitId": "market::templeoftime_to_templeplaza",
@@ -3199,14 +3262,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "templeoftime_to_templeplaza",
-        "label": "Sortie du Temple du Temps",
+        "label": "Entrée du Temple du Temps",
+        "soh": "Temple of Time Entrance",
         "type": "interior",
         "shuffleTag": "interior_all",
         "vanillaTargetExitId": "market::templeplaza_to_templeoftime"
       },
       {
         "id": "castle_to_ganon",
-        "label": "Château de Ganon",
+        "label": "Pont arc-en-ciel",
+        "soh": "OGC Rainbow Bridge Exit",
         "type": "dungeon",
         "shuffleTag": "dungeon_ganon",
         "vanillaTargetExitId": "market::ganon_to_castle",
@@ -3219,7 +3284,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "ganon_to_castle",
-        "label": "Sortie du Château de Ganon",
+        "label": "Entrée du Château de Ganon",
+        "soh": "Inside Ganon's Castle Entrance",
         "type": "dungeon",
         "shuffleTag": "dungeon_ganon",
         "vanillaTargetExitId": "market::castle_to_ganon",
@@ -3237,7 +3303,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "castle_to_tower",
-        "label": "Tour de Ganon",
+        "label": "Entrée de la Tour de Ganon",
+        "soh": "Ganon's Tower Entrance",
         "type": "dungeon",
         "shuffleTag": "ganon_tower",
         "vanillaTargetExitId": "market::tower_to_castle",
@@ -3255,7 +3322,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "tower_to_castle",
-        "label": "Sortie de la Tour de Ganon",
+        "label": "Intérieur du Château de Ganon",
+        "soh": "Inside Ganon's Castle",
         "type": "dungeon",
         "shuffleTag": "ganon_tower",
         "vanillaTargetExitId": "market::castle_to_tower"
@@ -3263,6 +3331,7 @@ window.AREAS_DATA = [
       {
         "id": "prelude_pad",
         "label": "Plateforme de téléportation",
+        "soh": "Temple of Time Warp Pad",
         "type": "warp",
         "shuffleTag": "warp",
         "vanillaTargetExitId": "null",
@@ -3282,7 +3351,8 @@ window.AREAS_DATA = [
     "exits": [
       {
         "id": "kak_to_hf",
-        "label": "Plaine d'Hyrule",
+        "label": "Porte principale",
+        "soh": "Kakariko Front Gate",
         "type": "overworld",
         "shuffleTag": "overworld",
         "vanillaTargetExitId": "hf_field::hf_to_kak",
@@ -3380,7 +3450,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "kak_to_dmt",
-        "label": "Chemin du Péril",
+        "label": "Porte du garde",
+        "soh": "Kakariko Guard Gate Exit",
         "type": "overworld",
         "shuffleTag": "overworld",
         "vanillaTargetExitId": "death_mountain_trail::dmt_to_kak",
@@ -3478,7 +3549,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "kak_to_graveyard",
-        "label": "Cimetière Cocorico",
+        "label": "Sortie sud-est",
+        "soh": "Kakariko Southeast Exit",
         "type": "overworld",
         "shuffleTag": "overworld",
         "vanillaTargetExitId": "graveyard::graveyard_to_kak",
@@ -3576,7 +3648,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "kak_to_carpenter",
-        "label": "Maison du Contremaître",
+        "label": "Entrée de la maison du Chef des Charpentiers",
+        "soh": "Kak Boss House Entry",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "kakariko::carpenter_to_kak",
@@ -3674,14 +3747,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "carpenter_to_kak",
-        "label": "Sortie de la maison du Contremaître",
+        "label": "Maison du Chef des Charpentiers",
+        "soh": "Carpenter Boss House",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "kakariko::kak_to_carpenter"
       },
       {
         "id": "kak_to_bazaar",
-        "label": "Bazar",
+        "label": "Entrée du bazar",
+        "soh": "Kak Bazaar Entry",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "kakariko::bazaar_to_kak",
@@ -3774,14 +3849,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "bazaar_to_kak",
-        "label": "Sortie du Bazar",
+        "label": "Bazar",
+        "soh": "Kak Bazaar",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "kakariko::kak_to_bazaar"
       },
       {
         "id": "kak_to_shooting",
-        "label": "Jeu d'adresse",
+        "label": "Entrée du stand de tir",
+        "soh": "Kak Shooting Gallery Entry",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "kakariko::shooting_to_kak",
@@ -3874,14 +3951,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "shooting_to_kak",
-        "label": "Sortie du Jeu d'adresse",
+        "label": "Stand de tir",
+        "soh": "Kak Shooting Gallery",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "kakariko::kak_to_shooting"
       },
       {
         "id": "kak_to_odd",
-        "label": "Boutique de Granny",
+        "label": "Entrée de l'apothicaire de Granny",
+        "soh": "Kak Granny's Potion Shop Entry",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "kakariko::odd_to_kak",
@@ -3974,14 +4053,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "odd_to_kak",
-        "label": "Sortie de la boutique de Granny",
+        "label": "Apothicaire de Granny",
+        "soh": "Granny's Potion Shop",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "kakariko::kak_to_odd"
       },
       {
         "id": "kak_to_impas",
-        "label": "Maison d'Impa",
+        "label": "Entrée avant de la maison d'Impa",
+        "soh": "Kak Impa's House Front Entry",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "kakariko::impas_to_kak",
@@ -4079,14 +4160,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "impas_to_kak",
-        "label": "Sortie de la maison d'Impa",
+        "label": "Maison d'Impa, avant",
+        "soh": "Impa's House Front",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "kakariko::kak_to_impas"
       },
       {
         "id": "kak_to_impas_back",
-        "label": "Arrière de la maison d'Impa",
+        "label": "Entrée arrière de la maison d'Impa",
+        "soh": "Kak Impa's House Back Entry",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "kakariko::impas_to_kak_back",
@@ -4184,14 +4267,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "impas_to_kak_back",
-        "label": "Sortie arrière de la maison d'Impa",
+        "label": "Maison d'Impa, arrière",
+        "soh": "Impa's House Back",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "kakariko::kak_to_impas_back"
       },
       {
         "id": "kak_to_skulltulas",
-        "label": "Maison des Skulltulas",
+        "label": "Entrée de la maison des Araignées",
+        "soh": "Kak Skulltula House Entry",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "kakariko::skulltulas_to_kak",
@@ -4289,14 +4374,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "skulltulas_to_kak",
-        "label": "Sortie de la maison des Skulltulas",
+        "label": "Maison des Araignées",
+        "soh": "House of Skulltula",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "kakariko::kak_to_skulltulas"
       },
       {
         "id": "kak_to_potions",
-        "label": "Apothicaire",
+        "label": "Entrée avant de l'apothicaire",
+        "soh": "Kak Potion Shop Front Entry",
         "type": "interior",
         "shuffleTag": "interior_all",
         "vanillaTargetExitId": "kakariko::potions_to_kak",
@@ -4394,7 +4481,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "potions_to_kak",
-        "label": "Sortie de l'Apothicaire",
+        "label": "Apothicaire, avant",
+        "soh": "Kak Potion Shop Front",
         "type": "interior",
         "shuffleTag": "interior_all",
         "vanillaTargetExitId": "kakariko::kak_to_potions",
@@ -4412,7 +4500,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "kak_to_potions_back",
-        "label": "Arrière de l'Apothicaire",
+        "label": "Entrée arrière de l'apothicaire",
+        "soh": "Kak Potion Shop Back Entry",
         "type": "interior",
         "shuffleTag": "interior_all",
         "vanillaTargetExitId": "kakariko::potions_to_kak_back",
@@ -4425,7 +4514,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "potions_to_kak_back",
-        "label": "Sortie arrière de l'Apothicaire",
+        "label": "Apothicaire, arrière",
+        "soh": "Kak Potion Shop Back",
         "type": "interior",
         "shuffleTag": "interior_all",
         "vanillaTargetExitId": "kakariko::kak_to_potions_back",
@@ -4518,7 +4608,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "kak_to_windmill",
-        "label": "Moulin",
+        "label": "Entrée du moulin",
+        "soh": "Kak Windmill Entry",
         "type": "interior",
         "shuffleTag": "interior_all",
         "vanillaTargetExitId": "kakariko::windmill_to_kak",
@@ -4616,14 +4707,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "windmill_to_kak",
-        "label": "Sortie du Moulin",
+        "label": "Moulin",
+        "soh": "Windmill",
         "type": "interior",
         "shuffleTag": "interior_all",
         "vanillaTargetExitId": "kakariko::kak_to_windmill"
       },
       {
         "id": "kak_to_redeadgrotto",
-        "label": "Grotte (Éffrois)",
+        "label": "Entrée de la grotte centrale",
+        "soh": "Kak Center Grotto Entry",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "kakariko::redeadgrotto_to_kak",
@@ -4712,14 +4805,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "redeadgrotto_to_kak",
-        "label": "Sortie de la grotte (Éffrois)",
+        "label": "Grotte aux Effrois",
+        "soh": "Kak Redead Grotto",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "kakariko::kak_to_redeadgrotto"
       },
       {
         "id": "kak_to_opengrotto",
-        "label": "Grotte (Ouverte)",
+        "label": "Entrée de la grotte ouverte",
+        "soh": "Kak Open Grotto Entry",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "kakariko::opengrotto_to_kak",
@@ -4817,14 +4912,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "opengrotto_to_kak",
-        "label": "Sortie de la grotte (Ouverte)",
+        "label": "Grotte ouverte",
+        "soh": "Kak Open Grotto",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "kakariko::kak_to_opengrotto"
       },
       {
         "id": "kak_to_well",
-        "label": "Fond du Puit",
+        "label": "Devant le puits",
+        "soh": "Kakariko Outside the Well",
         "type": "dungeon",
         "shuffleTag": "dungeon_simple",
         "vanillaTargetExitId": "kakariko::well_to_kak",
@@ -4922,7 +5019,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "well_to_kak",
-        "label": "Sortie du Fond du Puit",
+        "label": "Entrée du Fond du Puits",
+        "soh": "Bottom of the Well Entrance",
         "type": "dungeon",
         "shuffleTag": "dungeon_simple",
         "vanillaTargetExitId": "kakariko::kak_to_well"
@@ -4935,7 +5033,8 @@ window.AREAS_DATA = [
     "exits": [
       {
         "id": "graveyard_to_kak",
-        "label": "Village Cocorico",
+        "label": "Entrée du cimetière",
+        "soh": "Graveyard Entrance",
         "type": "overworld",
         "shuffleTag": "overworld",
         "vanillaTargetExitId": "kakariko::kak_to_graveyard",
@@ -4969,7 +5068,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "graveyard_to_dampes",
-        "label": "Cabane de Dampe",
+        "label": "Entrée de la cabane d'Igor",
+        "soh": "GY Dampe's Hut Entry",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "graveyard::dampes_to_graveyard",
@@ -5003,14 +5103,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "dampes_to_graveyard",
-        "label": "Sortie de la cabane de Dampe",
+        "label": "Cabane d'Igor",
+        "soh": "Dampe's Hut",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "graveyard::graveyard_to_dampes"
       },
       {
         "id": "graveyard_to_shieldgrave",
-        "label": "Tombe (Bouclier Hylien)",
+        "label": "Entrée de la tombe près de la cabane",
+        "soh": "GY Near-Hut Grave Entry",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "graveyard::shieldgrave_to_graveyard",
@@ -5044,14 +5146,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "shieldgrave_to_graveyard",
-        "label": "Sortie de la tombe (Bouclier Hjylien)",
+        "label": "Tombe au bouclier",
+        "soh": "Shield Grave",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "graveyard::graveyard_to_shieldgrave"
       },
       {
         "id": "graveyard_to_dampesgrave",
-        "label": "Tombe de Dampe",
+        "label": "Entrée de la tombe près de la corniche",
+        "soh": "GY Near-Ledge Grave Entry",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "graveyard::dampesgrave_to_graveyard",
@@ -5080,14 +5184,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "dampesgrave_to_graveyard",
-        "label": "Sortie de la tombe de Dampe",
+        "label": "Tombe d'Igor",
+        "soh": "Dampe's Grave",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "graveyard::graveyard_to_dampesgrave"
       },
       {
         "id": "graveyard_to_redeadgrave",
-        "label": "Tombe (Éffroi)",
+        "label": "Entrée de la tombe près de la tombe royale",
+        "soh": "GY Near-Tomb Grave Entry",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "graveyard::redeadgrave_to_graveyard",
@@ -5121,14 +5227,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "redeadgrave_to_graveyard",
-        "label": "Sortie de la tombe (Éffroi)",
+        "label": "Tombe au quart de cœur",
+        "soh": "Heart Piece Grave",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "graveyard::graveyard_to_redeadgrave"
       },
       {
         "id": "graveyard_to_royaltomb",
-        "label": "Tombe Royale",
+        "label": "Entrée de la tombe royale",
+        "soh": "GY Royal Family's Tomb Entry",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "graveyard::royaltomb_to_graveyard",
@@ -5162,14 +5270,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "royaltomb_to_graveyard",
-        "label": "Sortie de la Tombe Royale",
+        "label": "Tombe royale",
+        "soh": "Royal Family's Tomb",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "graveyard::graveyard_to_royaltomb"
       },
       {
         "id": "graveyard_to_shadowtemple",
-        "label": "Temple de l'Ombre",
+        "label": "Devant le temple",
+        "soh": "Graveyard Outside Temple",
         "type": "dungeon",
         "shuffleTag": "dungeon_simple",
         "vanillaTargetExitId": "shadow_temple::shadowtemple_to_graveyard",
@@ -5204,6 +5314,7 @@ window.AREAS_DATA = [
       {
         "id": "nocturne_pad",
         "label": "Plateforme de téléportation",
+        "soh": "Graveyard Warp Pad",
         "type": "warp",
         "shuffleTag": "warp",
         "vanillaTargetExitId": "null",
@@ -5252,7 +5363,8 @@ window.AREAS_DATA = [
     "exits": [
       {
         "id": "ranch_to_hf",
-        "label": "Plaine d'Hyrule",
+        "label": "Entrée du ranch",
+        "soh": "Lon Lon Ranch Entrance",
         "type": "overworld",
         "shuffleTag": "overworld",
         "vanillaTargetExitId": "hf_field::hf_to_ranch",
@@ -5282,7 +5394,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "ranch_to_talon",
-        "label": "Maison de Talon",
+        "label": "Entrée de la maison de Talon",
+        "soh": "LLR Talon's House Entry",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "lonlon_ranch::talon_to_ranch",
@@ -5312,14 +5425,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "talon_to_ranch",
-        "label": "Sortie de la maison de Talon",
+        "label": "Maison de Talon",
+        "soh": "Talon's House",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "lonlon_ranch::ranch_to_talon"
       },
       {
         "id": "ranch_to_stables",
-        "label": "Écuries",
+        "label": "Entrée des écuries",
+        "soh": "LLR Stables Entry",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "lonlon_ranch::stables_to_ranch",
@@ -5349,14 +5464,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "stables_to_ranch",
-        "label": "Sortie des écuries",
+        "label": "Écuries",
+        "soh": "LLR Stables",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "lonlon_ranch::ranch_to_stables"
       },
       {
         "id": "ranch_to_silo",
-        "label": "Silo",
+        "label": "Entrée du silo",
+        "soh": "LLR Tower Entry",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "lonlon_ranch::silo_to_ranch",
@@ -5386,14 +5503,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "silo_to_ranch",
-        "label": "Sortie du silo",
+        "label": "Silo",
+        "soh": "LLR Tower",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "lonlon_ranch::ranch_to_silo"
       },
       {
         "id": "ranch_to_grotto",
-        "label": "Grotte",
+        "label": "Entrée de la grotte",
+        "soh": "LLR Grotto Entry",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "lonlon_ranch::grotto_to_ranch",
@@ -5418,7 +5537,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "grotto_to_ranch",
-        "label": "Sortie de la grotte",
+        "label": "Grotte des pestes Mojo",
+        "soh": "LLR Deku Scrub Grotto",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "lonlon_ranch::ranch_to_grotto"
@@ -5431,7 +5551,8 @@ window.AREAS_DATA = [
     "exits": [
       {
         "id": "kf_to_lw",
-        "label": "Entrée des Bois Perdus",
+        "label": "Sortie haute",
+        "soh": "Kokiri Forest Upper Exit",
         "type": "overworld",
         "shuffleTag": "overworld",
         "vanillaTargetExitId": "lost_woods::lw_to_kf",
@@ -5481,7 +5602,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "kf_to_lwbridge",
-        "label": "Pont des Bois Perdus",
+        "label": "Sortie basse",
+        "soh": "Kokiri Forest Lower Exit",
         "type": "overworld",
         "shuffleTag": "overworld",
         "vanillaTargetExitId": "lost_woods::lwbridge_to_kf",
@@ -5531,7 +5653,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "kf_to_twins",
-        "label": "Maison des Jumelles",
+        "label": "Entrée de la maison des jumeaux",
+        "soh": "KF House of Twins Entry",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "kokiri_forest::twins_to_kf",
@@ -5581,14 +5704,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "twins_to_kf",
-        "label": "Sortie de la maison des Jumelles",
+        "label": "Maison des jumeaux",
+        "soh": "House of Twins",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "kokiri_forest::kf_to_twins"
       },
       {
         "id": "kf_to_midos",
-        "label": "Maison de Mido",
+        "label": "Entrée de la maison de Mido",
+        "soh": "KF Mido's House Entry",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "kokiri_forest::midos_to_kf",
@@ -5638,14 +5763,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "midos_to_kf",
-        "label": "Sortie de la maison de Mido",
+        "label": "Maison de Mido",
+        "soh": "Mido's House",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "kokiri_forest::kf_to_midos"
       },
       {
         "id": "kf_to_sarias",
-        "label": "Maison de Saria",
+        "label": "Entrée de la maison de Saria",
+        "soh": "KF Saria's House Entry",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "kokiri_forest::sarias_to_kf",
@@ -5695,14 +5822,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "sarias_to_kf",
-        "label": "Sortie de la maison de Saria",
+        "label": "Maison de Saria",
+        "soh": "Saria's House",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "kokiri_forest::kf_to_sarias"
       },
       {
         "id": "kf_to_shop",
-        "label": "Boutique Kokiri",
+        "label": "Entrée de la boutique",
+        "soh": "KF Shop Entry",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "kokiri_forest::shop_to_kf",
@@ -5752,14 +5881,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "shop_to_kf",
-        "label": "Sortie de la boutique Kokiri",
+        "label": "Boutique Kokiri",
+        "soh": "Kokiri Shop",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "kokiri_forest::kf_to_shop"
       },
       {
         "id": "kf_to_kias",
-        "label": "Maison des frères Je-Sais-Tout",
+        "label": "Entrée de la maison des Je-Sais-Tout",
+        "soh": "KF Know-It-All House Entry",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "kokiri_forest::kias_to_kf",
@@ -5809,14 +5940,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "kias_to_kf",
-        "label": "Sortie de la maison des frères Je-Sais-Tout",
+        "label": "Maison des Je-Sais-Tout",
+        "soh": "Know-It-All House",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "kokiri_forest::kf_to_kias"
       },
       {
         "id": "kf_to_links",
-        "label": "Maison de Link",
+        "label": "Entrée de la maison de Link",
+        "soh": "KF Link's House Entry",
         "type": "interior",
         "shuffleTag": "interior_all",
         "vanillaTargetExitId": "kokiri_forest::links_to_kf",
@@ -5866,14 +5999,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "links_to_kf",
-        "label": "Sortie de la maison de Link",
+        "label": "Maison de Link",
+        "soh": "Link's House",
         "type": "interior",
         "shuffleTag": "interior_all",
         "vanillaTargetExitId": "kokiri_forest::kf_to_links"
       },
       {
         "id": "kf_to_stormsgrotto",
-        "label": "Grotte",
+        "label": "Entrée de la grotte des tempêtes",
+        "soh": "KF Storms Grotto Entry",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "kokiri_forest::stormsgrotto_to_kf",
@@ -5918,14 +6053,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "stormsgrotto_to_kf",
-        "label": "Sortie de la grotte",
+        "label": "Grotte des tempêtes",
+        "soh": "KF Storms Grotto",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "kokiri_forest::kf_to_stormsgrotto"
       },
       {
         "id": "kf_to_dekutree",
-        "label": "Arbre Mojo",
+        "label": "Devant l'Arbre Mojo",
+        "soh": "KF Outside Deku Tree",
         "type": "dungeon",
         "shuffleTag": "dungeon_simple",
         "vanillaTargetExitId": "dekutree::dekutree_to_kf",
@@ -5981,7 +6118,8 @@ window.AREAS_DATA = [
     "exits": [
       {
         "id": "lwbridge_to_kf",
-        "label": "Pont vers la Forêt Kokiri",
+        "label": "Sortie est du pont",
+        "soh": "Lost Woods Bridge East Exit",
         "type": "overworld",
         "shuffleTag": "overworld",
         "vanillaTargetExitId": "kokiri_forest::kf_to_lwbridge",
@@ -5994,7 +6132,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "lwbridge_to_hf",
-        "label": "Pont vers la Plaine d'Hyrule",
+        "label": "Sortie ouest du pont",
+        "soh": "Lost Woods Bridge West Exit",
         "type": "overworld",
         "shuffleTag": "overworld",
         "vanillaTargetExitId": "hf_field::hf_to_lw",
@@ -6007,7 +6146,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "lw_to_kf",
-        "label": "Forêt Kokiri",
+        "label": "Sortie sud",
+        "soh": "Lost Woods South Exit",
         "type": "overworld",
         "shuffleTag": "overworld",
         "vanillaTargetExitId": "kokiri_forest::kf_to_lw",
@@ -6087,7 +6227,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "lw_to_gc",
-        "label": "Village Goron",
+        "label": "Raccourci du tunnel",
+        "soh": "Lost Woods Tunnel Shortcut",
         "type": "overworld",
         "shuffleTag": "overworld",
         "vanillaTargetExitId": "goron_city::gc_to_lw",
@@ -6156,7 +6297,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "lw_to_river",
-        "label": "Rivière Zora",
+        "label": "Raccourci sous-marin",
+        "soh": "Lost Woods Underwater Shortcut",
         "type": "overworld",
         "shuffleTag": "overworld",
         "vanillaTargetExitId": "zora_river::river_to_lw",
@@ -6236,7 +6378,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "lw_to_meadow",
-        "label": "Bosquet Sacré",
+        "label": "Sortie nord",
+        "soh": "Lost Woods North Exit",
         "type": "overworld",
         "shuffleTag": "overworld",
         "vanillaTargetExitId": "meadow::meadow_to_lw",
@@ -6316,7 +6459,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "lw_to_gorongrotto",
-        "label": "Grotte (Village Goron)",
+        "label": "Entrée de la grotte du tunnel",
+        "soh": "LW Tunnel Grotto Entry",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "lost_woods::gorongrotto_to_lw",
@@ -6387,14 +6531,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "gorongrotto_to_lw",
-        "label": "Sortie de la grotte (Village Goron)",
+        "label": "Grotte du tunnel",
+        "soh": "LW Tunnel Grotto",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "lost_woods::lw_to_gorongrotto"
       },
       {
         "id": "lw_to_theatre",
-        "label": "Théâtre Sylvestre",
+        "label": "Entrée de la grotte du bosquet",
+        "soh": "LW Meadow Grotto Entry",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "lost_woods::theatre_to_lw",
@@ -6474,14 +6620,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "theatre_to_lw",
-        "label": "Sortie du Théâtre Sylvestre",
+        "label": "Théâtre Mojo",
+        "soh": "Deku Theater",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "lost_woods::lw_to_theatre"
       },
       {
         "id": "lw_to_meadowgrotto",
-        "label": "Grotte (Bosquet Sacré)",
+        "label": "Entrée de la grotte nord",
+        "soh": "LW North Grotto Entry",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "lost_woods::meadowgrotto_to_lw",
@@ -6552,7 +6700,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "meadowgrotto_to_lw",
-        "label": "Sortie de la grotte (Bosquet Sacré)",
+        "label": "Grotte des pestes Mojo",
+        "soh": "LW Deku Scrub Grotto",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "lost_woods::lw_to_meadowgrotto"
@@ -6565,7 +6714,8 @@ window.AREAS_DATA = [
     "exits": [
       {
         "id": "meadow_to_lw",
-        "label": "Bois Perdus",
+        "label": "Sortie sud",
+        "soh": "Sacred Forest Meadow South Exit",
         "type": "overworld",
         "shuffleTag": "overworld",
         "vanillaTargetExitId": "lost_woods::lw_to_meadow",
@@ -6601,7 +6751,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "meadow_to_wolfosgrotto",
-        "label": "Grotte (Lobos)",
+        "label": "Entrée de la grotte aux Lobos",
+        "soh": "SFM Wolfos Grotto Entry",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "meadow::wolfosgrotto_to_meadow",
@@ -6637,14 +6788,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "wolfosgrotto_to_meadow",
-        "label": "Sortie de la grotte (Lobos)",
+        "label": "Grotte aux Lobos",
+        "soh": "SFM Wolfos Grotto",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "meadow::meadow_to_wolfosgrotto"
       },
       {
         "id": "meadow_to_fairygrotto",
-        "label": "Grotte (Fontaine des Fées)",
+        "label": "Entrée de la grotte des fées",
+        "soh": "SFM Fairy Grotto Entry",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "meadow::fairygrotto_to_meadow",
@@ -6680,14 +6833,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "fairygrotto_to_meadow",
-        "label": "Sortie de la grotte (Fontaine des Fées)",
+        "label": "Grotte des fées",
+        "soh": "SFM Fairy Grotto",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "meadow::meadow_to_fairygrotto"
       },
       {
         "id": "meadow_to_stormsgrotto",
-        "label": "Grotte (Chant des Tempêtes)",
+        "label": "Entrée de la grotte des tempêtes",
+        "soh": "SFM Storms Grotto Entry",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "meadow::stormsgrotto_to_meadow",
@@ -6718,14 +6873,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "stormsgrotto_to_meadow",
-        "label": "Sortie de la grotte (Chant des Tempêtes)",
+        "label": "Grotte des pestes Mojo",
+        "soh": "SFM Deku Scrub Grotto",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "meadow::meadow_to_stormsgrotto"
       },
       {
         "id": "meadow_to_foresttemple",
-        "label": "Temple de la Forêt",
+        "label": "Devant le Temple de la Forêt",
+        "soh": "Sacred Forest Meadow Outside Forest Temple",
         "type": "dungeon",
         "shuffleTag": "dungeon_simple",
         "vanillaTargetExitId": "forest_temple::foresttemple_to_meadow",
@@ -6756,6 +6913,7 @@ window.AREAS_DATA = [
       {
         "id": "minuet_pad",
         "label": "Plateforme de téléportation",
+        "soh": "SFM Warp Pad",
         "type": "warp",
         "shuffleTag": "warp",
         "vanillaTargetExitId": "null",
@@ -6796,7 +6954,8 @@ window.AREAS_DATA = [
     "exits": [
       {
         "id": "gc_to_dmt",
-        "label": "Chemin du Péril",
+        "label": "Sortie haute",
+        "soh": "Goron City Upper Exit",
         "type": "overworld",
         "shuffleTag": "overworld",
         "vanillaTargetExitId": "death_mountain_trail::dmt_to_gc",
@@ -6867,7 +7026,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "gc_to_lw",
-        "label": "Bois Perdus",
+        "label": "Raccourci du tunnel",
+        "soh": "Goron City Tunnel Shortcut",
         "type": "overworld",
         "shuffleTag": "overworld",
         "vanillaTargetExitId": "lost_woods::lw_to_gc",
@@ -6924,7 +7084,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "gc_to_dmc",
-        "label": "Cratère du Péril",
+        "label": "Porte arrière de la salle de Darunia",
+        "soh": "Goron City Darunia's Room Backdoor",
         "type": "overworld",
         "shuffleTag": "overworld",
         "vanillaTargetExitId": "death_mountain_crater::dmc_to_gc",
@@ -6989,7 +7150,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "gc_to_shop",
-        "label": "Boutique Goron",
+        "label": "Entrée de la boutique",
+        "soh": "GC Shop Entry",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "goron_city::shop_to_gc",
@@ -7048,14 +7210,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "shop_to_gc",
-        "label": "Sortie de la boutique Goron",
+        "label": "Boutique Goron",
+        "soh": "Goron Shop",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "goron_city::gc_to_shop"
       },
       {
         "id": "gc_to_grotto",
-        "label": "Grotte",
+        "label": "Entrée de la grotte de lave",
+        "soh": "GC Lava Grotto Entry",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "goron_city::grotto_to_gc",
@@ -7112,7 +7276,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "grotto_to_gc",
-        "label": "Sortie de la grotte",
+        "label": "Grotte des pestes Mojo",
+        "soh": "GC Deku Scrub Grotto",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "goron_city::gc_to_grotto"
@@ -7125,7 +7290,8 @@ window.AREAS_DATA = [
     "exits": [
       {
         "id": "dmt_to_kak",
-        "label": "Village Cocorico",
+        "label": "Sortie basse",
+        "soh": "Death Mountain Trail Bottom Exit",
         "type": "overworld",
         "shuffleTag": "overworld",
         "vanillaTargetExitId": "kakariko::kak_to_dmt",
@@ -7208,7 +7374,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "dmt_to_gc",
-        "label": "Village Goron",
+        "label": "Sortie médiane",
+        "soh": "Death Mountain Trail Middle Exit",
         "type": "overworld",
         "shuffleTag": "overworld",
         "vanillaTargetExitId": "goron_city::gc_to_dmt",
@@ -7291,7 +7458,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "dmt_to_dmc",
-        "label": "Cratère du Péril",
+        "label": "Sortie haute",
+        "soh": "Death Mountain Trail Top Exit",
         "type": "overworld",
         "shuffleTag": "overworld",
         "vanillaTargetExitId": "death_mountain_crater::dmc_to_dmt",
@@ -7365,7 +7533,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "dmt_to_greatfairy",
-        "label": "Fontaine de la Grande Fée",
+        "label": "Entrée de la Grande Fée",
+        "soh": "DMT Great Fairy Entry",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "death_mountain_trail::greatfairy_to_dmt",
@@ -7430,14 +7599,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "greatfairy_to_dmt",
-        "label": "Sortie de la Fontaine de la Grande Fée",
+        "label": "Fontaine de la Grande Fée",
+        "soh": "DMT Great Fairy Fountain",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "death_mountain_trail::dmt_to_greatfairy"
       },
       {
         "id": "dmt_to_stormgrotto",
-        "label": "Grotte (Chant des Tempêtes)",
+        "label": "Entrée de la grotte du cercle de pierres",
+        "soh": "DMT Rock Circle Grotto Entry",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "death_mountain_trail::stormgrotto_to_dmt",
@@ -7515,14 +7686,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "stormgrotto_to_dmt",
-        "label": "Sortie de la grotte (Chant des Tempêtes)",
+        "label": "Grotte des tempêtes",
+        "soh": "DMT Storms Grotto",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "death_mountain_trail::dmt_to_stormgrotto"
       },
       {
         "id": "dmt_to_cowgrotto",
-        "label": "Grotte (Vache)",
+        "label": "Entrée de la grotte du rocher",
+        "soh": "DMT Boulder Grotto Entry",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "death_mountain_trail::cowgrotto_to_dmt",
@@ -7587,14 +7760,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "cowgrotto_to_dmt",
-        "label": "Sortie de la grotte (Vache)",
+        "label": "Grotte à la vache",
+        "soh": "DMT Cow Grotto",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "death_mountain_trail::dmt_to_cowgrotto"
       },
       {
         "id": "dmt_to_dc",
-        "label": "Caverne Dodongo",
+        "label": "Devant la Caverne Dodongo",
+        "soh": "Death Mountain Trail Outside Dodongo's Cavern",
         "type": "dungeon",
         "shuffleTag": "dungeon_simple",
         "vanillaTargetExitId": "dodongo_cavern::dc_to_dmt",
@@ -7669,7 +7844,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "dmt_owl",
-        "label": "Hibou",
+        "label": "Vol du hibou",
+        "soh": "DMT Owl Flight",
         "type": "owl",
         "shuffleTag": "owl",
         "vanillaTargetExitId": "kakariko::impas_to_kak_back"
@@ -7682,7 +7858,8 @@ window.AREAS_DATA = [
     "exits": [
       {
         "id": "dmc_to_dmt",
-        "label": "Chemin du Péril",
+        "label": "Sortie haute",
+        "soh": "Death Mountain Crater Upper Exit",
         "type": "overworld",
         "shuffleTag": "overworld",
         "vanillaTargetExitId": "death_mountain_trail::dmt_to_dmc",
@@ -7757,7 +7934,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "dmc_to_gc",
-        "label": "Village Goron",
+        "label": "Sortie du pont",
+        "soh": "Death Mountain Crater Bridge Exit",
         "type": "overworld",
         "shuffleTag": "overworld",
         "vanillaTargetExitId": "goron_city::gc_to_dmc",
@@ -7819,7 +7997,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "dmc_to_greatfairy",
-        "label": "Fontaine de la Grande Fée",
+        "label": "Entrée de la Grande Fée",
+        "soh": "DMC Great Fairy Entry",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "death_mountain_crater::greatfairy_to_dmc",
@@ -7875,14 +8054,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "greatfairy_to_dmc",
-        "label": "Sortie de la Fontaine de la Grande Fée",
+        "label": "Fontaine de la Grande Fée",
+        "soh": "DMC Great Fairy Fountain",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "death_mountain_crater::dmc_to_greatfairy"
       },
       {
         "id": "dmc_to_bombgrotto",
-        "label": "Grotte (Bombes)",
+        "label": "Entrée de la grotte du haut",
+        "soh": "DMC Upper Grotto Entry",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "death_mountain_crater::bombgrotto_to_dmc",
@@ -7944,14 +8125,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "bombgrotto_to_dmc",
-        "label": "Sortie de la grotte (Bombes)",
+        "label": "Grotte du haut",
+        "soh": "DMC Upper Grotto",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "death_mountain_crater::dmc_to_bombgrotto"
       },
       {
         "id": "dmc_to_hammergrotto",
-        "label": "Grotte (Masse)",
+        "label": "Entrée de la grotte à la masse",
+        "soh": "DMC Hammer Grotto Entry",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "death_mountain_crater::hammergrotto_to_dmc",
@@ -8007,14 +8190,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "hammergrotto_to_dmc",
-        "label": "Sortie de la grotte (Masse)",
+        "label": "Grotte des pestes Mojo",
+        "soh": "DMC Deku Scrub Grotto",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "death_mountain_crater::dmc_to_hammergrotto"
       },
       {
         "id": "dmc_to_firetemple",
-        "label": "Temple du Feu",
+        "label": "Devant le temple",
+        "soh": "Death Mountain Crater Outside Temple",
         "type": "dungeon",
         "shuffleTag": "dungeon_simple",
         "vanillaTargetExitId": "fire_temple::firetemple_to_dmc",
@@ -8074,6 +8259,7 @@ window.AREAS_DATA = [
       {
         "id": "bolero_pad",
         "label": "Plateforme de téléportation",
+        "soh": "DMC Warp Pad",
         "type": "warp",
         "shuffleTag": "warp",
         "vanillaTargetExitId": "null",
@@ -8143,7 +8329,8 @@ window.AREAS_DATA = [
     "exits": [
       {
         "id": "river_to_hf",
-        "label": "Plaine d'Hyrule",
+        "label": "Sortie basse",
+        "soh": "Zora's River Lower Exit",
         "type": "overworld",
         "shuffleTag": "overworld",
         "vanillaTargetExitId": "hf_field::hf_to_river",
@@ -8204,7 +8391,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "river_to_lw",
-        "label": "Bois perdus",
+        "label": "Raccourci sous-marin",
+        "soh": "Zora's River Underwater Shortcut",
         "type": "overworld",
         "shuffleTag": "overworld",
         "vanillaTargetExitId": "lost_woods::lw_to_river",
@@ -8248,7 +8436,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "river_to_domain",
-        "label": "Domaine Zora",
+        "label": "Sortie de la cascade",
+        "soh": "Zora's River Waterfall Exit",
         "type": "overworld",
         "shuffleTag": "overworld",
         "vanillaTargetExitId": "zora_domain::domain_to_river",
@@ -8295,7 +8484,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "river_to_stormsgrotto",
-        "label": "Grotte (Chant des Tempêtes)",
+        "label": "Entrée de la grotte du cercle de pierres",
+        "soh": "ZR Rock Circle Grotto Entry",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "zora_river::stormsgrotto_to_river",
@@ -8342,14 +8532,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "stormsgrotto_to_river",
-        "label": "Sortie de la grotte (Chant des Tempête)",
+        "label": "Grotte des pestes Mojo",
+        "soh": "ZR Deku Scrub Grotto",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "zora_river::river_to_stormsgrotto"
       },
       {
         "id": "river_to_opengrotto",
-        "label": "Grotte (Ouverte)",
+        "label": "Entrée de la grotte ouverte surélevée",
+        "soh": "ZR Raised Open Grotto Entry",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "zora_river::opengrotto_to_river",
@@ -8401,14 +8593,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "opengrotto_to_river",
-        "label": "Sortie de la grotte (Ouverte)",
+        "label": "Grotte ouverte",
+        "soh": "ZR Open Grotto",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "zora_river::river_to_opengrotto"
       },
       {
         "id": "river_to_fairygrotto",
-        "label": "Grotte (Fontaine des Fées)",
+        "label": "Entrée de la grotte du rocher surélevé",
+        "soh": "ZR Raised Boulder Grotto Entry",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "zora_river::fairygrotto_to_river",
@@ -8455,7 +8649,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "fairygrotto_to_river",
-        "label": "Sortie de la grotte (Fontaines des Fées)",
+        "label": "Grotte des fées",
+        "soh": "ZR Fairy Grotto",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "zora_river::river_to_fairygrotto"
@@ -8468,7 +8663,8 @@ window.AREAS_DATA = [
     "exits": [
       {
         "id": "domain_to_river",
-        "label": "Rivière Zora",
+        "label": "Entrée du domaine",
+        "soh": "Zora's Domain Entrance",
         "type": "overworld",
         "shuffleTag": "overworld",
         "vanillaTargetExitId": "zora_river::river_to_domain",
@@ -8511,7 +8707,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "domain_to_lake",
-        "label": "Lac Hylia",
+        "label": "Raccourci sous-marin",
+        "soh": "Zora's Domain Underwater Shortcut",
         "type": "overworld",
         "shuffleTag": "overworld",
         "vanillaTargetExitId": "lake_hylia::lake_to_domain",
@@ -8554,7 +8751,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "domain_to_fountain",
-        "label": "Fontaine Zora",
+        "label": "Derrière le Roi Zora",
+        "soh": "Zora's Domain Behind King Zora",
         "type": "overworld",
         "shuffleTag": "overworld",
         "vanillaTargetExitId": "zora_fountain::foutain_to_domain",
@@ -8605,7 +8803,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "domain_to_shop",
-        "label": "Boutique Zora",
+        "label": "Entrée de la boutique",
+        "soh": "ZD Shop Entry",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "zora_domain::shop_to_domain",
@@ -8640,14 +8839,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "shop_to_domain",
-        "label": "Sortie de la boutique Zora",
+        "label": "Boutique Zora",
+        "soh": "Zora Shop",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "zora_domain::domain_to_shop"
       },
       {
         "id": "domain_to_grotto",
-        "label": "Grotte",
+        "label": "Entrée de la grotte de l'île",
+        "soh": "ZD Island Grotto Entry",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "zora_domain::grotto_to_domain",
@@ -8677,7 +8878,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "grotto_to_domain",
-        "label": "Sortie de la grotte",
+        "label": "Grotte des fées",
+        "soh": "ZD Fairy Grotto",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "zora_domain::domain_to_grotto"
@@ -8690,7 +8892,8 @@ window.AREAS_DATA = [
     "exits": [
       {
         "id": "foutain_to_domain",
-        "label": "Domaine Zora",
+        "label": "Sortie du tunnel",
+        "soh": "Zora's Fountain Tunnel Exit",
         "type": "overworld",
         "shuffleTag": "overworld",
         "vanillaTargetExitId": "zora_domain::domain_to_fountain",
@@ -8726,7 +8929,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "fountain_to_greatfairy",
-        "label": "Fontaine de la Grande Fée",
+        "label": "Entrée de la Grande Fée",
+        "soh": "ZF Great Fairy Entry",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "zora_fountain::greatfairy_to_fountain",
@@ -8757,14 +8961,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "greatfairy_to_fountain",
-        "label": "Sortie de la Fontaine de la Grande Fée",
+        "label": "Fontaine de la Grande Fée",
+        "soh": "ZF Great Fairy Fountain",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "zora_fountain::fountain_to_greatfairy"
       },
       {
         "id": "fountain_to_jbjb",
-        "label": "Ventre de Jabu-Jabu",
+        "label": "Devant Jabu-Jabu",
+        "soh": "Zora's Fountain Outside Jabu Jabu",
         "type": "dungeon",
         "shuffleTag": "dungeon_simple",
         "vanillaTargetExitId": "jabujabu::jbjb_to_fountain",
@@ -8795,7 +9001,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "fountain_to_ic",
-        "label": "Caverne Polaire",
+        "label": "Devant la Caverne de Glace",
+        "soh": "Zora's Fountain Outside Ice Cavern",
         "type": "dungeon",
         "shuffleTag": "dungeon_simple",
         "vanillaTargetExitId": "zora_fountain::ic_to_fountain",
@@ -8826,7 +9033,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "ic_to_fountain",
-        "label": "Sortie de la Caverne Polaire",
+        "label": "Entrée de la Caverne de Glace",
+        "soh": "Ice Cavern Entrance",
         "type": "dungeon",
         "shuffleTag": "dungeon_simple",
         "vanillaTargetExitId": "zora_fountain::fountain_to_ic"
@@ -8839,7 +9047,8 @@ window.AREAS_DATA = [
     "exits": [
       {
         "id": "lake_to_hf",
-        "label": "Plaine d'Hyrule",
+        "label": "Sortie nord",
+        "soh": "Lake Hylia North Exit",
         "type": "overworld",
         "shuffleTag": "overworld",
         "vanillaTargetExitId": "hf_field::hf_to_lake",
@@ -8889,7 +9098,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "lake_to_domain",
-        "label": "Domaine Zora",
+        "label": "Raccourci sous-marin",
+        "soh": "Lake Hylia Underwater Shortcut",
         "type": "overworld",
         "shuffleTag": "overworld",
         "vanillaTargetExitId": "zora_domain::domain_to_lake",
@@ -8933,7 +9143,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "oneway_lake_from_gv",
-        "label": "Arrivée de la rivière de la Vallée Gerudo",
+        "label": "Arrivée de la rivière",
+        "soh": "Lake Hylia River Exit",
         "type": "overworld",
         "shuffleTag": "overworld",
         "vanillaTargetExitId": "null",
@@ -8988,7 +9199,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "lake_to_lab",
-        "label": "Laboratoire",
+        "label": "Entrée du Laboratoire du Lac",
+        "soh": "LH Lab Entry",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "lake_hylia::lab_to_lake",
@@ -9038,14 +9250,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "lab_to_lake",
-        "label": "Sortie du laboratoire",
+        "label": "Laboratoire du Lac",
+        "soh": "LH Lab",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "lake_hylia::lake_to_lab"
       },
       {
         "id": "lake_to_fishing",
-        "label": "Stand de Pêche",
+        "label": "Entrée du stand de pêche",
+        "soh": "LH Fishing Pond Entry",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "lake_hylia::fishing_to_lake",
@@ -9095,14 +9309,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "fishing_to_lake",
-        "label": "Sortie du stand de Pêche",
+        "label": "Stand de pêche",
+        "soh": "Fishing Pond",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "lake_hylia::lake_to_fishing"
       },
       {
         "id": "lab_to_grotto",
-        "label": "Grotte",
+        "label": "Entrée de la grotte de la tombe",
+        "soh": "LH Grave Grotto Entry",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "lake_hylia::grotto_to_lab",
@@ -9152,14 +9368,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "grotto_to_lab",
-        "label": "Sortie de la grotte",
+        "label": "Grotte des pestes Mojo",
+        "soh": "LH Deku Scrub Grotto",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "lake_hylia::lab_to_grotto"
       },
       {
         "id": "lake_to_watertemple",
-        "label": "Temple de l'Eau",
+        "label": "Devant le temple",
+        "soh": "Lake Hylia Outside Temple",
         "type": "dungeon",
         "shuffleTag": "dungeon_simple",
         "vanillaTargetExitId": "water_temple::watertemple_to_lake",
@@ -9204,6 +9422,7 @@ window.AREAS_DATA = [
       {
         "id": "serenade_pad",
         "label": "Plateforme de téléportation",
+        "soh": "Lake Hylia Warp Pad",
         "type": "warp",
         "shuffleTag": "warp",
         "vanillaTargetExitId": "null",
@@ -9258,7 +9477,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "lake_owl",
-        "label": "Hibou",
+        "label": "Vol du hibou",
+        "soh": "LH Owl Flight",
         "type": "owl",
         "shuffleTag": "owl",
         "vanillaTargetExitId": "hf_field::hf_to_market"
@@ -9271,7 +9491,8 @@ window.AREAS_DATA = [
     "exits": [
       {
         "id": "gv_to_hf",
-        "label": "Plaine d'Hyrule",
+        "label": "Sortie est",
+        "soh": "Gerudo Valley East Exit",
         "type": "overworld",
         "shuffleTag": "overworld",
         "vanillaTargetExitId": "hf_field::hf_to_gv",
@@ -9351,7 +9572,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "gv_to_gf",
-        "label": "Forteresse Gerudo",
+        "label": "Sortie ouest",
+        "soh": "Gerudo Valley West Exit",
         "type": "overworld",
         "shuffleTag": "overworld",
         "vanillaTargetExitId": "gerudo_fortress::gf_to_gv",
@@ -9422,14 +9644,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "gv_to_lake",
-        "label": "Rivière vers le Lake Hylia",
+        "label": "Sortie de la rivière",
+        "soh": "Gerudo Valley River Exit",
         "type": "overworld",
         "shuffleTag": "gerudo_river",
         "vanillaTargetExitId": "lake_hylia::oneway_lake_from_gv"
       },
       {
         "id": "gv_to_tent",
-        "label": "Tente",
+        "label": "Entrée de la tente des charpentiers",
+        "soh": "GV Carpenters' Tent Entry",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "gerudo_valley::tent_to_gv",
@@ -9495,14 +9719,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "tent_to_gv",
-        "label": "Sortie de la tente",
+        "label": "Tente des charpentiers",
+        "soh": "Carpenters' Tent",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "gerudo_valley::gv_to_tent"
       },
       {
         "id": "gv_to_octorokgrotto",
-        "label": "Grotte (Octorok)",
+        "label": "Entrée de la grotte du rocher argenté",
+        "soh": "GV Silver Rock Grotto Entry",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "gerudo_valley::octorokgrotto_to_gv",
@@ -9515,14 +9741,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "octorokgrotto_to_gv",
-        "label": "Sortie de la grotte (Octorok)",
+        "label": "Grotte aux Octoroks",
+        "soh": "GV Octorok Grotto",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "gerudo_valley::gv_to_octorokgrotto"
       },
       {
         "id": "gv_to_stormgrotto",
-        "label": "Grotte (Chant des Tempêtes)",
+        "label": "Entrée de la grotte derrière la tente",
+        "soh": "GV Behind Tent Grotto Entry",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "gerudo_valley::stormgrotto_to_gv",
@@ -9582,7 +9810,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "stormgrotto_to_gv",
-        "label": "Sortie de la grotte (Chant des Tempêtes)",
+        "label": "Grotte des pestes Mojo",
+        "soh": "GV Deku Scrub Grotto",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "gerudo_valley::gv_to_stormgrotto"
@@ -9595,7 +9824,8 @@ window.AREAS_DATA = [
     "exits": [
       {
         "id": "gf_to_gv",
-        "label": "Vallée Gerudo",
+        "label": "Sortie est",
+        "soh": "Gerudo Fortress East Exit",
         "type": "overworld",
         "shuffleTag": "overworld",
         "vanillaTargetExitId": "gerudo_valley::gv_to_gf",
@@ -9663,7 +9893,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "gf_to_hw",
-        "label": "Désert Hanté",
+        "label": "Porte du désert",
+        "soh": "Gerudo Fortress Gate Exit",
         "type": "overworld",
         "shuffleTag": "overworld",
         "vanillaTargetExitId": "wasteland::hw_to_gf",
@@ -9731,7 +9962,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "gf_to_grotto",
-        "label": "Grotte (Chant des Tempêtes)",
+        "label": "Entrée de la grotte des tempêtes",
+        "soh": "GF Storms Grotto Entry",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "gerudo_fortress::grotto_to_gf",
@@ -9793,14 +10025,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "grotto_to_gf",
-        "label": "Sortie de la grotte (Chant des Tempêtes)",
+        "label": "Grotte des fées",
+        "soh": "GF Fairy Grotto",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "gerudo_fortress::gf_to_grotto"
       },
       {
         "id": "gf_to_gtg",
-        "label": "Gymnase Gerudo",
+        "label": "Devant le Gymnase Gerudo",
+        "soh": "GF Outside Training Ground",
         "type": "dungeon",
         "shuffleTag": "dungeon_simple",
         "vanillaTargetExitId": "gerudo_fortress::gtg_to_gt",
@@ -9863,14 +10097,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "gtg_to_gt",
-        "label": "Sortie du Gymnase Gerudo",
+        "label": "Entrée du Gymnase Gerudo",
+        "soh": "Gerudo Training Ground Entrance",
         "type": "dungeon",
         "shuffleTag": "dungeon_simple",
         "vanillaTargetExitId": "gerudo_fortress::gf_to_gtg"
       },
       {
         "id": "hideout_gf_a",
-        "label": "Repaire : Cellule à 1 torche, couloir en L",
+        "label": "Repaire : cellule à 1 torche, virage",
+        "soh": "TH 1 Torch Cell Turn",
         "type": "interior",
         "shuffleTag": "hideout",
         "vanillaTargetExitId": "gerudo_fortress::hideout_a_gf",
@@ -9883,7 +10119,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "hideout_gf_b",
-        "label": "Repaire : Cellule à 1 torche, couloir droit",
+        "label": "Repaire : cellule à 1 torche",
+        "soh": "TH 1 Torch Cell",
         "type": "interior",
         "shuffleTag": "hideout",
         "vanillaTargetExitId": "gerudo_fortress::hideout_b_gf",
@@ -9896,7 +10133,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "hideout_gf_c",
-        "label": "Repaire : Cuisine, accès bas",
+        "label": "Repaire : couloir de la cuisine, bas",
+        "soh": "TH Kitchen Corridor Lower",
         "type": "interior",
         "shuffleTag": "hideout",
         "vanillaTargetExitId": "gerudo_fortress::hideout_c_gf",
@@ -9917,7 +10155,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "hideout_gf_d",
-        "label": "Repaire : Cuisine, accès haut",
+        "label": "Repaire : couloir de la cuisine, haut",
+        "soh": "TH Kitchen Corridor Upper",
         "type": "interior",
         "shuffleTag": "hideout",
         "vanillaTargetExitId": "gerudo_fortress::hideout_d_gf",
@@ -9938,7 +10177,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "hideout_gf_e",
-        "label": "Repaire : Cuisine, niveau supérieur, couloir droit",
+        "label": "Repaire : cuisine, côté couloir",
+        "soh": "TH Kitchen By Corridor",
         "type": "interior",
         "shuffleTag": "hideout",
         "vanillaTargetExitId": "gerudo_fortress::hideout_e_gf",
@@ -9959,7 +10199,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "hideout_gf_f",
-        "label": "Repaire : Cuisine, niveau supérieur, couloir en L",
+        "label": "Repaire : cuisine, face au couloir",
+        "soh": "TH Kitchen Opposite Corridor",
         "type": "interior",
         "shuffleTag": "hideout",
         "vanillaTargetExitId": "gerudo_fortress::hideout_f_gf",
@@ -9980,7 +10221,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "hideout_gf_g",
-        "label": "Repaire : Cellule à 2 torches, couloir en Z",
+        "label": "Repaire : double cellule, bas",
+        "soh": "TH Double Cell Lower",
         "type": "interior",
         "shuffleTag": "hideout",
         "vanillaTargetExitId": "gerudo_fortress::hideout_g_gf",
@@ -9993,7 +10235,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "hideout_gf_h",
-        "label": "Repaire : Cellule à 2 torches, couloir en L",
+        "label": "Repaire : double cellule, haut",
+        "soh": "TH Double Cell Upper",
         "type": "interior",
         "shuffleTag": "hideout",
         "vanillaTargetExitId": "gerudo_fortress::hideout_h_gf",
@@ -10006,7 +10249,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "hideout_gf_i",
-        "label": "Repaire : Cellule à 4 torches, couloir en L",
+        "label": "Repaire : cellule de la pente raide, deux rampes",
+        "soh": "TH Steep Slope Cell Two Ramps",
         "type": "interior",
         "shuffleTag": "hideout",
         "vanillaTargetExitId": "gerudo_fortress::hideout_i_gf",
@@ -10019,7 +10263,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "hideout_gf_j",
-        "label": "Repaire : Cellule à 4 torches, couloir en Z",
+        "label": "Repaire : cellule de la pente raide",
+        "soh": "TH Steep Slope Cell",
         "type": "interior",
         "shuffleTag": "hideout",
         "vanillaTargetExitId": "gerudo_fortress::hideout_j_gf",
@@ -10032,28 +10277,32 @@ window.AREAS_DATA = [
       },
       {
         "id": "hideout_gf_k",
-        "label": "Repaire : Cellule à 3 torches",
+        "label": "Repaire : cellule du cul-de-sac",
+        "soh": "TH Dead End Cell",
         "type": "interior",
         "shuffleTag": "hideout",
         "vanillaTargetExitId": "gerudo_fortress::hideout_k_gf"
       },
       {
         "id": "hideout_gf_l",
-        "label": "Repaire : Salle de pause",
+        "label": "Repaire : couloir de la salle de repos",
+        "soh": "TH Break Room Corridor",
         "type": "interior",
         "shuffleTag": "hideout",
         "vanillaTargetExitId": "gerudo_fortress::hideout_l_gf"
       },
       {
         "id": "hideout_gf_m",
-        "label": "Repaire : Couloir vers le balcon",
+        "label": "Repaire : salle de repos",
+        "soh": "TH Break Room",
         "type": "interior",
         "shuffleTag": "hideout",
         "vanillaTargetExitId": "gerudo_fortress::hideout_m_gf"
       },
       {
         "id": "hideout_a_gf",
-        "label": "Repaire : Accès au pied de la cellule",
+        "label": "Abords de la forteresse",
+        "soh": "GF Outskirts",
         "type": "interior",
         "shuffleTag": "hideout",
         "vanillaTargetExitId": "gerudo_fortress::hideout_gf_a",
@@ -10126,7 +10375,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "hideout_b_gf",
-        "label": "Repaire : Derrière les caisses, gauche",
+        "label": "Près de la grotte, est",
+        "soh": "GF Near Grotto East",
         "type": "interior",
         "shuffleTag": "hideout",
         "vanillaTargetExitId": "gerudo_fortress::hideout_gf_b",
@@ -10199,7 +10449,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "hideout_c_gf",
-        "label": "Repaire : Derrière les caisses, face",
+        "label": "Près de la grotte, nord",
+        "soh": "GF Near Grotto North",
         "type": "interior",
         "shuffleTag": "hideout",
         "vanillaTargetExitId": "gerudo_fortress::hideout_gf_c",
@@ -10272,7 +10523,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "hideout_d_gf",
-        "label": "Repaire : Porte solitaire, face au désert",
+        "label": "Au-dessus du gymnase",
+        "soh": "GF Above GTG",
         "type": "interior",
         "shuffleTag": "hideout",
         "vanillaTargetExitId": "gerudo_fortress::hideout_gf_d",
@@ -10345,7 +10597,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "hideout_e_gf",
-        "label": "Repaire : Terrasse, face au désert",
+        "label": "En haut des lianes basses, à côté",
+        "soh": "GF Top of Lower Vines Near",
         "type": "interior",
         "shuffleTag": "hideout",
         "vanillaTargetExitId": "gerudo_fortress::hideout_gf_e",
@@ -10418,7 +10671,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "hideout_f_gf",
-        "label": "Repaire : Hauteur, face au désert",
+        "label": "Près de la Skulltula",
+        "soh": "GF Near GS",
         "type": "interior",
         "shuffleTag": "hideout",
         "vanillaTargetExitId": "gerudo_fortress::hideout_gf_f",
@@ -10499,7 +10753,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "hideout_g_gf",
-        "label": "Repaire : Au-dessus du gymnase",
+        "label": "Juste au-dessus du gymnase",
+        "soh": "GF Above GTG Directly",
         "type": "interior",
         "shuffleTag": "hideout",
         "vanillaTargetExitId": "gerudo_fortress::hideout_gf_g",
@@ -10572,7 +10827,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "hideout_h_gf",
-        "label": "Repaire : Terrasse, face à la prison",
+        "label": "En haut des lianes basses, en face",
+        "soh": "GF Top of Lower Vines Across",
         "type": "interior",
         "shuffleTag": "hideout",
         "vanillaTargetExitId": "gerudo_fortress::hideout_gf_h",
@@ -10645,7 +10901,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "hideout_i_gf",
-        "label": "Repaire : Face aux vignes",
+        "label": "Au pied des lianes basses",
+        "soh": "GF Bottom of Lower Vines",
         "type": "interior",
         "shuffleTag": "hideout",
         "vanillaTargetExitId": "gerudo_fortress::hideout_gf_i",
@@ -10718,7 +10975,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "hideout_j_gf",
-        "label": "Repaire : À droite des caisses",
+        "label": "Près de la grotte",
+        "soh": "GF Near Grotto",
         "type": "interior",
         "shuffleTag": "hideout",
         "vanillaTargetExitId": "gerudo_fortress::hideout_gf_j",
@@ -10791,7 +11049,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "hideout_k_gf",
-        "label": "Repaire : Contrebas de la Skulltula",
+        "label": "Sous la Skulltula",
+        "soh": "GF Below GS",
         "type": "interior",
         "shuffleTag": "hideout",
         "vanillaTargetExitId": "gerudo_fortress::hideout_gf_k",
@@ -10868,7 +11127,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "hideout_l_gf",
-        "label": "Repaire : Isolé, contre la prison",
+        "label": "Au-dessus de la prison",
+        "soh": "GF Above Jail",
         "type": "interior",
         "shuffleTag": "hideout",
         "vanillaTargetExitId": "gerudo_fortress::hideout_gf_l",
@@ -10945,7 +11205,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "hideout_m_gf",
-        "label": "Repaire : Balcon",
+        "label": "Sous le coffre",
+        "soh": "GF Below Chest",
         "type": "interior",
         "shuffleTag": "hideout",
         "vanillaTargetExitId": "gerudo_fortress::hideout_gf_m",
@@ -11028,7 +11289,8 @@ window.AREAS_DATA = [
     "exits": [
       {
         "id": "hw_to_gf",
-        "label": "Forteresse Gerudo",
+        "label": "Sortie est",
+        "soh": "Haunted Wasteland East Exit",
         "type": "overworld",
         "shuffleTag": "overworld",
         "vanillaTargetExitId": "gerudo_fortress::gf_to_hw",
@@ -11046,7 +11308,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "hw_to_colossus",
-        "label": "Colosse du Désert",
+        "label": "Sortie ouest",
+        "soh": "Haunted Wasteland West Exit",
         "type": "overworld",
         "shuffleTag": "overworld",
         "vanillaTargetExitId": "colossus::colossus_to_hw"
@@ -11059,7 +11322,8 @@ window.AREAS_DATA = [
     "exits": [
       {
         "id": "colossus_to_hw",
-        "label": "Désert Hanté",
+        "label": "Sortie est",
+        "soh": "Desert Colossus East Exit",
         "type": "overworld",
         "shuffleTag": "overworld",
         "vanillaTargetExitId": "wasteland::hw_to_colossus",
@@ -11091,7 +11355,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "colossus_to_greatfairy",
-        "label": "Fontaine de la Grande Fée",
+        "label": "Entrée de la Grande Fée",
+        "soh": "Colossus Great Fairy Entry",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "colossus::greatfairy_to_colossus",
@@ -11118,14 +11383,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "greatfairy_to_colossus",
-        "label": "Sortie de la Fontaine de la Grande Fée",
+        "label": "Fontaine de la Grande Fée",
+        "soh": "Colossus Great Fairy Fountain",
         "type": "interior",
         "shuffleTag": "interior_simple",
         "vanillaTargetExitId": "colossus::colossus_to_greatfairy"
       },
       {
         "id": "colossus_to_grotto",
-        "label": "Grotte",
+        "label": "Entrée de la grotte",
+        "soh": "Colossus Grotto Entry",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "colossus::grotto_to_colossus",
@@ -11151,14 +11418,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "grotto_to_colossus",
-        "label": "Sortie de la Grotte",
+        "label": "Grotte des pestes Mojo",
+        "soh": "Colossus Deku Scrub Grotto",
         "type": "grotto",
         "shuffleTag": "grotto",
         "vanillaTargetExitId": "colossus::colossus_to_grotto"
       },
       {
         "id": "colossus_to_spirittemple",
-        "label": "Temple de l'Esprit",
+        "label": "Devant le temple",
+        "soh": "Colossus Outside Temple",
         "type": "dungeon",
         "shuffleTag": "dungeon_simple",
         "vanillaTargetExitId": "spirit_temple::spiritemple_to_colossus",
@@ -11191,6 +11460,7 @@ window.AREAS_DATA = [
       {
         "id": "requiem_pad",
         "label": "Plateforme de téléportation",
+        "soh": "Desert Colossus Warp Pad",
         "type": "warp",
         "shuffleTag": "warp",
         "vanillaTargetExitId": "null",
@@ -11233,7 +11503,8 @@ window.AREAS_DATA = [
     "exits": [
       {
         "id": "dekutree_to_kf",
-        "label": "Forêt Kokiri",
+        "label": "Entrée de l'Arbre Mojo",
+        "soh": "Deku Tree Entrance",
         "type": "dungeon",
         "shuffleTag": "dungeon_simple",
         "vanillaTargetExitId": "kokiri_forest::kf_to_dekutree",
@@ -11246,14 +11517,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "dekutree_boss",
-        "label": "Boss de l'Arbre Mojo",
+        "label": "Porte du boss",
+        "soh": "Deku Tree Boss Door",
         "type": "boss",
         "shuffleTag": "boss_warp_child",
         "vanillaTargetExitId": "dekutree::gohma"
       },
       {
         "id": "gohma",
-        "label": "Gohma",
+        "label": "Reine Gohma",
+        "soh": "Gohma",
         "type": "dungeon",
         "shuffleTag": "dungeon_simple",
         "vanillaTargetExitId": "kokiri_forest::kf_to_dekutree",
@@ -11267,7 +11540,8 @@ window.AREAS_DATA = [
     "exits": [
       {
         "id": "dc_to_dmt",
-        "label": "Chemin du Péril",
+        "label": "Entrée de la Caverne Dodongo",
+        "soh": "Dodongo's Cavern Entrance",
         "type": "dungeon",
         "shuffleTag": "dungeon_simple",
         "vanillaTargetExitId": "death_mountain_trail::dmt_to_dc",
@@ -11280,7 +11554,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "dc_boss",
-        "label": "Boss de la Caverne Dodongo",
+        "label": "Porte du boss",
+        "soh": "Dodongo's Cavern Boss Door",
         "type": "boss",
         "shuffleTag": "boss_warp_child",
         "vanillaTargetExitId": "dodongo_cavern::kd"
@@ -11288,6 +11563,7 @@ window.AREAS_DATA = [
       {
         "id": "kd",
         "label": "Roi Dodongo",
+        "soh": "King Dodongo",
         "type": "dungeon",
         "shuffleTag": "dungeon_simple",
         "vanillaTargetExitId": "death_mountain_trail::dmt_to_dc",
@@ -11301,7 +11577,8 @@ window.AREAS_DATA = [
     "exits": [
       {
         "id": "jbjb_to_fountain",
-        "label": "Fontaine Zora",
+        "label": "Entrée du Ventre de Jabu-Jabu",
+        "soh": "Jabu Jabu's Belly Entrance",
         "type": "dungeon",
         "shuffleTag": "dungeon_simple",
         "vanillaTargetExitId": "zora_fountain::fountain_to_jbjb",
@@ -11314,7 +11591,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "jbjb_boss",
-        "label": "Boss du Ventre de Jabu-Jabu",
+        "label": "Porte du boss",
+        "soh": "Jabu Jabu's Belly Boss Door",
         "type": "boss",
         "shuffleTag": "boss_warp_child",
         "vanillaTargetExitId": "jabujabu::barinade"
@@ -11322,6 +11600,7 @@ window.AREAS_DATA = [
       {
         "id": "barinade",
         "label": "Barinade",
+        "soh": "Barinade",
         "type": "dungeon",
         "shuffleTag": "dungeon_simple",
         "vanillaTargetExitId": "zora_fountain::fountain_to_jbjb",
@@ -11335,7 +11614,8 @@ window.AREAS_DATA = [
     "exits": [
       {
         "id": "foresttemple_to_meadow",
-        "label": "Bosquet Sacré",
+        "label": "Entrée du Temple de la Forêt",
+        "soh": "Forest Temple Entrance",
         "type": "dungeon",
         "shuffleTag": "dungeon_simple",
         "vanillaTargetExitId": "meadow::meadow_to_foresttemple",
@@ -11348,7 +11628,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "foresttemple_boss",
-        "label": "Boss du Temple de la Forêt",
+        "label": "Porte du boss",
+        "soh": "Forest Temple Boss Door",
         "type": "boss",
         "shuffleTag": "boss_warp_adult",
         "vanillaTargetExitId": "forest_temple::pg"
@@ -11356,6 +11637,7 @@ window.AREAS_DATA = [
       {
         "id": "pg",
         "label": "Ganon Spectral",
+        "soh": "Phantom Ganon",
         "type": "dungeon",
         "shuffleTag": "dungeon_simple",
         "vanillaTargetExitId": "meadow::minuet_pad",
@@ -11369,7 +11651,8 @@ window.AREAS_DATA = [
     "exits": [
       {
         "id": "firetemple_to_dmc",
-        "label": "Cratère du Péril",
+        "label": "Entrée du Temple du Feu",
+        "soh": "Fire Temple Entrance",
         "type": "dungeon",
         "shuffleTag": "dungeon_simple",
         "vanillaTargetExitId": "death_mountain_crater::dmc_to_firetemple",
@@ -11382,14 +11665,16 @@ window.AREAS_DATA = [
       },
       {
         "id": "firetemple_boss",
-        "label": "Boss du Temple du Feu",
+        "label": "Porte du boss",
+        "soh": "Fire Temple Boss Door",
         "type": "boss",
         "shuffleTag": "boss_warp_adult",
         "vanillaTargetExitId": "fire_temple::volvagia"
       },
       {
         "id": "volvagia",
-        "label": "Volcania",
+        "label": "Volvagia",
+        "soh": "Volvagia",
         "type": "dungeon",
         "shuffleTag": "dungeon_simple",
         "vanillaTargetExitId": "death_mountain_crater::bolero_pad",
@@ -11403,7 +11688,8 @@ window.AREAS_DATA = [
     "exits": [
       {
         "id": "watertemple_to_lake",
-        "label": "Lac Hylia",
+        "label": "Entrée du Temple de l'Eau",
+        "soh": "Water Temple Entrance",
         "type": "dungeon",
         "shuffleTag": "dungeon_simple",
         "vanillaTargetExitId": "lake_hylia::lake_to_watertemple",
@@ -11416,7 +11702,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "watertemple_boss",
-        "label": "Boss du Temple de l'Eau",
+        "label": "Porte du boss",
+        "soh": "Water Temple Boss Door",
         "type": "boss",
         "shuffleTag": "boss_warp_adult",
         "vanillaTargetExitId": "water_temple::morpha"
@@ -11424,6 +11711,7 @@ window.AREAS_DATA = [
       {
         "id": "morpha",
         "label": "Morpha",
+        "soh": "Morpha",
         "type": "dungeon",
         "shuffleTag": "dungeon_simple",
         "vanillaTargetExitId": "lake_hylia::serenade_pad",
@@ -11437,7 +11725,8 @@ window.AREAS_DATA = [
     "exits": [
       {
         "id": "shadowtemple_to_graveyard",
-        "label": "Cimetière Cocorico",
+        "label": "Entrée du Temple de l'Ombre",
+        "soh": "Shadow Temple Entrance",
         "type": "dungeon",
         "shuffleTag": "dungeon_simple",
         "vanillaTargetExitId": "graveyard::graveyard_to_shadowtemple",
@@ -11450,7 +11739,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "shadowtemple_boss",
-        "label": "Boss du Temple de l'Ombre",
+        "label": "Porte du boss",
+        "soh": "Shadow Temple Boss Door",
         "type": "boss",
         "shuffleTag": "boss_warp_adult",
         "vanillaTargetExitId": "shadow_temple::bb"
@@ -11458,6 +11748,7 @@ window.AREAS_DATA = [
       {
         "id": "bb",
         "label": "Bongo Bongo",
+        "soh": "Bongo-Bongo",
         "type": "dungeon",
         "shuffleTag": "dungeon_simple",
         "vanillaTargetExitId": "graveyard::nocturne_pad",
@@ -11471,7 +11762,8 @@ window.AREAS_DATA = [
     "exits": [
       {
         "id": "spiritemple_to_colossus",
-        "label": "Colosse du Désert",
+        "label": "Entrée du Temple de l'Esprit",
+        "soh": "Spirit Temple Entrance",
         "type": "dungeon",
         "shuffleTag": "dungeon_simple",
         "vanillaTargetExitId": "colossus::colossus_to_spirittemple",
@@ -11484,7 +11776,8 @@ window.AREAS_DATA = [
       },
       {
         "id": "spirittemple_boss",
-        "label": "Boss du Temple de l'Esprit",
+        "label": "Porte du boss",
+        "soh": "Spirit Temple Boss Door",
         "type": "boss",
         "shuffleTag": "boss_warp_adult",
         "vanillaTargetExitId": "spirit_temple::twinrova"
@@ -11492,6 +11785,7 @@ window.AREAS_DATA = [
       {
         "id": "twinrova",
         "label": "Twinrova",
+        "soh": "Twinrova",
         "type": "dungeon",
         "shuffleTag": "dungeon_simple",
         "vanillaTargetExitId": "colossus::requiem_pad",

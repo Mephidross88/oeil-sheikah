@@ -49,9 +49,9 @@ const DestPicker = {
         const r = reach.has(e.key) || used.has(e.key);
         if (r && !show) continue;
         const an = AREA[e.areaId].name;
-        if (nq && !norm(e.label + ' ' + an).includes(nq)) continue;
+        if (nq && !norm(e.label + ' ' + e.soh + ' ' + an).includes(nq)) continue;
         if (!byArea.has(e.areaId)) byArea.set(e.areaId, { id:e.areaId, name:an, options:[] });
-        byArea.get(e.areaId).options.push({ key:e.key, label:e.label, reach:r });
+        byArea.get(e.areaId).options.push({ key:e.key, label:e.label, soh:e.soh, reach:r });
       }
       const groups = [...byArea.values()], flat = [];
       groups.forEach(g => g.options.forEach(o => { o.idx = flat.length; flat.push(o); }));
@@ -104,7 +104,7 @@ const DestPicker = {
         <template v-for="g in all.groups" :key="g.id">
           <div class="pg-title">{{g.name}}</div>
           <button v-for="o in g.options" :key="o.key" type="button" role="option" class="pg-opt" :class="{hl:o.idx===hl, reach:o.reach}"
-            @mousedown.prevent="choose(o.key)" @mousemove="hl=o.idx"><span>{{o.label}}</span><small v-if="o.reach">Atteignable</small></button>
+            @mousedown.prevent="choose(o.key)" @mousemove="hl=o.idx" :title="o.soh"><span>{{o.label}}</span><small v-if="o.reach">Atteignable</small></button>
         </template>
         <div v-if="!all.flat.length" class="pg-empty">{{ q ? 'Aucune destination ne correspond au filtre.' : 'Aucune destination libre dans ce pool.' }}</div>
       </div>

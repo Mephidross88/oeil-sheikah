@@ -9,6 +9,7 @@ const App = {
     const views = [
       { id:'entrances', label:'Entrées', icon:ICONS.entrances },
       { id:'router', label:'Routeur', icon:ICONS.router },
+      { id:'checks', label:'Checks', icon:ICONS.checks },
       { id:'config', label:'Configuration', icon:ICONS.config },
     ];
     if (!views.some(v => v.id === ui.view)) ui.view = views[0].id;
@@ -168,6 +169,71 @@ const App = {
     // Objets de donjon « Au départ » : cases pleines, non cliquables (évite les oublis et les erreurs).
     const atStart = id => ({ maps:mapsAtStart(id, s), keys:keysAtStart(id, s), bossKey:bossKeyAtStart(id, s) });
 
+    /* Checks (js/checks.js) : zones avec leurs checks listés (mélangés, version active), filtres et compteurs */
+    const cf = ui.checks;
+    // Filtres de fond (catégories, âge) : ils définissent ce qui est « suivi » et donc les compteurs. L'âge d'un check
+    // vient de la logique (à venir) : tant qu'il est inconnu (null), le check passe tous les filtres d'âge.
+    const catOn = c => !cf.hiddenCats[c.cat];
+    const ageOn = c => cf.age === 'all' || !c.age || c.age === 'both' || c.age === cf.age;
+    const ageKnown = CHECKS.some(c => c.age);
+    // Toutes les zones (progression globale), puis celles affichées (recherche, zones terminées masquées).
+    const allCheckAreasC = computed(() => {
+      const q = norm(cf.q.trim()), done = store.game.checks, ex = s.excluded;
+      return CHECK_AREAS.map(a => {
+        const all = CHECKS_BY_AREA[a.id] || [], quest = areaQuest(a.id);
+        const listed = all.filter(checkListed);
+        const tracked = listed.filter(c => !ex[c.id] && catOn(c) && ageOn(c));
+        const got = tracked.filter(c => done[c.id]).length;
+        // reste à faire par catégorie (petites icônes de l'en-tête)
+        const byCat = CHECK_CATS.map(k => ({ cat:k, left:tracked.filter(c => c.cat === k.id && !done[c.id]).length,
+          total:tracked.filter(c => c.cat === k.id).length })).filter(x => x.total);
+        let shown = listed.filter(c => (cf.showExcluded || !ex[c.id]) && catOn(c) && ageOn(c) && !(cf.hideDone && done[c.id]));
+        if (q && !norm(a.label).includes(q)) shown = shown.filter(c => norm(c.label + ' ' + c.soh).includes(q));
+        // version inconnue : checks propres à Vanilla ou MQ masqués (seuls les checks communs sont listés)
+        const hiddenQuest = a.dungeon && !quest ? all.filter(c => c.quest !== 'B' && checkShuffled(c, s, cf.alwaysGS)).length : 0;
+        const complete = tracked.length > 0 && got === tracked.length;
+        return { area:a, quest, checks:shown, total:tracked.length, got, byCat, hiddenQuest, complete,
+          accessible:null }; // accessible : nombre de checks restants faisables (logique, à venir)
+      });
+    });
+    const checkAreasC = computed(() => { const q = cf.q.trim();
+      return allCheckAreasC.value.filter(x => q ? x.checks.length : ((x.total || x.hiddenQuest) && !(cf.hideDoneZones && x.complete))); });
+    // Progression globale des checks suivis (catégories et âge choisis, hors exclus), et par groupe de zones.
+    const checkStats = computed(() => {
+      const r = { total:0, got:0, ow:{ total:0, got:0 }, dg:{ total:0, got:0 }, zonesDone:0, zones:0 };
+      for (const x of allCheckAreasC.value){
+        if (!x.total) continue;
+        const g = x.area.dungeon ? r.dg : r.ow;
+        r.total += x.total; r.got += x.got; g.total += x.total; g.got += x.got; r.zones++; if (x.complete) r.zonesDone++;
+      }
+      r.pct = r.total ? Math.floor(100 * r.got / r.total) : 0;
+      return r;
+    });
+    // Compteurs des pastilles de catégorie : restants / total parmi les checks listés (hors filtre de catégorie).
+    const catCounts = computed(() => {
+      const done = store.game.checks, ex = s.excluded, r = {};
+      CHECK_CATS.forEach(k => { r[k.id] = { left:0, total:0 }; });
+      for (const c of CHECKS) if (!ex[c.id] && ageOn(c) && checkListed(c)){ r[c.cat].total++; if (!done[c.id]) r[c.cat].left++; }
+      return r;
+    });
+    const toggleCat = id => { cf.hiddenCats[id] = !cf.hiddenCats[id]; };
+    // clic droit sur une pastille : n'afficher que cette catégorie (ou tout réafficher si c'était déjà le cas)
+    function soloCat(id){
+      const only = CHECK_CATS.every(k => k.id === id ? !cf.hiddenCats[k.id] : cf.hiddenCats[k.id]);
+      CHECK_CATS.forEach(k => { cf.hiddenCats[k.id] = only ? false : k.id !== id; });
+    }
+    const allCats = on => CHECK_CATS.forEach(k => { cf.hiddenCats[k.id] = !on; });
+    const CHECK_AGES = [['all', 'Tous'], ['child', 'Enfant'], ['adult', 'Adulte']];
+    const ageLabelShort = { child:'E', adult:'A', both:'E·A' };
+    const checkGroups = computed(() => [['Overworld', checkAreasC.value.filter(x => !x.area.dungeon)],
+      ['Donjons', checkAreasC.value.filter(x => x.area.dungeon)]].filter(g => g[1].length));
+    const toggleCheckArea = id => { cf.collapsed[id] = !cf.collapsed[id]; };
+    function setAllChecks(collapsed){ CHECK_AREAS.forEach(a => { cf.collapsed[a.id] = collapsed; }); }
+    function jumpCheck(id){
+      cf.collapsed[id] = false; navOpen.value = false;
+      nextTick(() => { const el = document.getElementById('carea-' + id); if (el) el.scrollIntoView({ behavior:'smooth', block:'start' }); });
+    }
+
     /* Configuration Ship of Harkinian (js/config.js) */
     const decoupled = computed(() => isDecoupled(s));
     // Cartes de l'onglet courant, chacune avec ses options visibles (règles de visibilité de SoH) ; une carte
@@ -239,6 +305,13 @@ const App = {
             if (ui.importQuests && configKeyRing(d.id, s) === null){ store.game.dungeons[d.id].keyRing = drawn === 'Yes' ? 'yes' : 'no'; rings++; }
           });
         }
+        // Checks exclus à la génération (« excludedLocations », absent s'il n'y en a aucun) : réglage de la seed, pas un spoil.
+        Object.keys(s.excluded).forEach(k => { delete s.excluded[k]; });
+        let excl = 0;
+        for (const name of Array.isArray(data.excludedLocations) ? data.excludedLocations : []){
+          const c = CHECK_BY_SOH[name];
+          if (c){ s.excluded[c.id] = true; excl++; } else notes.push(`Check exclu inconnu ignoré : « ${name} ».`);
+        }
         const started = applyStartingItems(s);
         // Statut Vanilla / MQ (facultatif) : seulement pour les donjons que la configuration laisse au hasard.
         // SoH n'écrit « masterQuestDungeons » que s'il y a au moins un donjon MQ.
@@ -256,7 +329,8 @@ const App = {
           title:`Configuration importée : ${count} option${count>1?'s':''}, ${tricks} astuce${tricks>1?'s':''} activée${tricks>1?'s':''}`
             + (started ? `, ${started} objet${started>1?'s':''} de départ coché${started>1?'s':''}` : '')
             + (quests ? `, version de ${quests} donjon${quests>1?'s':''} renseignée` : '')
-            + (rings ? `, trousseaux de ${rings} donjon${rings>1?'s':''} renseignés` : '') + '.' };
+            + (rings ? `, trousseaux de ${rings} donjon${rings>1?'s':''} renseignés` : '')
+            + (excl ? `, ${excl} check${excl>1?'s':''} exclu${excl>1?'s':''}` : '') + '.' };
       };
       reader.readAsText(file);
     }
@@ -295,6 +369,8 @@ const App = {
     return { store, ui, s, views, navOpen, itemsOpen, modal, tip, tipData, backup, stats, missingSpawns, visibleAreas,
       ICONS, ITEMS_PAGE, ITEM_BY_KEY, DUNGEONS, DUNGEON_BY_ID, CHECKLISTS, AREA, EXIT, DATA_ERRORS,
       iconKey, areaName, toggleArea, setAll, jump, go, showTip, hideTip, toggleTip, setMapping, clearMapping,
+      checkAreasC, checkStats, toggleCheckArea, setAllChecks, jumpCheck, setCheck, setExcluded, CHECK_AREA,
+      CHECK_CATS, CHECK_CAT, catCounts, toggleCat, soloCat, allCats, CHECK_AGES, ageLabelShort, ageKnown, checkGroups,
       panelSkills, panelChecklists, cells, dungeonRows, skeletonShown, atStart, visibleKeys,
       CONFIG_TABS, TRICK_LEVELS, decoupled, configCards, trickFilter, tricksOn, trickGroups, setTricks, importReport, importSpoiler,
       itemVisible, tierLabel, iconSrc, checklistModal, openChecklist, setChecklist, checklistStats,
@@ -330,6 +406,21 @@ const App = {
         <button v-for="va in visibleAreas" :key="va.area.id" @click="jump(va.area.id)">
           <span>{{va.area.name}}</span>
           <span v-if="va.editable" class="zp" :class="{done:va.mapped===va.editable}">{{va.mapped}}/{{va.editable}}</span></button>
+      </div>
+    </section>
+
+    <section v-if="ui.view==='checks'" class="side-sec">
+      <div class="side-row"><button class="side-btn" @click="setAllChecks(false)">Tout déplier</button><button class="side-btn" @click="setAllChecks(true)">Tout replier</button></div>
+      <label class="check"><input type="checkbox" v-model="ui.checks.showExcluded">Afficher les checks exclus</label>
+      <label class="check" title="Lister aussi les Skulltulas dont le symbole n'est pas mélangé (utile pour les récompenses de la Maison des Skulltulas) — option « Always show Gold Skulltulas » du tracker de SoH"><input type="checkbox" v-model="ui.checks.alwaysGS">Suivre aussi les Skulltulas non mélangées</label>
+      <div class="zone-nav check-nav">
+        <template v-for="[g, list] in checkGroups" :key="g">
+          <div class="side-title">{{g}}</div>
+          <button v-for="x in list" :key="x.area.id" :class="{done:x.complete}" @click="jumpCheck(x.area.id)">
+            <span class="cn-name">{{x.area.label}}</span>
+            <span v-if="x.total" class="cn-prog"><span class="cn-bar"><i :style="{width:(100*x.got/x.total)+'%'}"></i></span>
+              <span class="zp" :class="{done:x.complete}">{{x.complete ? '✓' : (x.total - x.got)}}</span></span></button>
+        </template>
       </div>
     </section>
 
@@ -377,12 +468,12 @@ const App = {
               <button class="globe" :class="{none:!r.e.connections.length}" :aria-label="'Connexions depuis '+r.e.label"
                 @mouseenter="r.e.connections.length && showTip($event,r.e.key)" @mouseleave="hideTip" @focus="r.e.connections.length && showTip($event,r.e.key)" @blur="hideTip"
                 @click.stop="r.e.connections.length && toggleTip($event,r.e.key)" v-html="ICONS.globe"></button>
-              <div class="c-name">{{r.e.label}}</div>
-              <div v-if="decoupled" class="c-from"><button v-for="f in r.from" :key="f.key" class="loc link" @click="jump(EXIT[f.key].areaId, f.key)"><b>{{f.area}}</b><span>{{f.label}}</span></button></div>
+              <div class="c-name" :title="r.e.soh">{{r.e.label}}</div>
+              <div v-if="decoupled" class="c-from"><button v-for="f in r.from" :key="f.key" class="loc link" @click="jump(EXIT[f.key].areaId, f.key)"><b>{{f.area}}</b><span :title="EXIT[f.key].soh">{{f.label}}</span></button></div>
               <div class="c-dest">
                 <dest-picker v-if="r.mode==='open'" :source="r.e.key" @choose="k => setMapping(r.e.key, k)"></dest-picker>
                 <span v-else-if="r.mode==='locked'" class="muted">{{r.reason}}</span>
-                <button v-else-if="r.target" class="loc link" @click="jump(EXIT[r.target].areaId, r.target)"><b>{{areaName(r.target)}}</b><span>{{EXIT[r.target].label}}</span></button>
+                <button v-else-if="r.target" class="loc link" @click="jump(EXIT[r.target].areaId, r.target)"><b>{{areaName(r.target)}}</b><span :title="EXIT[r.target].soh">{{EXIT[r.target].label}}</span></button>
                 <span v-else class="muted">Dépend de l'entrée du donjon, pas encore connue</span>
               </div>
               <div v-if="r.mode!=='open'" class="c-ind">
@@ -398,6 +489,84 @@ const App = {
     </template>
 
     <!-- ================= ROUTEUR ================= -->
+    <!-- ================= CHECKS ================= -->
+    <template v-if="ui.view==='checks'">
+      <div class="checks-head">
+        <div class="page-head"><h1>Checks</h1></div>
+        <!-- Progression globale : checks suivis (catégories et âge choisis, hors exclus) -->
+        <div class="progress-card" :class="{done:checkStats.total && checkStats.got===checkStats.total}">
+          <svg class="pc-ring" viewBox="0 0 44 44" aria-hidden="true"><circle class="pc-track" cx="22" cy="22" r="18"/>
+            <circle class="pc-fill" cx="22" cy="22" r="18" :stroke-dasharray="(113.1*checkStats.got/(checkStats.total||1)) + ' 113.1'"/></svg>
+          <div class="pc-pct">{{checkStats.pct}}<small>%</small></div>
+          <div class="pc-main">
+            <div class="pc-count"><b>{{checkStats.got}}</b> / {{checkStats.total}} <span>checks</span></div>
+            <div class="pc-sub">{{checkStats.total - checkStats.got}} restant{{checkStats.total - checkStats.got > 1 ? 's' : ''}} · {{checkStats.zonesDone}} / {{checkStats.zones}} zones terminées</div>
+            <div class="pc-groups">
+              <span v-if="checkStats.ow.total">Overworld <b>{{checkStats.ow.got}}/{{checkStats.ow.total}}</b></span>
+              <span v-if="checkStats.dg.total">Donjons <b>{{checkStats.dg.got}}/{{checkStats.dg.total}}</b></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="checks-toolbar">
+        <input class="checks-search" type="search" v-model="ui.checks.q" placeholder="Rechercher un check ou une zone…" aria-label="Rechercher un check">
+        <div class="ct-row">
+          <div class="age-seg" :class="{disabled:!ageKnown}" :title="ageKnown ? 'Âge requis pour faire le check' : 'Filtre par âge : disponible avec la logique (à venir)'">
+            <span class="ct-label">Âge</span>
+            <button v-for="[id, l] in CHECK_AGES" :key="id" type="button" :class="{on:ui.checks.age===id}" :disabled="!ageKnown" @click="ui.checks.age=id">{{l}}</button>
+          </div>
+          <label class="check"><input type="checkbox" v-model="ui.checks.hideDone">Masquer les checks faits</label>
+          <label class="check"><input type="checkbox" v-model="ui.checks.hideDoneZones">Masquer les zones terminées</label>
+        </div>
+        <div class="cat-chips">
+          <button v-for="k in CHECK_CATS" v-show="catCounts[k.id].total" :key="k.id" type="button" class="cat-chip" :class="{off:ui.checks.hiddenCats[k.id]}"
+            :title="k.label + ' : ' + catCounts[k.id].left + ' à faire sur ' + catCounts[k.id].total + ' — clic : afficher / masquer, clic droit : seulement cette catégorie'"
+            @click="toggleCat(k.id)" @contextmenu.prevent="soloCat(k.id)">
+            <img v-if="!brokenIcons[k.icon]" :src="k.icon" alt="" @error="brokenIcons[k.icon]=true"><span v-else class="cat-fallback" :style="{'--cc':k.color}">{{k.label[0]}}</span>
+            <span class="cc-label">{{k.label}}</span><b>{{catCounts[k.id].left}}</b></button>
+          <button type="button" class="link cat-all" @click="allCats(true)">Tout afficher</button>
+        </div>
+      </div>
+
+      <div v-if="!checkAreasC.length" class="empty"><b>Aucun check à afficher.</b>
+        {{ui.checks.q ? 'Aucun résultat pour cette recherche.' : 'Vérifiez la Configuration ou les filtres.'}}</div>
+      <article v-for="x in checkAreasC" :key="x.area.id" class="area check-area" :id="'carea-'+x.area.id"
+        :class="{collapsed:ui.checks.collapsed[x.area.id], complete:x.complete}">
+        <button class="area-head" @click="toggleCheckArea(x.area.id)" :aria-expanded="!ui.checks.collapsed[x.area.id]">
+          <span class="chev" v-html="ICONS.chevron"></span>
+          <h2>{{x.area.label}}</h2>
+          <span v-if="x.area.dungeon" class="dg-quest-pill" :class="questClass(x.area.dungeon)" :title="questTitle(x.area.dungeon)"
+            @click.stop="cycleDungeonQuest(x.area.dungeon)" @contextmenu.prevent.stop="cycleDungeonQuest(x.area.dungeon,true)">{{questLabel(x.area.dungeon)}}</span>
+          <span class="zone-cats">
+            <span v-for="b in x.byCat" v-show="b.left" :key="b.cat.id" class="zc" :title="b.cat.label + ' : ' + b.left + ' à faire'">
+              <img v-if="!brokenIcons[b.cat.icon]" :src="b.cat.icon" alt=""><span v-else class="cat-fallback" :style="{'--cc':b.cat.color}">{{b.cat.label[0]}}</span>{{b.left}}</span>
+          </span>
+          <span v-if="x.accessible !== null" class="acc-pill" :title="x.accessible + ' checks restants faisables avec l’inventaire actuel'">{{x.accessible}} faisables</span>
+          <span class="area-prog">
+            <span v-if="x.complete" class="zone-done">Terminée</span>
+            <span v-else class="bar"><i :style="{width:(x.total ? 100*x.got/x.total : 0)+'%'}"></i></span>
+            <span class="count">{{x.got}}/{{x.total}}</span></span>
+        </button>
+        <div v-if="!ui.checks.collapsed[x.area.id]" class="check-body">
+          <p v-if="x.hiddenQuest" class="quest-note">Version du donjon inconnue : {{x.hiddenQuest}} check{{x.hiddenQuest>1?'s':''}} propre{{x.hiddenQuest>1?'s':''}} à la version Vanilla ou Master Quest {{x.hiddenQuest>1?'sont masqués':'est masqué'}}.
+            Indiquez la version avec le badge « ? » (ou dans le panneau Objets).</p>
+          <ul v-if="x.checks.length" class="check-list-grid">
+            <li v-for="c in x.checks" :key="c.id" class="check-item" :class="{done:store.game.checks[c.id], excluded:s.excluded[c.id]}">
+              <button type="button" class="ci-main" :title="CHECK_CAT[c.cat].label + ' — ' + c.soh" @click="setCheck(c.id, !store.game.checks[c.id])">
+                <span class="ci-cat"><img v-if="!brokenIcons[CHECK_CAT[c.cat].icon]" :src="CHECK_CAT[c.cat].icon" alt="" @error="brokenIcons[CHECK_CAT[c.cat].icon]=true"><span v-else class="cat-fallback" :style="{'--cc':CHECK_CAT[c.cat].color}">{{CHECK_CAT[c.cat].label[0]}}</span></span>
+                <span class="ci-label">{{c.label}}</span>
+                <span v-if="c.age" class="age-pill" :class="c.age" :title="{child:'Enfant', adult:'Adulte', both:'Enfant ou adulte'}[c.age]">{{ageLabelShort[c.age]}}</span>
+                <span class="cr-mark" v-html="store.game.checks[c.id] ? ICONS.check : ICONS.circleO"></span></button>
+              <button type="button" class="ci-ex" :title="s.excluded[c.id] ? 'Réintégrer ce check' : 'Exclure ce check (ne compte plus)'"
+                @click="setExcluded(c.id, !s.excluded[c.id])">{{s.excluded[c.id] ? '↺' : '⊘'}}</button>
+            </li>
+          </ul>
+          <p v-else class="quest-note">{{x.total ? 'Tous les checks affichés de cette zone sont faits.' : 'Aucun check avec les filtres actuels.'}}</p>
+        </div>
+      </article>
+    </template>
+
     <template v-if="ui.view==='router'">
       <div class="page-head"><h1>Routeur</h1><p class="lede">Chemin le plus court entre deux sorties, selon ce que vous avez découvert et l'état de la partie.</p></div>
       <div class="rform">
@@ -408,7 +577,7 @@ const App = {
               <option v-for="a in routerAreas" :key="a.id" :value="a.id">{{a.name}}</option></select></div>
           <div class="field"><label for="fe">Sortie</label>
             <select id="fe" class="sel" v-model="ui.router.fromExit" :disabled="!ui.router.fromArea"><option value="" disabled>Choisir une sortie</option>
-              <option v-for="e in exitsOf(ui.router.fromArea)" :key="e.key" :value="e.key">{{e.label}}</option></select></div>
+              <option v-for="e in exitsOf(ui.router.fromArea)" :key="e.key" :value="e.key" :title="e.soh">{{e.label}}</option></select></div>
           <div class="field agebox"><span class="lbl">Âge</span><seg v-model="ui.router.fromAge" :options="[['child','Enfant'],['adult','Adulte']]"></seg></div>
         </div>
         <div class="rswap"><button type="button" @click="swap"><span v-html="ICONS.swap"></span>Inverser</button></div>
@@ -419,7 +588,7 @@ const App = {
               <option v-for="a in routerAreas" :key="a.id" :value="a.id">{{a.name}}</option></select></div>
           <div class="field"><label for="te">Sortie</label>
             <select id="te" class="sel" v-model="ui.router.toExit" :disabled="!ui.router.toArea"><option value="" disabled>Choisir une sortie</option>
-              <option v-for="e in exitsOf(ui.router.toArea)" :key="e.key" :value="e.key">{{e.label}}</option></select></div>
+              <option v-for="e in exitsOf(ui.router.toArea)" :key="e.key" :value="e.key" :title="e.soh">{{e.label}}</option></select></div>
           <div class="field agebox"><span class="lbl">Âge</span><seg v-model="ui.router.toAge" :options="[['child','Enfant'],['adult','Adulte'],['any','Peu importe']]"></seg></div>
         </div>
       </div>
@@ -443,7 +612,7 @@ const App = {
             <div v-if="it.t==='node'" class="node" :class="it.role==='start'?'start':(it.role==='end'||it.role==='both')?'end':''">
               <type-icon :type="iconKey(EXIT[it.key])"></type-icon>
               <div><div class="role" v-if="it.role">{{it.role==='start'?'Départ':it.role==='end'?'Arrivée':'Départ et arrivée'}}</div>
-                <b>{{areaName(it.key)}}</b><div class="sub">{{EXIT[it.key].label}}</div></div>
+                <b>{{areaName(it.key)}}</b><div class="sub" :title="EXIT[it.key].soh">{{EXIT[it.key].label}}</div></div>
               <span class="age" :class="it.age">{{ageLabel(it.age)}}</span>
             </div>
             <div v-else-if="it.t==='edge'" class="conn">
