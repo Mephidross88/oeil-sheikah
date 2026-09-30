@@ -383,7 +383,7 @@ check) ; règles dans `js/checks.js`.
 - **Zones** : repliables (présentation des Entrées) ; en-tête avec badge V / MQ / ? (donjons), restants par catégorie
   (icône + nombre), barre et « faits / suivis », « Terminée » quand tout est fait ; emplacement prévu pour le nombre
   de checks faisables (logique). Checks sur 2 colonnes (1 sur mobile) : icône de catégorie, libellé, pastille
-  d'âge, coche ; clic gauche = fait, clic droit = à faire (`game.checks`, stockage creux `{ id: true }`) ; nom SoH
+  d'âge, coche ; un clic (gauche) bascule fait / à faire (`game.checks`, stockage creux `{ id: true }`) ; nom SoH
   au survol ; ⊘ au survol pour exclure.
 - **À venir (branche logique)** : âge et accessibilité de chaque check (conditions SoH par région), nombre de checks
   faisables par zone, checks non faisables grisés, lien avec les Entrées et le Routeur.

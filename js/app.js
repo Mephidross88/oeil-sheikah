@@ -480,7 +480,7 @@ const App = {
     <!-- ================= CHECKS ================= -->
     <template v-if="ui.view==='checks'">
       <div class="page-head"><h1>Checks</h1>
-        <p class="lede">{{checkStats.got}} fait{{checkStats.got>1?'s':''}} sur {{checkStats.total}} suivis. Clic gauche : fait, clic droit : à faire.</p></div>
+        <p class="lede">{{checkStats.got}} fait{{checkStats.got>1?'s':''}} sur {{checkStats.total}} suivis.</p></div>
 
       <div class="checks-toolbar">
         <input class="checks-search" type="search" v-model="ui.checks.q" placeholder="Rechercher un check ou une zone…" aria-label="Rechercher un check">
@@ -526,7 +526,7 @@ const App = {
             Indiquez la version avec le badge « ? » (ou dans le panneau Objets).</p>
           <ul v-if="x.checks.length" class="check-list-grid">
             <li v-for="c in x.checks" :key="c.id" class="check-item" :class="{done:store.game.checks[c.id], excluded:s.excluded[c.id]}">
-              <button type="button" class="ci-main" :title="CHECK_CAT[c.cat].label + ' — ' + c.soh" @click="setCheck(c.id,true)" @contextmenu.prevent="setCheck(c.id,false)">
+              <button type="button" class="ci-main" :title="CHECK_CAT[c.cat].label + ' — ' + c.soh" @click="setCheck(c.id, !store.game.checks[c.id])">
                 <span class="ci-cat"><img v-if="!brokenIcons[CHECK_CAT[c.cat].icon]" :src="CHECK_CAT[c.cat].icon" alt="" @error="brokenIcons[CHECK_CAT[c.cat].icon]=true"><span v-else class="cat-fallback" :style="{'--cc':CHECK_CAT[c.cat].color}">{{CHECK_CAT[c.cat].label[0]}}</span></span>
                 <span class="ci-label">{{c.label}}</span>
                 <span v-if="c.age" class="age-pill" :class="c.age" :title="{child:'Enfant', adult:'Adulte', both:'Enfant ou adulte'}[c.age]">{{ageLabelShort[c.age]}}</span>

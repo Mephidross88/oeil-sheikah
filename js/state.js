@@ -236,6 +236,6 @@ function addDungeonKeys(id, delta){
 const areaQuest = area => CHECK_AREA[area].dungeon ? dungeonQuest(CHECK_AREA[area].dungeon) : 'Vanilla';
 // Check listé : mélangé selon la configuration et de la version active de son donjon (exclus compris).
 const checkListed = c => checkShuffled(c, store.settings, store.ui.checks.alwaysGS) && checkQuestActive(c, areaQuest(c.area));
-// Clic gauche = fait, clic droit = pas fait (même règle que les icônes du panneau Objets). Stockage creux { id: true }.
+// Un clic bascule fait / à faire. Stockage creux { id: true }.
 function setCheck(id, on){ if (on) store.game.checks[id] = true; else delete store.game.checks[id]; }
 function setExcluded(id, on){ if (on) store.settings.excluded[id] = true; else delete store.settings.excluded[id]; }
