@@ -365,10 +365,19 @@ svg{display:block}
 .ci-cat img{width:22px;height:22px;object-fit:contain}
 .check-item.done .ci-cat{opacity:.45;filter:grayscale(1)}
 .ci-main .cr-mark{margin-left:auto}
-.age-pill{flex:none;font-size:11px;font-weight:800;padding:1px 6px;border-radius:999px;border:1px solid currentColor}
-.age-pill.child{color:#3f8f3a}
-.age-pill.adult{color:#8a5a2a}
-.age-pill.both{color:var(--muted)}
+/* Pastille d'âge : âges possibles (lettre pâle), en plein ceux où le check est faisable maintenant */
+.age-pill{flex:none;display:inline-flex;gap:1px;font-size:11px;font-weight:800;padding:1px 3px;border-radius:999px;border:1px solid var(--line)}
+.age-pill i{font-style:normal;min-width:15px;text-align:center;padding:0 2px;border-radius:999px;color:var(--muted)}
+.age-pill i.now{background:var(--green);color:var(--surface)}
+.age-pill.never{color:var(--muted);font-weight:400;padding:1px 7px;border-style:dashed}
+.time-mark{flex:none;font-size:12px;line-height:1;color:var(--muted)}
+.time-mark.night{color:#6a6fb8}
+.time-mark.day{color:#c8962a}
+/* Faisable maintenant / pas encore faisable (logique) */
+.check-item.avail .ci-cat{box-shadow:0 0 0 2px var(--green-soft);border-radius:6px}
+.check-item.locked .ci-label,.check-item.locked .ci-cat{opacity:.5}
+.acc-pill.none{background:var(--surface-2);color:var(--muted)}
+.zone-nav .zp.acc{flex:none;color:var(--green);background:var(--green-soft);font-weight:700;font-size:11.5px;padding:0 6px;border-radius:999px;margin:0 6px 0 auto}
 /* Navigation des zones (panneau de gauche) : groupes Overworld / Donjons, mini-barre */
 .check-nav .side-title{margin:10px 8px 2px}
 .check-nav button{align-items:center}

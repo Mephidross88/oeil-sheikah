@@ -5,9 +5,9 @@
 const CHECK_AREAS = window.CHECKS_DATA.areas.map(([id, label, soh, dungeon]) => ({ id, label, soh, dungeon }));
 const CHECK_AREA = {};
 CHECK_AREAS.forEach(a => { CHECK_AREA[a.id] = a; });
-// age : 'child' | 'adult' | 'both' | null — renseigné par la logique (à venir) ; null = inconnu, pas de pastille.
+// L'âge et l'accessibilité d'un check ne sont pas ici : ils viennent de la logique (sohC / sohFullC, js/state.js).
 const CHECKS = window.CHECKS_DATA.checks.map(([id, area, type, quest, label, soh, region, cat, extra]) =>
-  ({ id, area, type, quest, label, soh, region, cat, age:null, ...(extra || {}), inDungeon:!!CHECK_AREA[area].dungeon }));
+  ({ id, area, type, quest, label, soh, region, cat, ...(extra || {}), inDungeon:!!CHECK_AREA[area].dungeon }));
 // Catégories de checks (icône icons/checks/<id>.png, filtre de la page Checks), dans l'ordre d'affichage.
 const CHECK_CATS = [
   ['chest', 'Coffres', '#b07a2a'], ['skulltula', 'Skulltulas', '#c8a13a'], ['boss', 'Boss', '#8e2447'], ['song', 'Chants', '#3f7fbf'],

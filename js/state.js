@@ -18,7 +18,7 @@ function defaults(){
     costs:{ transition:3, warp:15, reset:25, age:12 },
     game, mappings:{},
     ui:{ view:'entrances', collapsed:{}, configTab:'logic', importQuests:false, spoilerPrompt:true,
-      checks:{ q:'', hideDone:false, hideDoneZones:false, showExcluded:false, alwaysGS:false, age:'all', hiddenCats:{}, collapsed:{} },
+      checks:{ q:'', hideDone:false, hideDoneZones:false, onlyAvailable:false, showLogic:false, showExcluded:false, alwaysGS:false, age:'all', hiddenCats:{}, collapsed:{} },
       filters:{ showReachableTargets:false, showInaccessibleAreas:false, showDiscovered:true, showVanilla:true },
       router:{ fromArea:'', fromExit:'', fromAge:'child', toArea:'', toExit:'', toAge:'any' } },
   };
@@ -62,8 +62,22 @@ const agesC = computed(() => computeAges(store, effC.value));
 const gameC = computed(() => deriveGame(store.game, store.settings, agesC.value));
 const edgesC = computed(() => makeEdges(gameC.value, store.costs, effC.value));
 const reachC = computed(() => flood(agesC.value, effC.value, edgesC.value));
-// Logique Ship of Harkinian (js/soh-logic.js) : régions, événements et checks accessibles avec l'inventaire noté.
+// Logique Ship of Harkinian (js/logic.js) : régions, événements et checks accessibles avec l'inventaire noté.
 const sohC = computed(() => computeSoh(store.settings, store.game));
+// Même calcul avec un inventaire « tout obtenu » (objets au maximum, chants, objets de donjon, âmes, clés des
+// portes…) : âges et moments où chaque check est faisable un jour (pastilles Enfant / Adulte, filtre d'âge).
+// Ne dépend que de la configuration et de la version des donjons notée.
+function fullGame(s){
+  const g = defaults().game;
+  ITEM_GROUPS.forEach(gr => gr.items.forEach(it => {
+    g[gr.path][it.key] = it.kind === 'bool' ? true : it.kind === 'level' ? Math.max(...itemLevels(it)) : itemMax(it);
+  }));
+  DUNGEONS.forEach(d => Object.assign(g.dungeons[d.id], { map:true, compass:true, bossKey:true, soul:true, ringGot:true,
+    keys:Math.max(d.maxKeys || 0, d.mqKeys || 0), quest:store.game.dungeons[d.id].quest }));
+  Object.values(g.checklists).forEach(c => Object.keys(c).forEach(k => { c[k] = true; }));
+  return g;
+}
+const sohFullC = computed(() => computeSoh(store.settings, fullGame(store.settings)));
 
 /* ---------- Mutations ---------- */
 function clearMapping(src){

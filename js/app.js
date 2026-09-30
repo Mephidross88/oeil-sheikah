@@ -185,11 +185,50 @@ const App = {
 
     /* Checks (js/checks.js) : zones avec leurs checks listés (mélangés, version active), filtres et compteurs */
     const cf = ui.checks;
-    // Filtres de fond (catégories, âge) : ils définissent ce qui est « suivi » et donc les compteurs. L'âge d'un check
-    // vient de la logique (à venir) : tant qu'il est inconnu (null), le check passe tous les filtres d'âge.
+    // Logique SoH (js/logic.js) : pour chaque check, états âge/moment (bits CD/CN/AD/AN) où il est faisable
+    // maintenant (inventaire noté, sohC) et un jour (tout obtenu, sohFullC). Âge d'un check = âges « un jour ».
+    const ageOfBits = b => (b & CHILD) && (b & ADULT) ? 'both' : b & CHILD ? 'child' : b & ADULT ? 'adult' : null;
+    const checkLogicC = computed(() => {
+      const now = sohC.value.checks, ever = sohFullC.value.checks, r = {};
+      for (const c of CHECKS){ const k = 'RC_' + c.id, e = ever[k] || 0; r[c.id] = { now:now[k] || 0, ever:e, age:ageOfBits(e) }; }
+      return r;
+    });
+    const lg = c => checkLogicC.value[c.id];
+    const canNow = c => lg(c).now > 0;
+    // Filtres de fond (catégories, âge) : ils définissent ce qui est « suivi » et donc les compteurs. Un check sans âge
+    // connu (jamais faisable, même avec tout l'inventaire) passe tous les filtres d'âge.
     const catOn = c => !cf.hiddenCats[c.cat];
-    const ageOn = c => cf.age === 'all' || !c.age || c.age === 'both' || c.age === cf.age;
-    const ageKnown = CHECKS.some(c => c.age);
+    const ageOn = c => { const a = lg(c).age; return cf.age === 'all' || !a || a === 'both' || a === cf.age; };
+    const ageKnown = true;
+    // Pastille d'âge et infobulle : âges possibles, en plein ceux où c'est faisable maintenant ; moment de la journée.
+    const AGE_FR = { child:'enfant', adult:'adulte', both:'enfant ou adulte' };
+    function timeOf(bits){
+      const day = bits & (CD | AD), night = bits & (CN | AN);
+      return day && !night ? 'day' : night && !day ? 'night' : null;
+    }
+    function checkLogicTitle(c){
+      const x = lg(c), lines = [CHECK_CAT[c.cat].label + ' — ' + c.soh];
+      if (!x.ever) lines.push('Jamais faisable selon la logique avec la configuration actuelle.');
+      else {
+        const t = timeOf(x.ever);
+        lines.push('Âge : ' + AGE_FR[x.age] + (t ? (t === 'night' ? ', de nuit' : ', de jour') : ''));
+        lines.push(x.now ? 'Faisable maintenant : ' + AGE_FR[ageOfBits(x.now)] + (timeOf(x.now) === 'night' ? ' (de nuit)' : timeOf(x.now) === 'day' ? ' (de jour)' : '')
+          : 'Pas encore faisable avec l’inventaire actuel.');
+      }
+      if (cf.showLogic) lines.push(...checkConditions(c));
+      return lines.join('\n');
+    }
+    // Conditions SoH d'un check (option « Afficher la logique au survol », comme « Show Logic » du tracker de SoH).
+    let condIndex = null;
+    function checkConditions(c){
+      if (!condIndex){
+        condIndex = {};
+        for (const [rr, r] of Object.entries(SOH.regions)) for (const [rc, fn] of r.checks) (condIndex[rc] = condIndex[rc] || []).push([r.name, fn]);
+      }
+      const pretty = fn => fn.toString().replace(/^\(\)\s*=>\s*/, '').replace(/^\((.*)\)$/s, '$1').replace(/\bL\./g, '')
+        .replace(/"(?:RG|RE|RT|ED|RR|LOGIC|RSK|SCENE|RC)_([A-Z0-9_]+)"/g, '$1').replace(/\s+/g, ' ');
+      return (condIndex['RC_' + c.id] || []).map(([name, fn]) => `Logique (${name}) : ${pretty(fn)}`);
+    }
     // Toutes les zones (progression globale), puis celles affichées (recherche, zones terminées masquées).
     const allCheckAreasC = computed(() => {
       const q = norm(cf.q.trim()), done = store.game.checks, ex = s.excluded;
@@ -205,28 +244,32 @@ const App = {
         if (q && !norm(a.label).includes(q)) shown = shown.filter(c => norm(c.label + ' ' + c.soh).includes(q));
         // version inconnue : checks propres à Vanilla ou MQ masqués (seuls les checks communs sont listés)
         const hiddenQuest = a.dungeon && !quest ? all.filter(c => c.quest !== 'B' && checkShuffled(c, s, cf.alwaysGS)).length : 0;
+        if (cf.onlyAvailable) shown = shown.filter(c => done[c.id] || canNow(c));
         const complete = tracked.length > 0 && got === tracked.length;
-        return { area:a, quest, checks:shown, total:tracked.length, got, byCat, hiddenQuest, complete,
-          accessible:null }; // accessible : nombre de checks restants faisables (logique, à venir)
+        // faisables : checks suivis restants, faisables avec l'inventaire actuel
+        const accessible = tracked.filter(c => !done[c.id] && canNow(c)).length;
+        return { area:a, quest, checks:shown, total:tracked.length, got, byCat, hiddenQuest, complete, accessible };
       });
     });
     const checkAreasC = computed(() => { const q = cf.q.trim();
-      return allCheckAreasC.value.filter(x => q ? x.checks.length : ((x.total || x.hiddenQuest) && !(cf.hideDoneZones && x.complete))); });
+      return allCheckAreasC.value.filter(x => q || cf.onlyAvailable ? x.checks.length
+        : ((x.total || x.hiddenQuest) && !(cf.hideDoneZones && x.complete))); });
     // Progression globale des checks suivis (catégories et âge choisis, hors exclus), et par groupe de zones.
     // Progression globale des checks : selon la configuration seulement (checks mélangés, version active, hors exclus),
     // indépendamment des filtres d'affichage (catégories, âge, Skulltulas non mélangées, recherche).
     const checkStats = computed(() => {
       const done = store.game.checks, ex = s.excluded, zones = {};
       const ow = { got:0, total:0 }, dg = { got:0, total:0 };
+      let avail = 0;
       for (const c of CHECKS){
         if (ex[c.id] || !checkShuffled(c, s, false) || !checkQuestActive(c, areaQuest(c.area))) continue;
         const g = c.inDungeon ? dg : ow, z = zones[c.area] = zones[c.area] || { got:0, total:0 };
-        g.total++; z.total++; if (done[c.id]){ g.got++; z.got++; }
+        g.total++; z.total++; if (done[c.id]){ g.got++; z.got++; } else if (canNow(c)) avail++;
       }
       const zl = Object.values(zones), got = ow.got + dg.got, total = ow.total + dg.total;
       const zonesDone = zl.filter(z => z.got === z.total).length, left = total - got;
       return { got, total, groups:[['Overworld', ow.got, ow.total], ['Donjons', dg.got, dg.total]].filter(g => g[2]),
-        sub:`${left} restant${left > 1 ? 's' : ''} · ${zonesDone} / ${zl.length} zones terminées` };
+        sub:`${left} restant${left > 1 ? 's' : ''} · ${avail} faisable${avail > 1 ? 's' : ''} · ${zonesDone} / ${zl.length} zones terminées` };
     });
     // Compteurs des pastilles de catégorie : restants / total parmi les checks listés (hors filtre de catégorie).
     const catCounts = computed(() => {
@@ -390,6 +433,7 @@ const App = {
       iconKey, areaName, toggleArea, setAll, jump, go, showTip, hideTip, toggleTip, setMapping, clearMapping,
       checkAreasC, checkStats, toggleCheckArea, setAllChecks, jumpCheck, setCheck, setExcluded, CHECK_AREA,
       CHECK_CATS, CHECK_CAT, catCounts, toggleCat, soloCat, allCats, CHECK_AGES, ageLabelShort, ageKnown, checkGroups,
+      lg, canNow, timeOf, checkLogicTitle, CHILD, ADULT,
       panelSkills, panelChecklists, cells, dungeonRows, skeletonShown, atStart, visibleKeys,
       CONFIG_TABS, TRICK_LEVELS, decoupled, configCards, trickFilter, tricksOn, trickGroups, setTricks, importReport, importSpoiler,
       itemVisible, tierLabel, iconSrc, checklistModal, openChecklist, setChecklist, checklistStats,
@@ -430,12 +474,14 @@ const App = {
     <section v-if="ui.view==='checks'" class="side-sec">
       <div class="side-row"><button class="side-btn" @click="setAllChecks(false)">Tout déplier</button><button class="side-btn" @click="setAllChecks(true)">Tout replier</button></div>
       <label class="check"><input type="checkbox" v-model="ui.checks.showExcluded">Afficher les checks exclus</label>
+      <label class="check" title="Ajoute à l'infobulle de chaque check sa condition dans la logique de SoH (option « Show Logic » du tracker de SoH)"><input type="checkbox" v-model="ui.checks.showLogic">Afficher la logique au survol</label>
       <label class="check" title="Lister aussi les Skulltulas dont le symbole n'est pas mélangé (utile pour les récompenses de la Maison des Skulltulas) — option « Always show Gold Skulltulas » du tracker de SoH"><input type="checkbox" v-model="ui.checks.alwaysGS">Suivre aussi les Skulltulas non mélangées</label>
       <div class="zone-nav check-nav">
         <template v-for="[g, list] in checkGroups" :key="g">
           <div class="side-title">{{g}}</div>
           <button v-for="x in list" :key="x.area.id" :class="{done:x.complete}" @click="jumpCheck(x.area.id)">
             <span class="cn-name">{{x.area.label}}</span>
+            <span v-if="x.accessible" class="zp acc" :title="x.accessible + ' faisable' + (x.accessible>1?'s':'') + ' maintenant'">{{x.accessible}}</span>
             <span v-if="x.total" class="cn-prog"><span class="cn-bar"><i :style="{width:(100*x.got/x.total)+'%'}"></i></span>
               <span class="zp" :class="{done:x.complete}">{{x.complete ? '✓' : (x.total - x.got)}}</span></span></button>
         </template>
@@ -518,10 +564,11 @@ const App = {
       <div class="checks-toolbar">
         <input class="checks-search" type="search" v-model="ui.checks.q" placeholder="Rechercher un check ou une zone…" aria-label="Rechercher un check">
         <div class="ct-row">
-          <div class="age-seg" :class="{disabled:!ageKnown}" :title="ageKnown ? 'Âge requis pour faire le check' : 'Filtre par âge : disponible avec la logique (à venir)'">
+          <div class="age-seg" title="Âge auquel le check est faisable (selon la logique, avec tout l'inventaire)">
             <span class="ct-label">Âge</span>
             <button v-for="[id, l] in CHECK_AGES" :key="id" type="button" :class="{on:ui.checks.age===id}" :disabled="!ageKnown" @click="ui.checks.age=id">{{l}}</button>
           </div>
+          <label class="check" title="N'afficher que les checks faisables avec l'inventaire actuel (et ceux déjà faits) — option « Only show available » du tracker de SoH"><input type="checkbox" v-model="ui.checks.onlyAvailable">Seulement les faisables</label>
           <label class="check"><input type="checkbox" v-model="ui.checks.hideDone">Masquer les checks faits</label>
           <label class="check"><input type="checkbox" v-model="ui.checks.hideDoneZones">Masquer les zones terminées</label>
         </div>
@@ -535,6 +582,10 @@ const App = {
         </div>
       </div>
 
+      <div v-if="stats.editable" class="warn-box">
+        <span class="warn-box-ic" v-html="ICONS.warn"></span>
+        <div><b>Entrées mélangées.</b> L'accessibilité des checks suppose pour l'instant les entrées d'origine du jeu :
+        les destinations notées dans <a href="#" @click.prevent="go('entrances')">Entrées</a> ne sont pas encore prises en compte.</div></div>
       <div v-if="!checkAreasC.length" class="empty"><b>Aucun check à afficher.</b>
         {{ui.checks.q ? 'Aucun résultat pour cette recherche.' : 'Vérifiez la Configuration ou les filtres.'}}</div>
       <article v-for="x in checkAreasC" :key="x.area.id" class="area check-area" :id="'carea-'+x.area.id"
@@ -548,7 +599,7 @@ const App = {
             <span v-for="b in x.byCat" v-show="b.left" :key="b.cat.id" class="zc" :title="b.cat.label + ' : ' + b.left + ' à faire'">
               <img v-if="!brokenIcons[b.cat.icon]" :src="b.cat.icon" alt=""><span v-else class="cat-fallback" :style="{'--cc':b.cat.color}">{{b.cat.label[0]}}</span>{{b.left}}</span>
           </span>
-          <span v-if="x.accessible !== null" class="acc-pill" :title="x.accessible + ' checks restants faisables avec l’inventaire actuel'">{{x.accessible}} faisables</span>
+          <span v-if="!x.complete" class="acc-pill" :class="{none:!x.accessible}" :title="x.accessible + ' check' + (x.accessible>1?'s':'') + ' restant' + (x.accessible>1?'s':'') + ' faisable' + (x.accessible>1?'s':'') + ' avec l’inventaire actuel'">{{x.accessible}} faisable{{x.accessible>1?'s':''}}</span>
           <span class="area-prog">
             <span v-if="x.complete" class="zone-done">Terminée</span>
             <span v-else class="bar"><i :style="{width:(x.total ? 100*x.got/x.total : 0)+'%'}"></i></span>
@@ -558,11 +609,15 @@ const App = {
           <p v-if="x.hiddenQuest" class="quest-note">Version du donjon inconnue : {{x.hiddenQuest}} check{{x.hiddenQuest>1?'s':''}} propre{{x.hiddenQuest>1?'s':''}} à la version Vanilla ou Master Quest {{x.hiddenQuest>1?'sont masqués':'est masqué'}}.
             Indiquez la version avec le badge « ? » (ou dans le panneau Objets).</p>
           <ul v-if="x.checks.length" class="check-list-grid">
-            <li v-for="c in x.checks" :key="c.id" class="check-item" :class="{done:store.game.checks[c.id], excluded:s.excluded[c.id]}">
-              <button type="button" class="ci-main" :title="CHECK_CAT[c.cat].label + ' — ' + c.soh" @click="setCheck(c.id, !store.game.checks[c.id])">
+            <li v-for="c in x.checks" :key="c.id" class="check-item"
+              :class="{done:store.game.checks[c.id], excluded:s.excluded[c.id], avail:!store.game.checks[c.id] && canNow(c), locked:!store.game.checks[c.id] && !canNow(c)}">
+              <button type="button" class="ci-main" :title="checkLogicTitle(c)" @click="setCheck(c.id, !store.game.checks[c.id])">
                 <span class="ci-cat"><img v-if="!brokenIcons[CHECK_CAT[c.cat].icon]" :src="CHECK_CAT[c.cat].icon" alt="" @error="brokenIcons[CHECK_CAT[c.cat].icon]=true"><span v-else class="cat-fallback" :style="{'--cc':CHECK_CAT[c.cat].color}">{{CHECK_CAT[c.cat].label[0]}}</span></span>
                 <span class="ci-label">{{c.label}}</span>
-                <span v-if="c.age" class="age-pill" :class="c.age" :title="{child:'Enfant', adult:'Adulte', both:'Enfant ou adulte'}[c.age]">{{ageLabelShort[c.age]}}</span>
+                <span v-if="timeOf(lg(c).ever)" class="time-mark" :class="timeOf(lg(c).ever)">{{timeOf(lg(c).ever) === 'night' ? '☾' : '☀'}}</span>
+                <span v-if="lg(c).age" class="age-pill" :class="lg(c).age">
+                  <i v-if="lg(c).age !== 'adult'" :class="{now:lg(c).now & CHILD}">E</i><i v-if="lg(c).age !== 'child'" :class="{now:lg(c).now & ADULT}">A</i></span>
+                <span v-else class="age-pill never">—</span>
                 <span class="cr-mark" v-html="store.game.checks[c.id] ? ICONS.check : ICONS.circleO"></span></button>
               <button type="button" class="ci-ex" :title="s.excluded[c.id] ? 'Réintégrer ce check' : 'Exclure ce check (ne compte plus)'"
                 @click="setExcluded(c.id, !s.excluded[c.id])">{{s.excluded[c.id] ? '↺' : '⊘'}}</button>
@@ -915,4 +970,4 @@ const app = createApp(App);
 app.config.globalProperties.REQ_LABEL = REQ_LABEL;
 app.mount('#app');
 document.addEventListener('click', ev => { /* ferme l'infobulle en tactile */ if (!ev.target.closest('.globe')) { const t = document.querySelector('.tip'); if (t) window.dispatchEvent(new Event('scroll')); } });
-window.__PF = { store, effC, reachC, edgesC, shortest, candidatesFor, setMapping, EXIT, sohC, computeSoh, L, SOH };
+window.__PF = { store, effC, reachC, edgesC, shortest, candidatesFor, setMapping, EXIT, sohC, sohFullC, computeSoh, L, SOH };

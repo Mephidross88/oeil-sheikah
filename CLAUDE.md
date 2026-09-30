@@ -10,7 +10,7 @@ et le mettre à jour quand une règle change.
 
 ## Fichiers
 - `index.html` : squelette, charge Vue 3 (CDN jsDelivr, build global), puis `areas-data.js`, `checks-data.js` et
-  `soh-logic-data.js`, puis les fichiers
+  `logic-data.js`, puis les fichiers
   de `js/` **dans l'ordre listé ci-dessous** (scripts classiques, pas de modules ES : chaque fichier partage
   le même scope global de haut niveau, comme s'il s'agissait d'un seul fichier — un `const`/`function` déclaré
   dans un fichier est directement utilisable dans les suivants ; ne pas redéclarer un identifiant existant).
@@ -22,7 +22,8 @@ et le mettre à jour quand une règle change.
      (onglets/cartes), `SETTINGS_DEF` (clé camelCase, nom SoH exact, libellé FR, choix `[valeurSoH, libellé]`,
      défaut, règle de visibilité `show(s)`), `SETTINGS_IGNORED`, `TRICKS`/`TRICK_AREAS`/`TRICK_LEVELS`.
      Fichier généré à partir de `settings.cpp` de SoH ; les valeurs stockées sont les chaînes SoH exactes.
-  4. `js/logic.js` : toute la logique pure (sans Vue) — conditions (`sat`, `REQUIREMENTS`), dérivation de
+  4. `js/ootr-logic.js` : ancienne logique (OoT Randomizer) encore utilisée par Entrées et Routeur, remplacée par
+     `js/logic.js` aux étapes 4 et 5 puis supprimée. Logique pure (sans Vue) — conditions (`sat`, `REQUIREMENTS`), dérivation de
      l'inventaire (`deriveGame`, `canOpenDoorOfTime`), pools de randomisation, `computeEff`, graphe de
      déplacement (`makeEdges`, `flood`, `computeAges`), `shortest` (Dijkstra).
   5. `js/items.js` : `ITEM_GROUPS` (catalogue du panneau Objets, source de vérité des métadonnées et des
@@ -35,14 +36,15 @@ et le mettre à jour quand une règle change.
   6. `js/checks.js` : checks de SoH (`CHECK_AREAS`, `CHECKS`, `CHECK_BY_ID`, `CHECK_BY_SOH`, `CHECKS_BY_AREA`)
      construits depuis `window.CHECKS_DATA`, et règles pures d'affichage : `checkShuffled` (check mélangé selon la
      configuration, reprise d'`IsCheckShuffled` du tracker de SoH) et `checkQuestActive` (version V/MQ).
-  7. `js/soh-logic.js` : moteur de la logique SoH (portage de `logic.cpp`, `location_access.cpp`, `fill.cpp`).
-     Contexte global `L` lu par les conditions de `soh-logic-data.js` (âge/moment courants, `HasItem`/`CanUse`
+  7. `js/logic.js` : moteur de logique de l'appli (notre portage de la logique SoH : `logic.cpp`, `location_access.cpp`, `fill.cpp`).
+     Contexte global `L` lu par les conditions de `logic-data.js` (âge/moment courants, `HasItem`/`CanUse`
      sur l'inventaire du panneau Objets, options via `L.opt(RSK)`, astuces, événements, fonctions de logique),
      et `computeSoh(settings, game, links?)` → `{ access:{RR: bits}, events, checks:{RC: bits} }` (bits : `CD`
      enfant jour, `CN` enfant nuit, `AD`/`AN` adulte ; `links` : entrées mélangées `{ 'RR_A>RR_B': 'RR_C' }`).
      Pur (sans Vue), lit `store` seulement via ses arguments.
   8. `js/state.js` : persistance (`defaults`, `merge`, `load`, `store`, sauvegarde auto), les `computed`
-     dérivés au niveau module (`effC`, `agesC`, `gameC`, `edgesC`, `reachC`, `sohC` — logique SoH), les mutations du mapping
+     dérivés au niveau module (`effC`, `agesC`, `gameC`, `edgesC`, `reachC`, `sohC` — logique SoH avec l'inventaire noté, `sohFullC` — avec un inventaire « tout obtenu »
+     (`fullGame`), pour l'âge des checks), les mutations du mapping
      (`setMapping`, `clearMapping`, `candidatesFor`), les helpers de tuile d'objet partagés par `App` et
      `ItemTile` (`itemActive`, `iconSrc`, `itemTitle`, `itemMaxed`, `clickItem`, `rightClickItem`), et les
      mutations des check-lists/donjons (`setChecklist`, `checklistStats`, `setDungeonFlag`,
@@ -58,14 +60,14 @@ et le mettre à jour quand une règle change.
   gros fichier, ne pas le lire en entier ni l'éditer à la main pour autre chose qu'une retouche ponctuelle.
 - `tools/soh-checks/` : scripts Node lancés à la main (jamais chargés par l'appli) qui régénèrent `checks-data.js`
   depuis les sources de SoH ; traductions des libellés dans `translate.mjs`. Mode d'emploi dans son `README.md`.
-- `soh-logic-data.js` : logique de SoH (`window.SOH_LOGIC` : 1 026 régions avec événements, checks et sorties, conditions
+- `logic-data.js` : données de logique converties depuis les sources de SoH (`window.SOH_LOGIC` : 1 026 régions avec événements, checks et sorties, conditions
   converties en fonctions JS sur le contexte global `L`), **fichier généré** par `tools/soh-logic/extract_logic.mjs`
   (sources téléchargées par `tools/soh-checks/fetch_sources.mjs`), plus les prix vanilla des boutiques/pestes/marchands
   et la table des entrées de SoH (`entrances` : numéro ENTR, type, région de départ, région d'arrivée vanilla).
   Gros fichier : ne le lire que par extraits (grep sur un `RR_…` ou `RC_…`).
-- `tools/soh-logic/` : `extract_logic.mjs` (régénère `soh-logic-data.js`) et `replay_spoilers.mjs` (test du moteur :
+- `tools/soh-logic/` : `extract_logic.mjs` (régénère `logic-data.js`) et `replay_spoilers.mjs` (test du moteur :
   rejoue des spoilers SoH sphère par sphère, voir SPEC.md > Logique Ship of Harkinian ; à relancer après toute
-  modification de `js/soh-logic.js` ou de la conversion).
+  modification de `js/logic.js` ou de la conversion).
 - `tools/soh-entrances/apply_names.mjs` : table sortie ↔ entrée du tracker d'entrées de SoH et traductions ; réécrit les
   champs `label` / `soh` de `areas-data.js` (relancer après toute modification de la table).
 - `icons/` : images. `icons/exits/` (types de sortie), `icons/items/` (convention par défaut du panneau
@@ -94,7 +96,7 @@ et le mettre à jour quand une règle change.
 - `specialTag` boss_child / boss_adult : salles de boss ; leur sortie est le téléporteur bleu, calculée
   automatiquement (retour devant l'entrée qui mène au donjon dont on a franchi la porte de boss).
 
-## Logique (js/logic.js, js/state.js)
+## Ancienne logique Entrées / Routeur (js/ootr-logic.js, js/state.js)
 - `store.settings` = une clé par entrée de `SETTINGS_DEF` (valeurs SoH : `'On'`/`'Off'`, `'Deku Only'`…) + `tricks`
   (`{ RT_…: bool }`). Tester les valeurs SoH exactes (`s.bossEntrances === 'Full'`), jamais des booléens.
 - `isRandomized(exit, settings)` : sortie randomisée selon la configuration (détermine le mode `vanilla` vs le reste).
@@ -118,4 +120,4 @@ et le mettre à jour quand une règle change.
 
 ## Débogage
 `window.__PF` expose `store`, `effC`, `reachC`, `edgesC`, `shortest`, `candidatesFor`, `setMapping`, `EXIT`,
-`sohC`, `computeSoh`, `L`, `SOH` pour tester dans la console du navigateur.
+`sohC`, `sohFullC`, `computeSoh`, `L`, `SOH` pour tester dans la console du navigateur.

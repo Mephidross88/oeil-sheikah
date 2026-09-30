@@ -7,8 +7,8 @@ Référence du rando : https://wiki.ootrandomizer.com/index.php?title=Entrance_R
 
 > **Transition en cours vers Ship of Harkinian.** L'application migre progressivement de OoT Randomizer
 > vers le randomizer de Ship of Harkinian (SoH) 9.2.3. Déjà alignés sur SoH : le panneau Objets, la
-> Configuration (réglages et astuces de SoH) et la liste des Checks. La logique de SoH est portée (voir « Logique
-> Ship of Harkinian ») mais pas encore affichée ; la logique d'accessibilité de `js/logic.js` et les données des
+> Configuration (réglages et astuces de SoH) et la liste des Checks, avec leur accessibilité selon la logique de
+> SoH (voir « Logique Ship of Harkinian ») ; la logique d'accessibilité de `js/ootr-logic.js` et les données des
 > Entrées/du Routeur restent celles d'OoT Randomizer, simplement branchées sur les réglages SoH équivalents
 > (voir « Configuration > Correspondance avec Entrées et Routeur ») ; elles seront revues avec la liste
 > des checks puis la logique SoH.
@@ -142,7 +142,7 @@ devenus vides disparaissent aussi. `dungeonKeysDone` la compte comme toutes les 
 
 ## Âges et progression calculés
 Aucun réglage manuel : tout se déduit de la Configuration et de l'inventaire (panneau Objets), comme dans
-le vrai randomizer. Calculé dans `computeAges()` / `deriveGame()` (`js/logic.js`), lisible en lecture seule tout
+le vrai randomizer. Calculé dans `computeAges()` / `deriveGame()` (`js/ootr-logic.js`), lisible en lecture seule tout
 en haut du panneau Objets (pastilles vertes/grises).
 - **Âge de départ** (réglage Configuration, ou âge tiré si « Aléatoire ») : toujours acquis.
 - **Autre âge** : acquis si le Temple du Temps (`market::templeoftime_to_templeplaza`) est atteignable dans
@@ -166,14 +166,14 @@ en haut du panneau Objets (pastilles vertes/grises).
 
 ## Logique Ship of Harkinian
 Portage fidèle de la logique du randomizer de SoH 9.2.3 (commit `cb71e22`), en cours de branchement (étapes :
-1. extraction, 2. moteur — **fait** ; 3. âges et accessibilité des checks dans l'interface ; 4. entrées reliées
-aux passages SoH ; 5. Routeur sur le graphe SoH). Tant que l'étape 3 n'est pas faite, rien n'est affiché.
-- **Données** (`soh-logic-data.js`, généré par `tools/soh-logic/extract_logic.mjs` depuis `location_access/**`,
+1. extraction, 2. moteur, 3. âges et accessibilité des checks dans la page Checks — **faits** ; 4. entrées
+reliées aux passages SoH ; 5. Routeur sur le graphe SoH).
+- **Données** (`logic-data.js`, généré par `tools/soh-logic/extract_logic.mjs` depuis `location_access/**`,
   `location_access.cpp`, `settings.cpp`, `location_list.cpp`) : 1 026 régions, avec leurs événements (`LOGIC_…`),
   checks et sorties, conditions C++ converties en fonctions JavaScript ; options lues par la logique ; prix et
   objet vanilla des boutiques, pestes Mojo et marchands ; les 296 entrées mélangeables (`entrance.cpp`) avec leur
   numéro d'entrée du jeu (celui des spoilers), leur type et la sortie de région correspondante.
-- **Moteur** (`js/soh-logic.js`) : fonctions de `logic.cpp` (objets, ennemis, niveau d'eau, Temple de l'Esprit…)
+- **Moteur** (`js/logic.js`) : fonctions de `logic.cpp` (objets, ennemis, niveau d'eau, Temple de l'Esprit…)
   et recherche de `fill.cpp` (`ReachabilitySearch`) en mode « checks disponibles » du tracker de SoH : chaque
   région a quatre accès (enfant / adulte × jour / nuit) ; on part de la racine avec l'âge de départ, on propage
   par les sorties, le temps qui passe (régions où le temps s'écoule : jour et nuit, pour la région et la
@@ -370,7 +370,7 @@ Palier de base toujours possédé (`neverEmpty:true`, uniquement pour `level`) :
 mais reste augmentable/diminuable normalement (contrairement à `locked`, sans plancher artificiel puisque
 le palier 0 est déjà le minimum réel).
 
-Les objets à paliers sont aplatis en indicateurs booléens (`deriveGame()` dans `js/logic.js`) avant d'être
+Les objets à paliers sont aplatis en indicateurs booléens (`deriveGame()` dans `js/ootr-logic.js`) avant d'être
 passés à `sat()` : ex. Force ≥ 1 → Bracelet Goron, ≥ 2 → Gantelets d'Argent, ≥ 3 → Gantelets d'Or ; Magie
 ≥ 1 → magie disponible ; Ocarina ≥ 1 → ocarina possédée ; Bouteilles ≥ 1 → a une bouteille ; Bâton Mojo
 ≥ 1 → bâtons disponibles. Seuls les objets déjà utilisés par `REQUIREMENTS`/`sat()` avant cet ajout
@@ -420,25 +420,38 @@ check) ; règles dans `js/checks.js`.
   Pestes Mojo, Boutiques et marchands, Vaches, Fées, Poissons, Ruches, Jarres, Caisses, Herbes, Arbres et buissons.
   Icône `icons/checks/<catégorie>.png` (chest, skulltula, boss, song, npc, freestanding, scrub, shop, cow, fairy, fish,
   beehive, pot, crate, grass, tree) ; en attendant l'image, pastille de couleur avec l'initiale.
-- **Âge** (Enfant / Adulte / Les deux, champ `age`) : fourni par la logique (à venir) ; tant qu'il est inconnu, pas
-  de pastille et le filtre d'âge est grisé.
-- **Filtres** (barre au-dessus de la liste) : recherche (libellé FR, nom SoH ou zone) ; âge (Tous / Enfant / Adulte) ;
-  « Masquer les checks faits » ; « Masquer les zones terminées » ; pastilles de catégorie avec le nombre restant
+- **Accessibilité** (logique SoH, voir « Logique Ship of Harkinian ») : un check est **faisable** s'il l'est avec
+  l'inventaire noté (`sohC`), comme les « checks disponibles » du tracker de SoH. Checks restants faisables :
+  icône soulignée de vert ; pas encore faisables : grisés. Infobulle : catégorie, nom SoH, âge, « Faisable
+  maintenant : enfant / adulte (de nuit) » ou « Pas encore faisable ».
+- **Âge** : calculé par la même logique avec un inventaire « tout obtenu » (`sohFullC` : objets au maximum, chants,
+  objets de donjon, âmes, clés des portes ; ne dépend que de la configuration et de la version des donjons).
+  Pastille « E » / « A » / « E A » des âges possibles, la lettre en plein (vert) quand le check est faisable
+  maintenant à cet âge ; pastille « — » si le check n'est jamais faisable selon la logique. ☾ / ☀ : check
+  faisable seulement de nuit / de jour (ex. Skulltulas de nuit).
+- **Filtres** (barre au-dessus de la liste) : recherche (libellé FR, nom SoH ou zone) ; âge (Tous / Enfant / Adulte :
+  checks faisables à cet âge avec tout l'inventaire ; ceux jamais faisables passent tous les filtres) ;
+  « Seulement les faisables » (« Only show available » de SoH : checks faits ou faisables maintenant, zones sans
+  check affiché masquées ; filtre d'affichage, sans effet sur les compteurs) ; « Masquer les checks faits » ;
+  « Masquer les zones terminées » ; pastilles de catégorie avec le nombre restant
   (clic : afficher / masquer la catégorie, clic droit : seulement celle-ci, ou tout réafficher ; « Tout afficher »).
   Les checks suivis = listés, non exclus, dans les catégories et l'âge choisis : compteurs, barres et zones
-  terminées en dépendent. Panneau de gauche : tout déplier / replier, « Afficher les checks exclus », « Suivre
-  aussi les Skulltulas non mélangées », zones groupées Overworld / Donjons avec mini-barre et restants (✓ si terminée).
+  terminées en dépendent. Panneau de gauche : tout déplier / replier, « Afficher les checks exclus », « Afficher la
+  logique au survol » (« Show Logic » de SoH : condition SoH du check dans l'infobulle, par région), « Suivre
+  aussi les Skulltulas non mélangées », zones groupées Overworld / Donjons avec pastille verte du nombre de
+  faisables, mini-barre et restants (✓ si terminée).
+- **Entrées mélangées** : tant que les destinations notées dans Entrées ne sont pas reliées à la logique (étape 4),
+  un avertissement rappelle que l'accessibilité suppose les entrées d'origine.
 - **Progression globale** : cadre « Checks » de la bande de progression (voir plus haut) — anneau de pourcentage,
-  « faits / total », restants, zones terminées, et détail Overworld / Donjons. Il dépend seulement de la configuration (checks mélangés, version active des donjons, hors exclus),
+  « faits / total », restants, faisables maintenant, zones terminées, et détail Overworld / Donjons. Il dépend seulement de la configuration (checks mélangés, version active des donjons, hors exclus),
   jamais des filtres d'affichage (catégories, âge, Skulltulas non mélangées, recherche, zones masquées) ; les
   compteurs des zones et des pastilles, eux, suivent les filtres.
 - **Zones** : repliables (présentation des Entrées) ; en-tête avec badge V / MQ / ? (donjons), restants par catégorie
-  (icône + nombre), barre et « faits / suivis », « Terminée » quand tout est fait ; emplacement prévu pour le nombre
-  de checks faisables (logique). Checks sur 2 colonnes (1 sur mobile) : icône de catégorie, libellé, pastille
-  d'âge, coche ; un clic (gauche) bascule fait / à faire (`game.checks`, stockage creux `{ id: true }`) ; nom SoH
+  (icône + nombre), « n faisables » (checks suivis restants faisables maintenant, grisé à 0), barre et « faits /
+  suivis », « Terminée » quand tout est fait. Checks sur 2 colonnes (1 sur mobile) : icône de catégorie, libellé,
+  ☾ / ☀, pastille d'âge, coche ; un clic (gauche) bascule fait / à faire (`game.checks`, stockage creux `{ id: true }`) ; nom SoH
   au survol ; ⊘ au survol pour exclure.
-- **À venir (branche logique)** : âge et accessibilité de chaque check (conditions SoH par région), nombre de checks
-  faisables par zone, checks non faisables grisés, lien avec les Entrées et le Routeur.
+- **À venir (branche logique)** : lien avec les Entrées (étape 4) et le Routeur (étape 5).
 
 ## Entrées
 Cadre « Entrées » de la bande de progression (voir plus haut), dès qu'au moins une sortie est randomisée :

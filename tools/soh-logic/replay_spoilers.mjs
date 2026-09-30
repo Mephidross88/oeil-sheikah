@@ -1,4 +1,4 @@
-// Test du moteur de logique (js/soh-logic.js) contre des spoilers SoH 9.2.3 — outil de test, jamais utilisé par l'appli.
+// Test du moteur de logique (js/logic.js) contre des spoilers SoH 9.2.3 — outil de test, jamais utilisé par l'appli.
 // Pour chaque spoiler : configuration importée (settings, enabledTricks, masterQuestDungeons), puis sphère par sphère on
 // ramasse les objets de TOUS les checks accessibles (objets du spoiler, ou objet vanilla d'un check non mélangé),
 // jusqu'au point fixe. Attendu : chaque lieu du « playthrough » et chaque lieu du spoiler finit par être atteint.
@@ -20,8 +20,8 @@ function loadApp(){
     createApp:() => ({ component(){ return this; }, mount(){} }), defineComponent:x => x, nextTick(){}, onMounted(){}, onBeforeUnmount(){},
     toRaw:x => x, h(){} };
   vm.createContext(ctx);
-  for (const f of ['areas-data.js', 'checks-data.js', 'soh-logic-data.js', 'js/icons.js', 'js/data.js', 'js/config.js', 'js/logic.js',
-    'js/items.js', 'js/checks.js', 'js/soh-logic.js', 'js/state.js'])
+  for (const f of ['areas-data.js', 'checks-data.js', 'logic-data.js', 'js/icons.js', 'js/data.js', 'js/config.js', 'js/ootr-logic.js',
+    'js/items.js', 'js/checks.js', 'js/logic.js', 'js/state.js'])
     vm.runInContext(fs.readFileSync(path.join(APP, f), 'utf8'), ctx, { filename:f });
   vm.runInContext('globalThis.__T = { store, defaults, computeSoh, SETTING_BY_SOH, TRICKS, DUNGEONS, CHECK_BY_SOH, CHECK_BY_ID, checkShuffled, checkQuestActive, applyStartingItems, configQuest, CHECKLISTS, ITEM_BY_KEY, itemLevels, SOH, L, sohWarned };', ctx);
   return ctx.__T;

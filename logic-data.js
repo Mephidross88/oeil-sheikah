@@ -1,6 +1,7 @@
-/* Logique du randomizer de Ship of Harkinian 9.2.3 (commit cb71e22) — FICHIER GÉNÉRÉ par tools/soh-logic/extract_logic.mjs.
+/* Données de logique de L'Œil Sheikah — FICHIER GÉNÉRÉ par tools/soh-logic/extract_logic.mjs, par conversion des
+   sources du randomizer de Ship of Harkinian 9.2.3 (commit cb71e22) ; ce n'est pas un fichier de SoH.
    Régions (location_access/**), événements génériques des grottes et données du Temple de l'Esprit (location_access.cpp),
-   conditions converties du C++ en fonctions JavaScript évaluées avec le contexte de logique global « L » (js/soh-logic.js).
+   conditions converties du C++ en fonctions JavaScript évaluées avec le contexte de logique global « L » (js/logic.js).
    regions : { RR : { name, scene, time (le temps y passe), events:[[LOGIC, cond]], checks:[[RC, cond]], exits:[[RR, cond]] } }
              (events peut valoir "grottoEvents" : événements génériques des grottes)
    spirit  : { RR : [childKeys, childRevKeys, adultKeys, adultRevKeys, childAccess, adultAccess, reverseAccess] }

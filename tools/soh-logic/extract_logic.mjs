@@ -1,5 +1,5 @@
 // Extrait la logique de Ship of Harkinian (régions, événements, checks, sorties, avec leurs conditions converties
-// du C++ vers JavaScript) et écrit ../../soh-logic-data.js. Sources : ../soh-checks/src (voir fetch_sources.mjs).
+// du C++ vers JavaScript) et écrit ../../logic-data.js. Sources : ../soh-checks/src (voir fetch_sources.mjs).
 // Usage : node extract_logic.mjs
 import fs from 'fs';
 import path from 'path';
@@ -247,9 +247,10 @@ Object.entries(spirit).forEach(([rr, d]) => d.slice(4).forEach(js => check('spir
 const opts = {};
 for (const rsk of [...usedOptions].sort()) opts[rsk] = OPTIONS[rsk] || (unknown.add('option inconnue ' + rsk), null);
 const lines = [];
-lines.push(`/* Logique du randomizer de Ship of Harkinian 9.2.3 (commit cb71e22) — FICHIER GÉNÉRÉ par tools/soh-logic/extract_logic.mjs.
+lines.push(`/* Données de logique de L'Œil Sheikah — FICHIER GÉNÉRÉ par tools/soh-logic/extract_logic.mjs, par conversion des
+   sources du randomizer de Ship of Harkinian 9.2.3 (commit cb71e22) ; ce n'est pas un fichier de SoH.
    Régions (location_access/**), événements génériques des grottes et données du Temple de l'Esprit (location_access.cpp),
-   conditions converties du C++ en fonctions JavaScript évaluées avec le contexte de logique global « L » (js/soh-logic.js).
+   conditions converties du C++ en fonctions JavaScript évaluées avec le contexte de logique global « L » (js/logic.js).
    regions : { RR : { name, scene, time (le temps y passe), events:[[LOGIC, cond]], checks:[[RC, cond]], exits:[[RR, cond]] } }
              (events peut valoir "grottoEvents" : événements génériques des grottes)
    spirit  : { RR : [childKeys, childRevKeys, adultKeys, adultRevKeys, childAccess, adultAccess, reverseAccess] }
@@ -276,7 +277,7 @@ for (const [rr, r] of Object.entries(regions)){
 lines.push('  },');
 lines.push('};');
 const out = lines.join('\n') + '\n';
-fs.writeFileSync(path.join(HERE, '../../soh-logic-data.js'), out);
+fs.writeFileSync(path.join(HERE, '../../logic-data.js'), out);
 
 const funcs = {};
 for (const m of out.matchAll(/\bL\.([A-Za-z]+)\(/g)) funcs[m[1]] = (funcs[m[1]] || 0) + 1;
