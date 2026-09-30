@@ -13,6 +13,23 @@ const Seg = {
 
 // Tuile d'objet réutilisable (panneau Objets) : clic gauche/droit pour augmenter/diminuer/activer.
 // Icône seule (pas de libellé visible), le nom reste accessible via le `title` au survol.
+// Grand cadre de progression (pages Checks et Entrées) : anneau de pourcentage, « faits / total », ligne de détail
+// et répartition par groupe. stats = { got, total, sub, groups:[[libellé, faits, total]] }, unit = « checks », « sorties »…
+const ProgressCard = {
+  props:{ stats:{ type:Object, required:true }, unit:{ type:String, default:'' } },
+  computed:{ pct(){ return this.stats.total ? Math.floor(100 * this.stats.got / this.stats.total) : 0; } },
+  template:`<div class="progress-card" :class="{done:stats.total && stats.got===stats.total}">
+    <svg class="pc-ring" viewBox="0 0 44 44" aria-hidden="true"><circle class="pc-track" cx="22" cy="22" r="18"/>
+      <circle v-if="stats.got" class="pc-fill" cx="22" cy="22" r="18" :stroke-dasharray="(113.1*stats.got/(stats.total||1)) + ' 113.1'"/></svg>
+    <div class="pc-pct">{{pct}}<small>%</small></div>
+    <div class="pc-main">
+      <div class="pc-count"><b>{{stats.got}}</b> / {{stats.total}} <span>{{unit}}</span></div>
+      <div class="pc-sub">{{stats.sub}}</div>
+      <div class="pc-groups"><span v-for="g in stats.groups" :key="g[0]">{{g[0]}} <b>{{g[1]}}/{{g[2]}}</b></span></div>
+    </div>
+  </div>`,
+};
+
 const ItemTile = {
   props:{ k:{ type:String, required:true }, badge:{ type:String, default:null } },
   data:() => ({ brokenIcons, ICONS }),

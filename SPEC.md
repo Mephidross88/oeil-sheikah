@@ -380,9 +380,11 @@ check) ; règles dans `js/checks.js`.
   Les checks suivis = listés, non exclus, dans les catégories et l'âge choisis : compteurs, barres et zones
   terminées en dépendent. Panneau de gauche : tout déplier / replier, « Afficher les checks exclus », « Suivre
   aussi les Skulltulas non mélangées », zones groupées Overworld / Donjons avec mini-barre et restants (✓ si terminée).
-- **Progression globale** : grand cadre en haut à droite de la page — anneau de pourcentage, « faits / total »
-  en grand, restants, zones terminées, et détail Overworld / Donjons. Il porte sur tous les checks suivis
-  (catégories et âge choisis, hors exclus), indépendamment de la recherche et des zones masquées.
+- **Progression globale** : grand cadre en haut à droite de la page (composant `ProgressCard`, partagé avec les
+  Entrées) — anneau de pourcentage, « faits / total » en grand, restants, zones terminées, et détail Overworld /
+  Donjons. Il dépend seulement de la configuration (checks mélangés, version active des donjons, hors exclus),
+  jamais des filtres d'affichage (catégories, âge, Skulltulas non mélangées, recherche, zones masquées) ; les
+  compteurs des zones et des pastilles, eux, suivent les filtres.
 - **Zones** : repliables (présentation des Entrées) ; en-tête avec badge V / MQ / ? (donjons), restants par catégorie
   (icône + nombre), barre et « faits / suivis », « Terminée » quand tout est fait ; emplacement prévu pour le nombre
   de checks faisables (logique). Checks sur 2 colonnes (1 sur mobile) : icône de catégorie, libellé, pastille
@@ -392,6 +394,9 @@ check) ; règles dans `js/checks.js`.
   faisables par zone, checks non faisables grisés, lien avec les Entrées et le Routeur.
 
 ## Entrées
+En haut à droite, dès qu'au moins une sortie est randomisée, le même cadre de progression que la page Checks :
+sorties découvertes / randomisées, restantes, zones complètes, et détail Overworld / Intérieurs / Grottes / Donjons /
+Sens unique (types présents seulement).
 Une carte dépliable par zone, avec progression (sorties renseignées / randomisées). Une ligne par sortie :
 1. Icône du type (extérieur, intérieur, grotte, donjon, boss, hibou, téléportation, spawn).
 2. Globe : au survol, liste des sorties atteignables à pied dans la même zone, avec coût ;

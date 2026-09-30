@@ -1,6 +1,6 @@
 /* ---------- Application ---------- */
 const App = {
-  components:{ TypeIcon, Seg, DestPicker, ItemTile },
+  components:{ TypeIcon, Seg, DestPicker, ItemTile, ProgressCard },
   setup(){
     const navOpen = ref(false), itemsOpen = ref(false), modal = ref(null), tip = reactive({ show:false, key:null, style:{} });
     const backup = reactive({ text:'', msg:'', ok:true });
@@ -31,10 +31,23 @@ const App = {
       return out;
     });
 
+    // Sorties randomisées (renseignables) et renseignées, au total, par groupe de types et par zone (cadre de progression).
+    const ENTRANCE_GROUPS = [['Overworld', ['overworld']], ['Intérieurs', ['interior']], ['Grottes', ['grotto']],
+      ['Donjons', ['dungeon', 'boss']], ['Sens unique', ['warp', 'owl', 'spawn']]];
     const stats = computed(() => {
       let editable = 0, mapped = 0;
-      for (const e of ALL_EXITS){ const r = rowInfo(e); if (r.mode !== 'vanilla' && r.mode !== 'auto'){ editable++; if (r.mode === 'set') mapped++; } }
-      return { editable, mapped };
+      const byGroup = ENTRANCE_GROUPS.map(g => [g[0], 0, 0]), zones = {};
+      for (const e of ALL_EXITS){
+        const r = rowInfo(e);
+        if (r.mode === 'vanilla' || r.mode === 'auto') continue;
+        const set = r.mode === 'set', gi = ENTRANCE_GROUPS.findIndex(g => g[1].includes(e.type));
+        editable++; if (set) mapped++;
+        if (gi >= 0){ byGroup[gi][2]++; if (set) byGroup[gi][1]++; }
+        const z = zones[e.areaId] = zones[e.areaId] || { got:0, total:0 }; z.total++; if (set) z.got++;
+      }
+      const zl = Object.values(zones), left = editable - mapped, zonesDone = zl.filter(z => z.got === z.total).length;
+      return { editable, mapped, got:mapped, total:editable, groups:byGroup.filter(g => g[2]),
+        sub:`${left} à découvrir · ${zonesDone} / ${zl.length} zones complètes` };
     });
 
     const visibleAreas = computed(() => {
@@ -199,15 +212,20 @@ const App = {
     const checkAreasC = computed(() => { const q = cf.q.trim();
       return allCheckAreasC.value.filter(x => q ? x.checks.length : ((x.total || x.hiddenQuest) && !(cf.hideDoneZones && x.complete))); });
     // Progression globale des checks suivis (catégories et âge choisis, hors exclus), et par groupe de zones.
+    // Progression globale des checks : selon la configuration seulement (checks mélangés, version active, hors exclus),
+    // indépendamment des filtres d'affichage (catégories, âge, Skulltulas non mélangées, recherche).
     const checkStats = computed(() => {
-      const r = { total:0, got:0, ow:{ total:0, got:0 }, dg:{ total:0, got:0 }, zonesDone:0, zones:0 };
-      for (const x of allCheckAreasC.value){
-        if (!x.total) continue;
-        const g = x.area.dungeon ? r.dg : r.ow;
-        r.total += x.total; r.got += x.got; g.total += x.total; g.got += x.got; r.zones++; if (x.complete) r.zonesDone++;
+      const done = store.game.checks, ex = s.excluded, zones = {};
+      const ow = { got:0, total:0 }, dg = { got:0, total:0 };
+      for (const c of CHECKS){
+        if (ex[c.id] || !checkShuffled(c, s, false) || !checkQuestActive(c, areaQuest(c.area))) continue;
+        const g = c.inDungeon ? dg : ow, z = zones[c.area] = zones[c.area] || { got:0, total:0 };
+        g.total++; z.total++; if (done[c.id]){ g.got++; z.got++; }
       }
-      r.pct = r.total ? Math.floor(100 * r.got / r.total) : 0;
-      return r;
+      const zl = Object.values(zones), got = ow.got + dg.got, total = ow.total + dg.total;
+      const zonesDone = zl.filter(z => z.got === z.total).length, left = total - got;
+      return { got, total, groups:[['Overworld', ow.got, ow.total], ['Donjons', dg.got, dg.total]].filter(g => g[2]),
+        sub:`${left} restant${left > 1 ? 's' : ''} · ${zonesDone} / ${zl.length} zones terminées` };
     });
     // Compteurs des pastilles de catégorie : restants / total parmi les checks listés (hors filtre de catégorie).
     const catCounts = computed(() => {
@@ -391,8 +409,7 @@ const App = {
       <div><div class="brand-name">L'Œil Sheikah</div><div class="brand-sub">Tout voir, tout savoir</div></div></div>
     <nav class="nav">
       <button v-for="v in views" :key="v.id" class="nav-item" :class="{active:ui.view===v.id}" @click="go(v.id)">
-        <span v-html="v.icon"></span>{{v.label}}
-        <span v-if="v.id==='entrances'" class="nav-meta">{{stats.mapped}}/{{stats.editable}}</span></button>
+        <span v-html="v.icon"></span>{{v.label}}</button>
     </nav>
 
     <section v-if="ui.view==='entrances'" class="side-sec">
@@ -435,8 +452,11 @@ const App = {
   <main class="main">
     <!-- ================= TRACKER ================= -->
     <template v-if="ui.view==='entrances'">
-      <div class="page-head"><h1>Entrées</h1>
-        <p class="lede">{{stats.mapped}} sorties découvertes sur {{stats.editable}} randomisées.</p></div>
+      <div class="checks-head">
+        <div class="page-head"><h1>Entrées</h1></div>
+        <!-- Progression : sorties randomisées renseignées (seulement si des entrées sont randomisées) -->
+        <progress-card v-if="stats.editable" :stats="stats" unit="sorties"></progress-card>
+      </div>
       <div class="container">
         <div v-if="missingSpawns.length" class="warn-box">
           <span class="warn-box-ic" v-html="ICONS.warn"></span>
@@ -493,20 +513,8 @@ const App = {
     <template v-if="ui.view==='checks'">
       <div class="checks-head">
         <div class="page-head"><h1>Checks</h1></div>
-        <!-- Progression globale : checks suivis (catégories et âge choisis, hors exclus) -->
-        <div class="progress-card" :class="{done:checkStats.total && checkStats.got===checkStats.total}">
-          <svg class="pc-ring" viewBox="0 0 44 44" aria-hidden="true"><circle class="pc-track" cx="22" cy="22" r="18"/>
-            <circle class="pc-fill" cx="22" cy="22" r="18" :stroke-dasharray="(113.1*checkStats.got/(checkStats.total||1)) + ' 113.1'"/></svg>
-          <div class="pc-pct">{{checkStats.pct}}<small>%</small></div>
-          <div class="pc-main">
-            <div class="pc-count"><b>{{checkStats.got}}</b> / {{checkStats.total}} <span>checks</span></div>
-            <div class="pc-sub">{{checkStats.total - checkStats.got}} restant{{checkStats.total - checkStats.got > 1 ? 's' : ''}} · {{checkStats.zonesDone}} / {{checkStats.zones}} zones terminées</div>
-            <div class="pc-groups">
-              <span v-if="checkStats.ow.total">Overworld <b>{{checkStats.ow.got}}/{{checkStats.ow.total}}</b></span>
-              <span v-if="checkStats.dg.total">Donjons <b>{{checkStats.dg.got}}/{{checkStats.dg.total}}</b></span>
-            </div>
-          </div>
-        </div>
+        <!-- Progression globale : selon la configuration, indépendante des filtres -->
+        <progress-card :stats="checkStats" unit="checks"></progress-card>
       </div>
 
       <div class="checks-toolbar">

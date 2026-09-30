@@ -41,7 +41,8 @@ et le mettre à jour quand une règle change.
      mutations des check-lists/donjons (`setChecklist`, `checklistStats`, `setDungeonFlag`,
      `addDungeonKeys`, `dungeonQuest`/`dungeonMaxKeys`/`cycleDungeonQuest` — version Vanilla/MQ, `dungeonKeyRing`/`setKeyRing`/`dungeonKeysDone` — trousseaux et clé squelette), et `applyStartingItems` (objets de départ de la configuration → panneau Objets), et pour la page Checks `areaQuest`,
      `checkListed`, `setCheck`, `setExcluded`.
-  8. `js/components.js` : composants Vue réutilisables (`TypeIcon`, `Seg`, `DestPicker`, `ItemTile`).
+  8. `js/components.js` : composants Vue réutilisables (`TypeIcon`, `Seg`, `DestPicker`, `ItemTile`,
+     `ProgressCard` — cadre de progression des pages Checks et Entrées).
   9. `js/app.js` : le composant racine `App` (template complet, dont le panneau Objets et ses modales de
      pointage) + `createApp(...).mount('#app')`.
 - `style.css` : styles, variables de thème dans `:root` (clair + sombre).
