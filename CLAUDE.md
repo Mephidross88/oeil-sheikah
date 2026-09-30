@@ -17,23 +17,28 @@ et le mettre à jour quand une règle change.
      sortie personnalisables (`CUSTOM_ICONS`), libellés de types (`TYPE_LABEL`).
   2. `js/data.js` : transforme `window.AREAS_DATA` (fourni par `areas-data.js`) en structures internes
      (`AREAS`, `AREA`, `EXIT`, `ALL_EXITS`, `BOSS_ROOMS`/`BOSS_DOORS`, etc.).
-  3. `js/logic.js` : toute la logique pure (sans Vue) — conditions (`sat`, `REQUIREMENTS`), dérivation de
+  3. `js/config.js` : réglages du randomizer Ship of Harkinian 9.2.3 (commit `cb71e22`) — `CONFIG_TABS`
+     (onglets/cartes), `SETTINGS_DEF` (clé camelCase, nom SoH exact, libellé FR, choix `[valeurSoH, libellé]`,
+     défaut, règle de visibilité `show(s)`), `SETTINGS_IGNORED`, `TRICKS`/`TRICK_AREAS`/`TRICK_LEVELS`.
+     Fichier généré à partir de `settings.cpp` de SoH ; les valeurs stockées sont les chaînes SoH exactes.
+  4. `js/logic.js` : toute la logique pure (sans Vue) — conditions (`sat`, `REQUIREMENTS`), dérivation de
      l'inventaire (`deriveGame`, `canOpenDoorOfTime`), pools de randomisation, `computeEff`, graphe de
      déplacement (`makeEdges`, `flood`, `computeAges`), `shortest` (Dijkstra).
-  4. `js/items.js` : `ITEM_GROUPS` (catalogue du panneau Objets, source de vérité des métadonnées et des
-     clés de sauvegarde) et ses helpers (`itemMax`, `itemVisible`) ; `ITEM_BY_KEY` (lookup clé → objet) et
+  5. `js/items.js` : `ITEM_GROUPS` (catalogue du panneau Objets, source de vérité des métadonnées et des
+     clés de sauvegarde) et ses helpers (`itemMax`, `itemVisible`, `visibleKeys`, `dungeonCells` — visibilité
+     pilotée par `store.settings`) ; `ITEM_BY_KEY` (lookup clé → objet) et
      `ITEMS_PAGE` (mise en page du panneau — quels objets dans quel bloc visuel, sans redéfinir leurs
      métadonnées) ; `DUNGEONS`/`DUNGEON_BY_ID` (carte/boussole/petites clés/clé de boss par donjon) et
      `CHECKLISTS` (lieux à cocher — clés hors donjon, trous à haricots). Ces trois derniers sont pour
      l'instant purement informatifs (pas encore branchés à la logique d'accessibilité, voir SPEC.md).
-  5. `js/state.js` : persistance (`defaults`, `merge`, `load`, `store`, sauvegarde auto), les `computed`
+  6. `js/state.js` : persistance (`defaults`, `merge`, `load`, `store`, sauvegarde auto), les `computed`
      dérivés au niveau module (`effC`, `agesC`, `gameC`, `edgesC`, `reachC`), les mutations du mapping
      (`setMapping`, `clearMapping`, `candidatesFor`), les helpers de tuile d'objet partagés par `App` et
      `ItemTile` (`itemActive`, `iconSrc`, `itemTitle`, `itemMaxed`, `clickItem`, `rightClickItem`), et les
      mutations des check-lists/donjons (`toggleChecklist`, `checklistStats`, `toggleDungeonFlag`,
-     `addDungeonKeys`).
-  6. `js/components.js` : composants Vue réutilisables (`TypeIcon`, `Seg`, `DestPicker`, `ItemTile`).
-  7. `js/app.js` : le composant racine `App` (template complet, dont le panneau Objets et ses modales de
+     `addDungeonKeys`), et `applyStartingItems` (objets de départ de la configuration → panneau Objets).
+  7. `js/components.js` : composants Vue réutilisables (`TypeIcon`, `Seg`, `DestPicker`, `ItemTile`).
+  8. `js/app.js` : le composant racine `App` (template complet, dont le panneau Objets et ses modales de
      pointage) + `createApp(...).mount('#app')`.
 - `style.css` : styles, variables de thème dans `:root` (clair + sombre).
 - `areas-data.js` : données (`window.AREAS_DATA`). Gros fichier : ne le lire que si la tâche porte sur les données.
@@ -62,7 +67,11 @@ et le mettre à jour quand une règle change.
   automatiquement (retour devant l'entrée qui mène au donjon dont on a franchi la porte de boss).
 
 ## Logique (js/logic.js, js/state.js)
+- `store.settings` = une clé par entrée de `SETTINGS_DEF` (valeurs SoH : `'On'`/`'Off'`, `'Deku Only'`…) + `tricks`
+  (`{ RT_…: bool }`). Tester les valeurs SoH exactes (`s.bossEntrances === 'Full'`), jamais des booléens.
 - `isRandomized(exit, settings)` : sortie randomisée selon la configuration (détermine le mode `vanilla` vs le reste).
+  `isDecoupled(s)` (entrées découplées), `isMixed(exit, s)` (type d'entrée inclus dans les pools mélangés via les
+  options « Mix … »).
 - `isUnlocked(exit, game)` : sortie à sens unique (spawn/chant) effectivement connaissable dans la partie en cours
   (spawn enfant/adulte avec l'âge correspondant accessible, chant avec Ocarina + chant appris). Tant que ce n'est
   pas le cas, la sortie est `isRandomized` mais pas éditable (mode `locked` dans `rowInfo`) : pas de liste

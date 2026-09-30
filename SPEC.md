@@ -6,10 +6,11 @@ de chaque sortie.
 Référence du rando : https://wiki.ootrandomizer.com/index.php?title=Entrance_Randomizer
 
 > **Transition en cours vers Ship of Harkinian.** L'application migre progressivement de OoT Randomizer
-> vers le randomizer de Ship of Harkinian. Pour l'instant, seul le contenu du panneau Objets (catalogue
-> d'objets, donjons, check-lists) a été aligné sur SoH — voir « Panneau Objets (droite) » ci-dessous. Le
-> reste de ce document (Entrées, Routeur, Configuration, logique de `js/logic.js`) décrit encore le
-> comportement OoT Randomizer / ER actuel, qui sera revu dans un chantier séparé.
+> vers le randomizer de Ship of Harkinian (SoH) 9.2.3. Déjà alignés sur SoH : le panneau Objets et la
+> Configuration (réglages et astuces de SoH). La logique d'accessibilité de `js/logic.js` et les données des
+> Entrées/du Routeur restent celles d'OoT Randomizer, simplement branchées sur les réglages SoH équivalents
+> (voir « Configuration > Correspondance avec Entrées et Routeur ») ; elles seront revues avec la liste
+> des checks puis la logique SoH.
 
 ## Principes
 - Application légère, 100 % navigateur, simple à installer, maintenir et déployer (hébergement statique).
@@ -32,35 +33,60 @@ Référence du rando : https://wiki.ootrandomizer.com/index.php?title=Entrance_R
   conserve la configuration.
 
 ## Configuration
-Bloc Progression (voir « Âges et progression calculés » ci-dessous) : âge de départ (Enfant / Adulte),
-Porte du Temps (6 variantes, cf. réglage officiel `open_door_of_time`).
-Bloc Monde : overworld (Vanilla / Aléatoires), intérieurs (Vanilla / Simples / Tous — « Tous » ajoute moulin,
-Temple du Temps, maison de Link, apothicaire, tombe d'Igor), grottes (Vanilla / Aléatoires),
-rivière de la Vallée Gerudo (Vanilla / Aléatoire).
-Bloc Donjons et boss : donjons (Vanilla / Donjons / Donjons + Ganon), boss (Vanilla / Par âge / Complet),
-entrée de la Tour de Ganon (Vanilla / Aléatoire), sorties du repaire Gerudo (Vanilla / Aléatoires, ER),
-Forteresse Gerudo — gardiens à libérer (4 « normal » / 1 « rapide » / Ouverte, cf. réglage officiel
-`gerudo_fortress` — distinct du précédent : celui-ci fixe la condition d'obtention de la Carte Gerudo).
-Bloc Apparitions et téléportations : spawns (Aucun / Enfant / Adulte / Tous), chants (Vanilla / Aléatoires),
-hiboux (Vanilla / Aléatoires).
-Bloc Avancé : entrées découplées (Non par défaut), pools mélangés (Non par défaut),
-Chasse à la Triforce (Non par défaut — ajoute le compteur « Morceaux de Triforce » dans le panneau Objets
-avec un objectif réglable, 20 par défaut), coûts du routeur (transition 3, chant 15, sauvegarder-recharger
-25, changement d'âge 12).
-Afficher en tête les incohérences détectées dans les données.
+Réglages du randomizer de **Ship of Harkinian 9.2.3 « Ackbar Delta »**, repris de
+`soh/soh/Enhancements/randomizer/settings.cpp` au commit `cb71e22` (celui indiqué dans les spoilers de
+l'utilisateur ; ne pas se fier à la branche `develop`, qui a d'autres options). Données dans `js/config.js`
+(`SETTINGS_DEF`, `TRICKS`, `CONFIG_TABS`).
+
+- **Périmètre** : seulement les options qui changent la logique, les checks ou les objets suivis (164 sur
+  231). Ignorées (`SETTINGS_IGNORED`) : prix et pondérations des boutiques, pestes Mojo et marchands,
+  indices, pièges de glace, réserve d'objets, multiplicateur de dégâts, « All Locations Reachable ».
+- **Valeurs** : stockées telles que dans SoH (ex. `'Deku Only'`, `'Dungeon rewards'`), défauts de SoH ;
+  libellés affichés en français, nom SoH exact au survol de chaque option.
+- **Onglets** (calqués sur le menu SoH) : Logique & accès (logique, âge de départ, accès aux zones, pont
+  arc-en-ciel et Ganon, raccourcis), Entrées, Donjons (objets de donjon, récompenses, trousseaux, Master
+  Quest), Mélanges (lieux, objets, capacités et langues, objets additionnels), Astuces, Routeur
+  (coûts propres à l'appli : transition 3, chant 15, sauvegarder-recharger 25, changement d'âge 12).
+  Onglet mémorisé (`ui.configTab`). Deux choix ou trois → boutons, au-delà → liste, compteurs → champ
+  numérique.
+- **Visibilité conditionnelle** (`show(s)`, reprise des `Hide()/Unhide()` de SoH) : ex. compteur du pont
+  selon son type, nombre d'épreuves si « Nombre fixe », « Mix … » seulement si les pools mélangés sont actifs
+  et que le type d'entrée correspondant l'est, sélection des donjons MQ, trousseaux par donjon si
+  « Sélection ». Une carte sans option visible disparaît.
+- **Astuces** : les 193 astuces de logique actives de SoH, groupées par zone, avec leur difficulté et leur
+  quête (Vanilla / MQ / les deux) ; recherche, filtres difficulté et quête, « Tout cocher / décocher » par
+  zone ; nombre d'astuces actives dans l'onglet. Stockées dans `settings.tricks` (clé `RT_…`).
+- **Import depuis un spoiler SoH** (fichier `.json`) : lit **uniquement** `settings` et `enabledTricks`,
+  jamais l'emplacement des objets. Signale les options ou valeurs inconnues et une version autre que 9.2.3 ;
+  les options ignorées volontairement passent en silence. Résumé « N options, M astuces ».
+- **Objets de départ** (« Start with… » : ocarina, bouclier Mojo, épées Kokiri et de Légende, bâtons, noix,
+  haricots, 12 chants, symboles de Skulltula) : réglages stockés mais sans onglet (onglet `starting` marqué
+  `hidden`) ; à l'import, ils sont cochés dans le panneau Objets (`applyStartingItems`), sans jamais
+  diminuer ce que le joueur a déjà noté. Non repris : cœurs de départ, bourses pleines (rubis).
+- Afficher en tête les incohérences détectées dans les données.
+
+**Correspondance avec Entrées et Routeur** (logique OoT Randomizer conservée en attendant la logique SoH) :
+entrées d'overworld, intérieurs (Simples / Tous), repaire, grottes, donjons (+ Ganon), boss (Par âge /
+Complet), tour de Ganon (seulement si les boss sont mélangés), chants de téléportation, hiboux ; « points
+d'apparition » couvre le spawn enfant et adulte ; la rivière de la Vallée Gerudo n'est jamais mélangée (absente
+de SoH) ; pools mélangés : deux types s'échangent si leurs deux options « Mix … » sont actives.
+
+**Panneau Objets piloté par la configuration** : capacités (une option par capacité), langues (« noix
+Blabla »), touches d'ocarina, canne à pêche, Triforce (chasse ≠ Non, maximum = total de morceaux), bouton
+« Clés des portes » (portes de l'overworld verrouillées), cases de donjon (rien pour ce qui est « Au
+départ » ; ni clés ni Carte Gerudo du Repaire si charpentiers libres) ; un cadre ou un donjon sans case
+visible disparaît.
 
 ## Âges et progression calculés
 Aucun réglage manuel : tout se déduit de la Configuration et de l'inventaire (panneau Objets), comme dans
 le vrai randomizer. Calculé dans `computeAges()` / `deriveGame()` (`js/logic.js`), lisible en lecture seule tout
 en haut du panneau Objets (pastilles vertes/grises).
-- **Âge de départ** (réglage Configuration) : toujours acquis.
+- **Âge de départ** (réglage Configuration, ou âge tiré si « Aléatoire ») : toujours acquis.
 - **Autre âge** : acquis si le Temple du Temps (`market::templeoftime_to_templeplaza`) est atteignable dans
-  l'âge de départ ET si la Porte du Temps peut s'ouvrir, selon le réglage `openDoorOfTime` — reproduit le
-  helper `can_open_door_of_time` du randomizer officiel :
-  - `stones_sot` (défaut, fermeture vanilla) : 3 Pierres Spirituelles + Chant du Temps.
-  - `stones` : 3 Pierres Spirituelles seules. `sot` : Chant du Temps seul (n'importe quelle Ocarina).
-  - `stones_oot_sot` / `oot_sot` : idem + Ocarina du Temps (palier 2, pas juste l'Ocarina de Fée).
-  - `open` : aucune condition.
+  l'âge de départ ET si la Porte du Temps peut s'ouvrir, selon le réglage SoH « Door of Time » :
+  - Fermée (défaut, vanilla) : 3 Pierres Spirituelles + Ocarina du Temps + Chant du Temps.
+  - Chant seul : Chant du Temps (n'importe quelle Ocarina).
+  - Ouverte : aucune condition.
   Calcul sans dépendance circulaire : une recherche d'atteignabilité dédiée part du spawn de l'âge de
   départ avec « l'autre âge » provisoirement marqué indisponible.
 - **Epona** : reproduit l'event `Epona` du randomizer (`can_play(Eponas_Song) and is_adult`) → Ocarina
@@ -72,9 +98,8 @@ en haut du panneau Objets (pastilles vertes/grises).
   nombreuses sous-régions du Cratère du jeu réel) → explosifs (Bombes ou Missiles) suffisent, de façon
   persistante. Les alternatives Grappin/Bottes des Airs restent gérées séparément dans les connexions
   (`areas-data.js`), indépendamment de ce raccourci.
-- **Pont/Carte Gerudo** : reproduit `gerudo_fortress == 'open' or can_finish_GerudoFortress` → Carte
-  Gerudo obtenue (objet manuel, la libération des charpentiers est une suite d'épreuves internes au
-  repaire, hors du graphe de sorties) OU réglage Forteresse Gerudo sur « Ouverte ».
+- **Pont/Carte Gerudo** : Carte Gerudo obtenue (objet manuel, la libération des charpentiers est une suite
+  d'épreuves internes au repaire, hors du graphe de sorties) OU charpentiers « Libres » en Configuration.
 
 ## Panneau Objets (droite)
 Zone latérale droite, étroite (repliable sur mobile via un bouton dans la barre du haut), pas une page à

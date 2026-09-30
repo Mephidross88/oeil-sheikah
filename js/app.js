@@ -134,6 +134,80 @@ const App = {
       warp:'Chant : ' + (EXIT[e.warp]?.label || ''), reset:'Sauvegarder et recharger' }[e.kind]);
     const ageLabel = a => a === 'child' ? 'Enfant' : 'Adulte';
 
+    /* Panneau Objets piloté par la configuration : cadres et cases vides masqués */
+    const panelSkills = computed(() => ITEMS_PAGE.skills.map(r => ({ ...r, items:visibleKeys(r.items) })).filter(r => r.items.length));
+    const panelChecklists = computed(() => ITEMS_PAGE.checklistButtons.filter(c => !c.visible || c.visible(s)));
+    const cells = id => dungeonCells(id, s);
+    const dungeonRows = computed(() => ITEMS_PAGE.dungeons.rows
+      .map(r => r.filter(id => Object.values(dungeonCells(id, s)).some(Boolean))).filter(r => r.length));
+
+    /* Configuration Ship of Harkinian (js/config.js) */
+    const decoupled = computed(() => isDecoupled(s));
+    // Cartes de l'onglet courant, chacune avec ses options visibles (règles de visibilité de SoH) ; une carte
+    // sans option visible disparaît.
+    const configCards = computed(() => {
+      const tab = CONFIG_TABS.find(t => t.id === ui.configTab);
+      return (tab?.cards || []).map(([id, title]) => ({ id, title,
+        defs:SETTINGS_DEF.filter(d => d.card === tab.id + '.' + id && settingVisible(d, s)) })).filter(c => c.defs.length);
+    });
+    const trickFilter = reactive({ q:'', level:'', quest:'' });
+    const tricksOn = computed(() => TRICKS.filter(t => s.tricks[t.key]).length);
+    const trickGroups = computed(() => {
+      const q = norm(trickFilter.q.trim()), lv = trickFilter.level, qu = trickFilter.quest;
+      const shown = TRICKS.filter(t => (!q || norm(t.name + ' ' + TRICK_AREAS[t.area]).includes(q))
+        && (!lv || t.tags.includes(lv)) && (!qu || t.quest === 'BOTH' || t.quest === qu));
+      return Object.keys(TRICK_AREAS).map(area => {
+        const tricks = shown.filter(t => t.area === area);
+        return { area, label:TRICK_AREAS[area], tricks, on:tricks.filter(t => s.tricks[t.key]).length };
+      }).filter(g => g.tricks.length);
+    });
+    function setTricks(list, on){ list.forEach(t => { s.tricks[t.key] = on; }); }
+
+    // Import depuis un spoiler SoH : ne lit QUE `settings` et `enabledTricks` (jamais l'emplacement des objets).
+    const importReport = ref(null);
+    function importSpoiler(ev){
+      const file = ev.target.files[0];
+      ev.target.value = '';
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        let data;
+        try { data = JSON.parse(reader.result); } catch (e) { importReport.value = { ok:false, title:'Fichier illisible : ce n’est pas un JSON valide.', notes:[] }; return; }
+        const settings = data && data.settings;
+        if (!settings || typeof settings !== 'object'){ importReport.value = { ok:false, title:'Aucune section « settings » : ce n’est pas un spoiler SoH.', notes:[] }; return; }
+        const notes = [];
+        if (typeof data.version === 'string' && !data.version.includes('9.2.3'))
+          notes.push(`Version « ${data.version} » : l'appli suit SoH 9.2.3, certaines options peuvent différer.`);
+        let count = 0;
+        for (const [name, raw] of Object.entries(settings)){
+          const d = SETTING_BY_SOH[name];
+          if (!d){ if (!SETTINGS_IGNORED.has(name)) notes.push(`Option inconnue ignorée : « ${name} ».`); continue; }
+          const val = String(raw);
+          if (d.type === 'number'){
+            const n = parseInt(val, 10);
+            if (Number.isNaN(n) || n < d.min || n > d.max){ notes.push(`Valeur inattendue pour « ${name} » : ${val}.`); continue; }
+            s[d.key] = n;
+          } else {
+            if (!d.choices.some(c => c[0] === val)){ notes.push(`Valeur inattendue pour « ${name} » : « ${val} ».`); continue; }
+            s[d.key] = val;
+          }
+          count++;
+        }
+        const enabled = Array.isArray(data.enabledTricks) ? data.enabledTricks : [];
+        TRICKS.forEach(t => { s.tricks[t.key] = false; });
+        let tricks = 0;
+        for (const name of enabled){
+          const t = TRICK_BY_NAME[name];
+          if (t){ s.tricks[t.key] = true; tricks++; } else notes.push(`Astuce inconnue ignorée : « ${name} ».`);
+        }
+        const started = applyStartingItems(s);
+        importReport.value = { ok:true, notes,
+          title:`Configuration importée : ${count} option${count>1?'s':''}, ${tricks} astuce${tricks>1?'s':''} activée${tricks>1?'s':''}`
+            + (started ? `, ${started} objet${started>1?'s':''} de départ coché${started>1?'s':''} dans le panneau Objets.` : '.') };
+      };
+      reader.readAsText(file);
+    }
+
     /* Sauvegarde */
     function openBackup(){ backup.text = JSON.stringify({ version:1, settings:store.settings, costs:store.costs, game:store.game, mappings:store.mappings }, null, 1); backup.msg = ''; modal.value = 'backup'; }
     async function copyBackup(){
@@ -143,7 +217,9 @@ const App = {
     function importBackup(){
       try {
         const d = JSON.parse(backup.text), base = defaults();
-        store.settings = merge(base.settings, d.settings); store.costs = merge(base.costs, d.costs); store.game = merge(base.game, d.game);
+        // Réglages fusionnés sur place : le template garde une référence directe à store.settings (`s`).
+        Object.assign(store.settings, merge(base.settings, d.settings));
+        store.costs = merge(base.costs, d.costs); store.game = merge(base.game, d.game);
         store.mappings = Object.fromEntries(Object.entries(d.mappings || {}).filter(([k, v]) => EXIT[k] && EXIT[v]));
         backup.ok = true; backup.msg = `Partie importée : ${Object.keys(store.mappings).length} sorties renseignées.`;
       } catch (e) { backup.ok = false; backup.msg = 'Texte invalide : collez le contenu complet d’un export.'; }
@@ -162,6 +238,8 @@ const App = {
     return { store, ui, s, views, navOpen, itemsOpen, modal, tip, tipData, backup, stats, missingSpawns, visibleAreas,
       ICONS, ITEMS_PAGE, ITEM_BY_KEY, DUNGEONS, DUNGEON_BY_ID, CHECKLISTS, AREA, EXIT, DATA_ERRORS,
       iconKey, areaName, toggleArea, setAll, jump, go, showTip, hideTip, toggleTip, setMapping, clearMapping,
+      panelSkills, panelChecklists, cells, dungeonRows, visibleKeys,
+      CONFIG_TABS, TRICK_LEVELS, decoupled, configCards, trickFilter, tricksOn, trickGroups, setTricks, importReport, importSpoiler,
       itemVisible, tierLabel, iconSrc, checklistModal, openChecklist, toggleChecklist, checklistStats,
       tradeModal, openTrade, tradeStats, counterClass,
       toggleDungeonFlag, addDungeonKeys,
@@ -235,15 +313,15 @@ const App = {
               <span class="count">{{va.mapped}}/{{va.editable}}</span></span>
             <span v-else class="area-prog">Non randomisée</span>
           </button>
-          <div v-if="!ui.collapsed[va.area.id]" class="rows" :class="{'no-from':!s.decoupled}">
-            <div class="row row-head"><span></span><span></span><span>Sortie</span><span v-if="s.decoupled">Accessible depuis</span><span>{{s.decoupled?'Va vers':'Sortie associée'}}</span><span></span></div>
+          <div v-if="!ui.collapsed[va.area.id]" class="rows" :class="{'no-from':!decoupled}">
+            <div class="row row-head"><span></span><span></span><span>Sortie</span><span v-if="decoupled">Accessible depuis</span><span>{{decoupled?'Va vers':'Sortie associée'}}</span><span></span></div>
             <div v-for="r in va.rows" :key="r.e.key" class="row" :class="'m-'+r.mode" :id="'row-'+r.e.key">
               <type-icon :type="iconKey(r.e)"></type-icon>
               <button class="globe" :class="{none:!r.e.connections.length}" :aria-label="'Connexions depuis '+r.e.label"
                 @mouseenter="r.e.connections.length && showTip($event,r.e.key)" @mouseleave="hideTip" @focus="r.e.connections.length && showTip($event,r.e.key)" @blur="hideTip"
                 @click.stop="r.e.connections.length && toggleTip($event,r.e.key)" v-html="ICONS.globe"></button>
               <div class="c-name">{{r.e.label}}</div>
-              <div v-if="s.decoupled" class="c-from"><button v-for="f in r.from" :key="f.key" class="loc link" @click="jump(EXIT[f.key].areaId, f.key)"><b>{{f.area}}</b><span>{{f.label}}</span></button></div>
+              <div v-if="decoupled" class="c-from"><button v-for="f in r.from" :key="f.key" class="loc link" @click="jump(EXIT[f.key].areaId, f.key)"><b>{{f.area}}</b><span>{{f.label}}</span></button></div>
               <div class="c-dest">
                 <dest-picker v-if="r.mode==='open'" :source="r.e.key" @choose="k => setMapping(r.e.key, k)"></dest-picker>
                 <span v-else-if="r.mode==='locked'" class="muted">{{r.reason}}</span>
@@ -327,61 +405,66 @@ const App = {
 
     <!-- ================= CONFIGURATION ================= -->
     <template v-if="ui.view==='config'">
-      <div class="page-head"><h1>Configuration</h1><p class="lede">Reprenez les réglages Entrance Randomizer de votre seed.</p></div>
+      <div class="page-head"><h1>Configuration</h1><p class="lede">Réglages du randomizer de Ship of Harkinian 9.2.3 « Ackbar Delta ».</p>
+        <label class="btn primary import-btn">Importer depuis un spoiler SoH
+          <input type="file" accept=".json,application/json" @change="importSpoiler" hidden></label></div>
+      <div v-if="importReport" class="import-report" :class="importReport.ok ? 'ok' : 'ko'">
+        <b>{{importReport.title}}</b>
+        <ul v-if="importReport.notes.length"><li v-for="(n,i) in importReport.notes" :key="i">{{n}}</li></ul>
+        <button type="button" class="link" @click="importReport=null">Fermer</button>
+      </div>
       <div v-if="DATA_ERRORS.length" class="errors"><b>{{DATA_ERRORS.length}} incohérence{{DATA_ERRORS.length>1?'s':''}} dans les données</b>
         <ul><li v-for="(er,i) in DATA_ERRORS" :key="i">{{er}}</li></ul></div>
-      <div class="cgrid">
-        <section class="cblock"><h2>Progression</h2><p>Détermine automatiquement les âges accessibles, Epona et les raccourcis (voir panneau Objets).</p>
-          <div class="copt"><div><div class="t">Âge de départ</div></div><seg v-model="s.startingAge" :options="[['child','Enfant'],['adult','Adulte']]"></seg></div>
-          <div class="copt"><div><div class="t">Porte du Temps</div><div class="h">Condition pour devenir l'autre âge au Temple du Temps.</div></div>
-            <select class="sel" v-model="s.openDoorOfTime" style="max-width:280px">
-              <option value="stones_sot">Pierres Spirituelles + Chant du Temps</option>
-              <option value="stones">Pierres Spirituelles seules</option>
-              <option value="stones_oot_sot">Pierres + Ocarina du Temps + Chant du Temps</option>
-              <option value="sot">Chant du Temps seul</option>
-              <option value="oot_sot">Ocarina du Temps + Chant du Temps</option>
-              <option value="open">Ouverte (aucune condition)</option>
-            </select></div>
+
+      <nav class="config-tabs">
+        <button v-for="t in CONFIG_TABS.filter(t => !t.hidden)" :key="t.id" type="button" :class="{on:ui.configTab===t.id}" @click="ui.configTab=t.id">
+          {{t.label}}<span v-if="t.id==='tricks' && tricksOn" class="tab-count">{{tricksOn}}</span></button>
+      </nav>
+
+      <div v-if="configCards.length" class="cgrid">
+        <section v-for="c in configCards" :key="c.id" class="cblock"><h2>{{c.title}}</h2>
+          <div v-for="d in c.defs" :key="d.key" class="copt" :title="'SoH : ' + d.soh">
+            <div><div class="t">{{d.label}}</div></div>
+            <seg v-if="d.type==='choice' && d.choices.length<=3" v-model="s[d.key]" :options="d.choices"></seg>
+            <select v-else-if="d.type==='choice'" class="sel opt-sel" v-model="s[d.key]">
+              <option v-for="ch in d.choices" :key="ch[0]" :value="ch[0]">{{ch[1]}}</option></select>
+            <input v-else type="number" class="opt-num" :min="d.min" :max="d.max" :step="d.step||1" v-model.number="s[d.key]">
+          </div>
         </section>
-        <section class="cblock"><h2>Monde</h2><p>Zones extérieures, bâtiments et grottes.</p>
-          <div class="copt"><div><div class="t">Sorties de l'overworld</div></div><seg v-model="s.overworld" :options="[[false,'Vanilla'],[true,'Aléatoires']]"></seg></div>
-          <div class="copt"><div><div class="t">Intérieurs</div><div class="h">« Tous » ajoute le moulin, le Temple du Temps, la maison de Link, l'apothicaire et la tombe d'Igor.</div></div>
-            <seg v-model="s.interiors" :options="[['off','Vanilla'],['simple','Simples'],['all','Tous']]"></seg></div>
-          <div class="copt"><div><div class="t">Grottes et tombes</div></div><seg v-model="s.grottos" :options="[[false,'Vanilla'],[true,'Aléatoires']]"></seg></div>
-          <div class="copt"><div><div class="t">Rivière de la Vallée Gerudo</div><div class="h">Sortie à sens unique vers le Lac Hylia.</div></div>
-            <seg v-model="s.gerudoRiver" :options="[[false,'Vanilla'],[true,'Aléatoire']]"></seg></div>
-        </section>
-        <section class="cblock"><h2>Donjons et boss</h2><p>Les téléporteurs bleus suivent automatiquement l'entrée du donjon.</p>
-          <div class="copt"><div><div class="t">Donjons</div></div><seg v-model="s.dungeons" :options="[['off','Vanilla'],['simple','Donjons'],['ganon','Donjons + Ganon']]"></seg></div>
-          <div class="copt"><div><div class="t">Boss</div><div class="h">« Par âge » mélange les boss enfant entre eux et les boss adulte entre eux.</div></div>
-            <seg v-model="s.bosses" :options="[['off','Vanilla'],['age','Par âge'],['full','Complet']]"></seg></div>
-          <div class="copt"><div><div class="t">Entrée de la Tour de Ganon</div></div><seg v-model="s.ganonTower" :options="[[false,'Vanilla'],[true,'Aléatoire']]"></seg></div>
-          <div class="copt"><div><div class="t">Sorties du repaire Gerudo</div><div class="h">Entrées du repaire des voleurs, mélangées avec les intérieurs.</div></div>
-            <seg v-model="s.hideout" :options="[[false,'Vanilla'],[true,'Aléatoires']]"></seg></div>
-          <div class="copt"><div><div class="t">Forteresse Gerudo — gardiens à libérer</div><div class="h">« Ouverte » donne la Carte Gerudo dès le départ (voir panneau Objets).</div></div>
-            <seg v-model="s.gerudoFortress" :options="[['normal','4 (normal)'],['fast','1 (rapide)'],['open','Ouverte']]"></seg></div>
-        </section>
-        <section class="cblock"><h2>Apparitions et téléportations</h2><p>Destinations à sens unique : elles s'ajoutent aux entrées existantes.</p>
-          <div class="copt"><div><div class="t">Points d'apparition</div></div><seg v-model="s.spawns" :options="[['none','Aucun'],['child','Enfant'],['adult','Adulte'],['all','Tous']]"></seg></div>
-          <div class="copt"><div><div class="t">Chants de téléportation</div></div><seg v-model="s.warps" :options="[[false,'Vanilla'],[true,'Aléatoires']]"></seg></div>
-          <div class="copt"><div><div class="t">Hiboux</div></div><seg v-model="s.owls" :options="[[false,'Vanilla'],[true,'Aléatoires']]"></seg></div>
-        </section>
-        <section class="cblock"><h2>Avancé</h2><p>À laisser par défaut sauf réglage spécifique de la seed.</p>
-          <div class="copt"><div><div class="t">Entrées découplées</div><div class="h">Par défaut, noter A vers B renseigne aussi B vers A.</div></div>
-            <seg v-model="s.decoupled" :options="[[false,'Non'],[true,'Oui']]"></seg></div>
-          <div class="copt"><div><div class="t">Pools mélangés</div><div class="h">Proposer toutes les destinations, quel que soit le type de sortie.</div></div>
-            <seg v-model="s.mixedPools" :options="[[false,'Non'],[true,'Oui']]"></seg></div>
-          <div class="copt"><div><div class="t">Chasse à la Triforce</div><div class="h">Ajoute le compteur « Morceaux de Triforce » dans le panneau Objets.</div></div>
-            <seg v-model="s.triforceHunt" :options="[[false,'Non'],[true,'Oui']]"></seg></div>
-          <div class="copt" v-if="s.triforceHunt"><div><div class="t">Morceaux de Triforce requis</div></div>
-            <input type="number" min="1" max="100" v-model.number="s.triforceHuntMax" style="width:90px"></div>
-          <div class="copt" style="display:block"><div class="t">Coûts du routeur</div><div class="h">Même unité que les coûts de déplacement des données.</div>
-            <div class="costs">
-              <div class="field"><label for="c1">Transition</label><input id="c1" type="number" min="0" v-model.number="store.costs.transition"></div>
-              <div class="field"><label for="c2">Chant de téléportation</label><input id="c2" type="number" min="0" v-model.number="store.costs.warp"></div>
-              <div class="field"><label for="c3">Sauvegarder et recharger</label><input id="c3" type="number" min="0" v-model.number="store.costs.reset"></div>
-              <div class="field"><label for="c4">Changement d'âge</label><input id="c4" type="number" min="0" v-model.number="store.costs.age"></div>
-            </div></div>
+      </div>
+
+      <template v-if="ui.configTab==='tricks'">
+        <div class="trick-filters">
+          <input v-model="trickFilter.q" class="trick-search" placeholder="Rechercher une astuce…" aria-label="Rechercher une astuce">
+          <select v-model="trickFilter.level" class="sel"><option value="">Toutes difficultés</option>
+            <option v-for="(l,k) in TRICK_LEVELS" :key="k" :value="k">{{l}}</option></select>
+          <select v-model="trickFilter.quest" class="sel"><option value="">Vanilla et MQ</option>
+            <option value="VANILLA">Vanilla</option><option value="MQ">Master Quest</option></select>
+          <span class="muted">{{tricksOn}} astuce{{tricksOn>1?'s':''}} active{{tricksOn>1?'s':''}}</span>
+        </div>
+        <div v-if="!trickGroups.length" class="empty">Aucune astuce ne correspond aux filtres.</div>
+        <div class="cgrid">
+          <section v-for="g in trickGroups" :key="g.area" class="cblock trick-group">
+            <h2>{{g.label}} <span class="muted">{{g.on}}/{{g.tricks.length}}</span></h2>
+            <div class="trick-actions"><button type="button" class="link" @click="setTricks(g.tricks,true)">Tout cocher</button>
+              <button type="button" class="link" @click="setTricks(g.tricks,false)">Tout décocher</button></div>
+            <label v-for="t in g.tricks" :key="t.key" class="trick" :title="'SoH : ' + t.name">
+              <input type="checkbox" v-model="s.tricks[t.key]"><span>{{t.name}}</span>
+              <span v-for="tag in t.tags" :key="tag" class="trick-tag" :class="'lv-'+tag.toLowerCase()">{{TRICK_LEVELS[tag]}}</span>
+              <span v-if="t.quest!=='BOTH'" class="trick-tag">{{t.quest==='MQ'?'MQ':'Vanilla'}}</span>
+            </label>
+          </section>
+        </div>
+      </template>
+
+      <div v-if="ui.configTab==='router'" class="cgrid">
+        <section class="cblock"><h2>Coûts du routeur</h2><p>Réglages propres à l'appli : même unité que les coûts de déplacement des données.</p>
+          <div class="costs">
+            <div class="field"><label for="c1">Transition</label><input id="c1" type="number" min="0" v-model.number="store.costs.transition"></div>
+            <div class="field"><label for="c2">Chant de téléportation</label><input id="c2" type="number" min="0" v-model.number="store.costs.warp"></div>
+            <div class="field"><label for="c3">Sauvegarder et recharger</label><input id="c3" type="number" min="0" v-model.number="store.costs.reset"></div>
+            <div class="field"><label for="c4">Changement d'âge</label><input id="c4" type="number" min="0" v-model.number="store.costs.age"></div>
+          </div>
         </section>
       </div>
     </template>
@@ -425,9 +508,9 @@ const App = {
       <section class="panel-card">
       <template v-for="row in ITEMS_PAGE.boxRows" :key="row[0].title">
         <div class="box-row">
-          <div v-for="box in row" :key="box.title" class="item-box">
+          <div v-for="box in row" :key="box.title" v-show="visibleKeys(box.items).length" class="item-box">
             <div class="icon-grid" :class="{cols2:box.cols===2}">
-              <item-tile v-for="k in box.items" :key="k" :k="k"></item-tile>
+              <item-tile v-for="k in visibleKeys(box.items)" :key="k" :k="k"></item-tile>
             </div>
             <template v-if="box.sub">
               <div class="sub-link"></div>
@@ -447,8 +530,8 @@ const App = {
       <div class="ocarina-frame">
         <div class="ocarina-pad">
           <div class="pad-main"><item-tile :k="ITEMS_PAGE.songs.ocarina"></item-tile></div>
-          <div class="pad-notes">
-            <div v-for="n in ITEMS_PAGE.songs.notes" :key="n" :class="{'pad-a':n==='noteA'}"><item-tile :k="n"></item-tile></div>
+          <div v-if="visibleKeys(ITEMS_PAGE.songs.notes).length" class="pad-notes">
+            <div v-for="n in visibleKeys(ITEMS_PAGE.songs.notes)" :key="n" :class="{'pad-a':n==='noteA'}"><item-tile :k="n"></item-tile></div>
           </div>
         </div>
       </div>
@@ -463,13 +546,13 @@ const App = {
       </section>
 
       <div class="card-row">
-        <section class="panel-card skills-card">
-          <div v-for="r in ITEMS_PAGE.skills" :key="r.title" class="item-box skill-box" :title="r.title">
+        <section v-if="panelSkills.length" class="panel-card skills-card">
+          <div v-for="r in panelSkills" :key="r.title" class="item-box skill-box" :title="r.title">
             <div class="icon-grid"><item-tile v-for="k in r.items" :key="k" :k="k"></item-tile></div>
           </div>
         </section>
-        <section class="panel-card checklists-card">
-          <button v-for="c in ITEMS_PAGE.checklistButtons" :key="c.id" type="button" class="check-tile check-square" :title="CHECKLISTS[c.id].title"
+        <section class="panel-card checklists-card" :class="{wide:!panelSkills.length}">
+          <button v-for="c in panelChecklists" :key="c.id" type="button" class="check-tile check-square" :title="CHECKLISTS[c.id].title"
             @click="openChecklist(c.id)" :class="counterClass(checklistStats(c.id).got, checklistStats(c.id).total)">
             <img :src="c.icon" alt=""><b>{{checklistStats(c.id).got}}/{{checklistStats(c.id).total}}</b></button>
         </section>
@@ -477,17 +560,17 @@ const App = {
 
       <section class="panel-card">
       <div class="dungeon-grid">
-        <template v-for="row in ITEMS_PAGE.dungeons.rows" :key="row[0]">
+        <template v-for="row in dungeonRows" :key="row[0]">
           <div v-for="id in row" :key="id" class="dungeon-block" :class="{solo:row.length===1}" :style="{'--dg':DUNGEON_BY_ID[id].color}">
             <div class="dg-name">{{DUNGEON_BY_ID[id].title}}</div>
             <div class="dg-cells">
-            <button v-if="DUNGEON_BY_ID[id].map" type="button" class="dg-flag" title="Carte" :class="{on:store.game.dungeons[id].map}" @click="toggleDungeonFlag(id,'map')"><img src="icons/dungeons/map.png" alt=""></button>
-            <button v-if="DUNGEON_BY_ID[id].compass" type="button" class="dg-flag" title="Boussole" :class="{on:store.game.dungeons[id].compass}" @click="toggleDungeonFlag(id,'compass')"><img src="icons/dungeons/compass.png" alt=""></button>
-            <button v-if="DUNGEON_BY_ID[id].maxKeys" type="button" class="dg-keys" title="Petites clés" @click="addDungeonKeys(id,1)" @contextmenu.prevent="addDungeonKeys(id,-1)"
+            <button v-if="cells(id).map" type="button" class="dg-flag" title="Carte" :class="{on:store.game.dungeons[id].map}" @click="toggleDungeonFlag(id,'map')"><img src="icons/dungeons/map.png" alt=""></button>
+            <button v-if="cells(id).compass" type="button" class="dg-flag" title="Boussole" :class="{on:store.game.dungeons[id].compass}" @click="toggleDungeonFlag(id,'compass')"><img src="icons/dungeons/compass.png" alt=""></button>
+            <button v-if="cells(id).keys" type="button" class="dg-keys" title="Petites clés" @click="addDungeonKeys(id,1)" @contextmenu.prevent="addDungeonKeys(id,-1)"
               :class="counterClass(store.game.dungeons[id].keys, DUNGEON_BY_ID[id].maxKeys)">
               <img src="icons/dungeons/key.png" alt="">{{store.game.dungeons[id].keys}}/{{DUNGEON_BY_ID[id].maxKeys}}</button>
-            <button v-if="DUNGEON_BY_ID[id].bossKey" type="button" class="dg-flag" title="Clé de boss" :class="{on:store.game.dungeons[id].bossKey}" @click="toggleDungeonFlag(id,'bossKey')"><img src="icons/dungeons/boss.png" alt=""></button>
-            <button v-if="DUNGEON_BY_ID[id].card" type="button" class="dg-flag" :class="{on:store.game.items[DUNGEON_BY_ID[id].card]}"
+            <button v-if="cells(id).bossKey" type="button" class="dg-flag" title="Clé de boss" :class="{on:store.game.dungeons[id].bossKey}" @click="toggleDungeonFlag(id,'bossKey')"><img src="icons/dungeons/boss.png" alt=""></button>
+            <button v-if="cells(id).card" type="button" class="dg-flag" :class="{on:store.game.items[DUNGEON_BY_ID[id].card]}"
               :title="ITEM_BY_KEY[DUNGEON_BY_ID[id].card].label" @click="store.game.items[DUNGEON_BY_ID[id].card]=!store.game.items[DUNGEON_BY_ID[id].card]">
               <img :src="iconSrc('items', ITEM_BY_KEY[DUNGEON_BY_ID[id].card])" alt=""></button>
             </div>

@@ -10,13 +10,12 @@ function defaults(){
   });
   return {
     version:1,
-    settings:{ overworld:false, interiors:'off', grottos:false, gerudoRiver:false, dungeons:'off', bosses:'off', ganonTower:false, hideout:false,
-      spawns:'none', warps:false, owls:false, decoupled:false, mixedPools:false,
-      startingAge:'child', openDoorOfTime:'stones_sot', gerudoFortress:'normal',
-      triforceHunt:false, triforceHuntMax:20 },
+    // Réglages Ship of Harkinian (js/config.js) : valeurs SoH exactes, + astuces de logique activées.
+    settings:{ ...Object.fromEntries(SETTINGS_DEF.map(d => [d.key, d.def])),
+      tricks:Object.fromEntries(TRICKS.map(t => [t.key, false])) },
     costs:{ transition:3, warp:15, reset:25, age:12 },
     game, mappings:{},
-    ui:{ view:'entrances', collapsed:{},
+    ui:{ view:'entrances', collapsed:{}, configTab:'logic',
       filters:{ showReachableTargets:false, showInaccessibleAreas:false, showDiscovered:true, showVanilla:true },
       router:{ fromArea:'', fromExit:'', fromAge:'child', toArea:'', toExit:'', toAge:'any' } },
   };
@@ -55,12 +54,12 @@ function clearMapping(src){
   const old = store.mappings[src];
   if (!old) return;
   delete store.mappings[src];
-  if (!store.settings.decoupled && EXIT[old] && isTwoWay(EXIT[src]) && store.mappings[old] === src) delete store.mappings[old];
+  if (!isDecoupled(store.settings) && EXIT[old] && isTwoWay(EXIT[src]) && store.mappings[old] === src) delete store.mappings[old];
 }
 function setMapping(src, target){
   clearMapping(src);
   store.mappings[src] = target;
-  if (!store.settings.decoupled && isTwoWay(EXIT[src]) && isTwoWay(EXIT[target]) && target !== src){
+  if (!isDecoupled(store.settings) && isTwoWay(EXIT[src]) && isTwoWay(EXIT[target]) && target !== src){
     if (store.mappings[target]) clearMapping(target);
     store.mappings[target] = src;
   }
@@ -68,18 +67,18 @@ function setMapping(src, target){
 function candidatesFor(srcKey){
   const src = EXIT[srcKey], s = store.settings, pool = poolOf(src), eff = effC.value, inc = incC.value;
   if (pool === 'boss'){
-    return BOSS_ROOMS.filter(r => (s.bosses === 'full' || (src.shuffleTag === 'boss_warp_child') === (r.specialTag === 'boss_child'))
+    return BOSS_ROOMS.filter(r => (s.bossEntrances === 'Full' || (src.shuffleTag === 'boss_warp_child') === (r.specialTag === 'boss_child'))
       && !BOSS_DOORS.some(d => d.key !== srcKey && eff[d.key] === r.key));
   }
   if (pool === 'oneway'){  // hiboux, chants, spawns : destinations supplémentaires, ne consomment pas la cible
     return ALL_EXITS.filter(e => e.areaId !== SPAWN_AREA && !e.specialTag && e.type !== 'boss'
-      && (s.mixedPools || ['overworld','interior','pad'].includes(poolOf(e))));
+      && ['overworld','interior','pad'].includes(poolOf(e)));
   }
   return ALL_EXITS.filter(e => {
     if (e.key === srcKey || e.areaId === SPAWN_AREA || !isTwoWay(e) || !isRandomized(e, s)) return false;
-    if (!s.mixedPools && poolOf(e) !== pool) return false;
+    if (poolOf(e) !== pool && !(isMixed(src, s) && isMixed(e, s))) return false;
     if ((inc[e.key]||[]).some(k => k !== srcKey && isTwoWay(EXIT[k]))) return false;
-    if (!s.decoupled && store.mappings[e.key] && store.mappings[e.key] !== srcKey) return false;
+    if (!isDecoupled(s) && store.mappings[e.key] && store.mappings[e.key] !== srcKey) return false;
     return true;
   });
 }
@@ -123,6 +122,29 @@ function iconSrc(path, it){
 // Clic gauche = augmenter/activer, clic droit = diminuer/désactiver ; jamais de bouclage :
 // un objet déjà au maximum (ou non progressif déjà obtenu) ignore le clic gauche, et un objet
 // non obtenu ignore le clic droit.
+// Objets de départ (réglages « Start with… » de SoH) → niveau minimal de l'objet dans le panneau Objets.
+const STARTING_ITEMS = [
+  ['startingOcarina', 'ocarina', v => ({ 'Fairy Ocarina':1, 'Ocarina of Time':2 })[v] || 0],
+  ['startingDekuShield', 'dekuShield'], ['startingKokiriSword', 'kokiriSword'], ['startingMasterSword', 'masterSword'],
+  ['startingSticks', 'sticks'], ['startingNuts', 'nuts'], ['startingBeans', 'beans'],
+  ['startingSkulltulaTokens', 'skulltulaTokens', v => v],
+  ['startingZeldasLullaby', 'zeldaLullaby'], ['startingEponasSong', 'eponasSong'], ['startingSariasSong', 'sariasSong'],
+  ['startingSunsSong', 'sunsSong'], ['startingSongOfTime', 'songOfTime'], ['startingSongOfStorms', 'songOfStorms'],
+  ['startingMinuetOfForest', 'minuet'], ['startingBoleroOfFire', 'bolero'], ['startingSerenadeOfWater', 'serenade'],
+  ['startingRequiemOfSpirit', 'requiem'], ['startingNocturneOfShadow', 'nocturne'], ['startingPreludeOfLight', 'prelude'],
+];
+// Coche les objets de départ de la configuration ; ne retire jamais rien de ce que le joueur a déjà noté.
+// Renvoie le nombre d'objets modifiés.
+function applyStartingItems(s){
+  let n = 0;
+  for (const [setting, key, level = v => (v === 'On' || v === 'Yes') ? 1 : 0] of STARTING_ITEMS){
+    const it = ITEM_BY_KEY[key], want = level(s[setting]);
+    const cur = store.game[it.path][key];
+    if (it.kind === 'bool'){ if (want && !cur){ store.game[it.path][key] = true; n++; } }
+    else if (want > cur){ store.game[it.path][key] = Math.min(want, it.kind === 'level' ? it.stages.length - 1 : itemMax(it)); n++; }
+  }
+  return n;
+}
 function clickItem(ev, path, it){
   if (it.locked) return;
   const v = store.game[path][it.key];

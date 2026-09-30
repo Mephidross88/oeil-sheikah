@@ -18,7 +18,7 @@ const ITEM_GROUPS = [
     { key:'spiritMedallion', label:"Médaillon de l'Esprit", kind:'bool', icon:'rewards/medallions/spirit.png' },
     { key:'shadowMedallion', label:"Médaillon de l'Ombre", kind:'bool', icon:'rewards/medallions/shadow.png' },
     { key:'lightMedallion', label:'Médaillon de la Lumière', kind:'bool', icon:'rewards/medallions/light.png' },
-    { key:'triforcePieces', label:'Morceaux de Triforce', kind:'count', max:s => s.triforceHuntMax, visible:s => s.triforceHunt, icon:'rewards/triforce.png' },
+    { key:'triforcePieces', label:'Morceaux de Triforce', kind:'count', max:s => s.triforceHuntTotal, visible:s => s.triforceHunt !== 'Off', icon:'rewards/triforce.png' },
   ]},
   { title:'Équipement', path:'items', items:[
     { key:'kokiriSword', label:'Épée Kokiri', kind:'bool', icon:'equipment/swords/kokiri.png' },
@@ -67,7 +67,7 @@ const ITEM_GROUPS = [
     { key:'truthLens', label:'Monocle de Vérité', kind:'bool', icon:'items/lens_truth.png' },
     { key:'bottle', label:'Bouteilles', kind:'count', max:4 },
     { key:'rutoLetter', label:'Lettre de Ruto', kind:'bool', icon:'items/ruto_letter.png' },
-    { key:'fishingRod', label:'Canne à Pêche', kind:'bool', icon:'items/rod.png' },
+    { key:'fishingRod', label:'Canne à Pêche', kind:'bool', icon:'items/rod.png', visible:s => s.shuffleFishingPole === 'On' },
   ]},
   { title:"Objets d'échange (Enfant)", path:'items', items:[
     // En rando, chaque objet est un pickup indépendant trouvable dans n'importe quel ordre et
@@ -109,11 +109,8 @@ const ITEM_GROUPS = [
       icons:['items/ocarina_fairy.png','items/ocarina_time.png'] },
   ]},
   { title:"Notes d'Ocarina (si mélangées)", path:'items', items:[
-    { key:'noteA', label:'Bouton A', kind:'bool', icon:'songs/buttons/A.png' },
-    { key:'noteCUp', label:'C-Haut', kind:'bool', icon:'songs/buttons/up.png' },
-    { key:'noteCRight', label:'C-Droite', kind:'bool', icon:'songs/buttons/right.png' },
-    { key:'noteCLeft', label:'C-Gauche', kind:'bool', icon:'songs/buttons/left.png' },
-    { key:'noteCDown', label:'C-Bas', kind:'bool', icon:'songs/buttons/down.png' },
+    ...[['noteA', 'Bouton A', 'A'], ['noteCUp', 'C-Haut', 'up'], ['noteCRight', 'C-Droite', 'right'], ['noteCLeft', 'C-Gauche', 'left'], ['noteCDown', 'C-Bas', 'down']]
+      .map(([key, label, f]) => ({ key, label, kind:'bool', icon:`songs/buttons/${f}.png`, visible:s => s.shuffleOcarinaButtons === 'On' })),
   ]},
   { title:'Statistiques', path:'items', items:[
     { key:'magic', label:'Magie', kind:'level', stages:['Aucune','Simple','Double','Infinie'],
@@ -123,21 +120,19 @@ const ITEM_GROUPS = [
     { key:'doubleDefense', label:'Double Défense', kind:'bool', icon:'statistics/double_defense.png' },
   ]},
   // Spécificité Ship of Harkinian : les mouvements/capacités et les langues peuvent être mélangés dans le
-  // pool d'objets. Purement informatif pour l'instant (pas encore branché à `sat()`).
+  // pool d'objets (une option par capacité, une seule pour toutes les langues). Visibles seulement si
+  // mélangés ; purement informatifs pour l'instant (pas encore branchés à `sat()`).
   { title:'Capacités', path:'items', items:[
-    { key:'swim', label:'Nager', kind:'bool', icon:'abilities/swim.png' },
-    { key:'climb', label:'Grimper', kind:'bool', icon:'abilities/climb.png' },
-    { key:'crawl', label:'Ramper', kind:'bool', icon:'abilities/ramp.png' },
-    { key:'openChests', label:'Ouvrir les coffres', kind:'bool', icon:'abilities/chest.png' },
-    { key:'grab', label:'Saisir', kind:'bool', icon:'abilities/grasp.png' },
+    { key:'swim', label:'Nager', kind:'bool', icon:'abilities/swim.png', visible:s => s.shuffleSwim === 'On' },
+    { key:'climb', label:'Grimper', kind:'bool', icon:'abilities/climb.png', visible:s => s.shuffleClimb === 'On' },
+    { key:'crawl', label:'Ramper', kind:'bool', icon:'abilities/ramp.png', visible:s => s.shuffleCrawl === 'On' },
+    { key:'openChests', label:'Ouvrir les coffres', kind:'bool', icon:'abilities/chest.png', visible:s => s.shuffleOpenChest === 'On' },
+    { key:'grab', label:'Saisir', kind:'bool', icon:'abilities/grasp.png', visible:s => s.shuffleGrab === 'On' },
   ]},
   { title:'Langues', path:'items', items:[
-    { key:'speakKokiri', label:'Langue Kokiri', kind:'bool', icon:'languages/kokiri.png' },
-    { key:'speakDeku', label:'Langue Mojo', kind:'bool', icon:'languages/deku.png' },
-    { key:'speakHylian', label:'Langue Hylienne', kind:'bool', icon:'languages/hylian.png' },
-    { key:'speakGoron', label:'Langue Goron', kind:'bool', icon:'languages/goron.png' },
-    { key:'speakZora', label:'Langue Zora', kind:'bool', icon:'languages/zora.png' },
-    { key:'speakGerudo', label:'Langue Gerudo', kind:'bool', icon:'languages/gerudo.png' },
+    ...[['speakKokiri', 'Langue Kokiri', 'kokiri'], ['speakDeku', 'Langue Mojo', 'deku'], ['speakHylian', 'Langue Hylienne', 'hylian'],
+      ['speakGoron', 'Langue Goron', 'goron'], ['speakZora', 'Langue Zora', 'zora'], ['speakGerudo', 'Langue Gerudo', 'gerudo']]
+      .map(([key, label, f]) => ({ key, label, kind:'bool', icon:`languages/${f}.png`, visible:s => s.shuffleJabberNuts === 'On' })),
   ]},
   { title:'Chants appris', path:'songs', items:[
     { key:'zeldaLullaby', label:'Berceuse de Zelda', kind:'bool', icon:'songs/songs/zl.png' },
@@ -213,7 +208,7 @@ const ITEMS_PAGE = {
   ],
   // Boutons des check-lists de lieux, dans leur propre carte à droite des capacités/langues.
   checklistButtons:[
-    { id:'keys', icon:'icons/dungeons/key.png' },
+    { id:'keys', icon:'icons/dungeons/key.png', visible:s => s.lockOverworldDoors === 'On' },
     { id:'beans', icon:'icons/items/bean.png' },
   ],
   tradeButtons:[
@@ -267,6 +262,19 @@ const DUNGEONS = [
 ];
 const DUNGEON_BY_ID = {};
 DUNGEONS.forEach(d => { DUNGEON_BY_ID[d.id] = d; });
+// Cases à afficher pour un donjon selon la configuration : rien à suivre pour ce qu'on possède dès le
+// départ (« Start With »), ni pour les clés et la Carte Gerudo si les charpentiers sont libres.
+function dungeonCells(id, s){
+  const d = DUNGEON_BY_ID[id], free = s.fortressCarpenters === 'Free';
+  return {
+    map:!!d.map && s.mapsCompasses !== 'Start With',
+    compass:!!d.compass && s.mapsCompasses !== 'Start With',
+    keys:!!d.maxKeys && (id === 'gerudoFortress' ? !free : s.smallKeys !== 'Start With'),
+    bossKey:!!d.bossKey && (id === 'ganonsCastle' ? s.ganonsBossKey !== 'Start With' : s.bossKeys !== 'Start With'),
+    card:!!d.card && !free,
+  };
+}
+const visibleKeys = keys => keys.filter(k => itemVisible(ITEM_BY_KEY[k]));
 
 /* ---------- Check-lists de lieux (clés hors donjon, trous à haricots) ---------- */
 // Purement informatif pour l'instant (voir remarque ci-dessus) : une simple liste de lieux à cocher,

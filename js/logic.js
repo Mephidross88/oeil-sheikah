@@ -49,18 +49,15 @@ function sat(r, G, age){
   }
   return false;
 }
-/** Porte du Temps : mêmes variantes que le réglage open_door_of_time du randomizer officiel. */
+/** Porte du Temps (réglage SoH « Door of Time ») : Fermée = vanilla (Pierres Spirituelles, Ocarina du
+ * Temps et Chant du Temps), « Chant seul » = Chant du Temps joué à l'ocarina, Ouverte = aucune condition. */
 function canOpenDoorOfTime(mode, it, sg){
   const stones = it.kokiriEmerald && it.goronRuby && it.zoraSapphire;
   const sot = it.ocarina >= 1 && sg.songOfTime;
-  const oot = it.ocarina >= 2;
   switch (mode){
-    case 'open': return true;
-    case 'sot': return sot;
-    case 'oot_sot': return oot && sot;
-    case 'stones': return stones;
-    case 'stones_oot_sot': return stones && oot && sot;
-    default: return stones && sot; // 'stones_sot' : fermeture vanilla (par défaut)
+    case 'Open': return true;
+    case 'Song only': return sot;
+    default: return stones && it.ocarina >= 2 && sot;
   }
 }
 /** Aplati les objets progressifs (store.game.items) en indicateurs booléens consommés par sat().
@@ -71,8 +68,8 @@ function deriveGame(raw, settings, ages){
   // Ouverture du raccourci Bois Perdus <-> Ville Goron (event "GC Woods Warp Open" du randomizer) :
   // explosifs, Feu de Din, Arc (adulte) ou Force suffisent, une fois pour toutes.
   const gcWoodsWarpOpen = hasExplosives || (it.dinsFire && it.magic >= 1) || (ages.adult && it.bow >= 1) || it.strength >= 1;
-  // Carte Gerudo : obtenue en libérant les charpentiers, ou fournie dès le départ si la Forteresse est "Ouverte".
-  const gerudoCardEff = it.gerudoCard || settings.gerudoFortress === 'open';
+  // Carte Gerudo : obtenue en libérant les charpentiers, ou fournie dès le départ si les charpentiers sont libres.
+  const gerudoCardEff = it.gerudoCard || settings.fortressCarpenters === 'Free';
   return {
     milestone: {
       childAvailable: ages.child, adultAvailable: ages.adult,
@@ -126,27 +123,34 @@ function poolOf(e){
 const isTwoWay = e => { const p = poolOf(e); return !!p && !['oneway','boss','bossroom','pad'].includes(p); };
 const POOL_LABEL = { overworld:'extérieurs', interior:'intérieurs', grotto:'grottes', dungeon:'donjons', boss:'salles de boss', oneway:'destinations' };
 
+// Correspondance avec les réglages d'entrées de Ship of Harkinian (js/config.js). SoH ne mélange pas la
+// rivière de la Vallée Gerudo, et « points d'apparition » couvre à la fois le spawn enfant et adulte.
 function isRandomized(e, s){
   if (e.destOnly || e.specialTag) return false;
   switch (e.shuffleTag){
-    case 'spawn':
-      if (e.id === 'spawn_child') return s.spawns === 'child' || s.spawns === 'all';
-      if (e.id === 'spawn_adult') return s.spawns === 'adult' || s.spawns === 'all';
-      return false;
-    case 'overworld': return s.overworld;
-    case 'interior_simple': return s.interiors !== 'off';
-    case 'interior_all': return s.interiors === 'all';
-    case 'hideout': return s.hideout;
-    case 'grotto': return s.grottos;
-    case 'gerudo_river': return s.gerudoRiver;
-    case 'dungeon_simple': return s.dungeons !== 'off';
-    case 'dungeon_ganon': return s.dungeons === 'ganon';
-    case 'ganon_tower': return s.ganonTower;
-    case 'boss_warp_child': case 'boss_warp_adult': return s.bosses !== 'off';
-    case 'warp': return s.warps;
-    case 'owl': return s.owls;
+    case 'spawn': return s.overworldSpawns === 'On';
+    case 'overworld': return s.overworldEntrances === 'On';
+    case 'interior_simple': return s.interiorEntrances !== 'Off';
+    case 'interior_all': return s.interiorEntrances === 'All';
+    case 'hideout': return s.hideoutEntrances === 'On';
+    case 'grotto': return s.grottoEntrances === 'On';
+    case 'dungeon_simple': return s.dungeonEntrances !== 'Off';
+    case 'dungeon_ganon': return s.dungeonEntrances === 'On + Ganon';
+    case 'ganon_tower': return s.bossEntrances !== 'Off' && s.ganonsTowerEntrance === 'On';
+    case 'boss_warp_child': case 'boss_warp_adult': return s.bossEntrances !== 'Off';
+    case 'warp': return s.warpSongs === 'On';
+    case 'owl': return s.owlDrops === 'On';
   }
   return false;
+}
+const isDecoupled = s => s.decoupleEntrances === 'On';
+// Pools mélangés SoH : deux sorties de types différents peuvent s'échanger si chacune appartient à un type
+// dont l'option « Mix … » est activée.
+const MIX_KEY = { overworld:'mixOverworld', interior:'mixInteriors', grotto:'mixGrottos', dungeon:'mixDungeons', boss:'mixBosses' };
+function isMixed(e, s){
+  if (s.mixedEntrancePools !== 'On') return false;
+  const k = e.shuffleTag === 'hideout' ? 'mixThievesHideout' : MIX_KEY[poolOf(e)];
+  return !!k && s[k] === 'On';
 }
 // Une sortie à sens unique (spawn, chant) n'est réellement connue du joueur qu'une fois débloquée dans sa partie :
 // spawn enfant/adulte avec l'âge correspondant accessible, chant avec l'ocarina et le chant lui-même appris.
@@ -243,7 +247,9 @@ function flood(ages, eff, edges){
 /** Âge de départ (Configuration) toujours acquis ; l'autre âge se déduit en vérifiant que le Temple du
  * Temps est atteignable dans l'âge de départ, avec les conditions d'ouverture de la Porte du Temps. */
 function computeAges(store, eff){
-  const settings = store.settings, startAge = settings.startingAge === 'adult' ? 'adult' : 'child';
+  const settings = store.settings;
+  const age = settings.startingAge === 'Random' ? settings.selectedStartingAge : settings.startingAge;
+  const startAge = age === 'Adult' ? 'adult' : 'child';
   const startKey = eff[startAge === 'child' ? 'spawns::spawn_child' : 'spawns::spawn_adult'];
   if (!startKey) return { child: startAge === 'child', adult: startAge === 'adult' };
   const trial = { child: startAge === 'child', adult: startAge === 'adult' };
@@ -258,7 +264,7 @@ function computeAges(store, eff){
       if (!seen.has(id)){ seen.add(id); q.push([ed.to, ed.age]); }
     }
   }
-  const canSwap = seen.has(TOT + '|' + startAge) && canOpenDoorOfTime(settings.openDoorOfTime, store.game.items, store.game.songs);
+  const canSwap = seen.has(TOT + '|' + startAge) && canOpenDoorOfTime(settings.doorOfTime, store.game.items, store.game.songs);
   return startAge === 'child' ? { child:true, adult:canSwap } : { child:canSwap, adult:true };
 }
 
