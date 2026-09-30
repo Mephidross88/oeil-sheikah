@@ -176,7 +176,8 @@ const App = {
     const catOn = c => !cf.hiddenCats[c.cat];
     const ageOn = c => cf.age === 'all' || !c.age || c.age === 'both' || c.age === cf.age;
     const ageKnown = CHECKS.some(c => c.age);
-    const checkAreasC = computed(() => {
+    // Toutes les zones (progression globale), puis celles affichées (recherche, zones terminées masquées).
+    const allCheckAreasC = computed(() => {
       const q = norm(cf.q.trim()), done = store.game.checks, ex = s.excluded;
       return CHECK_AREAS.map(a => {
         const all = CHECKS_BY_AREA[a.id] || [], quest = areaQuest(a.id);
@@ -193,9 +194,21 @@ const App = {
         const complete = tracked.length > 0 && got === tracked.length;
         return { area:a, quest, checks:shown, total:tracked.length, got, byCat, hiddenQuest, complete,
           accessible:null }; // accessible : nombre de checks restants faisables (logique, à venir)
-      }).filter(x => q ? x.checks.length : ((x.total || x.hiddenQuest) && !(cf.hideDoneZones && x.complete)));
+      });
     });
-    const checkStats = computed(() => checkAreasC.value.reduce((r, x) => ({ total:r.total + x.total, got:r.got + x.got }), { total:0, got:0 }));
+    const checkAreasC = computed(() => { const q = cf.q.trim();
+      return allCheckAreasC.value.filter(x => q ? x.checks.length : ((x.total || x.hiddenQuest) && !(cf.hideDoneZones && x.complete))); });
+    // Progression globale des checks suivis (catégories et âge choisis, hors exclus), et par groupe de zones.
+    const checkStats = computed(() => {
+      const r = { total:0, got:0, ow:{ total:0, got:0 }, dg:{ total:0, got:0 }, zonesDone:0, zones:0 };
+      for (const x of allCheckAreasC.value){
+        if (!x.total) continue;
+        const g = x.area.dungeon ? r.dg : r.ow;
+        r.total += x.total; r.got += x.got; g.total += x.total; g.got += x.got; r.zones++; if (x.complete) r.zonesDone++;
+      }
+      r.pct = r.total ? Math.floor(100 * r.got / r.total) : 0;
+      return r;
+    });
     // Compteurs des pastilles de catégorie : restants / total parmi les checks listés (hors filtre de catégorie).
     const catCounts = computed(() => {
       const done = store.game.checks, ex = s.excluded, r = {};
@@ -379,8 +392,7 @@ const App = {
     <nav class="nav">
       <button v-for="v in views" :key="v.id" class="nav-item" :class="{active:ui.view===v.id}" @click="go(v.id)">
         <span v-html="v.icon"></span>{{v.label}}
-        <span v-if="v.id==='entrances'" class="nav-meta">{{stats.mapped}}/{{stats.editable}}</span>
-        <span v-if="v.id==='checks'" class="nav-meta">{{checkStats.got}}/{{checkStats.total}}</span></button>
+        <span v-if="v.id==='entrances'" class="nav-meta">{{stats.mapped}}/{{stats.editable}}</span></button>
     </nav>
 
     <section v-if="ui.view==='entrances'" class="side-sec">
@@ -479,8 +491,23 @@ const App = {
     <!-- ================= ROUTEUR ================= -->
     <!-- ================= CHECKS ================= -->
     <template v-if="ui.view==='checks'">
-      <div class="page-head"><h1>Checks</h1>
-        <p class="lede">{{checkStats.got}} fait{{checkStats.got>1?'s':''}} sur {{checkStats.total}} suivis.</p></div>
+      <div class="checks-head">
+        <div class="page-head"><h1>Checks</h1></div>
+        <!-- Progression globale : checks suivis (catégories et âge choisis, hors exclus) -->
+        <div class="progress-card" :class="{done:checkStats.total && checkStats.got===checkStats.total}">
+          <svg class="pc-ring" viewBox="0 0 44 44" aria-hidden="true"><circle class="pc-track" cx="22" cy="22" r="18"/>
+            <circle class="pc-fill" cx="22" cy="22" r="18" :stroke-dasharray="(113.1*checkStats.got/(checkStats.total||1)) + ' 113.1'"/></svg>
+          <div class="pc-pct">{{checkStats.pct}}<small>%</small></div>
+          <div class="pc-main">
+            <div class="pc-count"><b>{{checkStats.got}}</b> / {{checkStats.total}} <span>checks</span></div>
+            <div class="pc-sub">{{checkStats.total - checkStats.got}} restant{{checkStats.total - checkStats.got > 1 ? 's' : ''}} · {{checkStats.zonesDone}} / {{checkStats.zones}} zones terminées</div>
+            <div class="pc-groups">
+              <span v-if="checkStats.ow.total">Overworld <b>{{checkStats.ow.got}}/{{checkStats.ow.total}}</b></span>
+              <span v-if="checkStats.dg.total">Donjons <b>{{checkStats.dg.got}}/{{checkStats.dg.total}}</b></span>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div class="checks-toolbar">
         <input class="checks-search" type="search" v-model="ui.checks.q" placeholder="Rechercher un check ou une zone…" aria-label="Rechercher un check">

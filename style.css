@@ -310,6 +310,25 @@ svg{display:block}
 /* Page Checks : zones repliables (styles .area des Entrées), liste de checks sur 2 colonnes */
 .checks-search{width:100%;max-width:1240px;min-height:42px;padding:8px 14px;border:1px solid var(--line);border-radius:10px;background:var(--surface);margin-bottom:14px;font-size:15px}
 .check-area{max-width:1240px}
+/* En-tête : titre + carte de progression globale */
+.checks-head{max-width:1240px;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:16px}
+.checks-head .page-head{margin-bottom:0}
+.progress-card{position:relative;display:flex;align-items:center;gap:16px;background:var(--surface);border:1px solid var(--line);
+  border-radius:16px;padding:14px 20px 14px 14px;box-shadow:var(--shadow);min-width:340px}
+.progress-card.done{border-color:var(--green)}
+.pc-ring{width:78px;height:78px;flex:none;transform:rotate(-90deg)}
+.pc-track{fill:none;stroke:var(--surface-2);stroke-width:5}
+.pc-fill{fill:none;stroke:var(--gold);stroke-width:5;stroke-linecap:round;transition:stroke-dasharray .3s}
+.progress-card.done .pc-fill{stroke:var(--green)}
+.pc-pct{position:absolute;left:14px;top:50%;width:78px;margin-top:-14px;text-align:center;font-family:var(--serif);font-size:22px;font-weight:700;line-height:28px}
+.pc-pct small{font-size:13px;margin-left:1px}
+.pc-count{font-family:var(--serif);font-size:30px;line-height:1.05;color:var(--muted)}
+.pc-count b{color:var(--text);font-size:36px}
+.pc-count span{font-size:16px}
+.pc-sub{color:var(--muted);font-size:14px;margin-top:4px}
+.pc-groups{display:flex;gap:14px;margin-top:6px;font-size:13.5px;color:var(--muted)}
+.pc-groups b{color:var(--text);font-variant-numeric:tabular-nums}
+@media (max-width:760px){ .checks-head{flex-direction:column} .progress-card{min-width:0;width:100%} }
 .check-area.complete{opacity:.8}
 /* Barre d'outils : recherche, âge, faits, pastilles de catégorie */
 .checks-toolbar{max-width:1240px;display:flex;flex-direction:column;gap:10px;margin-bottom:16px}

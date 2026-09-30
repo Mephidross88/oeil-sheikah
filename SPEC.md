@@ -19,8 +19,7 @@ Référence du rando : https://wiki.ootrandomizer.com/index.php?title=Entrance_R
 - Interface claire, graphique, en français, utilisable sur mobile.
 
 ## Navigation (panneau de gauche)
-- Accès aux quatre modules : Entrées (anciennement « Tracker », id `entrances`), Routeur, Checks, Configuration
-  (compteur « faits / total » à côté de Checks).
+- Accès aux quatre modules : Entrées (anciennement « Tracker », id `entrances`), Routeur, Checks, Configuration.
 - Dans Entrées uniquement : tout déplier / tout replier, navigation rapide vers les zones, et filtres :
   - Proposer les destinations déjà atteignables ou déjà mappées dans les listes : OFF par défaut.
     Une destination déjà mappée (déjà la cible d'une autre sortie, y compris pour les sorties à sens
@@ -380,6 +379,9 @@ check) ; règles dans `js/checks.js`.
   Les checks suivis = listés, non exclus, dans les catégories et l'âge choisis : compteurs, barres et zones
   terminées en dépendent. Panneau de gauche : tout déplier / replier, « Afficher les checks exclus », « Toujours
   afficher les Skulltulas », zones groupées Overworld / Donjons avec mini-barre et restants (✓ si terminée).
+- **Progression globale** : grand cadre en haut à droite de la page — anneau de pourcentage, « faits / total »
+  en grand, restants, zones terminées, et détail Overworld / Donjons. Il porte sur tous les checks suivis
+  (catégories et âge choisis, hors exclus), indépendamment de la recherche et des zones masquées.
 - **Zones** : repliables (présentation des Entrées) ; en-tête avec badge V / MQ / ? (donjons), restants par catégorie
   (icône + nombre), barre et « faits / suivis », « Terminée » quand tout est fait ; emplacement prévu pour le nombre
   de checks faisables (logique). Checks sur 2 colonnes (1 sur mobile) : icône de catégorie, libellé, pastille
