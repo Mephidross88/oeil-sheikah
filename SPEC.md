@@ -89,8 +89,8 @@ de SoH) ; pools mélangés : deux types s'échangent si leurs deux options « Mi
 
 **Panneau Objets piloté par la configuration** : capacités (une option par capacité), langues (« noix
 Blabla »), touches d'ocarina, canne à pêche, Triforce (chasse ≠ Non, maximum = total de morceaux), bouton
-« Clés des portes » (portes de l'overworld verrouillées), « Trous à haricots » (âmes de haricot), « Âmes de
-boss », cases de donjon (ce qui est « Au départ » — carte et boussole, petites clés, clé de boss, clé de boss
+« Clés des portes » (portes de l'overworld verrouillées), « Trous à haricots » (âmes de haricot), âme du
+boss dans chaque bloc de donjon (âmes de boss), cases de donjon (ce qui est « Au départ » — carte et boussole, petites clés, clé de boss, clé de boss
 de Ganon — reste affiché, plein et non cliquable, pour éviter oublis et erreurs : compteur « n/n », ou « ✓ »
 si la version du donjon est inconnue ; pas de clés du Repaire si charpentiers libres, mais la Carte Gerudo
 reste toujours) ; un cadre vide
@@ -239,10 +239,8 @@ Puis :
    branchés à `sat()`). À droite, dans une carte étroite distincte (ces check-lists n'ont pas de lien
    logique avec les capacités/langues, seule la mise en page les rapproche ; `ITEMS_PAGE.checklistButtons`),
    les boutons carrés « Clés des portes » (option « Lock Overworld Doors »), « Trous à haricots » (option « Âmes
-   de haricot ») et « Âmes de boss » (option « Âmes de boss » : 8 boss, + Ganon en « Oui + Ganon » ; icône
-   `icons/dungeons/boss_soul.png`), chacun visible seulement si son option est active (carte masquée s'il n'en
-   reste aucun ; lieux conditionnels via `[libellé, visible(s)]` dans `checklist()`, filtrés par
-   `checklistLocations`) : compteur obtenu/total, cliquables pour
+   de haricot »), chacun visible seulement si son option est active (carte masquée s'il n'en reste aucun) :
+   compteur obtenu/total, cliquables pour
    ouvrir une modale de pointage — liste de lieux à cocher, 2 colonnes, bascule au clic
    (`toggleChecklist`, `checklistStats` dans `js/state.js`). Catalogue des lieux dans `CHECKLISTS`
    (`js/items.js`). **Purement informatif pour l'instant** : pas encore branché au Routeur (voir encadré
@@ -254,7 +252,9 @@ Puis :
    Puits ; Gymnase Gerudo – Repaire des Voleurs ; Forêt – Feu ; Eau – Ombre ; Esprit – Caverne de Glace ;
    puis Château de Ganon seul en dernier, centré à la largeur normale, comme donjon final. Chaque bloc est
    teinté à la couleur du thème de son donjon (`color` dans `DUNGEONS` : bordure pleine, fond atténué). Tous
-   les blocs ont la même hauteur (titre + 2 lignes de cases) : 1re ligne carte et boussole, 2e ligne toutes les
+   les blocs ont la même hauteur (titre + 2 lignes de cases) : 1re ligne carte, boussole et âme du boss (option
+   « Âmes de boss » : les 8 donjons à boss, plus le Château de Ganon en « Oui + Ganon » ; `boss` dans `DUNGEONS`,
+   icône `icons/dungeons/boss_soul.png`, infobulle « Âme de <boss> »), 2e ligne toutes les
    clés (petites clés ou trousseau, clé de boss, Carte Gerudo pour le Repaire) ; une ligne sans case disparaît
    et ce qui reste est centré verticalement. Chaque bloc n'affiche que ce que le donjon possède : carte,
    boussole, petites clés (compteur, clic augmente/diminue), clé de boss (la Caverne de Glace n'a ni petites

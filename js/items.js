@@ -230,7 +230,6 @@ const ITEMS_PAGE = {
   checklistButtons:[
     { id:'keys', icon:'icons/dungeons/key.png', visible:s => s.lockOverworldDoors === 'On' },
     { id:'beans', icon:'icons/items/bean.png', visible:s => s.shuffleBeanSouls === 'On' },
-    { id:'bossSouls', icon:'icons/dungeons/boss_soul.png', visible:s => s.shuffleBossSouls !== 'Off' },
   ],
   tradeButtons:[
     { id:'child', title:'Échanges — Enfant', icon:'maskOfTruth' },
@@ -266,21 +265,21 @@ const tierLabel = it => it.sizes ? null : (ROMAN[store.game[it.path][it.key]] ||
 // NOTE : purement informatif pour l'instant — pas encore branché à Entrées/Routeur (`sat()`/`makeEdges()`).
 // `maxKeys` = valeurs vanilla par défaut, à ajuster une fois la logique Ship of Harkinian précisée.
 // `color` : teinte du thème du donjon (bordure du bloc ; le fond en est une version très atténuée).
-// keyRing : réglage SoH « trousseau de clés » du donjon ; quest : réglage SoH du statut Vanilla / Master Quest ; soh : nom du donjon dans la liste
+// boss : nom du boss (âme de boss, option « Âmes de boss ») ; keyRing : réglage SoH « trousseau de clés » du donjon ; quest : réglage SoH du statut Vanilla / Master Quest ; soh : nom du donjon dans la liste
 // « masterQuestDungeons » d'un spoiler SoH ; maxKeys / mqKeys : petites clés en Vanilla / en MQ (dungeon.cpp).
 const DUNGEONS = [
-  { id:'dekuTree', title:'Arbre Mojo', color:'#7aa83c', map:true, compass:true, quest:'mqDekuTree', soh:'Deku Tree' },
-  { id:'dodongosCavern', title:'Caverne Dodongo', color:'#b0602c', map:true, compass:true, quest:'mqDodongosCavern', soh:"Dodongo's Cavern" },
-  { id:'jabuJabu', title:'Ventre de Jabu-Jabu', color:'#d0708f', map:true, compass:true, quest:'mqJabuJabu', soh:"Jabu Jabu's Belly" },
+  { id:'dekuTree', boss:'Reine Gohma', title:'Arbre Mojo', color:'#7aa83c', map:true, compass:true, quest:'mqDekuTree', soh:'Deku Tree' },
+  { id:'dodongosCavern', boss:'Roi Dodongo', title:'Caverne Dodongo', color:'#b0602c', map:true, compass:true, quest:'mqDodongosCavern', soh:"Dodongo's Cavern" },
+  { id:'jabuJabu', boss:'Barinade', title:'Ventre de Jabu-Jabu', color:'#d0708f', map:true, compass:true, quest:'mqJabuJabu', soh:"Jabu Jabu's Belly" },
   { id:'bottomOfTheWell', title:'Fond du Puits', color:'#6c5f7e', map:true, compass:true, maxKeys:3, mqKeys:2, keyRing:'keyRingBottomOfTheWell', quest:'mqBottomOfTheWell', soh:'Bottom of the Well' },
   { id:'gerudoTrainingGround', title:'Gymnase Gerudo', color:'#c9a03a', maxKeys:9, mqKeys:3, keyRing:'keyRingGerudoTrainingGround', quest:'mqGerudoTrainingGround', soh:'Gerudo Training Ground' },
   { id:'gerudoFortress', title:'Repaire des Voleurs', color:'#c0674a', maxKeys:4, keyRing:'keyRingGerudoFortress', card:'gerudoCard' },
-  { id:'ganonsCastle', title:'Château de Ganon', color:'#8e2447', maxKeys:2, mqKeys:3, bossKey:true, keyRing:'keyRingGanonsCastle', quest:'mqGanonsCastle', soh:"Ganon's Castle" },
-  { id:'forestTemple', title:'Forêt', color:'#2e7d3c', map:true, compass:true, maxKeys:5, mqKeys:6, bossKey:true, keyRing:'keyRingForestTemple', quest:'mqForestTemple', soh:'Forest Temple' },
-  { id:'fireTemple', title:'Feu', color:'#c8372d', map:true, compass:true, maxKeys:8, mqKeys:5, bossKey:true, keyRing:'keyRingFireTemple', quest:'mqFireTemple', soh:'Fire Temple' },
-  { id:'waterTemple', title:'Eau', color:'#2f6fb8', map:true, compass:true, maxKeys:6, mqKeys:2, bossKey:true, keyRing:'keyRingWaterTemple', quest:'mqWaterTemple', soh:'Water Temple' },
-  { id:'shadowTemple', title:'Ombre', color:'#6b3f9a', map:true, compass:true, maxKeys:5, mqKeys:6, bossKey:true, keyRing:'keyRingShadowTemple', quest:'mqShadowTemple', soh:'Shadow Temple' },
-  { id:'spiritTemple', title:'Esprit', color:'#d9822b', map:true, compass:true, maxKeys:5, mqKeys:7, bossKey:true, keyRing:'keyRingSpiritTemple', quest:'mqSpiritTemple', soh:'Spirit Temple' },
+  { id:'ganonsCastle', boss:'Ganon', title:'Château de Ganon', color:'#8e2447', maxKeys:2, mqKeys:3, bossKey:true, keyRing:'keyRingGanonsCastle', quest:'mqGanonsCastle', soh:"Ganon's Castle" },
+  { id:'forestTemple', boss:'Ganon Spectral', title:'Forêt', color:'#2e7d3c', map:true, compass:true, maxKeys:5, mqKeys:6, bossKey:true, keyRing:'keyRingForestTemple', quest:'mqForestTemple', soh:'Forest Temple' },
+  { id:'fireTemple', boss:'Volvagia', title:'Feu', color:'#c8372d', map:true, compass:true, maxKeys:8, mqKeys:5, bossKey:true, keyRing:'keyRingFireTemple', quest:'mqFireTemple', soh:'Fire Temple' },
+  { id:'waterTemple', boss:'Morpha', title:'Eau', color:'#2f6fb8', map:true, compass:true, maxKeys:6, mqKeys:2, bossKey:true, keyRing:'keyRingWaterTemple', quest:'mqWaterTemple', soh:'Water Temple' },
+  { id:'shadowTemple', boss:'Bongo Bongo', title:'Ombre', color:'#6b3f9a', map:true, compass:true, maxKeys:5, mqKeys:6, bossKey:true, keyRing:'keyRingShadowTemple', quest:'mqShadowTemple', soh:'Shadow Temple' },
+  { id:'spiritTemple', boss:'Twinrova', title:'Esprit', color:'#d9822b', map:true, compass:true, maxKeys:5, mqKeys:7, bossKey:true, keyRing:'keyRingSpiritTemple', quest:'mqSpiritTemple', soh:'Spirit Temple' },
   { id:'iceCavern', title:'Caverne de Glace', color:'#4fa9c7', map:true, compass:true, quest:'mqIceCavern', soh:'Ice Cavern' },
 ];
 const DUNGEON_BY_ID = {};
@@ -296,6 +295,8 @@ function dungeonCells(id, s){
     keys:!!d.maxKeys && !(id === 'gerudoFortress' && free),
     bossKey:!!d.bossKey,
     card:!!d.card,
+    // âme du boss (option « Âmes de boss ») ; celle de Ganon seulement en « Oui + Ganon »
+    soul:!!d.boss && (id === 'ganonsCastle' ? s.shuffleBossSouls === 'On + Ganon' : s.shuffleBossSouls !== 'Off'),
     // statut Vanilla / MQ à noter : seulement s'il n'est pas imposé par la configuration
     quest:!!d.quest && !configQuest(id, s),
   };
@@ -349,11 +350,7 @@ const visibleKeys = keys => keys.filter(k => itemVisible(ITEM_BY_KEY[k]));
 // Purement informatif pour l'instant (voir remarque ci-dessus) : une simple liste de lieux à cocher,
 // pas encore reliée à de nouvelles connexions dans le graphe du Routeur.
 function slugify(s){ return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, ''); }
-// Libellé seul, ou [libellé, visible(settings)] pour un lieu qui n'existe qu'avec certaines options.
-function checklist(title, labels){
-  return { title, locations:labels.map(l => Array.isArray(l) ? { id:slugify(l[0]), label:l[0], visible:l[1] } : { id:slugify(l), label:l }) };
-}
-const checklistLocations = (name, s) => CHECKLISTS[name].locations.filter(l => !l.visible || l.visible(s));
+function checklist(title, labels){ return { title, locations:labels.map(label => ({ id:slugify(label), label })) }; }
 const CHECKLISTS = {
   keys:checklist('Clés des portes', [
     'Poste de garde', 'Bazar du marché', 'Apothicaire du marché', 'Foire aux masques',
@@ -367,10 +364,5 @@ const CHECKLISTS = {
     'Cratère du Péril', 'Mont du Péril', 'Colosse du Désert', 'Vallée Gerudo',
     'Cimetière', 'Forêt Kokiri', 'Lac Hylia', 'Pont des Bois Perdus',
     'Théâtre Mojo', 'Fleuve Zora',
-  ]),
-  // Âmes de boss (option « Shuffle Boss Souls ») : un boss ne peut être combattu qu'une fois son âme trouvée.
-  bossSouls:checklist('Âmes de boss', [
-    'Reine Gohma', 'Roi Dodongo', 'Barinade', 'Ganon Spectral', 'Volvagia', 'Morpha', 'Bongo Bongo', 'Twinrova',
-    ['Ganon', s => s.shuffleBossSouls === 'On + Ganon'],
   ]),
 };

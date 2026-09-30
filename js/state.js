@@ -3,7 +3,7 @@ const STORE_KEY = 'oeil-sheikah-v1';
 function defaults(){
   const game = { items:{}, songs:{}, dungeons:{}, checklists:{} };
   ITEM_GROUPS.forEach(g => g.items.forEach(it => { game[g.path][it.key] = it.locked ? true : it.kind === 'bool' ? false : 0; }));
-  DUNGEONS.forEach(d => { game.dungeons[d.id] = { map:false, compass:false, keys:0, bossKey:false, quest:'', keyRing:'', ringGot:false }; });
+  DUNGEONS.forEach(d => { game.dungeons[d.id] = { map:false, compass:false, keys:0, bossKey:false, soul:false, quest:'', keyRing:'', ringGot:false }; });
   Object.entries(CHECKLISTS).forEach(([name, c]) => {
     game.checklists[name] = {};
     c.locations.forEach(loc => { game.checklists[name][loc.id] = false; });
@@ -182,7 +182,7 @@ function tradeStats(id){
 // pas encore branché au Routeur.
 function toggleChecklist(name, id){ const c = store.game.checklists[name]; c[id] = !c[id]; }
 function checklistStats(name){
-  const c = store.game.checklists[name], locations = checklistLocations(name, store.settings);
+  const c = store.game.checklists[name], locations = CHECKLISTS[name].locations;
   return { got:locations.filter(l => c[l.id]).length, total:locations.length };
 }
 

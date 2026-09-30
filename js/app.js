@@ -55,7 +55,7 @@ const App = {
     const checklistModal = computed(() => {
       if (!String(modal.value).startsWith('checklist-')) return null;
       const name = modal.value.slice('checklist-'.length), c = CHECKLISTS[name], st = checklistStats(name);
-      return { name, title:c.title, locations:checklistLocations(name, s), got:st.got, total:st.total };
+      return { name, title:c.title, locations:c.locations, got:st.got, total:st.total };
     });
     function openChecklist(name){ modal.value = 'checklist-' + name; }
 
@@ -629,10 +629,12 @@ const App = {
             <span v-if="DUNGEON_BY_ID[id].quest" class="dg-badge" :class="questClass(id)">{{questLabel(id)}}</span>
             <div class="dg-name">{{DUNGEON_BY_ID[id].title}}</div>
             <div class="dg-cells">
-              <!-- 1re ligne : carte et boussole ; 2e ligne : toutes les clés (et la Carte Gerudo) -->
-              <div v-if="cells(id).map || cells(id).compass" class="dg-line">
+              <!-- 1re ligne : carte, boussole et âme du boss ; 2e ligne : toutes les clés (et la Carte Gerudo) -->
+              <div v-if="cells(id).map || cells(id).compass || cells(id).soul" class="dg-line">
                 <button v-if="cells(id).map" type="button" class="dg-flag" :title="atStart(id).maps ? 'Carte (dès le départ)' : 'Carte'" :class="{on:atStart(id).maps || store.game.dungeons[id].map, fixed:atStart(id).maps}" :disabled="atStart(id).maps" @click.stop="toggleDungeonFlag(id,'map')" @contextmenu.stop.prevent><img src="icons/dungeons/map.png" alt=""></button>
                 <button v-if="cells(id).compass" type="button" class="dg-flag" :title="atStart(id).maps ? 'Boussole (dès le départ)' : 'Boussole'" :class="{on:atStart(id).maps || store.game.dungeons[id].compass, fixed:atStart(id).maps}" :disabled="atStart(id).maps" @click.stop="toggleDungeonFlag(id,'compass')" @contextmenu.stop.prevent><img src="icons/dungeons/compass.png" alt=""></button>
+                <button v-if="cells(id).soul" type="button" class="dg-flag" :title="'Âme de ' + DUNGEON_BY_ID[id].boss" :class="{on:store.game.dungeons[id].soul}"
+                  @click.stop="toggleDungeonFlag(id,'soul')" @contextmenu.stop.prevent><img src="icons/dungeons/boss_soul.png" alt=""></button>
               </div>
               <div v-if="cells(id).keys || cells(id).bossKey || cells(id).card" class="dg-line">
                 <button v-if="cells(id).keys && dungeonKeyRing(id)!==true" type="button" class="dg-keys" :title="keysTitle(id)" @click.stop="addDungeonKeys(id,1)" @contextmenu.stop.prevent="addDungeonKeys(id,-1)"
