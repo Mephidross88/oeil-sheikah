@@ -59,6 +59,20 @@ l'utilisateur ; ne pas se fier à la branche `develop`, qui a d'autres options).
 - **Import depuis un spoiler SoH** (fichier `.json`) : lit **uniquement** `settings` et `enabledTricks`,
   jamais l'emplacement des objets. Signale les options ou valeurs inconnues et une version autre que 9.2.3 ;
   les options ignorées volontairement passent en silence. Résumé « N options, M astuces ».
+- **Proposition d'import** : au premier chargement et après « Tout remettre à zéro » (nouvelle seed, la
+  configuration étant conservée), une fenêtre propose d'importer un spoiler (même case « tirages du seed »),
+  puis affiche le résumé. Elle revient à chaque chargement (`ui.spoilerPrompt`) tant qu'on n'a ni importé un
+  spoiler (depuis cette fenêtre ou la Configuration) ni répondu « Non, merci » ; la fermer (croix, Échap) ne
+  fait que la reporter au prochain chargement.
+- **Tirages du seed à l'import** (case « Importer aussi les tirages du seed : donjons MQ et trousseaux (peut
+  spoiler) », décochée par défaut, mémorisée dans `ui.importQuests`), seulement pour ce que la configuration
+  laisse au hasard :
+  - version des donjons : liste `masterQuestDungeons` du spoiler (absente s'il n'y a aucun donjon MQ) ;
+  - trousseaux en « Aléatoire » / « Nombre » : SoH écrit le tirage réel dans les réglages par donjon du spoiler.
+    Ces réglages sont toujours remis à leur valeur par défaut (sinon la Configuration révélerait le tirage) ; le
+    tirage n'est gardé, dans la partie (`game.dungeons[id].keyRing` = 'yes'/'no'), que si la case est cochée.
+    En « Sélection » + « Aléatoire » par donjon, le spoiler ne contient pas le résultat : reste inconnu.
+  Case décochée : ces informations restent inconnues (ou ce que le joueur a noté).
 - **Objets de départ** (« Start with… » : ocarina, bouclier Mojo, épées Kokiri et de Légende, bâtons, noix,
   haricots, 12 chants, symboles de Skulltula) : réglages stockés mais sans onglet (onglet `starting` marqué
   `hidden`) ; à l'import, ils sont cochés dans le panneau Objets (`applyStartingItems`), sans jamais
@@ -73,9 +87,45 @@ de SoH) ; pools mélangés : deux types s'échangent si leurs deux options « Mi
 
 **Panneau Objets piloté par la configuration** : capacités (une option par capacité), langues (« noix
 Blabla »), touches d'ocarina, canne à pêche, Triforce (chasse ≠ Non, maximum = total de morceaux), bouton
-« Clés des portes » (portes de l'overworld verrouillées), cases de donjon (rien pour ce qui est « Au
-départ » ; ni clés ni Carte Gerudo du Repaire si charpentiers libres) ; un cadre ou un donjon sans case
-visible disparaît.
+« Clés des portes » (portes de l'overworld verrouillées), « Trous à haricots » (âmes de haricot), « Âmes de
+boss », cases de donjon (ce qui est « Au départ » — carte et boussole, petites clés, clé de boss, clé de boss
+de Ganon — reste affiché, plein et non cliquable, pour éviter oublis et erreurs : compteur « n/n », ou « ✓ »
+si la version du donjon est inconnue ; pas de clés du Repaire si charpentiers libres, mais la Carte Gerudo
+reste toujours) ; un cadre vide
+disparaît, de même qu'un bloc de donjon vide (voir ci-dessous).
+
+**Version des donjons (Vanilla / Master Quest)** : les 12 donjons (pas le Repaire des Voleurs) ont une version
+qui change le nombre de petites clés attendues (et plus tard les checks et la logique). `configQuest` la déduit
+de la configuration, comme SoH : « Aucun » → tous Vanilla ; « Sélection » → le choix par donjon (« Aléatoire »
+→ inconnue) ; « Nombre fixe » à 0 ou 12 → tous Vanilla / tous MQ ; avec « Imposer certains donjons », les
+donjons imposés sont fixés et ceux laissés au hasard le sont aussi si le nombre voulu est déjà atteint (tous
+Vanilla) ou exige tous les candidats (tous MQ) ; sinon inconnue. La version est **toujours** affichée, en
+badge dans le coin supérieur droit du cadre : « ? » (neutre, pointillés), « V » (rouge), « MQ » (bleu), pastille
+pleine lisible sur toutes les teintes de donjon. Un donjon sans aucune case à suivre disparaît, sauf si sa
+version reste à noter (tirée au sort) ; une rangée réduite à un seul donjon est centrée. Version tirée au sort : clic sur le cadre (hors cases carte, boussole, clés…) → version suivante
+(« ? » → « V » → « MQ »), clic droit → précédente, stockée dans `game.dungeons[id].quest`. Version imposée par
+la configuration : cadre non cliquable, infobulle « imposé par la configuration » ; tant qu'elle est inconnue, le compteur affiche « n/? » si
+Vanilla et MQ diffèrent. Petites clés Vanilla / MQ (dungeon.cpp de SoH) : Puits 3/2, Gymnase 9/3, Forêt 5/6,
+Feu 8/5, Eau 6/2, Ombre 5/6, Esprit 5/7, Château de Ganon 2/3. Repaire des Voleurs : 4 clés, 1 seule avec des
+charpentiers « Rapides ».
+
+**Trousseaux de clés** (Puits, Gymnase, Repaire, Forêt, Feu, Eau, Ombre, Esprit, Ganon) : un trousseau remplace
+toutes les petites clés du donjon par un seul objet. Possible seulement si les petites clés sont mélangées (ni
+« Vanilla » ni « Au départ ») ; pour le Repaire, charpentiers « Normal » et clés de la Forteresse mélangées.
+`configKeyRing` : Non → aucun ; « Sélection » → Oui / Non par donjon, « Aléatoire » → inconnu ; « Nombre » à 0 →
+aucun, au nombre de donjons possibles → tous ; « Aléatoire » ou autre nombre → inconnu. Dans le bloc du donjon :
+trousseau → une case trousseau (obtenu ou non) à la place du compteur ; pas de trousseau → le compteur ;
+inconnu → le compteur plus une case trousseau grisée. Déduction (`dungeonKeyRing`) : cocher le trousseau indique
+que le donjon en a un (le compteur disparaît) ; noter une petite clé indique qu'il n'en a pas (la case trousseau
+disparaît) ; revenir à 0 clé / décocher → de nouveau inconnu. Icône `icons/dungeons/keyring.png`.
+
+**Clé squelette** (option « Skeleton Key ») : un seul objet, ajouté en plus des petites clés, qui ouvre toutes
+les serrures de tous les donjons. Tuile `skeletonKey` (`icons/dungeons/skeleton_key.png`) à droite du Château de
+Ganon dans la carte des donjons (seule sur une dernière rangée si le bloc de Ganon est masqué), visible
+seulement si l'option est active. Obtenue : comme elle ouvre toutes les serrures à petite clé (donjons, Repaire,
+portes de l'overworld — `SmallKeys` et `CanOpenOverworldDoor` dans logic.cpp de SoH), les compteurs de petites
+clés, les trousseaux et le bouton « Clés des portes » disparaissent (les clés de boss restent) ; les blocs
+devenus vides disparaissent aussi. `dungeonKeysDone` la compte comme toutes les clés obtenues.
 
 ## Âges et progression calculés
 Aucun réglage manuel : tout se déduit de la Configuration et de l'inventaire (panneau Objets), comme dans
@@ -99,7 +149,7 @@ en haut du panneau Objets (pastilles vertes/grises).
   persistante. Les alternatives Grappin/Bottes des Airs restent gérées séparément dans les connexions
   (`areas-data.js`), indépendamment de ce raccourci.
 - **Pont/Carte Gerudo** : Carte Gerudo obtenue (objet manuel, la libération des charpentiers est une suite
-  d'épreuves internes au repaire, hors du graphe de sorties) OU charpentiers « Libres » en Configuration.
+  d'épreuves internes au repaire, hors du graphe de sorties), y compris avec des charpentiers « Libres ».
 
 ## Panneau Objets (droite)
 Zone latérale droite, étroite (repliable sur mobile via un bouton dans la barre du haut), pas une page à
@@ -128,7 +178,8 @@ dans l'ordre :
    Morceaux de Triforce au centre (visible seulement si « Chasse à la Triforce » est activée en
    Configuration ; plafond = réglage associé) ; à droite de l'hexagone, les 3 Pierres Spirituelles, puis,
    séparées par un trait, deux colonnes de tuiles d'objet cliquables : Double Défense, Réceptacles de Cœur,
-   Quarts de Cœur / Magie (progressif : Simple → Double → Infinie), Skulltulas d'Or. Purement informatifs,
+   Quarts de Cœur / Magie (progressif : Simple → Double, puis Infinie seulement avec « Améliorations
+   infinies »), Skulltulas d'Or. Purement informatifs,
    sans effet sur le Routeur (sauf Magie ≥ 1, utilisée par `sat()`).
 2. **Équipement**, sur toute la largeur (5 colonnes de tuiles de même taille) : quatre chaînes de tuiles
    reliées — Épée Kokiri → de Légende → Biggoron (3 objets distincts, pas un objet progressif — dans le jeu
@@ -136,14 +187,18 @@ dans l'ordre :
    d'échange), Bouclier Mojo → Hylien → Miroir (idem), Bottes Kokiri → de Plomb → des Airs, Tunique
    Kokiri → Goron → Zora ; puis, après un séparateur pleine hauteur, les progressifs (Force : Bracelet Goron
    → Gantelets d'Argent → Gantelets d'Or et Écaille de Zora : Argent → Or, pastille de palier en chiffres
-   romains ; Bourse : pastille de capacité 99 (par défaut) → 200 → 500 → 999).
+   romains ; Bourse : pastille de capacité 99 (par défaut) → 200 → 500, puis 999 seulement avec l'option
+   « Bourse de magnat », puis ∞ seulement avec « Améliorations infinies »).
 3. **Inventaire**, en cadres d'une même teinte (celle du fond de l'hexagone des médaillons), deux par ligne (`ITEMS_PAGE.boxRows`) : Enfant (Bâton
    Mojo, Lance-Pierre, Boomerang) + Commun (Bombes, Missiles, Noix Mojo) ; Adulte (Grappin, Arc, Masse des
    Titans, avec les Flèches de Feu/Glace/Lumière en sous-rangée reliée) + Utilitaires (en 2×2 : Monocle de
    Vérité, Haricots Magiques, Pierre de Souffrance, Canne à Pêche — `cols:2`) ; Flacons (Bouteilles, Lettre
    de Ruto) + Sorts (Feu de Din, Vent de Farore, Amour de Nayru). Objets à munitions, progressifs avec pastille de capacité et un
-   dernier palier « Infini » (∞) : Bâton Mojo 10 → 20 → 30 → ∞, Lance-Pierre 30 → 40 → 50 → ∞, Noix Mojo
-   20 → 30 → 40 → ∞, Bombes 30 → 40 → 50 → ∞, Missiles 30 → 40 → 50 → ∞ (l'Arc reste 30 → 40 → 50).
+   palier « Infini » (∞) selon l'option « Améliorations infinies » : Bâton Mojo 10 → 20 → 30, Lance-Pierre,
+   Arc, Bombes et Missiles 30 → 40 → 50, Noix Mojo 20 → 30 → 40. « Non » : pas d'infini ; « Progressif » : ∞
+   après le dernier palier ; « Condensé » : ∞ directement après le 1er palier (ex. Arc 30 → ∞). Missiles : ∞
+   seulement avec des sacs de missiles progressifs. Les paliers atteignables viennent de `levels(settings)`
+   (`itemLevels`) ; la valeur stockée reste l'indice dans `stages` (4 = infini partout).
 4. **Chants** (sans titre) : une rangée des 7 chants (Berceuse de Zelda, Chant d'Epona, Chant de Saria,
    Chant du Soleil, Chant du Temps, Chant des Tempêtes, Chant de l'Épouvantail), puis une rangée des 6 chants
    de téléportation (Menuet des Bois, Boléro du Feu, Sérénade de l'Eau, Requiem des Esprits, Nocturne de
@@ -173,7 +228,11 @@ Puis :
    attendues dans `icons/abilities/` et `icons/languages/`), purement informatifs pour l'instant (pas encore
    branchés à `sat()`). À droite, dans une carte étroite distincte (ces check-lists n'ont pas de lien
    logique avec les capacités/langues, seule la mise en page les rapproche ; `ITEMS_PAGE.checklistButtons`),
-   les boutons carrés « Clés des portes » et « Trous à haricots » : compteur obtenu/total, cliquables pour
+   les boutons carrés « Clés des portes » (option « Lock Overworld Doors »), « Trous à haricots » (option « Âmes
+   de haricot ») et « Âmes de boss » (option « Âmes de boss » : 8 boss, + Ganon en « Oui + Ganon » ; icône
+   `icons/dungeons/boss_soul.png`), chacun visible seulement si son option est active (carte masquée s'il n'en
+   reste aucun ; lieux conditionnels via `[libellé, visible(s)]` dans `checklist()`, filtrés par
+   `checklistLocations`) : compteur obtenu/total, cliquables pour
    ouvrir une modale de pointage — liste de lieux à cocher, 2 colonnes, bascule au clic
    (`toggleChecklist`, `checklistStats` dans `js/state.js`). Catalogue des lieux dans `CHECKLISTS`
    (`js/items.js`). **Purement informatif pour l'instant** : pas encore branché au Routeur (voir encadré
@@ -184,13 +243,16 @@ Puis :
    dans l'ordre de `ITEMS_PAGE.dungeons.rows` : Arbre Mojo – Caverne Dodongo ; Ventre de Jabu-Jabu – Fond du
    Puits ; Gymnase Gerudo – Repaire des Voleurs ; Forêt – Feu ; Eau – Ombre ; Esprit – Caverne de Glace ;
    puis Château de Ganon seul en dernier, centré à la largeur normale, comme donjon final. Chaque bloc est
-   teinté à la couleur du thème de son donjon (`color` dans `DUNGEONS` : bordure pleine, fond atténué). Chaque bloc n'affiche que ce que le donjon possède : carte,
+   teinté à la couleur du thème de son donjon (`color` dans `DUNGEONS` : bordure pleine, fond atténué). Tous
+   les blocs ont la même hauteur (titre + 2 lignes de cases) : 1re ligne carte et boussole, 2e ligne toutes les
+   clés (petites clés ou trousseau, clé de boss, Carte Gerudo pour le Repaire) ; une ligne sans case disparaît
+   et ce qui reste est centré verticalement. Chaque bloc n'affiche que ce que le donjon possède : carte,
    boussole, petites clés (compteur, clic augmente/diminue), clé de boss (la Caverne de Glace n'a ni petites
    clés ni clé de boss) — voir
    `DUNGEONS`/`DUNGEON_BY_ID` dans
    `js/items.js`, mutations `toggleDungeonFlag`/`addDungeonKeys` dans `js/state.js`). **Purement informatif
-   pour l'instant**, comme les check-lists ci-dessus — `maxKeys` reprend les valeurs vanilla par défaut, à
-   ajuster une fois la logique Ship of Harkinian précisée. Exception : la Carte Gerudo (objet `gerudoCard`
+   pour l'instant**, comme les check-lists ci-dessus — petites clés attendues `maxKeys` (Vanilla) / `mqKeys`
+   (MQ) selon la version du donjon (pastille à côté du nom, voir Configuration > Version des donjons). Exception : la Carte Gerudo (objet `gerudoCard`
    d'`ITEM_GROUPS`, déjà utilisé par la logique) est affichée sous les petites clés du Repaire, à la manière
    d'une clé de boss (champ `card` du donjon dans `DUNGEONS`), clic = coche/décoche.
 

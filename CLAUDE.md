@@ -25,7 +25,7 @@ et le mettre à jour quand une règle change.
      l'inventaire (`deriveGame`, `canOpenDoorOfTime`), pools de randomisation, `computeEff`, graphe de
      déplacement (`makeEdges`, `flood`, `computeAges`), `shortest` (Dijkstra).
   5. `js/items.js` : `ITEM_GROUPS` (catalogue du panneau Objets, source de vérité des métadonnées et des
-     clés de sauvegarde) et ses helpers (`itemMax`, `itemVisible`, `visibleKeys`, `dungeonCells` — visibilité
+     clés de sauvegarde) et ses helpers (`itemMax`, `itemVisible`, `visibleKeys`, `dungeonCells`, `configQuest`, `configKeyRing` — visibilité
      pilotée par `store.settings`) ; `ITEM_BY_KEY` (lookup clé → objet) et
      `ITEMS_PAGE` (mise en page du panneau — quels objets dans quel bloc visuel, sans redéfinir leurs
      métadonnées) ; `DUNGEONS`/`DUNGEON_BY_ID` (carte/boussole/petites clés/clé de boss par donjon) et
@@ -36,7 +36,7 @@ et le mettre à jour quand une règle change.
      (`setMapping`, `clearMapping`, `candidatesFor`), les helpers de tuile d'objet partagés par `App` et
      `ItemTile` (`itemActive`, `iconSrc`, `itemTitle`, `itemMaxed`, `clickItem`, `rightClickItem`), et les
      mutations des check-lists/donjons (`toggleChecklist`, `checklistStats`, `toggleDungeonFlag`,
-     `addDungeonKeys`), et `applyStartingItems` (objets de départ de la configuration → panneau Objets).
+     `addDungeonKeys`, `dungeonQuest`/`dungeonMaxKeys`/`cycleDungeonQuest` — version Vanilla/MQ, `dungeonKeyRing`/`toggleKeyRing`/`dungeonKeysDone` — trousseaux et clé squelette), et `applyStartingItems` (objets de départ de la configuration → panneau Objets).
   7. `js/components.js` : composants Vue réutilisables (`TypeIcon`, `Seg`, `DestPicker`, `ItemTile`).
   8. `js/app.js` : le composant racine `App` (template complet, dont le panneau Objets et ses modales de
      pointage) + `createApp(...).mount('#app')`.

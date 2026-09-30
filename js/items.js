@@ -7,6 +7,13 @@
 // `neverEmpty:true` (objet `level` uniquement) : le palier 0 est déjà un objet réellement possédé (pas
 // « aucun »), donc jamais affiché grisé — mais reste augmentable/diminuable normalement (ex. Bourse : le
 // palier de base à 99 rubis n'est ni un choix ni supprimable, contrairement aux paliers supérieurs).
+// `levels(settings)` (objet `level`) : paliers atteignables selon la configuration, en indices de `stages`
+// dans l'ordre de progression (par défaut tous). La valeur stockée reste un indice de `stages`, donc un palier
+// garde toujours le même sens (ex. 4 = infini) quelle que soit la configuration.
+// Paliers de capacité avec « Améliorations infinies » (item_pool.cpp de SoH) : « Progressif » ajoute l'infini
+// après le dernier palier normal ; « Condensé » le donne dès la 1re amélioration (pas pour bourse ni magie).
+const ammoLevels = s => s.infiniteUpgrades === 'Condensed Progressive' ? [0, 1, 4]
+  : s.infiniteUpgrades === 'Progressive' ? [0, 1, 2, 3, 4] : [0, 1, 2, 3];
 const ITEM_GROUPS = [
   { title:'Récompenses', path:'items', items:[
     { key:'kokiriEmerald', label:'Émeraude Kokiri', kind:'bool', icon:'rewards/stones/forest.png' },
@@ -37,19 +44,20 @@ const ITEM_GROUPS = [
       icons:['equipment/strength/bracelet.png','equipment/strength/silver.png','equipment/strength/golden.png'] },
     { key:'scale', label:'Écaille de Zora', kind:'level', stages:['Aucune',"Écaille d'Argent","Écaille d'Or"],
       icons:['equipment/scales/silver.png','equipment/scales/golden.png'] },
-    { key:'wallet', label:'Bourse', kind:'level', stages:['Bourse (99)','Grande Bourse (200)','Bourse de Géant (500)','Bourse de Magnat (999)'],
-      sizes:['99','200','500','999'], neverEmpty:true },
+    { key:'wallet', label:'Bourse', kind:'level', stages:['Bourse (99)','Grande Bourse (200)','Bourse de Géant (500)','Bourse de Magnat (999)','Bourse infinie'],
+      sizes:['99','200','500','999','∞'], neverEmpty:true,
+      levels:s => [0, 1, 2, ...(s.includeTycoonWallet === 'On' ? [3] : []), ...(s.infiniteUpgrades !== 'Off' ? [4] : [])] },
     { key:'skulltulaTokens', label:"Skulltulas d'Or", kind:'count', max:100, icon:'rewards/skulltula.png' },
     { key:'gerudoCard', label:'Carte Gerudo', kind:'bool', icon:'items/gerudo.png' },
     { key:'stoneOfAgony', label:'Pierre de Souffrance', kind:'bool', icon:'items/stone_of_agony.png' },
   ]},
   { title:'Armes enfant', path:'items', items:[
-    { key:'sticks', label:'Bâton Mojo', kind:'level', stages:['Aucun','10','20','30','Infini'], sizes:['','10','20','30','∞'], icon:'weapons/stick.png' },
-    { key:'slingshot', label:'Lance-Pierre', kind:'level', stages:['Aucun','30','40','50','Infini'], sizes:['','30','40','50','∞'], icon:'weapons/slingshot.png' },
+    { key:'sticks', label:'Bâton Mojo', kind:'level', stages:['Aucun','10','20','30','Infini'], sizes:['','10','20','30','∞'], levels:ammoLevels, icon:'weapons/stick.png' },
+    { key:'slingshot', label:'Lance-Pierre', kind:'level', stages:['Aucun','30','40','50','Infini'], sizes:['','30','40','50','∞'], levels:ammoLevels, icon:'weapons/slingshot.png' },
     { key:'boomerang', label:'Boomerang', kind:'bool', icon:'weapons/boomerang.png' },
   ]},
   { title:'Armes adulte', path:'items', items:[
-    { key:'bow', label:'Arc', kind:'level', stages:['Aucun','30','40','50'], sizes:['','30','40','50'], icon:'weapons/bow.png' },
+    { key:'bow', label:'Arc', kind:'level', stages:['Aucun','30','40','50','Infini'], sizes:['','30','40','50','∞'], levels:ammoLevels, icon:'weapons/bow.png' },
     { key:'hookshot', label:'Grappin', kind:'level', stages:['Aucun','Grappin','Super-Grappin'],
       icons:['weapons/hookshot.png','weapons/longshot.png'] },
     { key:'titanMass', label:'Masse des Titans', kind:'bool', icon:'weapons/hammer.png' },
@@ -58,9 +66,10 @@ const ITEM_GROUPS = [
     { key:'lightArrows', label:'Flèches de Lumière', kind:'bool', icon:'weapons/arrows/light.png' },
   ]},
   { title:'Armes communes', path:'items', items:[
-    { key:'nuts', label:'Noix Mojo', kind:'level', stages:['Aucune','20','30','40','Infinies'], sizes:['','20','30','40','∞'], icon:'weapons/nut.png' },
-    { key:'bombBag', label:'Bombes', kind:'level', stages:['Aucune','30','40','50','Infinies'], sizes:['','30','40','50','∞'], icon:'weapons/bomb.png' },
-    { key:'bombchus', label:'Missiles', kind:'level', stages:['Aucun','30','40','50','Infinis'], sizes:['','30','40','50','∞'], icon:'weapons/bombchu.png' },
+    { key:'nuts', label:'Noix Mojo', kind:'level', stages:['Aucune','20','30','40','Infinies'], sizes:['','20','30','40','∞'], levels:ammoLevels, icon:'weapons/nut.png' },
+    { key:'bombBag', label:'Bombes', kind:'level', stages:['Aucune','30','40','50','Infinies'], sizes:['','30','40','50','∞'], levels:ammoLevels, icon:'weapons/bomb.png' },
+    { key:'bombchus', label:'Missiles', kind:'level', stages:['Aucun','30','40','50','Infinis'], sizes:['','30','40','50','∞'],
+      levels:s => s.bombchuBag === 'Progressive Bags' ? ammoLevels(s) : [0, 1, 2, 3], icon:'weapons/bombchu.png' },
   ]},
   { title:'Objets', path:'items', items:[
     { key:'beans', label:'Haricots Magiques', kind:'bool', icon:'items/bean.png' },
@@ -68,6 +77,8 @@ const ITEM_GROUPS = [
     { key:'bottle', label:'Bouteilles', kind:'count', max:4 },
     { key:'rutoLetter', label:'Lettre de Ruto', kind:'bool', icon:'items/ruto_letter.png' },
     { key:'fishingRod', label:'Canne à Pêche', kind:'bool', icon:'items/rod.png', visible:s => s.shuffleFishingPole === 'On' },
+    // Ouvre toutes les serrures à petite clé de tous les donjons (affichée dans la carte des donjons).
+    { key:'skeletonKey', label:'Clé Squelette', kind:'bool', icon:'dungeons/skeleton_key.png', visible:s => s.skeletonKey === 'On' },
   ]},
   { title:"Objets d'échange (Enfant)", path:'items', items:[
     // En rando, chaque objet est un pickup indépendant trouvable dans n'importe quel ordre et
@@ -113,7 +124,7 @@ const ITEM_GROUPS = [
       .map(([key, label, f]) => ({ key, label, kind:'bool', icon:`songs/buttons/${f}.png`, visible:s => s.shuffleOcarinaButtons === 'On' })),
   ]},
   { title:'Statistiques', path:'items', items:[
-    { key:'magic', label:'Magie', kind:'level', stages:['Aucune','Simple','Double','Infinie'],
+    { key:'magic', label:'Magie', kind:'level', stages:['Aucune','Simple','Double','Infinie'], levels:s => s.infiniteUpgrades === 'Off' ? [0, 1, 2] : [0, 1, 2, 3],
       icons:['statistics/magic_small.png','statistics/magic_large.png','statistics/magic_infinite.png'] },
     { key:'heartPieces', label:'Quarts de Cœur', kind:'count', max:36, icon:'statistics/heart_piece.png' },
     { key:'heartContainers', label:'Réceptacles de Cœur', kind:'count', max:8, icon:'statistics/heart_container.png' },
@@ -152,6 +163,7 @@ const ITEM_GROUPS = [
     { key:'prelude', label:'Prélude de la Lumière', kind:'bool', icon:'songs/teleport/prelude.png' },
   ]},
 ];
+const itemLevels = it => it.levels ? it.levels(store.settings) : it.stages.map((_, i) => i);
 const itemMax = it => typeof it.max === 'function' ? it.max(store.settings) : it.max;
 const itemVisible = it => !it.visible || it.visible(store.settings);
 
@@ -209,7 +221,8 @@ const ITEMS_PAGE = {
   // Boutons des check-lists de lieux, dans leur propre carte à droite des capacités/langues.
   checklistButtons:[
     { id:'keys', icon:'icons/dungeons/key.png', visible:s => s.lockOverworldDoors === 'On' },
-    { id:'beans', icon:'icons/items/bean.png' },
+    { id:'beans', icon:'icons/items/bean.png', visible:s => s.shuffleBeanSouls === 'On' },
+    { id:'bossSouls', icon:'icons/dungeons/boss_soul.png', visible:s => s.shuffleBossSouls !== 'Off' },
   ],
   tradeButtons:[
     { id:'child', title:'Échanges — Enfant', icon:'maskOfTruth' },
@@ -245,34 +258,82 @@ const tierLabel = it => it.sizes ? null : (ROMAN[store.game[it.path][it.key]] ||
 // NOTE : purement informatif pour l'instant — pas encore branché à Entrées/Routeur (`sat()`/`makeEdges()`).
 // `maxKeys` = valeurs vanilla par défaut, à ajuster une fois la logique Ship of Harkinian précisée.
 // `color` : teinte du thème du donjon (bordure du bloc ; le fond en est une version très atténuée).
+// keyRing : réglage SoH « trousseau de clés » du donjon ; quest : réglage SoH du statut Vanilla / Master Quest ; soh : nom du donjon dans la liste
+// « masterQuestDungeons » d'un spoiler SoH ; maxKeys / mqKeys : petites clés en Vanilla / en MQ (dungeon.cpp).
 const DUNGEONS = [
-  { id:'dekuTree', title:'Arbre Mojo', color:'#7aa83c', map:true, compass:true },
-  { id:'dodongosCavern', title:'Caverne Dodongo', color:'#b0602c', map:true, compass:true },
-  { id:'jabuJabu', title:'Ventre de Jabu-Jabu', color:'#d0708f', map:true, compass:true },
-  { id:'bottomOfTheWell', title:'Fond du Puits', color:'#6c5f7e', map:true, compass:true, maxKeys:3 },
-  { id:'gerudoTrainingGround', title:'Gymnase Gerudo', color:'#c9a03a', maxKeys:9 },
-  { id:'gerudoFortress', title:'Repaire des Voleurs', color:'#c0674a', maxKeys:4, card:'gerudoCard' },
-  { id:'ganonsCastle', title:'Château de Ganon', color:'#8e2447', maxKeys:2, bossKey:true },
-  { id:'forestTemple', title:'Forêt', color:'#2e7d3c', map:true, compass:true, maxKeys:5, bossKey:true },
-  { id:'fireTemple', title:'Feu', color:'#c8372d', map:true, compass:true, maxKeys:8, bossKey:true },
-  { id:'waterTemple', title:'Eau', color:'#2f6fb8', map:true, compass:true, maxKeys:6, bossKey:true },
-  { id:'shadowTemple', title:'Ombre', color:'#6b3f9a', map:true, compass:true, maxKeys:6, bossKey:true },
-  { id:'spiritTemple', title:'Esprit', color:'#d9822b', map:true, compass:true, maxKeys:5, bossKey:true },
-  { id:'iceCavern', title:'Caverne de Glace', color:'#4fa9c7', map:true, compass:true },
+  { id:'dekuTree', title:'Arbre Mojo', color:'#7aa83c', map:true, compass:true, quest:'mqDekuTree', soh:'Deku Tree' },
+  { id:'dodongosCavern', title:'Caverne Dodongo', color:'#b0602c', map:true, compass:true, quest:'mqDodongosCavern', soh:"Dodongo's Cavern" },
+  { id:'jabuJabu', title:'Ventre de Jabu-Jabu', color:'#d0708f', map:true, compass:true, quest:'mqJabuJabu', soh:"Jabu Jabu's Belly" },
+  { id:'bottomOfTheWell', title:'Fond du Puits', color:'#6c5f7e', map:true, compass:true, maxKeys:3, mqKeys:2, keyRing:'keyRingBottomOfTheWell', quest:'mqBottomOfTheWell', soh:'Bottom of the Well' },
+  { id:'gerudoTrainingGround', title:'Gymnase Gerudo', color:'#c9a03a', maxKeys:9, mqKeys:3, keyRing:'keyRingGerudoTrainingGround', quest:'mqGerudoTrainingGround', soh:'Gerudo Training Ground' },
+  { id:'gerudoFortress', title:'Repaire des Voleurs', color:'#c0674a', maxKeys:4, keyRing:'keyRingGerudoFortress', card:'gerudoCard' },
+  { id:'ganonsCastle', title:'Château de Ganon', color:'#8e2447', maxKeys:2, mqKeys:3, bossKey:true, keyRing:'keyRingGanonsCastle', quest:'mqGanonsCastle', soh:"Ganon's Castle" },
+  { id:'forestTemple', title:'Forêt', color:'#2e7d3c', map:true, compass:true, maxKeys:5, mqKeys:6, bossKey:true, keyRing:'keyRingForestTemple', quest:'mqForestTemple', soh:'Forest Temple' },
+  { id:'fireTemple', title:'Feu', color:'#c8372d', map:true, compass:true, maxKeys:8, mqKeys:5, bossKey:true, keyRing:'keyRingFireTemple', quest:'mqFireTemple', soh:'Fire Temple' },
+  { id:'waterTemple', title:'Eau', color:'#2f6fb8', map:true, compass:true, maxKeys:6, mqKeys:2, bossKey:true, keyRing:'keyRingWaterTemple', quest:'mqWaterTemple', soh:'Water Temple' },
+  { id:'shadowTemple', title:'Ombre', color:'#6b3f9a', map:true, compass:true, maxKeys:5, mqKeys:6, bossKey:true, keyRing:'keyRingShadowTemple', quest:'mqShadowTemple', soh:'Shadow Temple' },
+  { id:'spiritTemple', title:'Esprit', color:'#d9822b', map:true, compass:true, maxKeys:5, mqKeys:7, bossKey:true, keyRing:'keyRingSpiritTemple', quest:'mqSpiritTemple', soh:'Spirit Temple' },
+  { id:'iceCavern', title:'Caverne de Glace', color:'#4fa9c7', map:true, compass:true, quest:'mqIceCavern', soh:'Ice Cavern' },
 ];
 const DUNGEON_BY_ID = {};
 DUNGEONS.forEach(d => { DUNGEON_BY_ID[d.id] = d; });
-// Cases à afficher pour un donjon selon la configuration : rien à suivre pour ce qu'on possède dès le
-// départ (« Start With »), ni pour les clés et la Carte Gerudo si les charpentiers sont libres.
+// Cases à afficher pour un donjon selon la configuration. Ce qu'on possède dès le départ (« Start With » :
+// carte, boussole, petites clés, clé de boss) reste affiché, plein et non cliquable (voir `*AtStart`) ; pas de
+// clés du repaire si les charpentiers sont libres (il n'y en a pas), mais la Carte Gerudo reste.
 function dungeonCells(id, s){
   const d = DUNGEON_BY_ID[id], free = s.fortressCarpenters === 'Free';
   return {
-    map:!!d.map && s.mapsCompasses !== 'Start With',
-    compass:!!d.compass && s.mapsCompasses !== 'Start With',
-    keys:!!d.maxKeys && (id === 'gerudoFortress' ? !free : s.smallKeys !== 'Start With'),
-    bossKey:!!d.bossKey && (id === 'ganonsCastle' ? s.ganonsBossKey !== 'Start With' : s.bossKeys !== 'Start With'),
-    card:!!d.card && !free,
+    map:!!d.map,
+    compass:!!d.compass,
+    keys:!!d.maxKeys && !(id === 'gerudoFortress' && free),
+    bossKey:!!d.bossKey,
+    card:!!d.card,
+    // statut Vanilla / MQ à noter : seulement s'il n'est pas imposé par la configuration
+    quest:!!d.quest && !configQuest(id, s),
   };
+}
+// Objets de donjon possédés dès le départ (option « Au départ ») : cases pleines, non cliquables.
+const mapsAtStart = (id, s) => s.mapsCompasses === 'Start With';
+const keysAtStart = (id, s) => id !== 'gerudoFortress' && s.smallKeys === 'Start With';
+const bossKeyAtStart = (id, s) => (id === 'ganonsCastle' ? s.ganonsBossKey : s.bossKeys) === 'Start With';
+// Statut Vanilla / MQ imposé par la configuration ('Vanilla' | 'MQ'), ou null s'il est tiré au sort
+// (le joueur le note alors dans le panneau). Reprend la répartition de SoH (settings.cpp, FinalizeSettings).
+function configQuest(id, s){
+  const d = DUNGEON_BY_ID[id];
+  if (!d.quest) return null;
+  const mode = s.mqDungeons, own = s[d.quest];
+  if (mode === 'None') return 'Vanilla';
+  if (mode === 'Selection Only') return own === 'Random' ? null : own === 'Master Quest' ? 'MQ' : 'Vanilla';
+  const count = s.mqDungeonCount;
+  if (s.mqDungeonsSet !== 'On'){
+    if (mode === 'Set Number' && count === 0) return 'Vanilla';
+    if (mode === 'Set Number' && count === DUNGEONS.filter(x => x.quest).length) return 'MQ';
+    return null;
+  }
+  if (own !== 'Random') return own === 'Master Quest' ? 'MQ' : 'Vanilla';
+  if (mode !== 'Set Number') return null;
+  // Donjons laissés au hasard : SoH en passe (nombre voulu − MQ imposés) en MQ, borné au nombre de candidats.
+  const quests = DUNGEONS.filter(x => x.quest).map(x => s[x.quest]);
+  const pool = quests.filter(q => q === 'Random').length, fixedMq = quests.filter(q => q === 'Master Quest').length;
+  const toSet = Math.max(0, Math.min(count - fixedMq, pool));
+  return toSet === 0 ? 'Vanilla' : toSet === pool ? 'MQ' : null;
+}
+// Trousseau possible : petites clés mélangées (ni « Vanilla » ni « Au départ ») ; pour le Repaire, 4 clés à
+// trouver (charpentiers « Normal ») et clés de la Forteresse mélangées (item_pool.cpp de SoH).
+function keyRingEligible(id, s){
+  if (id === 'gerudoFortress') return s.fortressCarpenters === 'Normal' && s.gerudoFortressKeys !== 'Vanilla';
+  return !['Vanilla', 'Start With'].includes(s.smallKeys);
+}
+// Trousseau imposé par la configuration (true / false), ou null s'il est tiré au sort. En « Aléatoire » et
+// « Nombre », les réglages par donjon sont ignorés (SoH les écrase par le tirage).
+function configKeyRing(id, s){
+  const d = DUNGEON_BY_ID[id];
+  if (!d.keyRing || s.keyRings === 'Off' || !keyRingEligible(id, s)) return false;
+  if (s.keyRings === 'Selection') return s[d.keyRing] === 'Random' ? null : s[d.keyRing] === 'Yes';
+  const pool = DUNGEONS.filter(x => x.keyRing && keyRingEligible(x.id, s)).length;
+  if (s.keyRings === 'Count' && s.keyRingCount === 0) return false;
+  if (s.keyRings === 'Count' && s.keyRingCount >= pool) return true;
+  return null;
 }
 const visibleKeys = keys => keys.filter(k => itemVisible(ITEM_BY_KEY[k]));
 
@@ -280,7 +341,11 @@ const visibleKeys = keys => keys.filter(k => itemVisible(ITEM_BY_KEY[k]));
 // Purement informatif pour l'instant (voir remarque ci-dessus) : une simple liste de lieux à cocher,
 // pas encore reliée à de nouvelles connexions dans le graphe du Routeur.
 function slugify(s){ return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, ''); }
-function checklist(title, labels){ return { title, locations:labels.map(label => ({ id:slugify(label), label })) }; }
+// Libellé seul, ou [libellé, visible(settings)] pour un lieu qui n'existe qu'avec certaines options.
+function checklist(title, labels){
+  return { title, locations:labels.map(l => Array.isArray(l) ? { id:slugify(l[0]), label:l[0], visible:l[1] } : { id:slugify(l), label:l }) };
+}
+const checklistLocations = (name, s) => CHECKLISTS[name].locations.filter(l => !l.visible || l.visible(s));
 const CHECKLISTS = {
   keys:checklist('Clés des portes', [
     'Poste de garde', 'Bazar du marché', 'Apothicaire du marché', 'Foire aux masques',
@@ -294,5 +359,10 @@ const CHECKLISTS = {
     'Cratère du Péril', 'Mont du Péril', 'Colosse du Désert', 'Vallée Gerudo',
     'Cimetière', 'Forêt Kokiri', 'Lac Hylia', 'Pont des Bois Perdus',
     'Théâtre Mojo', 'Fleuve Zora',
+  ]),
+  // Âmes de boss (option « Shuffle Boss Souls ») : un boss ne peut être combattu qu'une fois son âme trouvée.
+  bossSouls:checklist('Âmes de boss', [
+    'Reine Gohma', 'Roi Dodongo', 'Barinade', 'Ganon Spectral', 'Volvagia', 'Morpha', 'Bongo Bongo', 'Twinrova',
+    ['Ganon', s => s.shuffleBossSouls === 'On + Ganon'],
   ]),
 };

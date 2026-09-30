@@ -3,7 +3,7 @@ const STORE_KEY = 'oeil-sheikah-v1';
 function defaults(){
   const game = { items:{}, songs:{}, dungeons:{}, checklists:{} };
   ITEM_GROUPS.forEach(g => g.items.forEach(it => { game[g.path][it.key] = it.locked ? true : it.kind === 'bool' ? false : 0; }));
-  DUNGEONS.forEach(d => { game.dungeons[d.id] = { map:false, compass:false, keys:0, bossKey:false }; });
+  DUNGEONS.forEach(d => { game.dungeons[d.id] = { map:false, compass:false, keys:0, bossKey:false, quest:'', keyRing:'', ringGot:false }; });
   Object.entries(CHECKLISTS).forEach(([name, c]) => {
     game.checklists[name] = {};
     c.locations.forEach(loc => { game.checklists[name][loc.id] = false; });
@@ -15,7 +15,7 @@ function defaults(){
       tricks:Object.fromEntries(TRICKS.map(t => [t.key, false])) },
     costs:{ transition:3, warp:15, reset:25, age:12 },
     game, mappings:{},
-    ui:{ view:'entrances', collapsed:{}, configTab:'logic',
+    ui:{ view:'entrances', collapsed:{}, configTab:'logic', importQuests:false, spoilerPrompt:true,
       filters:{ showReachableTargets:false, showInaccessibleAreas:false, showDiscovered:true, showVanilla:true },
       router:{ fromArea:'', fromExit:'', fromAge:'child', toArea:'', toExit:'', toAge:'any' } },
   };
@@ -103,7 +103,7 @@ function itemTitle(path, it){
 function itemMaxed(path, it){
   const v = store.game[path][it.key];
   if (it.kind === 'count') return v >= itemMax(it);
-  if (it.kind === 'level' && it.sizes) return v >= it.stages.length - 1;
+  if (it.kind === 'level' && it.sizes) return v >= Math.max(...itemLevels(it));
   return false;
 }
 // Chemin d'icône : convention par défaut icons/items/<clé>[_<palier>].png, sauf si l'objet définit
@@ -141,7 +141,7 @@ function applyStartingItems(s){
     const it = ITEM_BY_KEY[key], want = level(s[setting]);
     const cur = store.game[it.path][key];
     if (it.kind === 'bool'){ if (want && !cur){ store.game[it.path][key] = true; n++; } }
-    else if (want > cur){ store.game[it.path][key] = Math.min(want, it.kind === 'level' ? it.stages.length - 1 : itemMax(it)); n++; }
+    else if (want > cur){ store.game[it.path][key] = Math.min(want, it.kind === 'level' ? Math.max(...itemLevels(it)) : itemMax(it)); n++; }
   }
   return n;
 }
@@ -149,14 +149,14 @@ function clickItem(ev, path, it){
   if (it.locked) return;
   const v = store.game[path][it.key];
   if (it.kind === 'bool'){ if (!v) store.game[path][it.key] = true; }
-  else if (it.kind === 'level'){ if (v < it.stages.length - 1) store.game[path][it.key] = v + 1; }
+  else if (it.kind === 'level'){ const next = itemLevels(it).find(l => l > v); if (next !== undefined) store.game[path][it.key] = next; }
   else setCount(path, it.key, itemMax(it), v + (ev.shiftKey ? 10 : 1));
 }
 function rightClickItem(ev, path, it){
   if (it.locked) return;
   const v = store.game[path][it.key];
   if (it.kind === 'bool'){ if (v) store.game[path][it.key] = false; }
-  else if (it.kind === 'level'){ if (v > 0) store.game[path][it.key] = v - 1; }
+  else if (it.kind === 'level'){ const prev = itemLevels(it).filter(l => l < v).pop(); if (prev !== undefined) store.game[path][it.key] = prev; }
   else setCount(path, it.key, itemMax(it), v - (ev.shiftKey ? 10 : 1));
 }
 /* ---------- Chaînes d'échange : compteur obtenu/total par âge ---------- */
@@ -170,14 +170,46 @@ function tradeStats(id){
 // pas encore branché au Routeur.
 function toggleChecklist(name, id){ const c = store.game.checklists[name]; c[id] = !c[id]; }
 function checklistStats(name){
-  const c = store.game.checklists[name], locations = CHECKLISTS[name].locations;
+  const c = store.game.checklists[name], locations = checklistLocations(name, store.settings);
   return { got:locations.filter(l => c[l.id]).length, total:locations.length };
 }
 
 /* ---------- Objets de donjon (carte / boussole / petites clés / clé de boss) ---------- */
 // Purement informatif pour l'instant (voir DUNGEONS dans js/items.js), pas encore branché au Routeur.
 function toggleDungeonFlag(id, field){ const d = store.game.dungeons[id]; d[field] = !d[field]; }
+// Statut effectif d'un donjon : imposé par la configuration, sinon noté par le joueur ('' = inconnu).
+const dungeonQuest = id => configQuest(id, store.settings) || store.game.dungeons[id].quest || '';
+// Petites clés attendues selon le statut ; null si le statut est inconnu et que Vanilla et MQ diffèrent.
+function dungeonMaxKeys(id){
+  if (id === 'gerudoFortress' && store.settings.fortressCarpenters === 'Fast') return 1;
+  const d = DUNGEON_BY_ID[id], v = d.maxKeys || 0, mq = d.mqKeys ?? v, q = dungeonQuest(id);
+  return q === 'MQ' ? mq : q === 'Vanilla' || v === mq ? v : null;
+}
+// Clic sur le statut : inconnu → Vanilla → MQ → inconnu (sans effet s'il est imposé par la configuration).
+function cycleDungeonQuest(id, back){
+  if (configQuest(id, store.settings)) return;
+  const order = ['', 'Vanilla', 'MQ'], d = store.game.dungeons[id];
+  d.quest = order[(order.indexOf(d.quest) + (back ? 2 : 1)) % 3];
+}
+// Trousseau du donjon : true / false, ou null tant qu'on ne sait pas. Imposé par la configuration, sinon
+// déduit de la partie : trousseau obtenu → oui ; tirage importé du spoiler ('yes'/'no') ; une petite clé
+// notée → pas de trousseau (SoH remplace toutes les petites clés du donjon par le trousseau).
+function dungeonKeyRing(id){
+  const c = configKeyRing(id, store.settings), g = store.game.dungeons[id];
+  if (c !== null) return c;
+  if (g.ringGot || g.keyRing === 'yes') return true;
+  if (g.keyRing === 'no' || g.keys > 0) return false;
+  return null;
+}
+function toggleKeyRing(id){ const g = store.game.dungeons[id]; g.ringGot = !g.ringGot; }
+// Serrures du donjon toutes ouvrables : trousseau obtenu, clé squelette ou toutes les petites clés.
+function dungeonKeysDone(id){
+  const g = store.game.dungeons[id], max = dungeonMaxKeys(id);
+  return store.game.items.skeletonKey || keysAtStart(id, store.settings) || (dungeonKeyRing(id) && g.ringGot)
+    || (max !== null && max > 0 && g.keys >= max);
+}
 function addDungeonKeys(id, delta){
-  const d = store.game.dungeons[id], max = DUNGEON_BY_ID[id].maxKeys || 0;
+  const d = store.game.dungeons[id], def = DUNGEON_BY_ID[id];
+  const max = dungeonMaxKeys(id) ?? Math.max(def.maxKeys || 0, def.mqKeys || 0);
   d.keys = Math.max(0, Math.min(max, d.keys + delta));
 }

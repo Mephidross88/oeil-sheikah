@@ -68,8 +68,8 @@ function deriveGame(raw, settings, ages){
   // Ouverture du raccourci Bois Perdus <-> Ville Goron (event "GC Woods Warp Open" du randomizer) :
   // explosifs, Feu de Din, Arc (adulte) ou Force suffisent, une fois pour toutes.
   const gcWoodsWarpOpen = hasExplosives || (it.dinsFire && it.magic >= 1) || (ages.adult && it.bow >= 1) || it.strength >= 1;
-  // Carte Gerudo : obtenue en libérant les charpentiers, ou fournie dès le départ si les charpentiers sont libres.
-  const gerudoCardEff = it.gerudoCard || settings.fortressCarpenters === 'Free';
+  // Carte Gerudo : toujours notée à la main dans le panneau Objets, même avec des charpentiers libres.
+  const gerudoCardEff = it.gerudoCard;
   return {
     milestone: {
       childAvailable: ages.child, adultAvailable: ages.adult,

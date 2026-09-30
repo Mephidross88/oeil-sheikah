@@ -175,6 +175,7 @@ svg{display:block}
 .checklists-card{flex:none;padding:6px;display:flex;flex-direction:column;gap:6px}
 .check-tile.check-square{flex:1;width:56px;flex-direction:column;gap:2px;padding:6px 2px;font-size:14px}
 .check-tile.check-square img{width:26px;height:26px}
+.check-tile.check-square .icon-fallback{width:26px;height:26px;display:grid;place-items:center;flex:none}
 /* Sans capacités ni langues mélangées, la carte des check-lists prend toute la largeur, boutons en ligne. */
 .checklists-card.wide{flex:1;flex-direction:row}
 .checklists-card.wide .check-square{width:auto;flex-direction:row;gap:8px;padding:8px}
@@ -196,17 +197,43 @@ svg{display:block}
    boss), les blocs se répartissent la largeur ligne par ligne */
 .dungeon-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
 .dungeon-block{min-width:0;border:1px solid var(--line);border-radius:10px;padding:6px 7px 8px;display:flex;flex-direction:column;align-items:center;gap:5px}
-.dungeon-block.solo{grid-column:1 / -1;justify-self:center;width:calc(50% - 3px)}
+.dg-row{display:contents}
+.dg-row.final{display:grid;grid-column:1 / -1;grid-template-columns:1fr calc(50% - 3px) 1fr;gap:6px;align-items:center}
+.dg-side{display:flex;justify-content:center}
+.dg-side .icon-tile{width:48px;height:48px}
+.dg-ring-fallback{position:relative;width:22px;height:20px}
+.dg-ring-fallback img{position:absolute;width:15px !important;height:15px !important}
+.dg-ring-fallback img:first-child{left:0;top:0}
+.dg-ring-fallback img:last-child{right:0;bottom:0}
 /* Teinte du donjon (--dg, cf. DUNGEONS[].color) : bordure pleine, fond mélangé à la surface pour rester
    lisible en clair comme en sombre */
 .dungeon-block{--dg:var(--line);border-color:var(--dg);background:color-mix(in srgb, var(--dg) 16%, var(--surface))}
 .dungeon-block .dg-name{color:color-mix(in srgb, var(--dg) 70%, var(--text));font-weight:700}
-.dg-cells{display:flex;align-items:center;gap:4px}
+/* Hauteur commune à tous les blocs (titre + 2 lignes de cases) ; une ligne vide disparaît et ce qui reste est
+   centré verticalement */
+.dungeon-grid{grid-auto-rows:1fr}
+.dungeon-block{min-height:110px}
+.dg-row.final{align-items:stretch}
+.dg-side{align-items:center}
+.dg-cells{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:4px}
+.dg-line{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:4px}
 .dg-name{font-size:12.5px;color:var(--muted);text-align:center;line-height:1.15}
+.dungeon-block{position:relative}
+.dungeon-block .dg-name{padding:0 22px}
+.dungeon-block.quest-edit{cursor:pointer}
+.dungeon-block.quest-edit:hover{box-shadow:0 0 0 1px var(--dg)}
+.dungeon-block.quest-edit:focus-visible{outline:2px solid var(--gold);outline-offset:1px}
+.dg-badge{position:absolute;top:-1px;right:-1px;min-width:26px;height:20px;padding:0 6px;border-radius:0 10px 0 9px;
+  display:grid;place-items:center;font-size:12px;font-weight:800;letter-spacing:.02em;line-height:1;color:#fff}
+.dg-badge.vanilla{background:#c0392b}
+.dg-badge.mq{background:#2462b8}
+.dg-badge.unknown{background:var(--surface);color:var(--text);border:1.5px dashed var(--text)}
 .dg-flag{width:36px;height:36px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);display:grid;place-items:center;padding:0}
 .dg-flag svg,.dg-flag img{width:20px;height:20px;object-fit:contain}
 .dg-flag:hover{border-color:var(--gold)}
 .dg-flag.on{border-color:var(--gold);background:var(--gold-soft);color:var(--gold-deep)}
+.dg-flag.fixed,.dg-keys.fixed{cursor:default}
+.dg-flag.fixed:hover,.dg-keys.fixed:hover{border-color:var(--gold)}
 .dg-keys{display:flex;align-items:center;justify-content:center;gap:4px;height:36px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--muted);
   padding:0 8px;font-size:13px;font-variant-numeric:tabular-nums}
 .dg-keys svg,.dg-keys img{width:16px;height:16px;flex:none;object-fit:contain}
@@ -386,7 +413,9 @@ select.sel:hover{border-color:var(--gold)}
 .errors ul{margin:6px 0 0;padding-left:18px}
 
 /* Onglets de configuration, import d'un spoiler, options */
-.import-btn{margin-left:auto;cursor:pointer}
+.import-box{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.import-btn{cursor:pointer}
+.import-opt{font-size:13px;color:var(--muted)}
 .import-report{max-width:1240px;border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:14.5px;background:var(--surface)}
 .import-report.ok{border-color:var(--green);background:var(--green-soft)}
 .import-report.ko{border-color:var(--red);background:var(--red-soft)}
@@ -426,6 +455,8 @@ select.sel:hover{border-color:var(--gold)}
 .modal header button:hover{background:rgba(255,255,255,.15)}
 .modal header svg{width:18px;height:18px}
 .modal .body{padding:16px 20px 20px;overflow-y:auto}
+.spoiler-prompt .import-opt{display:flex;margin:4px 0 12px}
+.spoiler-notes{margin:8px 0;padding-left:18px;color:var(--muted);font-size:14px}
 .modal h4{font-family:var(--serif);font-size:16.5px;color:var(--muted);margin:14px 0 8px}
 .modal h4:first-child{margin-top:0}
 .chips{display:flex;flex-wrap:wrap;gap:8px}

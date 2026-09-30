@@ -53,9 +53,9 @@ const App = {
 
     /* Check-lists (clés hors donjon, trous à haricots) : purement informatif pour l'instant, voir SPEC.md */
     const checklistModal = computed(() => {
-      if (modal.value !== 'checklist-keys' && modal.value !== 'checklist-beans') return null;
-      const name = modal.value === 'checklist-keys' ? 'keys' : 'beans', c = CHECKLISTS[name], st = checklistStats(name);
-      return { name, title:c.title, locations:c.locations, got:st.got, total:st.total };
+      if (!String(modal.value).startsWith('checklist-')) return null;
+      const name = modal.value.slice('checklist-'.length), c = CHECKLISTS[name], st = checklistStats(name);
+      return { name, title:c.title, locations:checklistLocations(name, s), got:st.got, total:st.total };
     });
     function openChecklist(name){ modal.value = 'checklist-' + name; }
 
@@ -136,10 +136,37 @@ const App = {
 
     /* Panneau Objets piloté par la configuration : cadres et cases vides masqués */
     const panelSkills = computed(() => ITEMS_PAGE.skills.map(r => ({ ...r, items:visibleKeys(r.items) })).filter(r => r.items.length));
-    const panelChecklists = computed(() => ITEMS_PAGE.checklistButtons.filter(c => !c.visible || c.visible(s)));
-    const cells = id => dungeonCells(id, s);
+    // Clé squelette obtenue : elle ouvre toutes les serrures à petite clé (donjons, Repaire, portes de
+    // l'overworld — logic.cpp de SoH), donc plus de compteur de petites clés, de trousseau ni de « Clés des portes ».
+    const skeletonGot = () => store.game.items.skeletonKey && itemVisible(ITEM_BY_KEY.skeletonKey);
+    const panelChecklists = computed(() => ITEMS_PAGE.checklistButtons
+      .filter(c => (!c.visible || c.visible(s)) && !(c.id === 'keys' && skeletonGot())));
+    const cells = id => { const c = dungeonCells(id, s); if (skeletonGot()) c.keys = false; return c; };
+    // Badge de version (coin du bloc) : ? / V / MQ ; clic sur le bloc pour changer si la configuration le permet.
+    // Compteur de petites clés : « Au départ », toutes possédées (le maximum, ou ✓ si la version est inconnue).
+    const keysLabel = id => {
+      const max = dungeonMaxKeys(id);
+      if (atStart(id).keys) return max === null ? '✓' : `${max}/${max}`;
+      return `${store.game.dungeons[id].keys}/${max ?? '?'}`;
+    };
+    const keysTitle = id => atStart(id).keys ? 'Petites clés (toutes dès le départ)'
+      : store.game.items.skeletonKey ? 'Petites clés — serrures ouvertes par la clé squelette'
+      : dungeonKeyRing(id) === null ? 'Petites clés (en noter une indique que ce donjon n’a pas de trousseau)' : 'Petites clés';
+    const questLabel = id => ({ Vanilla:'V', MQ:'MQ' })[dungeonQuest(id)] || '?';
+    const questClass = id => ({ Vanilla:'vanilla', MQ:'mq' })[dungeonQuest(id)] || 'unknown';
+    const questTitle = id => {
+      if (!DUNGEON_BY_ID[id].quest) return null;
+      const name = ({ Vanilla:'Vanilla', MQ:'Master Quest' })[dungeonQuest(id)] || 'version inconnue';
+      return cells(id).quest ? `${name} — clic sur le cadre : version suivante, clic droit : précédente` : `${name} — imposé par la configuration`;
+    };
+    // Un donjon sans case à suivre disparaît, sauf si sa version (Vanilla / MQ) reste à noter ; une rangée
+    // réduite à un seul donjon est centrée. La clé squelette se place à droite du Château de Ganon, ou seule
+    // sur une dernière rangée si ce bloc est masqué.
     const dungeonRows = computed(() => ITEMS_PAGE.dungeons.rows
-      .map(r => r.filter(id => Object.values(dungeonCells(id, s)).some(Boolean))).filter(r => r.length));
+      .map(r => r.filter(id => Object.values(cells(id)).some(Boolean))).filter(r => r.length));
+    const skeletonShown = computed(() => itemVisible(ITEM_BY_KEY.skeletonKey));
+    // Objets de donjon « Au départ » : cases pleines, non cliquables (évite les oublis et les erreurs).
+    const atStart = id => ({ maps:mapsAtStart(id, s), keys:keysAtStart(id, s), bossKey:bossKeyAtStart(id, s) });
 
     /* Configuration Ship of Harkinian (js/config.js) */
     const decoupled = computed(() => isDecoupled(s));
@@ -200,10 +227,36 @@ const App = {
           const t = TRICK_BY_NAME[name];
           if (t){ s.tricks[t.key] = true; tricks++; } else notes.push(`Astuce inconnue ignorée : « ${name} ».`);
         }
+        // Trousseaux en « Aléatoire » / « Nombre » : SoH écrit le tirage réel dans les réglages par donjon. On ne
+        // le garde que si l'import des tirages est coché (dans la partie, pas dans la configuration), et on remet
+        // les réglages par donjon à leur valeur par défaut pour ne rien révéler.
+        let rings = 0;
+        if (['Random', 'Count'].includes(s.keyRings)){
+          DUNGEONS.forEach(d => {
+            if (!d.keyRing) return;
+            const drawn = s[d.keyRing];
+            s[d.keyRing] = SETTINGS_DEF.find(x => x.key === d.keyRing).def;
+            if (ui.importQuests && configKeyRing(d.id, s) === null){ store.game.dungeons[d.id].keyRing = drawn === 'Yes' ? 'yes' : 'no'; rings++; }
+          });
+        }
         const started = applyStartingItems(s);
+        // Statut Vanilla / MQ (facultatif) : seulement pour les donjons que la configuration laisse au hasard.
+        // SoH n'écrit « masterQuestDungeons » que s'il y a au moins un donjon MQ.
+        let quests = 0;
+        if (ui.importQuests){
+          const mq = Array.isArray(data.masterQuestDungeons) ? data.masterQuestDungeons : [];
+          DUNGEONS.forEach(d => {
+            if (!d.quest || configQuest(d.id, s)) return;
+            store.game.dungeons[d.id].quest = mq.includes(d.soh) ? 'MQ' : 'Vanilla';
+            quests++;
+          });
+        }
+        ui.spoilerPrompt = false;
         importReport.value = { ok:true, notes,
           title:`Configuration importée : ${count} option${count>1?'s':''}, ${tricks} astuce${tricks>1?'s':''} activée${tricks>1?'s':''}`
-            + (started ? `, ${started} objet${started>1?'s':''} de départ coché${started>1?'s':''} dans le panneau Objets.` : '.') };
+            + (started ? `, ${started} objet${started>1?'s':''} de départ coché${started>1?'s':''}` : '')
+            + (quests ? `, version de ${quests} donjon${quests>1?'s':''} renseignée` : '')
+            + (rings ? `, trousseaux de ${rings} donjon${rings>1?'s':''} renseignés` : '') + '.' };
       };
       reader.readAsText(file);
     }
@@ -227,8 +280,12 @@ const App = {
     function resetAll(){
       const d = defaults();
       store.mappings = {}; store.game = d.game; ui.collapsed = {}; ui.router = d.ui.router;
-      modal.value = null;
+      importReport.value = null; ui.spoilerPrompt = true; modal.value = 'spoiler';
     }
+    // Proposition d'import d'un spoiler au premier chargement et après une remise à zéro (nouvelle seed) ;
+    // elle revient à chaque chargement tant qu'on n'a ni importé un spoiler ni répondu « Non ».
+    if (ui.spoilerPrompt) modal.value = 'spoiler';
+    function declineSpoiler(){ ui.spoilerPrompt = false; modal.value = null; }
 
     function onKey(ev){ if (ev.key === 'Escape'){ modal.value = null; hideTip(); } }
     window.addEventListener('keydown', onKey);
@@ -238,12 +295,12 @@ const App = {
     return { store, ui, s, views, navOpen, itemsOpen, modal, tip, tipData, backup, stats, missingSpawns, visibleAreas,
       ICONS, ITEMS_PAGE, ITEM_BY_KEY, DUNGEONS, DUNGEON_BY_ID, CHECKLISTS, AREA, EXIT, DATA_ERRORS,
       iconKey, areaName, toggleArea, setAll, jump, go, showTip, hideTip, toggleTip, setMapping, clearMapping,
-      panelSkills, panelChecklists, cells, dungeonRows, visibleKeys,
+      panelSkills, panelChecklists, cells, dungeonRows, skeletonShown, atStart, visibleKeys,
       CONFIG_TABS, TRICK_LEVELS, decoupled, configCards, trickFilter, tricksOn, trickGroups, setTricks, importReport, importSpoiler,
       itemVisible, tierLabel, iconSrc, checklistModal, openChecklist, toggleChecklist, checklistStats,
       tradeModal, openTrade, tradeStats, counterClass,
-      toggleDungeonFlag, addDungeonKeys,
-      routerAreas, exitsOf, swap, route, edgeLabel, ageLabel, openBackup, copyBackup, importBackup, resetAll, savedAt, TYPE_LABEL };
+      toggleDungeonFlag, addDungeonKeys, dungeonQuest, dungeonMaxKeys, cycleDungeonQuest, questLabel, questClass, questTitle, keysLabel, dungeonKeyRing, toggleKeyRing, dungeonKeysDone, keysTitle, brokenIcons,
+      routerAreas, exitsOf, swap, route, edgeLabel, ageLabel, openBackup, copyBackup, importBackup, resetAll, declineSpoiler, savedAt, TYPE_LABEL };
   },
   template:`
 <div class="shell" :class="{'nav-open':navOpen}">
@@ -406,8 +463,11 @@ const App = {
     <!-- ================= CONFIGURATION ================= -->
     <template v-if="ui.view==='config'">
       <div class="page-head"><h1>Configuration</h1><p class="lede">Réglages du randomizer de Ship of Harkinian 9.2.3 « Ackbar Delta ».</p>
-        <label class="btn primary import-btn">Importer depuis un spoiler SoH
-          <input type="file" accept=".json,application/json" @change="importSpoiler" hidden></label></div>
+        <div class="import-box">
+          <label class="btn primary import-btn">Importer depuis un spoiler SoH
+            <input type="file" accept=".json,application/json" @change="importSpoiler" hidden></label>
+          <label class="check import-opt" title="Révèle ce que le seed a tiré au sort : quels donjons sont en Master Quest (liste « masterQuestDungeons ») et lesquels ont un trousseau de clés.">
+            <input type="checkbox" v-model="ui.importQuests">Importer aussi les tirages du seed : donjons MQ et trousseaux (peut spoiler)</label></div></div>
       <div v-if="importReport" class="import-report" :class="importReport.ok ? 'ok' : 'ko'">
         <b>{{importReport.title}}</b>
         <ul v-if="importReport.notes.length"><li v-for="(n,i) in importReport.notes" :key="i">{{n}}</li></ul>
@@ -545,37 +605,56 @@ const App = {
       </div>
       </section>
 
-      <div class="card-row">
+      <div v-if="panelSkills.length || panelChecklists.length" class="card-row">
         <section v-if="panelSkills.length" class="panel-card skills-card">
           <div v-for="r in panelSkills" :key="r.title" class="item-box skill-box" :title="r.title">
             <div class="icon-grid"><item-tile v-for="k in r.items" :key="k" :k="k"></item-tile></div>
           </div>
         </section>
-        <section class="panel-card checklists-card" :class="{wide:!panelSkills.length}">
+        <section v-if="panelChecklists.length" class="panel-card checklists-card" :class="{wide:!panelSkills.length}">
           <button v-for="c in panelChecklists" :key="c.id" type="button" class="check-tile check-square" :title="CHECKLISTS[c.id].title"
             @click="openChecklist(c.id)" :class="counterClass(checklistStats(c.id).got, checklistStats(c.id).total)">
-            <img :src="c.icon" alt=""><b>{{checklistStats(c.id).got}}/{{checklistStats(c.id).total}}</b></button>
+            <img v-if="!brokenIcons[c.icon]" :src="c.icon" alt="" @error="brokenIcons[c.icon]=true">
+            <span v-else class="icon-fallback" v-html="ICONS.bag"></span><b>{{checklistStats(c.id).got}}/{{checklistStats(c.id).total}}</b></button>
         </section>
       </div>
 
-      <section class="panel-card">
+      <section v-if="dungeonRows.length || skeletonShown" class="panel-card">
       <div class="dungeon-grid">
-        <template v-for="row in dungeonRows" :key="row[0]">
-          <div v-for="id in row" :key="id" class="dungeon-block" :class="{solo:row.length===1}" :style="{'--dg':DUNGEON_BY_ID[id].color}">
+        <div v-for="row in dungeonRows" :key="row[0]" class="dg-row" :class="{final:row.length===1}">
+          <div v-if="row.length===1" class="dg-side"></div>
+          <div v-for="id in row" :key="id" class="dungeon-block" :class="{'quest-edit':cells(id).quest}" :style="{'--dg':DUNGEON_BY_ID[id].color}"
+            :role="cells(id).quest ? 'button' : null" :tabindex="cells(id).quest ? 0 : null" :title="questTitle(id)"
+            @click="cycleDungeonQuest(id)" @contextmenu.prevent="cycleDungeonQuest(id,true)" @keydown.enter.self="cycleDungeonQuest(id)">
+            <span v-if="DUNGEON_BY_ID[id].quest" class="dg-badge" :class="questClass(id)">{{questLabel(id)}}</span>
             <div class="dg-name">{{DUNGEON_BY_ID[id].title}}</div>
             <div class="dg-cells">
-            <button v-if="cells(id).map" type="button" class="dg-flag" title="Carte" :class="{on:store.game.dungeons[id].map}" @click="toggleDungeonFlag(id,'map')"><img src="icons/dungeons/map.png" alt=""></button>
-            <button v-if="cells(id).compass" type="button" class="dg-flag" title="Boussole" :class="{on:store.game.dungeons[id].compass}" @click="toggleDungeonFlag(id,'compass')"><img src="icons/dungeons/compass.png" alt=""></button>
-            <button v-if="cells(id).keys" type="button" class="dg-keys" title="Petites clés" @click="addDungeonKeys(id,1)" @contextmenu.prevent="addDungeonKeys(id,-1)"
-              :class="counterClass(store.game.dungeons[id].keys, DUNGEON_BY_ID[id].maxKeys)">
-              <img src="icons/dungeons/key.png" alt="">{{store.game.dungeons[id].keys}}/{{DUNGEON_BY_ID[id].maxKeys}}</button>
-            <button v-if="cells(id).bossKey" type="button" class="dg-flag" title="Clé de boss" :class="{on:store.game.dungeons[id].bossKey}" @click="toggleDungeonFlag(id,'bossKey')"><img src="icons/dungeons/boss.png" alt=""></button>
-            <button v-if="cells(id).card" type="button" class="dg-flag" :class="{on:store.game.items[DUNGEON_BY_ID[id].card]}"
-              :title="ITEM_BY_KEY[DUNGEON_BY_ID[id].card].label" @click="store.game.items[DUNGEON_BY_ID[id].card]=!store.game.items[DUNGEON_BY_ID[id].card]">
-              <img :src="iconSrc('items', ITEM_BY_KEY[DUNGEON_BY_ID[id].card])" alt=""></button>
+              <!-- 1re ligne : carte et boussole ; 2e ligne : toutes les clés (et la Carte Gerudo) -->
+              <div v-if="cells(id).map || cells(id).compass" class="dg-line">
+                <button v-if="cells(id).map" type="button" class="dg-flag" :title="atStart(id).maps ? 'Carte (dès le départ)' : 'Carte'" :class="{on:atStart(id).maps || store.game.dungeons[id].map, fixed:atStart(id).maps}" :disabled="atStart(id).maps" @click.stop="toggleDungeonFlag(id,'map')" @contextmenu.stop.prevent><img src="icons/dungeons/map.png" alt=""></button>
+                <button v-if="cells(id).compass" type="button" class="dg-flag" :title="atStart(id).maps ? 'Boussole (dès le départ)' : 'Boussole'" :class="{on:atStart(id).maps || store.game.dungeons[id].compass, fixed:atStart(id).maps}" :disabled="atStart(id).maps" @click.stop="toggleDungeonFlag(id,'compass')" @contextmenu.stop.prevent><img src="icons/dungeons/compass.png" alt=""></button>
+              </div>
+              <div v-if="cells(id).keys || cells(id).bossKey || cells(id).card" class="dg-line">
+                <button v-if="cells(id).keys && dungeonKeyRing(id)!==true" type="button" class="dg-keys" :title="keysTitle(id)" @click.stop="addDungeonKeys(id,1)" @contextmenu.stop.prevent="addDungeonKeys(id,-1)"
+                  :class="{none:!store.game.dungeons[id].keys && !dungeonKeysDone(id), done:dungeonKeysDone(id), fixed:atStart(id).keys}" :disabled="atStart(id).keys">
+                  <img src="icons/dungeons/key.png" alt="">{{keysLabel(id)}}</button>
+                <button v-if="cells(id).keys && dungeonKeyRing(id)!==false" type="button" class="dg-flag" :class="{on:store.game.dungeons[id].ringGot || store.game.items.skeletonKey}"
+                  :title="dungeonKeyRing(id) ? 'Trousseau de clés' : 'Trousseau de clés (peut-être) — le cocher indique que ce donjon en a un'"
+                  @click.stop="toggleKeyRing(id)" @contextmenu.stop.prevent>
+                  <img v-if="!brokenIcons['icons/dungeons/keyring.png']" src="icons/dungeons/keyring.png" alt="" @error="brokenIcons['icons/dungeons/keyring.png']=true">
+                  <span v-else class="dg-ring-fallback"><img src="icons/dungeons/key.png" alt=""><img src="icons/dungeons/key.png" alt=""></span></button>
+                <button v-if="cells(id).bossKey" type="button" class="dg-flag" :title="atStart(id).bossKey ? 'Clé de boss (dès le départ)' : 'Clé de boss'" :class="{on:atStart(id).bossKey || store.game.dungeons[id].bossKey, fixed:atStart(id).bossKey}" :disabled="atStart(id).bossKey" @click.stop="toggleDungeonFlag(id,'bossKey')" @contextmenu.stop.prevent><img src="icons/dungeons/boss.png" alt=""></button>
+                <button v-if="cells(id).card" type="button" class="dg-flag" :class="{on:store.game.items[DUNGEON_BY_ID[id].card]}"
+                  :title="ITEM_BY_KEY[DUNGEON_BY_ID[id].card].label" @click.stop="store.game.items[DUNGEON_BY_ID[id].card]=!store.game.items[DUNGEON_BY_ID[id].card]" @contextmenu.stop.prevent>
+                  <img :src="iconSrc('items', ITEM_BY_KEY[DUNGEON_BY_ID[id].card])" alt=""></button>
+              </div>
             </div>
           </div>
-        </template>
+          <div v-if="row.length===1" class="dg-side"><ItemTile v-if="skeletonShown && row[0]==='ganonsCastle'" k="skeletonKey"/></div>
+        </div>
+        <div v-if="skeletonShown && !dungeonRows.some(r => r.includes('ganonsCastle'))" class="dg-row final">
+          <div class="dg-side"></div><div class="dg-side"><ItemTile k="skeletonKey"/></div><div class="dg-side"></div>
+        </div>
       </div>
       </section>
     </div>
@@ -624,10 +703,29 @@ const App = {
           <div class="mactions"><button class="btn" @click="copyBackup">Copier</button><button class="btn primary" @click="importBackup">Importer</button></div>
         </div>
       </template>
+      <template v-else-if="modal==='spoiler'">
+        <header><h3>Importer un spoiler log ?</h3><button @click="modal=null" aria-label="Fermer" v-html="ICONS.close"></button></header>
+        <div class="body spoiler-prompt">
+          <template v-if="!importReport || !importReport.ok">
+            <p style="margin-top:0">Importez le spoiler log (.json) généré par Ship of Harkinian pour régler la Configuration automatiquement.
+              Seuls les réglages et les astuces sont lus, jamais l'emplacement des objets.</p>
+            <label class="check import-opt"><input type="checkbox" v-model="ui.importQuests">Importer aussi les tirages du seed : donjons MQ et trousseaux (peut spoiler)</label>
+            <div v-if="importReport" class="msg ko">{{importReport.title}}</div>
+            <div class="mactions"><button class="btn" @click="declineSpoiler">Non, merci</button>
+              <label class="btn primary import-btn">Importer un spoiler…
+                <input type="file" accept=".json,application/json" @change="importSpoiler" hidden></label></div>
+          </template>
+          <template v-else>
+            <div class="msg ok"><b>{{importReport.title}}</b></div>
+            <ul v-if="importReport.notes.length" class="spoiler-notes"><li v-for="(n,i) in importReport.notes" :key="i">{{n}}</li></ul>
+            <div class="mactions"><button class="btn primary" @click="modal=null">Fermer</button></div>
+          </template>
+        </div>
+      </template>
       <template v-else-if="modal==='reset'">
         <header><h3>Tout remettre à zéro ?</h3><button @click="modal=null" aria-label="Fermer" v-html="ICONS.close"></button></header>
         <div class="body">
-          <p style="margin-top:0">Toutes les destinations notées et l'état de la partie seront effacés. La configuration est conservée. Cette action est définitive.</p>
+          <p style="margin-top:0">Toutes les destinations notées et l'état de la partie seront effacés. La configuration est conservée (l'import d'un nouveau spoiler sera proposé). Cette action est définitive.</p>
           <div class="mactions"><button class="btn" @click="modal=null">Annuler</button><button class="btn red" @click="resetAll">Tout effacer</button></div>
         </div>
       </template>
