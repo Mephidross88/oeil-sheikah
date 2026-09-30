@@ -16,18 +16,23 @@ const Seg = {
 // Grand cadre de progression (pages Checks et Entrées) : anneau de pourcentage, « faits / total », ligne de détail
 // et répartition par groupe. stats = { got, total, sub, groups:[[libellé, faits, total]] }, unit = « checks », « sorties »…
 const ProgressCard = {
-  props:{ stats:{ type:Object, required:true }, unit:{ type:String, default:'' } },
+  props:{ stats:{ type:Object, required:true }, unit:{ type:String, default:'' }, title:{ type:String, default:'' },
+    active:{ type:Boolean, default:false } },
+  emits:['open'],
   computed:{ pct(){ return this.stats.total ? Math.floor(100 * this.stats.got / this.stats.total) : 0; } },
-  template:`<div class="progress-card" :class="{done:stats.total && stats.got===stats.total}">
+  // Cliquable (titre de page) : ouvre la page correspondante.
+  template:`<button type="button" class="progress-card" :class="{done:stats.total && stats.got===stats.total, active}"
+    :title="title ? 'Ouvrir la page ' + title : null" @click="$emit('open')">
     <svg class="pc-ring" viewBox="0 0 44 44" aria-hidden="true"><circle class="pc-track" cx="22" cy="22" r="18"/>
       <circle v-if="stats.got" class="pc-fill" cx="22" cy="22" r="18" :stroke-dasharray="(113.1*stats.got/(stats.total||1)) + ' 113.1'"/></svg>
     <div class="pc-pct">{{pct}}<small>%</small></div>
     <div class="pc-main">
+      <div v-if="title" class="pc-title">{{title}}</div>
       <div class="pc-count"><b>{{stats.got}}</b> / {{stats.total}} <span>{{unit}}</span></div>
       <div class="pc-sub">{{stats.sub}}</div>
       <div class="pc-groups"><span v-for="g in stats.groups" :key="g[0]">{{g[0]}} <b>{{g[1]}}/{{g[2]}}</b></span></div>
     </div>
-  </div>`,
+  </button>`,
 };
 
 const ItemTile = {

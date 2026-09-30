@@ -18,6 +18,12 @@ Référence du rando : https://wiki.ootrandomizer.com/index.php?title=Entrance_R
 - Export / import de la partie par copier-coller (texte JSON) pour changer de navigateur.
 - Interface claire, graphique, en français, utilisable sur mobile.
 
+## Progression globale (en tête de toutes les pages)
+Bande de deux cadres de progression (composant `ProgressCard`) au-dessus du titre de chaque page : **Checks** et,
+dès qu'au moins une sortie est randomisée, **Entrées**. Chaque cadre : titre, anneau de pourcentage, « faits /
+total », restants, zones terminées, détail par groupe (voir Checks et Entrées ci-dessous) ; cliquable pour ouvrir
+la page correspondante, souligné quand on y est. Côte à côte, empilés sur mobile.
+
 ## Navigation (panneau de gauche)
 - Accès aux quatre modules : Entrées (anciennement « Tracker », id `entrances`), Routeur, Checks, Configuration.
 - Dans Entrées uniquement : tout déplier / tout replier, navigation rapide vers les zones, et filtres :
@@ -380,9 +386,8 @@ check) ; règles dans `js/checks.js`.
   Les checks suivis = listés, non exclus, dans les catégories et l'âge choisis : compteurs, barres et zones
   terminées en dépendent. Panneau de gauche : tout déplier / replier, « Afficher les checks exclus », « Suivre
   aussi les Skulltulas non mélangées », zones groupées Overworld / Donjons avec mini-barre et restants (✓ si terminée).
-- **Progression globale** : grand cadre en haut à droite de la page (composant `ProgressCard`, partagé avec les
-  Entrées) — anneau de pourcentage, « faits / total » en grand, restants, zones terminées, et détail Overworld /
-  Donjons. Il dépend seulement de la configuration (checks mélangés, version active des donjons, hors exclus),
+- **Progression globale** : cadre « Checks » de la bande de progression (voir plus haut) — anneau de pourcentage,
+  « faits / total », restants, zones terminées, et détail Overworld / Donjons. Il dépend seulement de la configuration (checks mélangés, version active des donjons, hors exclus),
   jamais des filtres d'affichage (catégories, âge, Skulltulas non mélangées, recherche, zones masquées) ; les
   compteurs des zones et des pastilles, eux, suivent les filtres.
 - **Zones** : repliables (présentation des Entrées) ; en-tête avec badge V / MQ / ? (donjons), restants par catégorie
@@ -394,7 +399,7 @@ check) ; règles dans `js/checks.js`.
   faisables par zone, checks non faisables grisés, lien avec les Entrées et le Routeur.
 
 ## Entrées
-En haut à droite, dès qu'au moins une sortie est randomisée, le même cadre de progression que la page Checks :
+Cadre « Entrées » de la bande de progression (voir plus haut), dès qu'au moins une sortie est randomisée :
 sorties découvertes / randomisées, restantes, zones complètes, et détail Overworld / Intérieurs / Grottes / Donjons /
 Sens unique (types présents seulement).
 Une carte dépliable par zone, avec progression (sorties renseignées / randomisées). Une ligne par sortie :

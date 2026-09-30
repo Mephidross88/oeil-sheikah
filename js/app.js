@@ -450,13 +450,14 @@ const App = {
   </aside>
 
   <main class="main">
+    <!-- Progression globale, en tête de toutes les pages : checks, et entrées si certaines sont randomisées -->
+    <div class="global-progress">
+      <progress-card :stats="checkStats" unit="checks" title="Checks" :active="ui.view==='checks'" @open="go('checks')"></progress-card>
+      <progress-card v-if="stats.editable" :stats="stats" unit="sorties" title="Entrées" :active="ui.view==='entrances'" @open="go('entrances')"></progress-card>
+    </div>
     <!-- ================= TRACKER ================= -->
     <template v-if="ui.view==='entrances'">
-      <div class="checks-head">
-        <div class="page-head"><h1>Entrées</h1></div>
-        <!-- Progression : sorties randomisées renseignées (seulement si des entrées sont randomisées) -->
-        <progress-card v-if="stats.editable" :stats="stats" unit="sorties"></progress-card>
-      </div>
+      <div class="page-head"><h1>Entrées</h1></div>
       <div class="container">
         <div v-if="missingSpawns.length" class="warn-box">
           <span class="warn-box-ic" v-html="ICONS.warn"></span>
@@ -511,11 +512,7 @@ const App = {
     <!-- ================= ROUTEUR ================= -->
     <!-- ================= CHECKS ================= -->
     <template v-if="ui.view==='checks'">
-      <div class="checks-head">
-        <div class="page-head"><h1>Checks</h1></div>
-        <!-- Progression globale : selon la configuration, indépendante des filtres -->
-        <progress-card :stats="checkStats" unit="checks"></progress-card>
-      </div>
+      <div class="page-head"><h1>Checks</h1></div>
 
       <div class="checks-toolbar">
         <input class="checks-search" type="search" v-model="ui.checks.q" placeholder="Rechercher un check ou une zone…" aria-label="Rechercher un check">
