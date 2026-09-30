@@ -7,10 +7,11 @@ const App = {
     const ui = store.ui, s = store.settings;
 
     const views = [
-      { id:'tracker', label:'Tracker', icon:ICONS.tracker },
+      { id:'entrances', label:'Entrées', icon:ICONS.entrances },
       { id:'router', label:'Routeur', icon:ICONS.router },
       { id:'config', label:'Configuration', icon:ICONS.config },
     ];
+    if (!views.some(v => v.id === ui.view)) ui.view = views[0].id;
 
     function rowInfo(e){
       if (e.specialTag) return { mode:'auto', target:effC.value[e.key] };
@@ -180,10 +181,10 @@ const App = {
     <nav class="nav">
       <button v-for="v in views" :key="v.id" class="nav-item" :class="{active:ui.view===v.id}" @click="go(v.id)">
         <span v-html="v.icon"></span>{{v.label}}
-        <span v-if="v.id==='tracker'" class="nav-meta">{{stats.mapped}}/{{stats.editable}}</span></button>
+        <span v-if="v.id==='entrances'" class="nav-meta">{{stats.mapped}}/{{stats.editable}}</span></button>
     </nav>
 
-    <section v-if="ui.view==='tracker'" class="side-sec">
+    <section v-if="ui.view==='entrances'" class="side-sec">
       <div class="side-row"><button class="side-btn" @click="setAll(false)">Tout déplier</button><button class="side-btn" @click="setAll(true)">Tout replier</button></div>
       <label class="check"><input type="checkbox" v-model="ui.filters.showReachableTargets">Proposer les destinations déjà atteignables ou déjà mappées</label>
       <label class="check"><input type="checkbox" v-model="ui.filters.showInaccessibleAreas">Afficher les zones non atteintes</label>
@@ -207,14 +208,14 @@ const App = {
 
   <main class="main">
     <!-- ================= TRACKER ================= -->
-    <template v-if="ui.view==='tracker'">
-      <div class="page-head"><h1>Tracker</h1>
+    <template v-if="ui.view==='entrances'">
+      <div class="page-head"><h1>Entrées</h1>
         <p class="lede">{{stats.mapped}} sorties découvertes sur {{stats.editable}} randomisées.</p></div>
       <div class="container">
         <div v-if="missingSpawns.length" class="warn-box">
           <span class="warn-box-ic" v-html="ICONS.warn"></span>
           <div><b>Spawn {{missingSpawns.join(' et ')}} non renseigné{{missingSpawns.length>1?'s':''}}.</b> Les spawns sont randomisés
-          (Configuration) mais leur destination n'est pas encore notée dans le Tracker : sans point de départ connu,
+          (Configuration) mais leur destination n'est pas encore notée dans Entrées : sans point de départ connu,
           rien n'est calculable comme atteignable.</div></div>
         <div v-if="stats.editable===0" class="warn-box">
           <span class="warn-box-ic" v-html="ICONS.warn"></span>

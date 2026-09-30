@@ -1,6 +1,8 @@
 # L'Œil Sheikah
 
-Tracker d'objets et routeur d'entrées pour Ocarina of Time Randomizer (Entrance Randomizer, ER).
+Tracker d'objets et routeur d'entrées pour Ocarina of Time Randomizer (Entrance Randomizer, ER), en cours de
+migration vers le randomizer de Ship of Harkinian (voir SPEC.md). Modules : Entrées (id `entrances`),
+Routeur, Configuration, plus le panneau Objets.
 Application 100 % client, sans build : ouvrir `index.html` dans un navigateur suffit.
 Interface et textes en français.
 Le comportement attendu est décrit dans `SPEC.md` : le lire avant toute évolution fonctionnelle,

@@ -8,7 +8,7 @@ Référence du rando : https://wiki.ootrandomizer.com/index.php?title=Entrance_R
 > **Transition en cours vers Ship of Harkinian.** L'application migre progressivement de OoT Randomizer
 > vers le randomizer de Ship of Harkinian. Pour l'instant, seul le contenu du panneau Objets (catalogue
 > d'objets, donjons, check-lists) a été aligné sur SoH — voir « Panneau Objets (droite) » ci-dessous. Le
-> reste de ce document (Tracker, Routeur, Configuration, logique de `js/logic.js`) décrit encore le
+> reste de ce document (Entrées, Routeur, Configuration, logique de `js/logic.js`) décrit encore le
 > comportement OoT Randomizer / ER actuel, qui sera revu dans un chantier séparé.
 
 ## Principes
@@ -18,8 +18,8 @@ Référence du rando : https://wiki.ootrandomizer.com/index.php?title=Entrance_R
 - Interface claire, graphique, en français, utilisable sur mobile.
 
 ## Navigation (panneau de gauche)
-- Accès aux trois modules : Tracker, Routeur, Configuration.
-- Dans le Tracker uniquement : tout déplier / tout replier, navigation rapide vers les zones, et filtres :
+- Accès aux trois modules : Entrées (anciennement « Tracker », id `entrances`), Routeur, Configuration.
+- Dans Entrées uniquement : tout déplier / tout replier, navigation rapide vers les zones, et filtres :
   - Proposer les destinations déjà atteignables ou déjà mappées dans les listes : OFF par défaut.
     Une destination déjà mappée (déjà la cible d'une autre sortie, y compris pour les sorties à sens
     unique — hiboux, chants, spawns, rivière Gerudo — qui ne « consomment » pas leur cible) est traitée
@@ -92,7 +92,7 @@ doré une fois complet (`counterClass` dans `js/app.js`).
 
 > **Catalogue orienté Ship of Harkinian.** Le contenu du panneau Objets (objets, donjons, check-lists) a été
 > aligné sur le randomizer de Ship of Harkinian plutôt que sur OoT Randomizer (ER) — voir la remarque en
-> tête de ce document. **La logique du Tracker/Routeur/Configuration n'a pas encore été adaptée en
+> tête de ce document. **La logique d'Entrées/Routeur/Configuration n'a pas encore été adaptée en
 > conséquence** (réglages ER, pool de sorties, terminologie) : c'est un chantier séparé, à traiter
 > globalement plus tard.
 
@@ -223,13 +223,13 @@ Les objets à paliers sont aplatis en indicateurs booléens (`deriveGame()` dans
 passés à `sat()` : ex. Force ≥ 1 → Bracelet Goron, ≥ 2 → Gantelets d'Argent, ≥ 3 → Gantelets d'Or ; Magie
 ≥ 1 → magie disponible ; Ocarina ≥ 1 → ocarina possédée ; Bouteilles ≥ 1 → a une bouteille ; Bâton Mojo
 ≥ 1 → bâtons disponibles. Seuls les objets déjà utilisés par `REQUIREMENTS`/`sat()` avant cet ajout
-conditionnent le Tracker/Routeur ; tout le reste (Récompenses hors Pierres Spirituelles, armes enfant/
+conditionnent Entrées/Routeur ; tout le reste (Récompenses hors Pierres Spirituelles, armes enfant/
 adulte/communes hors force/bombes/missiles/arc/grappin/bâtons, Statistiques, notes d'ocarina, chants hors
 ceux déjà câblés) est purement informatif pour l'instant — cf. `SilverScale`/`GoronBracelet`/etc. dans
 `REQUIREMENTS` pour la liste exacte de ce qui compte pour la logique.
 - Les conditions portent sur chaque couple de sorties d'une zone, pas sur la zone entière.
 
-## Tracker
+## Entrées
 Une carte dépliable par zone, avec progression (sorties renseignées / randomisées). Une ligne par sortie :
 1. Icône du type (extérieur, intérieur, grotte, donjon, boss, hibou, téléportation, spawn).
 2. Globe : au survol, liste des sorties atteignables à pied dans la même zone, avec coût ;

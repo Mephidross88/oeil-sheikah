@@ -16,7 +16,7 @@ function defaults(){
       triforceHunt:false, triforceHuntMax:20 },
     costs:{ transition:3, warp:15, reset:25, age:12 },
     game, mappings:{},
-    ui:{ view:'tracker', collapsed:{},
+    ui:{ view:'entrances', collapsed:{},
       filters:{ showReachableTargets:false, showInaccessibleAreas:false, showDiscovered:true, showVanilla:true },
       router:{ fromArea:'', fromExit:'', fromAge:'child', toArea:'', toExit:'', toAge:'any' } },
   };

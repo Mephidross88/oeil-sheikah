@@ -247,7 +247,7 @@ const ROMAN = ['', 'I', 'II', 'III', 'IV', 'V'];
 const tierLabel = it => it.sizes ? null : (ROMAN[store.game[it.path][it.key]] || null);
 
 /* ---------- Objets de donjon (carte / boussole / petites clés / clé de boss) ---------- */
-// NOTE : purement informatif pour l'instant — pas encore branché au Tracker/Routeur (`sat()`/`makeEdges()`).
+// NOTE : purement informatif pour l'instant — pas encore branché à Entrées/Routeur (`sat()`/`makeEdges()`).
 // `maxKeys` = valeurs vanilla par défaut, à ajuster une fois la logique Ship of Harkinian précisée.
 // `color` : teinte du thème du donjon (bordure du bloc ; le fond en est une version très atténuée).
 const DUNGEONS = [
