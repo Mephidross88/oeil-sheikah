@@ -1,15 +1,14 @@
 /* ---------- Inventaire (panneau Objets) ---------- */
 // kind: 'bool' (chip on/off), 'level' (objet progressif, stages = libellés par palier, palier 0 = aucun),
 // 'count' (compteur libre 0..max, purement informatif). `max` peut être une fonction (settings)=>nombre
-// pour un plafond réglable en Configuration. `visible(settings)` masque l'objet si la fonction renvoie faux.
+// pour un plafond réglable en Configuration ; `goal(settings)` (facultatif) : seuil à partir duquel le compteur
+// est doré, s'il diffère du maximum (ex. Triforce : morceaux requis sur le total). `visible(settings)` masque l'objet si la fonction renvoie faux.
 // `locked:true` (objet `bool` uniquement) : toujours possédé, non désactivable (équipement de départ
 // jamais réellement obtenu en jeu, ex. Tunique/Bottes Kokiri) — la tuile ignore les clics.
-// `neverEmpty:true` (objet `level` uniquement) : le palier 0 est déjà un objet réellement possédé (pas
-// « aucun »), donc jamais affiché grisé — mais reste augmentable/diminuable normalement (ex. Bourse : le
-// palier de base à 99 rubis n'est ni un choix ni supprimable, contrairement aux paliers supérieurs).
 // `levels(settings)` (objet `level`) : paliers atteignables selon la configuration, en indices de `stages`
 // dans l'ordre de progression (par défaut tous). La valeur stockée reste un indice de `stages`, donc un palier
-// garde toujours le même sens (ex. 4 = infini) quelle que soit la configuration.
+// garde toujours le même sens (ex. 4 = infini) quelle que soit la configuration. Un objet sous son premier
+// palier atteignable y est remonté automatiquement (ex. Bourse : 99 d'office sans « Bourse enfant » mélangée).
 // Paliers de capacité avec « Améliorations infinies » (item_pool.cpp de SoH) : « Progressif » ajoute l'infini
 // après le dernier palier normal ; « Condensé » le donne dès la 1re amélioration (pas pour bourse ni magie).
 const ammoLevels = s => s.infiniteUpgrades === 'Condensed Progressive' ? [0, 1, 4]
@@ -25,7 +24,8 @@ const ITEM_GROUPS = [
     { key:'spiritMedallion', label:"Médaillon de l'Esprit", kind:'bool', icon:'rewards/medallions/spirit.png' },
     { key:'shadowMedallion', label:"Médaillon de l'Ombre", kind:'bool', icon:'rewards/medallions/shadow.png' },
     { key:'lightMedallion', label:'Médaillon de la Lumière', kind:'bool', icon:'rewards/medallions/light.png' },
-    { key:'triforcePieces', label:'Morceaux de Triforce', kind:'count', max:s => s.triforceHuntTotal, visible:s => s.triforceHunt !== 'Off', icon:'rewards/triforce.png' },
+    { key:'triforcePieces', label:'Morceaux de Triforce', kind:'count', max:s => s.triforceHuntTotal, goal:s => s.triforceHuntRequired,
+      visible:s => s.triforceHunt !== 'Off', icon:'rewards/triforce.png' },
   ]},
   { title:'Équipement', path:'items', items:[
     { key:'kokiriSword', label:'Épée Kokiri', kind:'bool', icon:'equipment/swords/kokiri.png' },
@@ -44,10 +44,15 @@ const ITEM_GROUPS = [
       icons:['equipment/strength/bracelet.png','equipment/strength/silver.png','equipment/strength/golden.png'] },
     { key:'scale', label:'Écaille de Zora', kind:'level', stages:['Aucune',"Écaille d'Argent","Écaille d'Or"],
       icons:['equipment/scales/silver.png','equipment/scales/golden.png'] },
-    { key:'wallet', label:'Bourse', kind:'level', stages:['Bourse (99)','Grande Bourse (200)','Bourse de Géant (500)','Bourse de Magnat (999)','Bourse infinie'],
-      sizes:['99','200','500','999','∞'], neverEmpty:true,
-      levels:s => [0, 1, 2, ...(s.includeTycoonWallet === 'On' ? [3] : []), ...(s.infiniteUpgrades !== 'Off' ? [4] : [])] },
+    // Palier 0 = pas de bourse : seulement avec « Bourse enfant » mélangée, sinon on part de la bourse de 99.
+    { key:'wallet', label:'Bourse', kind:'level', stages:['Aucune','Bourse (99)','Grande Bourse (200)','Bourse de Géant (500)','Bourse de Magnat (999)','Bourse infinie'],
+      sizes:['','99','200','500','999','∞'],
+      levels:s => [...(s.shuffleChildWallet === 'On' ? [0] : []), 1, 2, 3, ...(s.includeTycoonWallet === 'On' ? [4] : []), ...(s.infiniteUpgrades !== 'Off' ? [5] : [])] },
     { key:'skulltulaTokens', label:"Skulltulas d'Or", kind:'count', max:100, icon:'rewards/skulltula.png' },
+    // Greg (rubis vert) : ne compte que s'il sert au pont arc-en-ciel ou à la clé de boss de Ganon.
+    { key:'greg', label:'Greg (rubis vert)', kind:'bool', icon:'rewards/greg.png', visible:s => s.rainbowBridge === 'Greg'
+      || (['Stones','Medallions','Dungeon rewards','Dungeons'].includes(s.rainbowBridge) && s.bridgeRewardOptions !== 'Standard Rewards')
+      || (['LACS-Stones','LACS-Medallions','LACS-Rewards','LACS-Dungeons'].includes(s.ganonsBossKey) && s.gcbkRewardOptions !== 'Standard Reward') },
     { key:'gerudoCard', label:'Carte Gerudo', kind:'bool', icon:'items/gerudo.png' },
     { key:'stoneOfAgony', label:'Pierre de Souffrance', kind:'bool', icon:'items/stone_of_agony.png' },
   ]},
@@ -67,9 +72,11 @@ const ITEM_GROUPS = [
   ]},
   { title:'Armes communes', path:'items', items:[
     { key:'nuts', label:'Noix Mojo', kind:'level', stages:['Aucune','20','30','40','Infinies'], sizes:['','20','30','40','∞'], levels:ammoLevels, icon:'weapons/nut.png' },
-    { key:'bombBag', label:'Bombes', kind:'level', stages:['Aucune','30','40','50','Infinies'], sizes:['','30','40','50','∞'], levels:ammoLevels, icon:'weapons/bomb.png' },
-    { key:'bombchus', label:'Missiles', kind:'level', stages:['Aucun','30','40','50','Infinis'], sizes:['','30','40','50','∞'],
-      levels:s => s.bombchuBag === 'Progressive Bags' ? ammoLevels(s) : [0, 1, 2, 3], icon:'weapons/bombchu.png' },
+    { key:'bombBag', label:'Bombes', kind:'level', stages:['Aucune','20','30','40','Infinies'], sizes:['','20','30','40','∞'], levels:ammoLevels, icon:'weapons/bomb.png' },
+    // Missiles (option « Sac de missiles ») : « Progressif » → sacs de 20 / 30 / 50 (+ ∞) ; « Aucun » / « Un sac »
+    // → possédés ou non, capacité 50 (GetBombchuCapacity / item tracker de SoH).
+    { key:'bombchus', label:'Missiles', kind:'level', stages:['Aucun','20','30','50','Infinis'], sizes:['','20','30','50','∞'],
+      levels:s => s.bombchuBag === 'Progressive Bags' ? ammoLevels(s) : [0, 3], icon:'weapons/bombchu.png' },
   ]},
   { title:'Objets', path:'items', items:[
     { key:'beans', label:'Haricots Magiques', kind:'bool', icon:'items/bean.png' },
@@ -114,6 +121,7 @@ const ITEM_GROUPS = [
     { key:'dinsFire', label:'Feu de Din', kind:'bool', icon:'magic/din.png' },
     { key:'faroresWind', label:'Vent de Farore', kind:'bool', icon:'magic/farore.png' },
     { key:'nayrusLove', label:'Amour de Nayru', kind:'bool', icon:'magic/nayru.png' },
+    { key:'rocsFeather', label:'Plume de Roc', kind:'bool', icon:'items/rocs_feather.png', visible:s => s.rocsFeather === 'On' },
   ]},
   { title:'Ocarina', path:'items', items:[
     { key:'ocarina', label:'Ocarina', kind:'level', stages:['Aucune',"Ocarina de Fée","Ocarina du Temps"],
@@ -175,7 +183,7 @@ const ITEM_BY_KEY = {};
 ITEM_GROUPS.forEach(g => g.items.forEach(it => { ITEM_BY_KEY[it.key] = { ...it, path:g.path }; }));
 
 const ITEMS_PAGE = {
-  stats:[['doubleDefense', 'heartContainers', 'heartPieces'], ['magic', 'skulltulaTokens']],
+  stats:[['doubleDefense', 'heartContainers', 'heartPieces'], ['magic', 'skulltulaTokens', 'greg']],
   quest:{
     hex:['forestMedallion', 'fireMedallion', 'waterMedallion', 'spiritMedallion', 'shadowMedallion', 'lightMedallion'],
     center:'triforcePieces',
@@ -197,7 +205,7 @@ const ITEMS_PAGE = {
     [ { title:'Adulte', items:['hookshot', 'bow', 'titanMass'], sub:['fireArrows', 'iceArrows', 'lightArrows'] },
       { title:'Utilitaires', items:['truthLens', 'beans', 'stoneOfAgony', 'fishingRod'], cols:2 } ],
     [ { title:'Flacons', items:['bottle', 'rutoLetter'] },
-      { title:'Sorts', items:['dinsFire', 'faroresWind', 'nayrusLove'] } ],
+      { title:'Sorts', items:['dinsFire', 'faroresWind', 'nayrusLove', 'rocsFeather'] } ],
   ],
   // Chaînes d'objets d'échange : un bouton par âge (icône = dernier objet de la chaîne) ouvrant une fenêtre
   // de pointage ; chaque sous-tableau = une ligne de la fenêtre, objets reliés par un trait.

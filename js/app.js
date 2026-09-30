@@ -544,7 +544,7 @@ const App = {
         <div class="stones-col"><item-tile v-for="k in ITEMS_PAGE.quest.stones" :key="k" :k="k"></item-tile></div>
         <div class="stat-cols">
           <div v-for="(col,ci) in ITEMS_PAGE.stats" :key="ci" class="stat-col">
-            <item-tile v-for="k in col" :key="k" :k="k"></item-tile>
+            <item-tile v-for="k in visibleKeys(col)" :key="k" :k="k"></item-tile>
           </div>
         </div>
       </div>

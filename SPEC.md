@@ -38,9 +38,11 @@ Réglages du randomizer de **Ship of Harkinian 9.2.3 « Ackbar Delta »**, repri
 l'utilisateur ; ne pas se fier à la branche `develop`, qui a d'autres options). Données dans `js/config.js`
 (`SETTINGS_DEF`, `TRICKS`, `CONFIG_TABS`).
 
-- **Périmètre** : seulement les options qui changent la logique, les checks ou les objets suivis (164 sur
+- **Périmètre** : seulement les options qui changent la logique, les checks ou les objets suivis (163 sur
   231). Ignorées (`SETTINGS_IGNORED`) : prix et pondérations des boutiques, pestes Mojo et marchands,
-  indices, pièges de glace, réserve d'objets, multiplicateur de dégâts, « All Locations Reachable ».
+  indices, pièges de glace, réserve d'objets, multiplicateur de dégâts, « All Locations Reachable », et les
+  options sans case dans le menu de SoH (« Shuffle Entrances », calculée ; « Shuffle Chest Minigame », forcée
+  à « Off » à la génération).
 - **Valeurs** : stockées telles que dans SoH (ex. `'Deku Only'`, `'Dungeon rewards'`), défauts de SoH ;
   libellés affichés en français, nom SoH exact au survol de chaque option.
 - **Onglets** (calqués sur le menu SoH) : Logique & accès (logique, âge de départ, accès aux zones, pont
@@ -176,10 +178,13 @@ dans l'ordre :
 
 1. **Quête** : les 6 Médaillons de donjon disposés en hexagone (positionnement CSS, pas d'image dessinée),
    Morceaux de Triforce au centre (visible seulement si « Chasse à la Triforce » est activée en
-   Configuration ; plafond = réglage associé) ; à droite de l'hexagone, les 3 Pierres Spirituelles, puis,
+   Configuration ; plafond = nombre total de morceaux, pastille dorée dès le nombre requis atteint, comme
+   dans SoH — infobulle « n (requis R, total T) ») ; à droite de l'hexagone, les 3 Pierres Spirituelles, puis,
    séparées par un trait, deux colonnes de tuiles d'objet cliquables : Double Défense, Réceptacles de Cœur,
    Quarts de Cœur / Magie (progressif : Simple → Double, puis Infinie seulement avec « Améliorations
-   infinies »), Skulltulas d'Or. Purement informatifs,
+   infinies »), Skulltulas d'Or, Greg (rubis vert : seulement si le pont arc-en-ciel est « Greg » ou si une
+   option « Greg compte / Greg joker » est active pour le pont ou la clé de boss de Ganon ; icône
+   `icons/rewards/greg.png`). Purement informatifs,
    sans effet sur le Routeur (sauf Magie ≥ 1, utilisée par `sat()`).
 2. **Équipement**, sur toute la largeur (5 colonnes de tuiles de même taille) : quatre chaînes de tuiles
    reliées — Épée Kokiri → de Légende → Biggoron (3 objets distincts, pas un objet progressif — dans le jeu
@@ -187,18 +192,23 @@ dans l'ordre :
    d'échange), Bouclier Mojo → Hylien → Miroir (idem), Bottes Kokiri → de Plomb → des Airs, Tunique
    Kokiri → Goron → Zora ; puis, après un séparateur pleine hauteur, les progressifs (Force : Bracelet Goron
    → Gantelets d'Argent → Gantelets d'Or et Écaille de Zora : Argent → Or, pastille de palier en chiffres
-   romains ; Bourse : pastille de capacité 99 (par défaut) → 200 → 500, puis 999 seulement avec l'option
-   « Bourse de magnat », puis ∞ seulement avec « Améliorations infinies »).
+   romains ; Bourse : « Aucune » (grisée) seulement avec « Bourse enfant » mélangée, sinon 99 d'office, → 200
+   → 500, puis 999 seulement avec l'option « Bourse de magnat », puis ∞ seulement avec « Améliorations
+   infinies »).
 3. **Inventaire**, en cadres d'une même teinte (celle du fond de l'hexagone des médaillons), deux par ligne (`ITEMS_PAGE.boxRows`) : Enfant (Bâton
    Mojo, Lance-Pierre, Boomerang) + Commun (Bombes, Missiles, Noix Mojo) ; Adulte (Grappin, Arc, Masse des
    Titans, avec les Flèches de Feu/Glace/Lumière en sous-rangée reliée) + Utilitaires (en 2×2 : Monocle de
    Vérité, Haricots Magiques, Pierre de Souffrance, Canne à Pêche — `cols:2`) ; Flacons (Bouteilles, Lettre
-   de Ruto) + Sorts (Feu de Din, Vent de Farore, Amour de Nayru). Objets à munitions, progressifs avec pastille de capacité et un
-   palier « Infini » (∞) selon l'option « Améliorations infinies » : Bâton Mojo 10 → 20 → 30, Lance-Pierre,
-   Arc, Bombes et Missiles 30 → 40 → 50, Noix Mojo 20 → 30 → 40. « Non » : pas d'infini ; « Progressif » : ∞
+   de Ruto) + Sorts (Feu de Din, Vent de Farore, Amour de Nayru, Plume de Roc — seulement avec l'option « Plume
+   de Roc », icône `icons/items/rocs_feather.png`). Objets à munitions, progressifs avec pastille de capacité et un
+   palier « Infini » (∞) selon l'option « Améliorations infinies » : Bâton Mojo 10 → 20 → 30, Lance-Pierre et
+   Arc 30 → 40 → 50, Bombes 20 → 30 → 40, Noix Mojo 20 → 30 → 40 (capacités de l'item tracker de SoH).
+   Missiles selon l'option « Sac de missiles » : « Progressif » → 20 → 30 → 50 ; « Aucun » / « Un sac » →
+   possédés ou non (pastille 50). « Non » : pas d'infini ; « Progressif » : ∞
    après le dernier palier ; « Condensé » : ∞ directement après le 1er palier (ex. Arc 30 → ∞). Missiles : ∞
    seulement avec des sacs de missiles progressifs. Les paliers atteignables viennent de `levels(settings)`
-   (`itemLevels`) ; la valeur stockée reste l'indice dans `stages` (4 = infini partout).
+   (`itemLevels`) ; la valeur stockée reste l'indice dans `stages` (4 = infini pour les munitions). Un objet sous
+   son premier palier atteignable y est remonté automatiquement (`raiseToFirstLevel`).
 4. **Chants** (sans titre) : une rangée des 7 chants (Berceuse de Zelda, Chant d'Epona, Chant de Saria,
    Chant du Soleil, Chant du Temps, Chant des Tempêtes, Chant de l'Épouvantail), puis une rangée des 6 chants
    de téléportation (Menuet des Bois, Boléro du Feu, Sérénade de l'Eau, Requiem des Esprits, Nocturne de
@@ -290,13 +300,14 @@ obtenu ignore le clic droit.
 - `bool` : activé / désactivé.
 - `level` : avance d'un palier au clic gauche, jusqu'au dernier ; recule au clic droit, jusqu'à 0.
 - `count` : ±1 au clic (±10 avec Majuscule), borné à `[0, max]` (`max` peut dépendre d'un réglage
-  Configuration, ex. Morceaux de Triforce).
+  Configuration, ex. Morceaux de Triforce ; `goal(settings)` facultatif = seuil de la pastille dorée).
 
 Pastille grise tant que l'objet n'a pas atteint son maximum, dorée une fois au maximum (`itemMaxed()`) —
 ex. Skulltulas d'Or : grise jusqu'à 99, dorée à 100 ; Arc : grise à 30/40, dorée à 50.
 
 Visibilité conditionnelle : un objet peut définir `visible(settings)` dans `ITEM_GROUPS` pour n'apparaître
-que sous certaines conditions de Configuration (seul cas actuel : Morceaux de Triforce).
+que sous certaines conditions de Configuration (ex. Morceaux de Triforce, capacités, langues, Greg, Plume de
+Roc).
 
 Objet verrouillé (`locked:true`, uniquement pour `bool`) : toujours affiché comme possédé, la tuile ignore
 les clics — pour l'équipement de départ jamais réellement « obtenu » en jeu (Tunique Kokiri, Bottes Kokiri).

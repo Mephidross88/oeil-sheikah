@@ -42,6 +42,17 @@ watch(store, () => {
   try { localStorage.setItem(STORE_KEY, JSON.stringify(store)); lastSaved.value = new Date(); } catch (e) {}
 }, { deep:true });
 
+// Objets à paliers sous leur premier palier atteignable (ex. Bourse à 0 sans « Bourse enfant » mélangée) :
+// remontés à ce palier, au chargement puis à chaque changement (configuration, remise à zéro…).
+function raiseToFirstLevel(){
+  ITEM_GROUPS.forEach(g => g.items.forEach(it => {
+    if (it.kind !== 'level' || !it.levels) return;
+    const min = Math.min(...itemLevels(it));
+    if (store.game[g.path][it.key] < min) store.game[g.path][it.key] = min;
+  }));
+}
+watch(() => [store.settings, store.game], raiseToFirstLevel, { deep:true, immediate:true });
+
 const effC = computed(() => computeEff(store));
 const incC = computed(() => computeIncoming(effC.value));
 const agesC = computed(() => computeAges(store, effC.value));
@@ -89,12 +100,13 @@ const areaName = k => AREA[EXIT[k]?.areaId]?.name || '?';
 // Fonctions globales (plutôt que des méthodes locales au composant App) afin d'être réutilisables
 // depuis n'importe quel composant affichant des tuiles d'objets (ex. ItemTile dans components.js).
 const brokenIcons = reactive({});
-const itemActive = (it, v) => it.locked || it.neverEmpty || (typeof v === 'boolean' ? v : v > 0);
+const itemActive = (it, v) => it.locked || (typeof v === 'boolean' ? v : v > 0);
 function setCount(path, key, max, v){ store.game[path][key] = Math.max(0, Math.min(max, Math.round(v) || 0)); }
 function itemTitle(path, it){
   const v = store.game[path][it.key];
   if (it.locked) return `${it.label} (toujours possédé)`;
   if (it.kind === 'level') return `${it.label} — ${it.stages[v]}`;
+  if (it.kind === 'count' && it.goal) return `${it.label} : ${v} (requis ${it.goal(store.settings)}, total ${itemMax(it)})`;
   if (it.kind === 'count') return `${it.label} : ${v}`;
   return it.label;
 }
@@ -102,7 +114,7 @@ function itemTitle(path, it){
 // (ex. Skulltulas : gris jusqu'à 99, doré à 100 ; Arc : gris à 30/40, doré à 50).
 function itemMaxed(path, it){
   const v = store.game[path][it.key];
-  if (it.kind === 'count') return v >= itemMax(it);
+  if (it.kind === 'count') return v >= (it.goal ? it.goal(store.settings) : itemMax(it));
   if (it.kind === 'level' && it.sizes) return v >= Math.max(...itemLevels(it));
   return false;
 }
