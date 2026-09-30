@@ -50,6 +50,8 @@ et le mettre à jour quand une règle change.
   gros fichier, ne pas le lire en entier ni l'éditer à la main pour autre chose qu'une retouche ponctuelle.
 - `tools/soh-checks/` : scripts Node lancés à la main (jamais chargés par l'appli) qui régénèrent `checks-data.js`
   depuis les sources de SoH ; traductions des libellés dans `translate.mjs`. Mode d'emploi dans son `README.md`.
+- `tools/soh-entrances/apply_names.mjs` : table sortie ↔ entrée du tracker d'entrées de SoH et traductions ; réécrit les
+  champs `label` / `soh` de `areas-data.js` (relancer après toute modification de la table).
 - `icons/` : images. `icons/exits/` (types de sortie), `icons/items/` (convention par défaut du panneau
   Objets) et `icons/rewards/...` (chemins personnalisés d'exemple) — voir SPEC.md > Panneau Objets pour la
   convention de nommage et comment personnaliser un chemin par objet (`icon`/`icons` dans `ITEM_GROUPS`).
@@ -63,7 +65,8 @@ et le mettre à jour quand une règle change.
   Tout nouveau champ persistant doit avoir une valeur dans `defaults()` (fusion via `merge()` au chargement).
 
 ## Modèle de données
-- Zone : `{ id, name, exits[] }`. Sortie : `{ id, label, type, shuffleTag, vanillaTargetExitId, connections?, destinationOnly?, specialTag? }`.
+- Zone : `{ id, name, exits[] }`. Sortie : `{ id, label, soh, type, shuffleTag, vanillaTargetExitId, connections?, destinationOnly?, specialTag? }`
+  (`label` = nom SoH traduit, `soh` = nom exact du tracker d'entrées de SoH, affiché au survol).
 - Clé d'une sortie : `"zoneId::exitId"`.
 - « Cible » d'une sortie T = l'endroit où l'on apparaît : on se trouve à l'emplacement de la sortie T.
   Ex. `kokiri_forest::kf_to_midos` (« Maison de Mido ») est côté forêt ; en la prenant, on arrive à

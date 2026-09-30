@@ -468,12 +468,12 @@ const App = {
               <button class="globe" :class="{none:!r.e.connections.length}" :aria-label="'Connexions depuis '+r.e.label"
                 @mouseenter="r.e.connections.length && showTip($event,r.e.key)" @mouseleave="hideTip" @focus="r.e.connections.length && showTip($event,r.e.key)" @blur="hideTip"
                 @click.stop="r.e.connections.length && toggleTip($event,r.e.key)" v-html="ICONS.globe"></button>
-              <div class="c-name">{{r.e.label}}</div>
-              <div v-if="decoupled" class="c-from"><button v-for="f in r.from" :key="f.key" class="loc link" @click="jump(EXIT[f.key].areaId, f.key)"><b>{{f.area}}</b><span>{{f.label}}</span></button></div>
+              <div class="c-name" :title="r.e.soh">{{r.e.label}}</div>
+              <div v-if="decoupled" class="c-from"><button v-for="f in r.from" :key="f.key" class="loc link" @click="jump(EXIT[f.key].areaId, f.key)"><b>{{f.area}}</b><span :title="EXIT[f.key].soh">{{f.label}}</span></button></div>
               <div class="c-dest">
                 <dest-picker v-if="r.mode==='open'" :source="r.e.key" @choose="k => setMapping(r.e.key, k)"></dest-picker>
                 <span v-else-if="r.mode==='locked'" class="muted">{{r.reason}}</span>
-                <button v-else-if="r.target" class="loc link" @click="jump(EXIT[r.target].areaId, r.target)"><b>{{areaName(r.target)}}</b><span>{{EXIT[r.target].label}}</span></button>
+                <button v-else-if="r.target" class="loc link" @click="jump(EXIT[r.target].areaId, r.target)"><b>{{areaName(r.target)}}</b><span :title="EXIT[r.target].soh">{{EXIT[r.target].label}}</span></button>
                 <span v-else class="muted">Dépend de l'entrée du donjon, pas encore connue</span>
               </div>
               <div v-if="r.mode!=='open'" class="c-ind">
@@ -577,7 +577,7 @@ const App = {
               <option v-for="a in routerAreas" :key="a.id" :value="a.id">{{a.name}}</option></select></div>
           <div class="field"><label for="fe">Sortie</label>
             <select id="fe" class="sel" v-model="ui.router.fromExit" :disabled="!ui.router.fromArea"><option value="" disabled>Choisir une sortie</option>
-              <option v-for="e in exitsOf(ui.router.fromArea)" :key="e.key" :value="e.key">{{e.label}}</option></select></div>
+              <option v-for="e in exitsOf(ui.router.fromArea)" :key="e.key" :value="e.key" :title="e.soh">{{e.label}}</option></select></div>
           <div class="field agebox"><span class="lbl">Âge</span><seg v-model="ui.router.fromAge" :options="[['child','Enfant'],['adult','Adulte']]"></seg></div>
         </div>
         <div class="rswap"><button type="button" @click="swap"><span v-html="ICONS.swap"></span>Inverser</button></div>
@@ -588,7 +588,7 @@ const App = {
               <option v-for="a in routerAreas" :key="a.id" :value="a.id">{{a.name}}</option></select></div>
           <div class="field"><label for="te">Sortie</label>
             <select id="te" class="sel" v-model="ui.router.toExit" :disabled="!ui.router.toArea"><option value="" disabled>Choisir une sortie</option>
-              <option v-for="e in exitsOf(ui.router.toArea)" :key="e.key" :value="e.key">{{e.label}}</option></select></div>
+              <option v-for="e in exitsOf(ui.router.toArea)" :key="e.key" :value="e.key" :title="e.soh">{{e.label}}</option></select></div>
           <div class="field agebox"><span class="lbl">Âge</span><seg v-model="ui.router.toAge" :options="[['child','Enfant'],['adult','Adulte'],['any','Peu importe']]"></seg></div>
         </div>
       </div>
@@ -612,7 +612,7 @@ const App = {
             <div v-if="it.t==='node'" class="node" :class="it.role==='start'?'start':(it.role==='end'||it.role==='both')?'end':''">
               <type-icon :type="iconKey(EXIT[it.key])"></type-icon>
               <div><div class="role" v-if="it.role">{{it.role==='start'?'Départ':it.role==='end'?'Arrivée':'Départ et arrivée'}}</div>
-                <b>{{areaName(it.key)}}</b><div class="sub">{{EXIT[it.key].label}}</div></div>
+                <b>{{areaName(it.key)}}</b><div class="sub" :title="EXIT[it.key].soh">{{EXIT[it.key].label}}</div></div>
               <span class="age" :class="it.age">{{ageLabel(it.age)}}</span>
             </div>
             <div v-else-if="it.t==='edge'" class="conn">

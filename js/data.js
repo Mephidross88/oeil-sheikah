@@ -7,7 +7,7 @@ const INSIDE_NODES = new Set([                                   // intérieurs 
 const WARP_SONGS = { 'spawns::warp_pol':'prelude','spawns::warp_mof':'minuet','spawns::warp_bof':'bolero','spawns::warp_sow':'serenade','spawns::warp_nos':'nocturne','spawns::warp_ros':'requiem' };
 
 const AREAS = RAW.map(a => ({ id:a.id, name:a.name, exits:(a.exits||[]).map(e => ({
-  id:e.id, key:`${a.id}::${e.id}`, areaId:a.id, label:e.label, type:e.type, shuffleTag:e.shuffleTag,
+  id:e.id, key:`${a.id}::${e.id}`, areaId:a.id, label:e.label, soh:e.soh || '', type:e.type, shuffleTag:e.shuffleTag,
   vanilla:(e.vanillaTargetExitId==null || e.vanillaTargetExitId==='null') ? null : e.vanillaTargetExitId,
   destOnly:!!e.destinationOnly, specialTag:e.specialTag||null,
   connections:(e.connections||[]).map(c => ({ to:`${a.id}::${c.targetExitId}`, cost:c.cost, req:c.requirements||null })),

@@ -396,7 +396,13 @@ Une carte dépliable par zone, avec progression (sorties renseignées / randomis
 1. Icône du type (extérieur, intérieur, grotte, donjon, boss, hibou, téléportation, spawn).
 2. Globe : au survol, liste des sorties atteignables à pied dans la même zone, avec coût ;
    en noir si accessible avec l'état actuel, en rouge sinon avec la condition. Grisé si aucune connexion.
-3. Nom de la sortie.
+3. Nom de la sortie : nom du tracker d'entrées de SoH (`randomizer_entrance_tracker.cpp`, commit `cb71e22`),
+   traduit en français sans le préfixe de zone (déjà affiché), nom SoH exact au survol (champ `soh`) — y compris
+   dans les listes de destinations (recherche aussi sur le nom SoH) et le Routeur. Convention SoH : côté
+   extérieur « Entrée de la maison de Mido », côté intérieur « Maison de Mido » (la sortie qu'on prend depuis
+   l'intérieur). Correspondance sortie ↔ entrée SoH et traductions : `tools/soh-entrances/apply_names.mjs`
+   (réécrit `areas-data.js`). Repaire des Voleurs : appariement des 13 portes déduit des noms extérieurs, à
+   confirmer en jeu.
 4. « Accessible depuis » : zone et sortie qui mènent ici (plusieurs possibles, ex. chant + entrée).
    Colonne masquée si les entrées découplées ne sont pas activées : la provenance est alors
    identique à la destination (colonne 5 renommée « Sortie associée » dans ce cas).
