@@ -412,7 +412,7 @@ const App = {
     <section v-if="ui.view==='checks'" class="side-sec">
       <div class="side-row"><button class="side-btn" @click="setAllChecks(false)">Tout déplier</button><button class="side-btn" @click="setAllChecks(true)">Tout replier</button></div>
       <label class="check"><input type="checkbox" v-model="ui.checks.showExcluded">Afficher les checks exclus</label>
-      <label class="check" title="Comme l'option du tracker de SoH : lister les Skulltulas même si elles ne sont pas mélangées"><input type="checkbox" v-model="ui.checks.alwaysGS">Toujours afficher les Skulltulas</label>
+      <label class="check" title="Lister aussi les Skulltulas dont le symbole n'est pas mélangé (utile pour les récompenses de la Maison des Skulltulas) — option « Always show Gold Skulltulas » du tracker de SoH"><input type="checkbox" v-model="ui.checks.alwaysGS">Suivre aussi les Skulltulas non mélangées</label>
       <div class="zone-nav check-nav">
         <template v-for="[g, list] in checkGroups" :key="g">
           <div class="side-title">{{g}}</div>

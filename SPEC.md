@@ -357,8 +357,9 @@ check) ; règles dans `js/checks.js`.
   cartes / boussoles / clés / clés de boss (sauf « Vanilla »), poche de Link, loche / poissons de l'étang
   (les N premiers, adultes si séparés par âge) / poissons de l'overworld, récompense des 100 Skulltulas, quête
   d'échange adulte (Anju adulte et le Certificat toujours). Écart volontaire : le marchand de haricots est listé
-  avec « Haricots seuls » (le tracker de SoH le masque par erreur). Préférence « Toujours afficher les
-  Skulltulas » (comme l'option du tracker de SoH).
+  avec « Haricots seuls » (le tracker de SoH le masque par erreur). Préférence « Suivre aussi les
+  Skulltulas non mélangées » (option « Always show Gold Skulltulas » du tracker de SoH : utile pour les
+  récompenses de la Maison des Skulltulas quand les symboles ne sont pas mélangés).
 - **Version des donjons** : seuls les checks de la version active (V / MQ, voir Panneau Objets > Version des
   donjons) sont listés. Version inconnue : seuls les checks communs, avec une note « n checks propres à la
   version Vanilla ou Master Quest sont masqués » ; badge V / MQ / ? dans l'en-tête de la zone, cliquable comme
@@ -377,8 +378,8 @@ check) ; règles dans `js/checks.js`.
   « Masquer les checks faits » ; « Masquer les zones terminées » ; pastilles de catégorie avec le nombre restant
   (clic : afficher / masquer la catégorie, clic droit : seulement celle-ci, ou tout réafficher ; « Tout afficher »).
   Les checks suivis = listés, non exclus, dans les catégories et l'âge choisis : compteurs, barres et zones
-  terminées en dépendent. Panneau de gauche : tout déplier / replier, « Afficher les checks exclus », « Toujours
-  afficher les Skulltulas », zones groupées Overworld / Donjons avec mini-barre et restants (✓ si terminée).
+  terminées en dépendent. Panneau de gauche : tout déplier / replier, « Afficher les checks exclus », « Suivre
+  aussi les Skulltulas non mélangées », zones groupées Overworld / Donjons avec mini-barre et restants (✓ si terminée).
 - **Progression globale** : grand cadre en haut à droite de la page — anneau de pourcentage, « faits / total »
   en grand, restants, zones terminées, et détail Overworld / Donjons. Il porte sur tous les checks suivis
   (catégories et âge choisis, hors exclus), indépendamment de la recherche et des zones masquées.
