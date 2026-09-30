@@ -3648,7 +3648,7 @@ window.AREAS_DATA = [
       },
       {
         "id": "kak_to_carpenter",
-        "label": "Entrée de la maison du chef des charpentiers",
+        "label": "Entrée de la maison du Chef des Charpentiers",
         "soh": "Kak Boss House Entry",
         "type": "interior",
         "shuffleTag": "interior_simple",
@@ -3747,7 +3747,7 @@ window.AREAS_DATA = [
       },
       {
         "id": "carpenter_to_kak",
-        "label": "Maison du chef des charpentiers",
+        "label": "Maison du Chef des Charpentiers",
         "soh": "Carpenter Boss House",
         "type": "interior",
         "shuffleTag": "interior_simple",
@@ -4275,7 +4275,7 @@ window.AREAS_DATA = [
       },
       {
         "id": "kak_to_skulltulas",
-        "label": "Entrée de la maison des Skulltulas",
+        "label": "Entrée de la maison des Araignées",
         "soh": "Kak Skulltula House Entry",
         "type": "interior",
         "shuffleTag": "interior_simple",
@@ -4374,7 +4374,7 @@ window.AREAS_DATA = [
       },
       {
         "id": "skulltulas_to_kak",
-        "label": "Maison des Skulltulas",
+        "label": "Maison des Araignées",
         "soh": "House of Skulltula",
         "type": "interior",
         "shuffleTag": "interior_simple",
@@ -4805,7 +4805,7 @@ window.AREAS_DATA = [
       },
       {
         "id": "redeadgrotto_to_kak",
-        "label": "Grotte aux ReDeads",
+        "label": "Grotte aux Effrois",
         "soh": "Kak Redead Grotto",
         "type": "grotto",
         "shuffleTag": "grotto",
@@ -5192,7 +5192,7 @@ window.AREAS_DATA = [
       },
       {
         "id": "graveyard_to_redeadgrave",
-        "label": "Entrée de la tombe près du tombeau royal",
+        "label": "Entrée de la tombe près de la tombe royale",
         "soh": "GY Near-Tomb Grave Entry",
         "type": "interior",
         "shuffleTag": "interior_simple",
@@ -5235,7 +5235,7 @@ window.AREAS_DATA = [
       },
       {
         "id": "graveyard_to_royaltomb",
-        "label": "Entrée du tombeau royal",
+        "label": "Entrée de la tombe royale",
         "soh": "GY Royal Family's Tomb Entry",
         "type": "interior",
         "shuffleTag": "interior_simple",
@@ -5270,7 +5270,7 @@ window.AREAS_DATA = [
       },
       {
         "id": "royaltomb_to_graveyard",
-        "label": "Tombeau royal",
+        "label": "Tombe royale",
         "soh": "Royal Family's Tomb",
         "type": "interior",
         "shuffleTag": "interior_simple",
@@ -5433,7 +5433,7 @@ window.AREAS_DATA = [
       },
       {
         "id": "ranch_to_stables",
-        "label": "Entrée de l'écurie",
+        "label": "Entrée des écuries",
         "soh": "LLR Stables Entry",
         "type": "interior",
         "shuffleTag": "interior_simple",
@@ -5464,7 +5464,7 @@ window.AREAS_DATA = [
       },
       {
         "id": "stables_to_ranch",
-        "label": "Écurie",
+        "label": "Écuries",
         "soh": "LLR Stables",
         "type": "interior",
         "shuffleTag": "interior_simple",
@@ -6751,7 +6751,7 @@ window.AREAS_DATA = [
       },
       {
         "id": "meadow_to_wolfosgrotto",
-        "label": "Entrée de la grotte aux Wolfos",
+        "label": "Entrée de la grotte aux Lobos",
         "soh": "SFM Wolfos Grotto Entry",
         "type": "grotto",
         "shuffleTag": "grotto",
@@ -6788,7 +6788,7 @@ window.AREAS_DATA = [
       },
       {
         "id": "wolfosgrotto_to_meadow",
-        "label": "Grotte aux Wolfos",
+        "label": "Grotte aux Lobos",
         "soh": "SFM Wolfos Grotto",
         "type": "grotto",
         "shuffleTag": "grotto",
@@ -9199,7 +9199,7 @@ window.AREAS_DATA = [
       },
       {
         "id": "lake_to_lab",
-        "label": "Entrée du laboratoire",
+        "label": "Entrée du Laboratoire du Lac",
         "soh": "LH Lab Entry",
         "type": "interior",
         "shuffleTag": "interior_simple",
@@ -9250,7 +9250,7 @@ window.AREAS_DATA = [
       },
       {
         "id": "lab_to_lake",
-        "label": "Laboratoire",
+        "label": "Laboratoire du Lac",
         "soh": "LH Lab",
         "type": "interior",
         "shuffleTag": "interior_simple",
@@ -9258,7 +9258,7 @@ window.AREAS_DATA = [
       },
       {
         "id": "lake_to_fishing",
-        "label": "Entrée de l'étang de pêche",
+        "label": "Entrée du stand de pêche",
         "soh": "LH Fishing Pond Entry",
         "type": "interior",
         "shuffleTag": "interior_simple",
@@ -9309,7 +9309,7 @@ window.AREAS_DATA = [
       },
       {
         "id": "fishing_to_lake",
-        "label": "Étang de pêche",
+        "label": "Stand de pêche",
         "soh": "Fishing Pond",
         "type": "interior",
         "shuffleTag": "interior_simple",
