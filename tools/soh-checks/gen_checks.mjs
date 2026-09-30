@@ -24,6 +24,18 @@ const NEVER_IDS = new Set(['UNKNOWN_CHECK', 'HC_ZELDAS_LETTER', 'TRIFORCE_COMPLE
 
 const areas = raw.areas.map(a => [a.id, AREA_FR[a.id][0], a.soh, AREA_FR[a.id][1] || null]);
 const Q = { BOTH:'B', VANILLA:'V', MQ:'M' };
+// Catégorie d'affichage (icône et filtre de la page Checks), déduite du type et du constructeur SoH.
+const CAT_BY_TYPE = { SKULL_TOKEN:'skulltula', POT:'pot', GRASS:'grass', CRATE:'crate', SMALL_CRATE:'crate', NLCRATE:'crate',
+  TREE:'tree', NLTREE:'tree', BUSH:'tree', BEEHIVE:'beehive', COW:'cow', FISH:'fish', FOUNTAIN_FAIRY:'fairy', STONE_FAIRY:'fairy',
+  BEAN_FAIRY:'fairy', SONG_FAIRY:'fairy', SCRUB:'scrub', SHOP:'shop', MERCHANT:'shop', SONG_LOCATION:'song',
+  DUNGEON_REWARD:'boss', BOSS_HEART_OR_OTHER_REWARD:'boss', GF_KEY:'npc' };
+function category(c){
+  if (c.factory === 'Chest' && c.type !== 'SKULL_TOKEN') return 'chest';
+  if (CAT_BY_TYPE[c.type]) return CAT_BY_TYPE[c.type];
+  if (c.id === 'LH_HYRULE_LOACH') return 'fish';
+  if (c.factory === 'Collectable') return 'freestanding';
+  return 'npc';
+}
 const checks = [];
 for (const c of raw.checks){
   if (NEVER_TYPES.has(c.type) || NEVER_IDS.has(c.id)) continue;
@@ -31,7 +43,7 @@ for (const c of raw.checks){
   const shop = c.type === 'SHOP' && c.id.match(/_ITEM_(\d)$/); if (shop) extra.slot = +shop[1];
   if (c.pond !== undefined) extra.pond = c.pond;
   if (c.type === 'FISH' && c.pond === undefined) extra.overworldFish = 1;
-  const row = [c.id, c.area, c.type, Q[c.quest], translate(c.short, c.type), c.spoiler, c.region];
+  const row = [c.id, c.area, c.type, Q[c.quest], translate(c.short, c.type), c.spoiler, c.region, category(c)];
   if (Object.keys(extra).length) row.push(extra);
   checks.push(row);
 }
@@ -40,7 +52,8 @@ const header = `/* Checks du randomizer de Ship of Harkinian 9.2.3 (commit cb71e
    Source : location_list.cpp, Shuffle*.cpp, fishsanity.cpp (métadonnées) et location_access/** (région de la
    logique). Libellés français générés (règles + table de traduction), nom SoH exact (celui du spoiler) conservé.
    areas  : [id RCAREA, libellé FR, nom SoH, donjon du panneau Objets ou null]
-   checks : [id RC, zone, type RCTYPE, quête 'B' (les deux) | 'V' | 'M', libellé FR, nom SoH (spoiler), région RR, extra?]
+   checks : [id RC, zone, type RCTYPE, quête 'B' (les deux) | 'V' | 'M', libellé FR, nom SoH (spoiler), région RR,
+            catégorie (icône / filtre), extra?]
             extra : { slot } (boutique, n° d'objet 1-8), { pond } (poisson de l'étang, index), { overworldFish } */
 `;
 const body = 'window.CHECKS_DATA = {\n  areas:' + JSON.stringify(areas) + ',\n  checks:[\n' +

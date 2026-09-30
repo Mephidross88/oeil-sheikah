@@ -171,20 +171,49 @@ const App = {
 
     /* Checks (js/checks.js) : zones avec leurs checks listés (mélangés, version active), filtres et compteurs */
     const cf = ui.checks;
+    // Filtres de fond (catégories, âge) : ils définissent ce qui est « suivi » et donc les compteurs. L'âge d'un check
+    // vient de la logique (à venir) : tant qu'il est inconnu (null), le check passe tous les filtres d'âge.
+    const catOn = c => !cf.hiddenCats[c.cat];
+    const ageOn = c => cf.age === 'all' || !c.age || c.age === 'both' || c.age === cf.age;
+    const ageKnown = CHECKS.some(c => c.age);
     const checkAreasC = computed(() => {
       const q = norm(cf.q.trim()), done = store.game.checks, ex = s.excluded;
       return CHECK_AREAS.map(a => {
         const all = CHECKS_BY_AREA[a.id] || [], quest = areaQuest(a.id);
-        const listed = all.filter(checkListed), counted = listed.filter(c => !ex[c.id]);
-        const got = counted.filter(c => done[c.id]).length;
-        let shown = listed.filter(c => (cf.showExcluded || !ex[c.id]) && !(cf.hideDone && done[c.id]));
+        const listed = all.filter(checkListed);
+        const tracked = listed.filter(c => !ex[c.id] && catOn(c) && ageOn(c));
+        const got = tracked.filter(c => done[c.id]).length;
+        // reste à faire par catégorie (petites icônes de l'en-tête)
+        const byCat = CHECK_CATS.map(k => ({ cat:k, left:tracked.filter(c => c.cat === k.id && !done[c.id]).length,
+          total:tracked.filter(c => c.cat === k.id).length })).filter(x => x.total);
+        let shown = listed.filter(c => (cf.showExcluded || !ex[c.id]) && catOn(c) && ageOn(c) && !(cf.hideDone && done[c.id]));
         if (q && !norm(a.label).includes(q)) shown = shown.filter(c => norm(c.label + ' ' + c.soh).includes(q));
         // version inconnue : checks propres à Vanilla ou MQ masqués (seuls les checks communs sont listés)
         const hiddenQuest = a.dungeon && !quest ? all.filter(c => c.quest !== 'B' && checkShuffled(c, s, cf.alwaysGS)).length : 0;
-        return { area:a, quest, checks:shown, total:counted.length, got, hiddenQuest, editQuest:!!a.dungeon && cells(a.dungeon).quest };
-      }).filter(x => q ? x.checks.length : (x.total || x.hiddenQuest || x.checks.length));
+        const complete = tracked.length > 0 && got === tracked.length;
+        return { area:a, quest, checks:shown, total:tracked.length, got, byCat, hiddenQuest, complete,
+          accessible:null }; // accessible : nombre de checks restants faisables (logique, à venir)
+      }).filter(x => q ? x.checks.length : ((x.total || x.hiddenQuest) && !(cf.hideDoneZones && x.complete)));
     });
     const checkStats = computed(() => checkAreasC.value.reduce((r, x) => ({ total:r.total + x.total, got:r.got + x.got }), { total:0, got:0 }));
+    // Compteurs des pastilles de catégorie : restants / total parmi les checks listés (hors filtre de catégorie).
+    const catCounts = computed(() => {
+      const done = store.game.checks, ex = s.excluded, r = {};
+      CHECK_CATS.forEach(k => { r[k.id] = { left:0, total:0 }; });
+      for (const c of CHECKS) if (!ex[c.id] && ageOn(c) && checkListed(c)){ r[c.cat].total++; if (!done[c.id]) r[c.cat].left++; }
+      return r;
+    });
+    const toggleCat = id => { cf.hiddenCats[id] = !cf.hiddenCats[id]; };
+    // clic droit sur une pastille : n'afficher que cette catégorie (ou tout réafficher si c'était déjà le cas)
+    function soloCat(id){
+      const only = CHECK_CATS.every(k => k.id === id ? !cf.hiddenCats[k.id] : cf.hiddenCats[k.id]);
+      CHECK_CATS.forEach(k => { cf.hiddenCats[k.id] = only ? false : k.id !== id; });
+    }
+    const allCats = on => CHECK_CATS.forEach(k => { cf.hiddenCats[k.id] = !on; });
+    const CHECK_AGES = [['all', 'Tous'], ['child', 'Enfant'], ['adult', 'Adulte']];
+    const ageLabelShort = { child:'E', adult:'A', both:'E·A' };
+    const checkGroups = computed(() => [['Overworld', checkAreasC.value.filter(x => !x.area.dungeon)],
+      ['Donjons', checkAreasC.value.filter(x => x.area.dungeon)]].filter(g => g[1].length));
     const toggleCheckArea = id => { cf.collapsed[id] = !cf.collapsed[id]; };
     function setAllChecks(collapsed){ CHECK_AREAS.forEach(a => { cf.collapsed[a.id] = collapsed; }); }
     function jumpCheck(id){
@@ -328,6 +357,7 @@ const App = {
       ICONS, ITEMS_PAGE, ITEM_BY_KEY, DUNGEONS, DUNGEON_BY_ID, CHECKLISTS, AREA, EXIT, DATA_ERRORS,
       iconKey, areaName, toggleArea, setAll, jump, go, showTip, hideTip, toggleTip, setMapping, clearMapping,
       checkAreasC, checkStats, toggleCheckArea, setAllChecks, jumpCheck, setCheck, setExcluded, CHECK_AREA,
+      CHECK_CATS, CHECK_CAT, catCounts, toggleCat, soloCat, allCats, CHECK_AGES, ageLabelShort, ageKnown, checkGroups,
       panelSkills, panelChecklists, cells, dungeonRows, skeletonShown, atStart, visibleKeys,
       CONFIG_TABS, TRICK_LEVELS, decoupled, configCards, trickFilter, tricksOn, trickGroups, setTricks, importReport, importSpoiler,
       itemVisible, tierLabel, iconSrc, checklistModal, openChecklist, setChecklist, checklistStats,
@@ -369,14 +399,16 @@ const App = {
 
     <section v-if="ui.view==='checks'" class="side-sec">
       <div class="side-row"><button class="side-btn" @click="setAllChecks(false)">Tout déplier</button><button class="side-btn" @click="setAllChecks(true)">Tout replier</button></div>
-      <label class="check"><input type="checkbox" v-model="ui.checks.hideDone">Masquer les checks faits</label>
       <label class="check"><input type="checkbox" v-model="ui.checks.showExcluded">Afficher les checks exclus</label>
       <label class="check" title="Comme l'option du tracker de SoH : lister les Skulltulas même si elles ne sont pas mélangées"><input type="checkbox" v-model="ui.checks.alwaysGS">Toujours afficher les Skulltulas</label>
-      <div class="side-title">Zones</div>
-      <div class="zone-nav">
-        <button v-for="x in checkAreasC" :key="x.area.id" @click="jumpCheck(x.area.id)">
-          <span>{{x.area.label}}</span>
-          <span v-if="x.total" class="zp" :class="{done:x.got===x.total}">{{x.got}}/{{x.total}}</span></button>
+      <div class="zone-nav check-nav">
+        <template v-for="[g, list] in checkGroups" :key="g">
+          <div class="side-title">{{g}}</div>
+          <button v-for="x in list" :key="x.area.id" :class="{done:x.complete}" @click="jumpCheck(x.area.id)">
+            <span class="cn-name">{{x.area.label}}</span>
+            <span v-if="x.total" class="cn-prog"><span class="cn-bar"><i :style="{width:(100*x.got/x.total)+'%'}"></i></span>
+              <span class="zp" :class="{done:x.complete}">{{x.complete ? '✓' : (x.total - x.got)}}</span></span></button>
+        </template>
       </div>
     </section>
 
@@ -448,19 +480,45 @@ const App = {
     <!-- ================= CHECKS ================= -->
     <template v-if="ui.view==='checks'">
       <div class="page-head"><h1>Checks</h1>
-        <p class="lede">{{checkStats.got}} fait{{checkStats.got>1?'s':''}} sur {{checkStats.total}}, selon la configuration de la seed. Clic gauche : fait, clic droit : à faire.</p></div>
-      <input class="checks-search" type="search" v-model="ui.checks.q" placeholder="Rechercher un check ou une zone…" aria-label="Rechercher un check">
+        <p class="lede">{{checkStats.got}} fait{{checkStats.got>1?'s':''}} sur {{checkStats.total}} suivis. Clic gauche : fait, clic droit : à faire.</p></div>
+
+      <div class="checks-toolbar">
+        <input class="checks-search" type="search" v-model="ui.checks.q" placeholder="Rechercher un check ou une zone…" aria-label="Rechercher un check">
+        <div class="ct-row">
+          <div class="age-seg" :class="{disabled:!ageKnown}" :title="ageKnown ? 'Âge requis pour faire le check' : 'Filtre par âge : disponible avec la logique (à venir)'">
+            <span class="ct-label">Âge</span>
+            <button v-for="[id, l] in CHECK_AGES" :key="id" type="button" :class="{on:ui.checks.age===id}" :disabled="!ageKnown" @click="ui.checks.age=id">{{l}}</button>
+          </div>
+          <label class="check"><input type="checkbox" v-model="ui.checks.hideDone">Masquer les checks faits</label>
+          <label class="check"><input type="checkbox" v-model="ui.checks.hideDoneZones">Masquer les zones terminées</label>
+        </div>
+        <div class="cat-chips">
+          <button v-for="k in CHECK_CATS" v-show="catCounts[k.id].total" :key="k.id" type="button" class="cat-chip" :class="{off:ui.checks.hiddenCats[k.id]}"
+            :title="k.label + ' : ' + catCounts[k.id].left + ' à faire sur ' + catCounts[k.id].total + ' — clic : afficher / masquer, clic droit : seulement cette catégorie'"
+            @click="toggleCat(k.id)" @contextmenu.prevent="soloCat(k.id)">
+            <img v-if="!brokenIcons[k.icon]" :src="k.icon" alt="" @error="brokenIcons[k.icon]=true"><span v-else class="cat-fallback" :style="{'--cc':k.color}">{{k.label[0]}}</span>
+            <span class="cc-label">{{k.label}}</span><b>{{catCounts[k.id].left}}</b></button>
+          <button type="button" class="link cat-all" @click="allCats(true)">Tout afficher</button>
+        </div>
+      </div>
+
       <div v-if="!checkAreasC.length" class="empty"><b>Aucun check à afficher.</b>
-        {{ui.checks.q ? 'Aucun résultat pour cette recherche.' : 'Vérifiez la Configuration ou les filtres du panneau de gauche.'}}</div>
+        {{ui.checks.q ? 'Aucun résultat pour cette recherche.' : 'Vérifiez la Configuration ou les filtres.'}}</div>
       <article v-for="x in checkAreasC" :key="x.area.id" class="area check-area" :id="'carea-'+x.area.id"
-        :class="{collapsed:ui.checks.collapsed[x.area.id]}">
+        :class="{collapsed:ui.checks.collapsed[x.area.id], complete:x.complete}">
         <button class="area-head" @click="toggleCheckArea(x.area.id)" :aria-expanded="!ui.checks.collapsed[x.area.id]">
           <span class="chev" v-html="ICONS.chevron"></span>
           <h2>{{x.area.label}}</h2>
           <span v-if="x.area.dungeon" class="dg-quest-pill" :class="questClass(x.area.dungeon)" :title="questTitle(x.area.dungeon)"
             @click.stop="cycleDungeonQuest(x.area.dungeon)" @contextmenu.prevent.stop="cycleDungeonQuest(x.area.dungeon,true)">{{questLabel(x.area.dungeon)}}</span>
+          <span class="zone-cats">
+            <span v-for="b in x.byCat" v-show="b.left" :key="b.cat.id" class="zc" :title="b.cat.label + ' : ' + b.left + ' à faire'">
+              <img v-if="!brokenIcons[b.cat.icon]" :src="b.cat.icon" alt=""><span v-else class="cat-fallback" :style="{'--cc':b.cat.color}">{{b.cat.label[0]}}</span>{{b.left}}</span>
+          </span>
+          <span v-if="x.accessible !== null" class="acc-pill" :title="x.accessible + ' checks restants faisables avec l’inventaire actuel'">{{x.accessible}} faisables</span>
           <span class="area-prog">
-            <span class="bar" :class="{done:x.total && x.got===x.total}"><i :style="{width:(x.total ? 100*x.got/x.total : 0)+'%'}"></i></span>
+            <span v-if="x.complete" class="zone-done">Terminée</span>
+            <span v-else class="bar"><i :style="{width:(x.total ? 100*x.got/x.total : 0)+'%'}"></i></span>
             <span class="count">{{x.got}}/{{x.total}}</span></span>
         </button>
         <div v-if="!ui.checks.collapsed[x.area.id]" class="check-body">
@@ -468,13 +526,16 @@ const App = {
             Indiquez la version avec le badge « ? » (ou dans le panneau Objets).</p>
           <ul v-if="x.checks.length" class="check-list-grid">
             <li v-for="c in x.checks" :key="c.id" class="check-item" :class="{done:store.game.checks[c.id], excluded:s.excluded[c.id]}">
-              <button type="button" class="ci-main" :title="c.soh" @click="setCheck(c.id,true)" @contextmenu.prevent="setCheck(c.id,false)">
-                <span class="cr-mark" v-html="store.game.checks[c.id] ? ICONS.check : ICONS.circleO"></span><span class="ci-label">{{c.label}}</span></button>
+              <button type="button" class="ci-main" :title="CHECK_CAT[c.cat].label + ' — ' + c.soh" @click="setCheck(c.id,true)" @contextmenu.prevent="setCheck(c.id,false)">
+                <span class="ci-cat"><img v-if="!brokenIcons[CHECK_CAT[c.cat].icon]" :src="CHECK_CAT[c.cat].icon" alt="" @error="brokenIcons[CHECK_CAT[c.cat].icon]=true"><span v-else class="cat-fallback" :style="{'--cc':CHECK_CAT[c.cat].color}">{{CHECK_CAT[c.cat].label[0]}}</span></span>
+                <span class="ci-label">{{c.label}}</span>
+                <span v-if="c.age" class="age-pill" :class="c.age" :title="{child:'Enfant', adult:'Adulte', both:'Enfant ou adulte'}[c.age]">{{ageLabelShort[c.age]}}</span>
+                <span class="cr-mark" v-html="store.game.checks[c.id] ? ICONS.check : ICONS.circleO"></span></button>
               <button type="button" class="ci-ex" :title="s.excluded[c.id] ? 'Réintégrer ce check' : 'Exclure ce check (ne compte plus)'"
                 @click="setExcluded(c.id, !s.excluded[c.id])">{{s.excluded[c.id] ? '↺' : '⊘'}}</button>
             </li>
           </ul>
-          <p v-else class="quest-note">{{x.total ? 'Tous les checks de cette zone sont faits.' : 'Aucun check listé.'}}</p>
+          <p v-else class="quest-note">{{x.total ? 'Tous les checks affichés de cette zone sont faits.' : 'Aucun check avec les filtres actuels.'}}</p>
         </div>
       </article>
     </template>

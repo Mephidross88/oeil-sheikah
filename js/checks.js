@@ -5,8 +5,19 @@
 const CHECK_AREAS = window.CHECKS_DATA.areas.map(([id, label, soh, dungeon]) => ({ id, label, soh, dungeon }));
 const CHECK_AREA = {};
 CHECK_AREAS.forEach(a => { CHECK_AREA[a.id] = a; });
-const CHECKS = window.CHECKS_DATA.checks.map(([id, area, type, quest, label, soh, region, extra]) =>
-  ({ id, area, type, quest, label, soh, region, ...(extra || {}), inDungeon:!!CHECK_AREA[area].dungeon }));
+// age : 'child' | 'adult' | 'both' | null — renseigné par la logique (à venir) ; null = inconnu, pas de pastille.
+const CHECKS = window.CHECKS_DATA.checks.map(([id, area, type, quest, label, soh, region, cat, extra]) =>
+  ({ id, area, type, quest, label, soh, region, cat, age:null, ...(extra || {}), inDungeon:!!CHECK_AREA[area].dungeon }));
+// Catégories de checks (icône icons/checks/<id>.png, filtre de la page Checks), dans l'ordre d'affichage.
+const CHECK_CATS = [
+  ['chest', 'Coffres', '#b07a2a'], ['skulltula', 'Skulltulas', '#c8a13a'], ['boss', 'Boss', '#8e2447'], ['song', 'Chants', '#3f7fbf'],
+  ['npc', 'PNJ et événements', '#6b8f3a'], ['freestanding', 'Objets au sol', '#2f9e6e'], ['scrub', 'Pestes Mojo', '#8a6a3a'],
+  ['shop', 'Boutiques et marchands', '#b8572e'], ['cow', 'Vaches', '#7a7a7a'], ['fairy', 'Fées', '#d06aa8'], ['fish', 'Poissons', '#3a8fa8'],
+  ['beehive', 'Ruches', '#d9a21b'], ['pot', 'Jarres', '#9a6f4d'], ['crate', 'Caisses', '#8b5e34'], ['grass', 'Herbes', '#5a9a3a'],
+  ['tree', 'Arbres et buissons', '#3f7a3a'],
+].map(([id, label, color]) => ({ id, label, color, icon:`icons/checks/${id}.png` }));
+const CHECK_CAT = {};
+CHECK_CATS.forEach(c => { CHECK_CAT[c.id] = c; });
 const CHECK_BY_ID = {}, CHECK_BY_SOH = {};
 CHECKS.forEach(c => { CHECK_BY_ID[c.id] = c; CHECK_BY_SOH[c.soh] = c; });
 const CHECKS_BY_AREA = {};

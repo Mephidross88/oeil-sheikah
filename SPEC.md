@@ -367,13 +367,26 @@ check) ; règles dans `js/checks.js`.
 - **Checks exclus** (`settings.excluded`) : importés du spoiler (`excludedLocations`, réglage de la seed, pas
   un spoil ; remplacés à chaque import) ou réglés à la main (bouton ⊘ au survol, ↺ pour réintégrer). Exclus :
   masqués et hors compteurs, sauf filtre « Afficher les checks exclus » (en italique).
-- **Interface** : zones repliables (même présentation que les Entrées) avec barre de progression et compteur
-  « faits / total » ; checks sur 2 colonnes (1 sur mobile) ; clic gauche = fait, clic droit = à faire
-  (`game.checks`, stockage creux `{ id: true }`) ; recherche (libellé FR, nom SoH ou nom de zone) ; panneau
-  de gauche : tout déplier / replier, « Masquer les checks faits », « Afficher les checks exclus »,
-  « Toujours afficher les Skulltulas », navigation vers les zones avec leurs compteurs.
-- **À venir (branche logique)** : accessibilité de chaque check (conditions SoH par région), lien avec les
-  Entrées et le Routeur.
+- **Catégories** (16, déduites du type et du constructeur SoH, champ `cat`) : Coffres, Skulltulas, Boss (récompenses
+  de donjon et réceptacles), Chants, PNJ et événements, Objets au sol (rubis, cœurs, quarts de cœur et clés posés),
+  Pestes Mojo, Boutiques et marchands, Vaches, Fées, Poissons, Ruches, Jarres, Caisses, Herbes, Arbres et buissons.
+  Icône `icons/checks/<catégorie>.png` (chest, skulltula, boss, song, npc, freestanding, scrub, shop, cow, fairy, fish,
+  beehive, pot, crate, grass, tree) ; en attendant l'image, pastille de couleur avec l'initiale.
+- **Âge** (Enfant / Adulte / Les deux, champ `age`) : fourni par la logique (à venir) ; tant qu'il est inconnu, pas
+  de pastille et le filtre d'âge est grisé.
+- **Filtres** (barre au-dessus de la liste) : recherche (libellé FR, nom SoH ou zone) ; âge (Tous / Enfant / Adulte) ;
+  « Masquer les checks faits » ; « Masquer les zones terminées » ; pastilles de catégorie avec le nombre restant
+  (clic : afficher / masquer la catégorie, clic droit : seulement celle-ci, ou tout réafficher ; « Tout afficher »).
+  Les checks suivis = listés, non exclus, dans les catégories et l'âge choisis : compteurs, barres et zones
+  terminées en dépendent. Panneau de gauche : tout déplier / replier, « Afficher les checks exclus », « Toujours
+  afficher les Skulltulas », zones groupées Overworld / Donjons avec mini-barre et restants (✓ si terminée).
+- **Zones** : repliables (présentation des Entrées) ; en-tête avec badge V / MQ / ? (donjons), restants par catégorie
+  (icône + nombre), barre et « faits / suivis », « Terminée » quand tout est fait ; emplacement prévu pour le nombre
+  de checks faisables (logique). Checks sur 2 colonnes (1 sur mobile) : icône de catégorie, libellé, pastille
+  d'âge, coche ; clic gauche = fait, clic droit = à faire (`game.checks`, stockage creux `{ id: true }`) ; nom SoH
+  au survol ; ⊘ au survol pour exclure.
+- **À venir (branche logique)** : âge et accessibilité de chaque check (conditions SoH par région), nombre de checks
+  faisables par zone, checks non faisables grisés, lien avec les Entrées et le Routeur.
 
 ## Entrées
 Une carte dépliable par zone, avec progression (sorties renseignées / randomisées). Une ligne par sortie :

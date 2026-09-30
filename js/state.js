@@ -18,7 +18,7 @@ function defaults(){
     costs:{ transition:3, warp:15, reset:25, age:12 },
     game, mappings:{},
     ui:{ view:'entrances', collapsed:{}, configTab:'logic', importQuests:false, spoilerPrompt:true,
-      checks:{ q:'', hideDone:false, showExcluded:false, alwaysGS:false, collapsed:{} },
+      checks:{ q:'', hideDone:false, hideDoneZones:false, showExcluded:false, alwaysGS:false, age:'all', hiddenCats:{}, collapsed:{} },
       filters:{ showReachableTargets:false, showInaccessibleAreas:false, showDiscovered:true, showVanilla:true },
       router:{ fromArea:'', fromExit:'', fromAge:'child', toArea:'', toExit:'', toAge:'any' } },
   };
