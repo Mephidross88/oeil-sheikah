@@ -1,6 +1,6 @@
 /* ---------- Application ---------- */
 const App = {
-  components:{ TypeIcon, Seg, DestPicker },
+  components:{ TypeIcon, Seg, DestPicker, ItemTile },
   setup(){
     const navOpen = ref(false), itemsOpen = ref(false), modal = ref(null), tip = reactive({ show:false, key:null, style:{} });
     const backup = reactive({ text:'', msg:'', ok:true });
@@ -50,55 +50,22 @@ const App = {
       }).filter(Boolean);
     });
 
-    const itemActive = (it, v) => it.locked || it.neverEmpty || (typeof v === 'boolean' ? v : v > 0);
-    function setCount(path, key, max, v){ store.game[path][key] = Math.max(0, Math.min(max, Math.round(v) || 0)); }
-    const brokenIcons = reactive({});
-    function itemTitle(path, it){
-      const v = store.game[path][it.key];
-      if (it.locked) return `${it.label} (toujours possédé)`;
-      if (it.kind === 'level') return `${it.label} — ${it.stages[v]}`;
-      if (it.kind === 'count') return `${it.label} : ${v}`;
-      return it.label;
-    }
-    // Pastille grise tant que l'objet n'est pas à son maximum, dorée une fois au maximum
-    // (ex. Skulltulas : gris jusqu'à 99, doré à 100 ; Arc : gris à 30/40, doré à 50).
-    function itemMaxed(path, it){
-      const v = store.game[path][it.key];
-      if (it.kind === 'count') return v >= itemMax(it);
-      if (it.kind === 'level' && it.sizes) return v >= it.stages.length - 1;
-      return false;
-    }
-    // Chemin d'icône : convention par défaut icons/items/<clé>[_<palier>].png, sauf si l'objet définit
-    // `icon` (chemin fixe, relatif à icons/) ou `icons` (tableau de chemins, un par palier non nul).
-    // Objets à paliers : le palier 0 réutilise l'image du palier 1, grisée (classe .off).
-    function iconSrc(path, it){
-      const v = store.game[path][it.key];
-      // `sizes` : seule la capacité change (arc, lance-pierre, bâton, noix, bombes, bourse) ->
-      // une seule icône, la pastille de taille indique le palier (voir template).
-      if (it.kind === 'level' && !it.sizes){
-        if (it.icons) return 'icons/' + it.icons[Math.max(1, v) - 1];
-        return 'icons/items/' + it.key + '_' + Math.max(1, v) + '.png';
-      }
-      return 'icons/' + (it.icon || 'items/' + it.key + '.png');
-    }
-    // Clic gauche = augmenter/activer, clic droit = diminuer/désactiver ; jamais de bouclage :
-    // un objet déjà au maximum (ou non progressif déjà obtenu) ignore le clic gauche, et un objet
-    // non obtenu ignore le clic droit.
-    function clickItem(ev, path, it){
-      if (it.locked) return;
-      const v = store.game[path][it.key];
-      if (it.kind === 'bool'){ if (!v) store.game[path][it.key] = true; }
-      else if (it.kind === 'level'){ if (v < it.stages.length - 1) store.game[path][it.key] = v + 1; }
-      else setCount(path, it.key, itemMax(it), v + (ev.shiftKey ? 10 : 1));
-    }
-    function rightClickItem(ev, path, it){
-      if (it.locked) return;
-      const v = store.game[path][it.key];
-      if (it.kind === 'bool'){ if (v) store.game[path][it.key] = false; }
-      else if (it.kind === 'level'){ if (v > 0) store.game[path][it.key] = v - 1; }
-      else setCount(path, it.key, itemMax(it), v - (ev.shiftKey ? 10 : 1));
-    }
-    function toggleItemGroup(title){ ui.itemsCollapsed[title] = !ui.itemsCollapsed[title]; }
+    /* Check-lists (clés hors donjon, trous à haricots) : purement informatif pour l'instant, voir SPEC.md */
+    const checklistModal = computed(() => {
+      if (modal.value !== 'checklist-keys' && modal.value !== 'checklist-beans') return null;
+      const name = modal.value === 'checklist-keys' ? 'keys' : 'beans', c = CHECKLISTS[name], st = checklistStats(name);
+      return { name, title:c.title, locations:c.locations, got:st.got, total:st.total };
+    });
+    function openChecklist(name){ modal.value = 'checklist-' + name; }
+
+    /* Chaînes d'échange : fenêtre de pointage par âge */
+    const tradeModal = computed(() => {
+      const b = ITEMS_PAGE.tradeButtons.find(t => modal.value === 'trade-' + t.id);
+      return b ? { ...b, groups:ITEMS_PAGE.trade[b.id], ...tradeStats(b.id) } : null;
+    });
+    function openTrade(id){ modal.value = 'trade-' + id; }
+    // État visuel d'un compteur « obtenus/total » : icône grisée si rien, teinte dorée une fois complet.
+    const counterClass = (got, total) => ({ none:got === 0, done:total > 0 && got >= total });
 
     function toggleArea(id){ ui.collapsed[id] = !ui.collapsed[id]; }
     function setAll(collapsed){ AREAS.forEach(a => { ui.collapsed[a.id] = collapsed; }); }
@@ -191,10 +158,12 @@ const App = {
 
     const savedAt = computed(() => lastSaved.value ? lastSaved.value.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit', second:'2-digit' }) : null);
 
-    return { store, ui, s, views, navOpen, itemsOpen, modal, tip, tipData, backup, stats, missingSpawns, visibleAreas, ages:agesC, derived:gameC,
-      ICONS, ITEM_GROUPS, AREA, EXIT, DATA_ERRORS,
-      iconKey, areaName, toggleArea, setAll, jump, go, showTip, hideTip, toggleTip, setMapping, clearMapping, setCount,
-      brokenIcons, itemTitle, itemMaxed, clickItem, rightClickItem, itemActive, iconSrc, itemVisible, toggleItemGroup,
+    return { store, ui, s, views, navOpen, itemsOpen, modal, tip, tipData, backup, stats, missingSpawns, visibleAreas,
+      ICONS, ITEMS_PAGE, ITEM_BY_KEY, DUNGEONS, DUNGEON_BY_ID, CHECKLISTS, AREA, EXIT, DATA_ERRORS,
+      iconKey, areaName, toggleArea, setAll, jump, go, showTip, hideTip, toggleTip, setMapping, clearMapping,
+      itemVisible, tierLabel, iconSrc, checklistModal, openChecklist, toggleChecklist, checklistStats,
+      tradeModal, openTrade, tradeStats, counterClass,
+      toggleDungeonFlag, addDungeonKeys,
       routerAreas, exitsOf, swap, route, edgeLabel, ageLabel, openBackup, copyBackup, importBackup, resetAll, savedAt, TYPE_LABEL };
   },
   template:`
@@ -419,37 +388,112 @@ const App = {
 
   <aside class="side side-right" :class="{open:itemsOpen}">
     <div class="side-right-head">
-      <h3>Objets</h3>
       <button @click="itemsOpen=false" aria-label="Fermer" v-html="ICONS.close"></button>
     </div>
     <div class="side-right-body">
-      <div class="side-title">Progression (calculée)</div>
-      <div class="status-strip">
-        <span class="status-pill" :class="{on:ages.child}">Enfant</span>
-        <span class="status-pill" :class="{on:ages.adult}">Adulte</span>
-        <span class="status-pill" :class="{on:derived.milestone.epona}">Epona</span>
-        <span class="status-pill" :class="{on:derived.milestone.lostWoodsGoronShortcut}">Bois Perdus ↔ Goron</span>
-        <span class="status-pill" :class="{on:derived.milestone.craterShortcut}">Raccourci Cratère</span>
-        <span class="status-pill" :class="{on:derived.milestone.gerudoBridgeFixed}">Pont/Carte Gerudo</span>
+      <section class="panel-card">
+      <div class="quest-row">
+        <div class="quest-hex">
+          <div v-for="(k,i) in ITEMS_PAGE.quest.hex" :key="k" :class="'hex-node hex-'+(i+1)"><item-tile :k="k"></item-tile></div>
+          <div v-if="itemVisible(ITEM_BY_KEY[ITEMS_PAGE.quest.center])" class="hex-center"><item-tile :k="ITEMS_PAGE.quest.center"></item-tile></div>
+        </div>
+        <div class="stones-col"><item-tile v-for="k in ITEMS_PAGE.quest.stones" :key="k" :k="k"></item-tile></div>
+        <div class="stat-cols">
+          <div v-for="(col,ci) in ITEMS_PAGE.stats" :key="ci" class="stat-col">
+            <item-tile v-for="k in col" :key="k" :k="k"></item-tile>
+          </div>
+        </div>
       </div>
-      <p class="note">Déterminé automatiquement à partir de la Configuration et des objets ci-dessous — voir SPEC.md.</p>
-      <template v-for="g in ITEM_GROUPS" :key="g.title">
-        <button type="button" class="side-title group-head" @click="toggleItemGroup(g.title)" :aria-expanded="!ui.itemsCollapsed[g.title]">
-          <span v-html="ICONS.chevron" :class="{collapsed:ui.itemsCollapsed[g.title]}"></span>{{g.title}}</button>
-        <div v-if="!ui.itemsCollapsed[g.title]" class="icon-grid">
-          <template v-for="it in g.items" :key="it.key">
-          <button v-if="itemVisible(it)" type="button" class="icon-tile" :class="{off:!itemActive(it, store.game[g.path][it.key])}"
-            :disabled="it.locked" :aria-label="it.label" :title="itemTitle(g.path, it)"
-            @click="clickItem($event, g.path, it)" @contextmenu.prevent="rightClickItem($event, g.path, it)">
-            <img v-if="!brokenIcons[iconSrc(g.path,it)]" :src="iconSrc(g.path,it)" :alt="it.label" @error="brokenIcons[iconSrc(g.path,it)]=true">
-            <span v-else class="icon-fallback" v-html="ICONS.bag"></span>
-            <span v-if="it.kind==='count'" class="icon-badge" :class="{maxed:itemMaxed(g.path,it)}">{{store.game[g.path][it.key]}}</span>
-            <span v-else-if="it.sizes && it.sizes[store.game[g.path][it.key]]" class="icon-badge" :class="{maxed:itemMaxed(g.path,it)}">{{it.sizes[store.game[g.path][it.key]]}}</span>
-          </button>
+      </section>
+
+      <section class="panel-card">
+      <div class="equip-row">
+        <div v-for="c in ITEMS_PAGE.equipment.chains" :key="c.title" class="chain-stack">
+          <template v-for="(k,i) in c.items" :key="k">
+            <span v-if="i" class="chain-link"></span>
+            <item-tile :k="k"></item-tile>
           </template>
         </div>
+        <span class="equip-divider"></span>
+        <div class="equip-side">
+          <item-tile v-for="k in ITEMS_PAGE.equipment.progressive" :key="k" :k="k" :badge="tierLabel(ITEM_BY_KEY[k])"></item-tile>
+        </div>
+      </div>
+      </section>
+
+      <section class="panel-card">
+      <template v-for="row in ITEMS_PAGE.boxRows" :key="row[0].title">
+        <div class="box-row">
+          <div v-for="box in row" :key="box.title" class="item-box">
+            <div class="icon-grid" :class="{cols2:box.cols===2}">
+              <item-tile v-for="k in box.items" :key="k" :k="k"></item-tile>
+            </div>
+            <template v-if="box.sub">
+              <div class="sub-link"></div>
+              <div class="icon-grid sub">
+                <item-tile v-for="k in box.sub" :key="k" :k="k"></item-tile>
+              </div>
+            </template>
+          </div>
+        </div>
       </template>
-      <p class="note">Clic gauche : augmenter / activer. Clic droit : diminuer / désactiver. Majuscule + clic sur un compteur : ±10.</p>
+      </section>
+
+      <section class="panel-card">
+      <div class="song-row"><item-tile v-for="k in ITEMS_PAGE.songs.learned" :key="k" :k="k"></item-tile></div>
+      <div class="song-row"><item-tile v-for="k in ITEMS_PAGE.songs.warp" :key="k" :k="k"></item-tile></div>
+
+      <div class="ocarina-frame">
+        <div class="ocarina-pad">
+          <div class="pad-main"><item-tile :k="ITEMS_PAGE.songs.ocarina"></item-tile></div>
+          <div class="pad-notes">
+            <div v-for="n in ITEMS_PAGE.songs.notes" :key="n" :class="{'pad-a':n==='noteA'}"><item-tile :k="n"></item-tile></div>
+          </div>
+        </div>
+      </div>
+      </section>
+
+      <section class="panel-card">
+      <div class="checklist-tiles">
+        <button v-for="b in ITEMS_PAGE.tradeButtons" :key="b.id" type="button" class="check-tile trade-tile" :title="b.title" @click="openTrade(b.id)"
+          :class="counterClass(tradeStats(b.id).got, tradeStats(b.id).total)">
+          <img :src="iconSrc('items', ITEM_BY_KEY[b.icon])" alt=""><b>{{tradeStats(b.id).got}}/{{tradeStats(b.id).total}}</b></button>
+      </div>
+      </section>
+
+      <div class="card-row">
+        <section class="panel-card skills-card">
+          <div v-for="r in ITEMS_PAGE.skills" :key="r.title" class="item-box skill-box" :title="r.title">
+            <div class="icon-grid"><item-tile v-for="k in r.items" :key="k" :k="k"></item-tile></div>
+          </div>
+        </section>
+        <section class="panel-card checklists-card">
+          <button v-for="c in ITEMS_PAGE.checklistButtons" :key="c.id" type="button" class="check-tile check-square" :title="CHECKLISTS[c.id].title"
+            @click="openChecklist(c.id)" :class="counterClass(checklistStats(c.id).got, checklistStats(c.id).total)">
+            <img :src="c.icon" alt=""><b>{{checklistStats(c.id).got}}/{{checklistStats(c.id).total}}</b></button>
+        </section>
+      </div>
+
+      <section class="panel-card">
+      <div class="dungeon-grid">
+        <template v-for="row in ITEMS_PAGE.dungeons.rows" :key="row[0]">
+          <div v-for="id in row" :key="id" class="dungeon-block" :class="{solo:row.length===1}" :style="{'--dg':DUNGEON_BY_ID[id].color}">
+            <div class="dg-name">{{DUNGEON_BY_ID[id].title}}</div>
+            <div class="dg-cells">
+            <button v-if="DUNGEON_BY_ID[id].map" type="button" class="dg-flag" title="Carte" :class="{on:store.game.dungeons[id].map}" @click="toggleDungeonFlag(id,'map')"><img src="icons/dungeons/map.png" alt=""></button>
+            <button v-if="DUNGEON_BY_ID[id].compass" type="button" class="dg-flag" title="Boussole" :class="{on:store.game.dungeons[id].compass}" @click="toggleDungeonFlag(id,'compass')"><img src="icons/dungeons/compass.png" alt=""></button>
+            <button v-if="DUNGEON_BY_ID[id].maxKeys" type="button" class="dg-keys" title="Petites clés" @click="addDungeonKeys(id,1)" @contextmenu.prevent="addDungeonKeys(id,-1)"
+              :class="counterClass(store.game.dungeons[id].keys, DUNGEON_BY_ID[id].maxKeys)">
+              <img src="icons/dungeons/key.png" alt="">{{store.game.dungeons[id].keys}}/{{DUNGEON_BY_ID[id].maxKeys}}</button>
+            <button v-if="DUNGEON_BY_ID[id].bossKey" type="button" class="dg-flag" title="Clé de boss" :class="{on:store.game.dungeons[id].bossKey}" @click="toggleDungeonFlag(id,'bossKey')"><img src="icons/dungeons/boss.png" alt=""></button>
+            <button v-if="DUNGEON_BY_ID[id].card" type="button" class="dg-flag" :class="{on:store.game.items[DUNGEON_BY_ID[id].card]}"
+              :title="ITEM_BY_KEY[DUNGEON_BY_ID[id].card].label" @click="store.game.items[DUNGEON_BY_ID[id].card]=!store.game.items[DUNGEON_BY_ID[id].card]">
+              <img :src="iconSrc('items', ITEM_BY_KEY[DUNGEON_BY_ID[id].card])" alt=""></button>
+            </div>
+          </div>
+        </template>
+      </div>
+      </section>
     </div>
   </aside>
 
@@ -465,8 +509,29 @@ const App = {
 
   <!-- Modales -->
   <div v-if="modal" class="overlay" @mousedown.self="modal=null">
-    <div class="modal" role="dialog" aria-modal="true">
-      <template v-if="modal==='backup'">
+    <div class="modal" :class="{wide:checklistModal, compact:tradeModal}" role="dialog" aria-modal="true">
+      <template v-if="tradeModal">
+        <header><h3>{{tradeModal.title}} · {{tradeModal.got}}/{{tradeModal.total}}</h3><button @click="modal=null" aria-label="Fermer" v-html="ICONS.close"></button></header>
+        <div class="body trade-modal">
+          <div v-for="(grp,gi) in tradeModal.groups" :key="gi" class="trade-block">
+            <template v-for="(k,i) in grp" :key="k">
+              <span v-if="i" class="chain-link h"></span>
+              <item-tile :k="k"></item-tile>
+            </template>
+          </div>
+        </div>
+      </template>
+      <template v-else-if="checklistModal">
+        <header><h3>{{checklistModal.title}} · {{checklistModal.got}}/{{checklistModal.total}}</h3><button @click="modal=null" aria-label="Fermer" v-html="ICONS.close"></button></header>
+        <div class="body">
+          <div class="check-list">
+            <button v-for="l in checklistModal.locations" :key="l.id" type="button" class="check-row" :class="{on:store.game.checklists[checklistModal.name][l.id]}" @click="toggleChecklist(checklistModal.name,l.id)">
+              <span>{{l.label}}</span><span class="cr-mark" v-html="store.game.checklists[checklistModal.name][l.id]?ICONS.check:ICONS.circleO"></span>
+            </button>
+          </div>
+        </div>
+      </template>
+      <template v-else-if="modal==='backup'">
         <header><h3>Exporter ou importer</h3><button @click="modal=null" aria-label="Fermer" v-html="ICONS.close"></button></header>
         <div class="body">
           <p style="margin-top:0">La partie est enregistrée automatiquement dans ce navigateur. Pour la transférer ailleurs, copiez ce texte puis collez-le dans l'autre navigateur et cliquez sur « Importer ».</p>

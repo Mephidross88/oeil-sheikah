@@ -5,6 +5,12 @@ sur une seed d'Ocarina of Time Randomizer avec Entrance Randomizer (ER), en nota
 de chaque sortie.
 Référence du rando : https://wiki.ootrandomizer.com/index.php?title=Entrance_Randomizer
 
+> **Transition en cours vers Ship of Harkinian.** L'application migre progressivement de OoT Randomizer
+> vers le randomizer de Ship of Harkinian. Pour l'instant, seul le contenu du panneau Objets (catalogue
+> d'objets, donjons, check-lists) a été aligné sur SoH — voir « Panneau Objets (droite) » ci-dessous. Le
+> reste de ce document (Tracker, Routeur, Configuration, logique de `js/logic.js`) décrit encore le
+> comportement OoT Randomizer / ER actuel, qui sera revu dans un chantier séparé.
+
 ## Principes
 - Application légère, 100 % navigateur, simple à installer, maintenir et déployer (hébergement statique).
 - Sessions transparentes : sauvegarde automatique à chaque modification, reprise à l'ouverture.
@@ -71,52 +77,100 @@ en haut du panneau Objets (pastilles vertes/grises).
   repaire, hors du graphe de sorties) OU réglage Forteresse Gerudo sur « Ouverte ».
 
 ## Panneau Objets (droite)
-Zone latérale droite (repliable sur mobile via un bouton dans la barre du haut). En tête : pastilles en
-lecture seule de l'état calculé plus haut (âges, Epona, raccourcis). En dessous, l'inventaire complet de la
-partie en cours, groupé comme dans `ITEM_GROUPS` (`js/items.js`) — chaque catégorie est un titre cliquable
-repliable (chevron, état conservé en session) :
+Zone latérale droite, étroite (repliable sur mobile via un bouton dans la barre du haut), pas une page à
+part. Les objets eux-mêmes (clé, `kind`, icône(s), paliers, max, visibilité, verrouillage) sont définis une
+seule fois dans `ITEM_GROUPS` (`js/items.js`) — c'est la source de vérité utilisée par `defaults()` (clés de
+sauvegarde) et par les helpers d'affichage. La mise en page du panneau est décrite séparément par
+**`ITEMS_PAGE`** (aussi dans `js/items.js`), qui référence chaque objet par sa clé pour dire dans quel bloc
+visuel il apparaît — `ITEMS_PAGE` ne redéfinit aucune métadonnée, il ne fait qu'organiser l'affichage.
+`ITEM_BY_KEY` (map clé → objet + `path`) fait le lien entre les deux. Les tuiles n'affichent que l'icône
+(pas de libellé visible) — le nom reste accessible au survol (`title`). Chaque section ci-dessous est une
+carte distincte (`.panel-card`) qui se détache sur le fond du panneau. Règle visuelle commune : une icône est
+grisée tant que l'objet n'est pas trouvé (tuile d'objet, case de donjon non cochée, compteur à 0) et en
+couleur sinon ; un compteur « obtenus/total » (petites clés, échanges, clés des portes, haricots) passe en
+doré une fois complet (`counterClass` dans `js/app.js`).
 
-1. **Récompenses** : 3 Pierres Spirituelles, 6 Médaillons de donjon, Morceaux de Triforce (visible
-   seulement si « Chasse à la Triforce » est activée en Configuration ; plafond = réglage associé).
-2. **Équipement** : Épée Kokiri / de Légende / Biggoron (3 objets distincts, pas un objet progressif —
-   dans le jeu ce sont trois pickups différents, l'Épée Biggoron remplaçant le Couteau Cassé du Goron via
-   une quête d'échange), Bouclier Mojo / Hylien / Miroir (3 objets distincts, idem), Bottes Kokiri / de
-   Plomb / des Airs, Tunique Kokiri / Goron / Zora, Force (progressif : Bracelet Goron → Gantelets d'Argent →
-   Gantelets d'Or), Écaille de Zora (progressif : Argent → Or), Bourse (progressif : 99 → 200 → 500 → 999),
-   Skulltulas d'Or (compteur 0–100), Carte Gerudo, Pierre de Souffrance.
-3. **Armes enfant** : Bâton Mojo (progressif : capacité 10 → 20 → 30), Lance-Pierre (progressif :
-   30 → 40 → 50), Boomerang.
-4. **Armes adulte** : Arc (progressif : capacité 30 → 40 → 50), Grappin (progressif : Grappin →
-   Super-Grappin), Masse des Titans, Flèches de Feu / de Glace / de Lumière.
-5. **Armes communes** : Noix Mojo (progressif : capacité 20 → 30 → 40), Bombes (progressif :
-   capacité 30 → 40 → 50), Missiles.
-6. **Objets** : Haricots Magiques, Monocle de Vérité, Bouteilles (compteur 0–4), Lettre de Ruto.
-7. **Objets d'échange (Enfant)** : Œuf Bizarre, Poule, Lettre de Zelda, Masque de Keaton, Masque du Crâne,
-   Masque Effrayant, Capuche de Lapin, Masque Goron, Masque Zora, Masque Gerudo, Masque de Vérité — 11
-   bascules indépendantes. En vanilla ces objets s'échangent l'un contre l'autre (le précédent disparaît),
-   mais en rando chacun est un pickup placé séparément, trouvable dans n'importe quel ordre et jamais
-   perdu : pas d'objet progressif ici, un objet obtenu reste affiché comme obtenu même si sa version
-   vanilla aurait normalement été échangée depuis longtemps.
-8. **Objets d'échange (Adulte)** : même principe, 11 bascules indépendantes — Œuf de Poche, Cocotte de
-   Poche (les deux objets de départ possibles de la chaîne ; un seul existe réellement dans une seed
-   donnée, mais les deux sont suivis au cas où), Cojiro, Champignon Étrange, Potion Étrange, Scie du
-   Braconnier, Épée Cassée, Ordonnance, Œil de Grenouille, Gouttes Oculaires, Reçu (menant à l'Épée
-   Biggoron, déjà suivie séparément dans Équipement).
-9. **Magie** : Feu de Din, Vent de Farore, Amour de Nayru.
-10. **Ocarina** : progressif (Ocarina de Fée → Ocarina du Temps).
-11. **Notes d'Ocarina (si mélangées)** : 5 bascules (bouton A, C-Haut, C-Droite, C-Gauche, C-Bas), purement
-    informatives — ne servent qu'à noter quelle note est jouée par quel bouton quand le réglage rando
-    « mélanger les notes d'ocarina » est actif ; non branchées à `sat()` (les chants restent suivis comme
-    des booléens « appris/pas appris », indépendamment du bouton physique).
-12. **Statistiques** : Magie (progressif : Simple → Double), Quarts de Cœur (compteur 0–36), Réceptacles
-    de Cœur (compteur 0–8), Double Défense — purement informatifs, sans effet sur le routeur.
-13. **Chants appris** : Berceuse de Zelda, Chant d'Epona, Chant de Saria, Chant du Soleil, Chant du Temps,
-    Chant des Tempêtes, Chant de l'Épouvantail.
-14. **Chants de téléportation** : Menuet des Bois, Boléro du Feu, Sérénade de l'Eau, Requiem des Esprits,
-    Nocturne de l'Ombre, Prélude de la Lumière.
+> **Catalogue orienté Ship of Harkinian.** Le contenu du panneau Objets (objets, donjons, check-lists) a été
+> aligné sur le randomizer de Ship of Harkinian plutôt que sur OoT Randomizer (ER) — voir la remarque en
+> tête de ce document. **La logique du Tracker/Routeur/Configuration n'a pas encore été adaptée en
+> conséquence** (réglages ER, pool de sorties, terminologie) : c'est un chantier séparé, à traiter
+> globalement plus tard.
+
+En tête de panneau : pastilles en lecture seule de l'état calculé plus haut (âges, Epona, raccourcis). Puis,
+dans l'ordre :
+
+1. **Quête** : les 6 Médaillons de donjon disposés en hexagone (positionnement CSS, pas d'image dessinée),
+   Morceaux de Triforce au centre (visible seulement si « Chasse à la Triforce » est activée en
+   Configuration ; plafond = réglage associé) ; à droite de l'hexagone, les 3 Pierres Spirituelles, puis,
+   séparées par un trait, deux colonnes de tuiles d'objet cliquables : Double Défense, Réceptacles de Cœur,
+   Quarts de Cœur / Magie (progressif : Simple → Double → Infinie), Skulltulas d'Or. Purement informatifs,
+   sans effet sur le Routeur (sauf Magie ≥ 1, utilisée par `sat()`).
+2. **Équipement**, sur toute la largeur (5 colonnes de tuiles de même taille) : quatre chaînes de tuiles
+   reliées — Épée Kokiri → de Légende → Biggoron (3 objets distincts, pas un objet progressif — dans le jeu
+   ce sont trois pickups différents, l'Épée Biggoron remplaçant le Couteau Cassé du Goron via une quête
+   d'échange), Bouclier Mojo → Hylien → Miroir (idem), Bottes Kokiri → de Plomb → des Airs, Tunique
+   Kokiri → Goron → Zora ; puis, après un séparateur pleine hauteur, les progressifs (Force : Bracelet Goron
+   → Gantelets d'Argent → Gantelets d'Or et Écaille de Zora : Argent → Or, pastille de palier en chiffres
+   romains ; Bourse : pastille de capacité 99 (par défaut) → 200 → 500 → 999).
+3. **Inventaire**, en cadres d'une même teinte (celle du fond de l'hexagone des médaillons), deux par ligne (`ITEMS_PAGE.boxRows`) : Enfant (Bâton
+   Mojo, Lance-Pierre, Boomerang) + Commun (Bombes, Missiles, Noix Mojo) ; Adulte (Grappin, Arc, Masse des
+   Titans, avec les Flèches de Feu/Glace/Lumière en sous-rangée reliée) + Utilitaires (en 2×2 : Monocle de
+   Vérité, Haricots Magiques, Pierre de Souffrance, Canne à Pêche — `cols:2`) ; Flacons (Bouteilles, Lettre
+   de Ruto) + Sorts (Feu de Din, Vent de Farore, Amour de Nayru). Objets à munitions, progressifs avec pastille de capacité et un
+   dernier palier « Infini » (∞) : Bâton Mojo 10 → 20 → 30 → ∞, Lance-Pierre 30 → 40 → 50 → ∞, Noix Mojo
+   20 → 30 → 40 → ∞, Bombes 30 → 40 → 50 → ∞, Missiles 30 → 40 → 50 → ∞ (l'Arc reste 30 → 40 → 50).
+4. **Chants** (sans titre) : une rangée des 7 chants (Berceuse de Zelda, Chant d'Epona, Chant de Saria,
+   Chant du Soleil, Chant du Temps, Chant des Tempêtes, Chant de l'Épouvantail), puis une rangée des 6 chants
+   de téléportation (Menuet des Bois, Boléro du Feu, Sérénade de l'Eau, Requiem des Esprits, Nocturne de
+   l'Ombre, Prélude de la Lumière) — mêmes tailles de tuile, même largeur totale (espacement réparti).
+   Ensuite, dans un cadre de la même teinte que l'inventaire, sur une seule ligne : la tuile Ocarina
+   progressive (Ocarina de Fée → Ocarina du Temps), un peu plus grande, puis les 5 notes dans l'ordre des
+   hauteurs (A, C-Bas, C-Droite, C-Gauche, C-Haut), purement informatives : ne servent qu'à noter quelle note est jouée par quel bouton
+   quand le réglage rando « mélanger les notes d'ocarina » est actif, non branchées à `sat()`).
+5. **Objets d'échange** : deux boutons (`ITEMS_PAGE.tradeButtons`), Enfant (icône Masque de Vérité) et
+   Adulte (icône Reçu), avec le compteur « obtenus/11 » (`tradeStats`). Chaque bouton ouvre une fenêtre de
+   pointage (`modal` = `'trade-child'`/`'trade-adult'`) : les 11 objets sur 3 lignes, chaque ligne étant
+   une sous-chaîne reliée par un trait (`ITEMS_PAGE.trade`), avec les mêmes clics que le reste du panneau
+   (clic gauche = obtenu, clic droit = retiré). Enfant : Œuf Bizarre → Poule → Lettre de Zelda ; Masque de Keaton → Masque du Crâne → Masque
+   Effrayant → Capuche de Lapin ; Masque Goron → Masque Zora → Masque Gerudo → Masque de Vérité. Adulte :
+   Œuf de Poche → Cocotte de Poche (les deux objets de départ possibles, un seul existe réellement dans une
+   seed donnée, mais les deux sont suivis au cas où) → Cojiro → Champignon Étrange ; Potion Étrange → Scie
+   du Braconnier → Épée Cassée → Ordonnance ; Œil de Grenouille → Gouttes Oculaires → Reçu. En vanilla ces
+   objets s'échangent l'un contre l'autre (le précédent disparaît), mais en rando chacun est un pickup
+   placé séparément, trouvable dans n'importe quel ordre et jamais perdu : ce sont des bascules
+   indépendantes.
+
+Puis :
+
+6. **Capacités et langues** (spécificité Ship of Harkinian, qui peut les mélanger dans le pool d'objets ;
+   `ITEMS_PAGE.skills`), une ligne chacune : Nager, Grimper, Ramper, Ouvrir les coffres, Saisir ; puis Langue
+   Kokiri, Mojo, Hylienne, Goron, Zora, Gerudo — des objets `bool` ordinaires d'`ITEM_GROUPS` (icônes
+   attendues dans `icons/abilities/` et `icons/languages/`), purement informatifs pour l'instant (pas encore
+   branchés à `sat()`). À droite, dans une carte étroite distincte (ces check-lists n'ont pas de lien
+   logique avec les capacités/langues, seule la mise en page les rapproche ; `ITEMS_PAGE.checklistButtons`),
+   les boutons carrés « Clés des portes » et « Trous à haricots » : compteur obtenu/total, cliquables pour
+   ouvrir une modale de pointage — liste de lieux à cocher, 2 colonnes, bascule au clic
+   (`toggleChecklist`, `checklistStats` dans `js/state.js`). Catalogue des lieux dans `CHECKLISTS`
+   (`js/items.js`). **Purement informatif pour l'instant** : pas encore branché au Routeur (voir encadré
+   ci-dessus) — l'intention à terme est qu'un trou à haricot plante une connexion fixe dans le graphe, et
+   qu'un lieu « Clés des portes » coché débloque l'accès à ce qu'il y a derrière la porte, mais les
+   correspondances lieu → connexion restent à spécifier.
+7. **Donjons**, sans titre : un bloc par donjon (nom complet + ses cases sur une ligne), deux par ligne,
+   dans l'ordre de `ITEMS_PAGE.dungeons.rows` : Arbre Mojo – Caverne Dodongo ; Ventre de Jabu-Jabu – Fond du
+   Puits ; Gymnase Gerudo – Repaire des Voleurs ; Forêt – Feu ; Eau – Ombre ; Esprit – Caverne de Glace ;
+   puis Château de Ganon seul en dernier, centré à la largeur normale, comme donjon final. Chaque bloc est
+   teinté à la couleur du thème de son donjon (`color` dans `DUNGEONS` : bordure pleine, fond atténué). Chaque bloc n'affiche que ce que le donjon possède : carte,
+   boussole, petites clés (compteur, clic augmente/diminue), clé de boss (la Caverne de Glace n'a ni petites
+   clés ni clé de boss) — voir
+   `DUNGEONS`/`DUNGEON_BY_ID` dans
+   `js/items.js`, mutations `toggleDungeonFlag`/`addDungeonKeys` dans `js/state.js`). **Purement informatif
+   pour l'instant**, comme les check-lists ci-dessus — `maxKeys` reprend les valeurs vanilla par défaut, à
+   ajuster une fois la logique Ship of Harkinian précisée. Exception : la Carte Gerudo (objet `gerudoCard`
+   d'`ITEM_GROUPS`, déjà utilisé par la logique) est affichée sous les petites clés du Repaire, à la manière
+   d'une clé de boss (champ `card` du donjon dans `DUNGEONS`), clic = coche/décoche.
 
 Chaque objet est une tuile d'icône, absente du dépôt (à fournir par l'utilisateur, repli sur une icône
-générique si le fichier manque). Convention par défaut, calculée par `iconSrc()` (`js/app.js`), tous les
+générique si le fichier manque). Convention par défaut, calculée par `iconSrc()` (`js/state.js`), tous les
 chemins étant relatifs à `icons/` :
 - `bool` / `count` : une seule image `items/<clé>.png` (ex. `items/truthLens.png`).
 - `level` **sans** `sizes` (le modèle change visuellement d'un palier à l'autre) : une image par palier non

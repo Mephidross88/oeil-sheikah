@@ -43,5 +43,7 @@ const ICONS = {
   sword:     S('<path d="M12 1.5l2 3V16h-4V4.5z" fill="currentColor" stroke="none" opacity=".35"/><path d="M12 1.5l2 3V16h-4V4.5zM6.5 16h11M12 16v6M10 22h4"/>'),
   warn:      S('<path d="M12 3.4l9.6 16.6a1 1 0 01-.87 1.5H3.27a1 1 0 01-.87-1.5z"/><path d="M12 9.3v4.4"/><circle cx="12" cy="16.9" r=".9" fill="currentColor" stroke="none"/>'),
   eye:       S('<path d="M2 12C5 6 9 4 12 4s7 2 10 8c-3 6-7 8-10 8s-7-2-10-8z"/><circle cx="12" cy="12" r="2.6" fill="currentColor" stroke="none"/><path d="M12 16.6l-1.7 4.1a1.7 1.7 0 003.4 0z" fill="currentColor" stroke="none"/>'),
+  check:     S('<path d="M4 12.5l5 5L20 6"/>', 'stroke-width="2.6"'),
+  circleO:   S('<circle cx="12" cy="12" r="8.5"/>'),
 };
 const TYPE_LABEL = { overworld:'Extérieur', interior:'Intérieur', grotto:'Grotte', dungeon:'Donjon', boss:'Boss', owl:'Hibou', warp:'Téléportation', spawn:'Point d’apparition' };

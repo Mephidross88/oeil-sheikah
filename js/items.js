@@ -18,7 +18,7 @@ const ITEM_GROUPS = [
     { key:'spiritMedallion', label:"Médaillon de l'Esprit", kind:'bool', icon:'rewards/medallions/spirit.png' },
     { key:'shadowMedallion', label:"Médaillon de l'Ombre", kind:'bool', icon:'rewards/medallions/shadow.png' },
     { key:'lightMedallion', label:'Médaillon de la Lumière', kind:'bool', icon:'rewards/medallions/light.png' },
-    { key:'triforcePieces', label:'Morceaux de Triforce', kind:'count', max:s => s.triforceHuntMax, visible:s => s.triforceHunt, icon:'items/triforce.png' },
+    { key:'triforcePieces', label:'Morceaux de Triforce', kind:'count', max:s => s.triforceHuntMax, visible:s => s.triforceHunt, icon:'rewards/triforce.png' },
   ]},
   { title:'Équipement', path:'items', items:[
     { key:'kokiriSword', label:'Épée Kokiri', kind:'bool', icon:'equipment/swords/kokiri.png' },
@@ -39,13 +39,13 @@ const ITEM_GROUPS = [
       icons:['equipment/scales/silver.png','equipment/scales/golden.png'] },
     { key:'wallet', label:'Bourse', kind:'level', stages:['Bourse (99)','Grande Bourse (200)','Bourse de Géant (500)','Bourse de Magnat (999)'],
       sizes:['99','200','500','999'], neverEmpty:true },
-    { key:'skulltulaTokens', label:"Skulltulas d'Or", kind:'count', max:100, icon:'equipment/skulltula.png' },
+    { key:'skulltulaTokens', label:"Skulltulas d'Or", kind:'count', max:100, icon:'rewards/skulltula.png' },
     { key:'gerudoCard', label:'Carte Gerudo', kind:'bool', icon:'items/gerudo.png' },
     { key:'stoneOfAgony', label:'Pierre de Souffrance', kind:'bool', icon:'items/stone_of_agony.png' },
   ]},
   { title:'Armes enfant', path:'items', items:[
-    { key:'sticks', label:'Bâton Mojo', kind:'level', stages:['Aucun','10','20','30'], sizes:['','10','20','30'], icon:'weapons/stick.png' },
-    { key:'slingshot', label:'Lance-Pierre', kind:'level', stages:['Aucun','30','40','50'], sizes:['','30','40','50'], icon:'weapons/slingshot.png' },
+    { key:'sticks', label:'Bâton Mojo', kind:'level', stages:['Aucun','10','20','30','Infini'], sizes:['','10','20','30','∞'], icon:'weapons/stick.png' },
+    { key:'slingshot', label:'Lance-Pierre', kind:'level', stages:['Aucun','30','40','50','Infini'], sizes:['','30','40','50','∞'], icon:'weapons/slingshot.png' },
     { key:'boomerang', label:'Boomerang', kind:'bool', icon:'weapons/boomerang.png' },
   ]},
   { title:'Armes adulte', path:'items', items:[
@@ -58,15 +58,16 @@ const ITEM_GROUPS = [
     { key:'lightArrows', label:'Flèches de Lumière', kind:'bool', icon:'weapons/arrows/light.png' },
   ]},
   { title:'Armes communes', path:'items', items:[
-    { key:'nuts', label:'Noix Mojo', kind:'level', stages:['Aucune','20','30','40'], sizes:['','20','30','40'], icon:'weapons/nut.png' },
-    { key:'bombBag', label:'Bombes', kind:'level', stages:['Aucune','30','40','50'], sizes:['','30','40','50'], icon:'weapons/bomb.png' },
-    { key:'bombchus', label:'Missiles', kind:'bool', icon:'weapons/bombchu.png' },
+    { key:'nuts', label:'Noix Mojo', kind:'level', stages:['Aucune','20','30','40','Infinies'], sizes:['','20','30','40','∞'], icon:'weapons/nut.png' },
+    { key:'bombBag', label:'Bombes', kind:'level', stages:['Aucune','30','40','50','Infinies'], sizes:['','30','40','50','∞'], icon:'weapons/bomb.png' },
+    { key:'bombchus', label:'Missiles', kind:'level', stages:['Aucun','30','40','50','Infinis'], sizes:['','30','40','50','∞'], icon:'weapons/bombchu.png' },
   ]},
   { title:'Objets', path:'items', items:[
     { key:'beans', label:'Haricots Magiques', kind:'bool', icon:'items/bean.png' },
     { key:'truthLens', label:'Monocle de Vérité', kind:'bool', icon:'items/lens_truth.png' },
     { key:'bottle', label:'Bouteilles', kind:'count', max:4 },
     { key:'rutoLetter', label:'Lettre de Ruto', kind:'bool', icon:'items/ruto_letter.png' },
+    { key:'fishingRod', label:'Canne à Pêche', kind:'bool', icon:'items/rod.png' },
   ]},
   { title:"Objets d'échange (Enfant)", path:'items', items:[
     // En rando, chaque objet est un pickup indépendant trouvable dans n'importe quel ordre et
@@ -115,29 +116,175 @@ const ITEM_GROUPS = [
     { key:'noteCDown', label:'C-Bas', kind:'bool', icon:'songs/buttons/down.png' },
   ]},
   { title:'Statistiques', path:'items', items:[
-    { key:'magic', label:'Magie', kind:'level', stages:['Aucune','Simple','Double'],
-      icons:['statistics/magic_small.png','statistics/magic_large.png'] },
+    { key:'magic', label:'Magie', kind:'level', stages:['Aucune','Simple','Double','Infinie'],
+      icons:['statistics/magic_small.png','statistics/magic_large.png','statistics/magic_infinite.png'] },
     { key:'heartPieces', label:'Quarts de Cœur', kind:'count', max:36, icon:'statistics/heart_piece.png' },
     { key:'heartContainers', label:'Réceptacles de Cœur', kind:'count', max:8, icon:'statistics/heart_container.png' },
     { key:'doubleDefense', label:'Double Défense', kind:'bool', icon:'statistics/double_defense.png' },
   ]},
+  // Spécificité Ship of Harkinian : les mouvements/capacités et les langues peuvent être mélangés dans le
+  // pool d'objets. Purement informatif pour l'instant (pas encore branché à `sat()`).
+  { title:'Capacités', path:'items', items:[
+    { key:'swim', label:'Nager', kind:'bool', icon:'abilities/swim.png' },
+    { key:'climb', label:'Grimper', kind:'bool', icon:'abilities/climb.png' },
+    { key:'crawl', label:'Ramper', kind:'bool', icon:'abilities/ramp.png' },
+    { key:'openChests', label:'Ouvrir les coffres', kind:'bool', icon:'abilities/chest.png' },
+    { key:'grab', label:'Saisir', kind:'bool', icon:'abilities/grasp.png' },
+  ]},
+  { title:'Langues', path:'items', items:[
+    { key:'speakKokiri', label:'Langue Kokiri', kind:'bool', icon:'languages/kokiri.png' },
+    { key:'speakDeku', label:'Langue Mojo', kind:'bool', icon:'languages/deku.png' },
+    { key:'speakHylian', label:'Langue Hylienne', kind:'bool', icon:'languages/hylian.png' },
+    { key:'speakGoron', label:'Langue Goron', kind:'bool', icon:'languages/goron.png' },
+    { key:'speakZora', label:'Langue Zora', kind:'bool', icon:'languages/zora.png' },
+    { key:'speakGerudo', label:'Langue Gerudo', kind:'bool', icon:'languages/gerudo.png' },
+  ]},
   { title:'Chants appris', path:'songs', items:[
-    { key:'zeldaLullaby', label:'Berceuse de Zelda', kind:'bool', icon:'songs/zl.png' },
-    { key:'eponasSong', label:"Chant d'Epona", kind:'bool', icon:'songs/epona.png' },
-    { key:'sariasSong', label:'Chant de Saria', kind:'bool', icon:'songs/saria.png' },
-    { key:'sunsSong', label:'Chant du Soleil', kind:'bool', icon:'songs/sun.png' },
-    { key:'songOfTime', label:'Chant du Temps', kind:'bool', icon:'songs/sot.png' },
-    { key:'songOfStorms', label:'Chant des Tempêtes', kind:'bool', icon:'songs/storm.png' },
-    { key:'scarecrowSong', label:"Chant de l'Épouvantail", kind:'bool', icon:'songs/scarecrow.png' },
+    { key:'zeldaLullaby', label:'Berceuse de Zelda', kind:'bool', icon:'songs/songs/zl.png' },
+    { key:'eponasSong', label:"Chant d'Epona", kind:'bool', icon:'songs/songs/epona.png' },
+    { key:'sariasSong', label:'Chant de Saria', kind:'bool', icon:'songs/songs/saria.png' },
+    { key:'sunsSong', label:'Chant du Soleil', kind:'bool', icon:'songs/songs/sun.png' },
+    { key:'songOfTime', label:'Chant du Temps', kind:'bool', icon:'songs/songs/sot.png' },
+    { key:'songOfStorms', label:'Chant des Tempêtes', kind:'bool', icon:'songs/songs/storm.png' },
+    { key:'scarecrowSong', label:"Chant de l'Épouvantail", kind:'bool', icon:'songs/songs/scarecrow.png' },
   ]},
   { title:'Chants de téléportation', path:'songs', items:[
-    { key:'minuet', label:'Menuet des Bois', kind:'bool', icon:'songs/minuet.png' },
-    { key:'bolero', label:'Boléro du Feu', kind:'bool', icon:'songs/bolero.png' },
-    { key:'serenade', label:"Sérénade de l'Eau", kind:'bool', icon:'songs/serenade.png' },
-    { key:'requiem', label:'Requiem des Esprits', kind:'bool', icon:'songs/requiem.png' },
-    { key:'nocturne', label:"Nocturne de l'Ombre", kind:'bool', icon:'songs/nocturne.png' },
-    { key:'prelude', label:'Prélude de la Lumière', kind:'bool', icon:'songs/prelude.png' },
+    { key:'minuet', label:'Menuet des Bois', kind:'bool', icon:'songs/teleport/minuet.png' },
+    { key:'bolero', label:'Boléro du Feu', kind:'bool', icon:'songs/teleport/bolero.png' },
+    { key:'serenade', label:"Sérénade de l'Eau", kind:'bool', icon:'songs/teleport/serenade.png' },
+    { key:'requiem', label:'Requiem des Esprits', kind:'bool', icon:'songs/teleport/requiem.png' },
+    { key:'nocturne', label:"Nocturne de l'Ombre", kind:'bool', icon:'songs/teleport/nocturne.png' },
+    { key:'prelude', label:'Prélude de la Lumière', kind:'bool', icon:'songs/teleport/prelude.png' },
   ]},
 ];
 const itemMax = it => typeof it.max === 'function' ? it.max(store.settings) : it.max;
 const itemVisible = it => !it.visible || it.visible(store.settings);
+
+/* ---------- Mise en page de la page Objets ---------- */
+// Ne redéfinit aucune métadonnée d'objet : référence les objets d'ITEM_GROUPS par clé, juste pour
+// savoir dans quel bloc visuel chacun s'affiche. ITEM_GROUPS reste la seule source pour defaults()
+// (js/state.js) et les métadonnées (icône, paliers, max, visibilité...).
+const ITEM_BY_KEY = {};
+ITEM_GROUPS.forEach(g => g.items.forEach(it => { ITEM_BY_KEY[it.key] = { ...it, path:g.path }; }));
+
+const ITEMS_PAGE = {
+  stats:[['doubleDefense', 'heartContainers', 'heartPieces'], ['magic', 'skulltulaTokens']],
+  quest:{
+    hex:['forestMedallion', 'fireMedallion', 'waterMedallion', 'spiritMedallion', 'shadowMedallion', 'lightMedallion'],
+    center:'triforcePieces',
+    stones:['kokiriEmerald', 'goronRuby', 'zoraSapphire'],
+  },
+  equipment:{
+    chains:[
+      { title:'Épée', items:['kokiriSword', 'masterSword', 'biggoronSword'] },
+      { title:'Bouclier', items:['dekuShield', 'hylianShield', 'mirrorShield'] },
+      { title:'Tunique', items:['kokiriTunic', 'goronTunic', 'zoraTunic'] },
+      { title:'Bottes', items:['kokiriBoots', 'ironBoots', 'hoverBoots'] },
+    ],
+    progressive:['strength', 'scale', 'wallet'],
+  },
+  // Cadres d'objets (armes/magie/utilitaires), groupés deux par deux (voir style.css .item-box/.box-row).
+  boxRows:[
+    [ { title:'Enfant', items:['sticks', 'slingshot', 'boomerang'] },
+      { title:'Commun', items:['bombBag', 'bombchus', 'nuts'] } ],
+    [ { title:'Adulte', items:['hookshot', 'bow', 'titanMass'], sub:['fireArrows', 'iceArrows', 'lightArrows'] },
+      { title:'Utilitaires', items:['truthLens', 'beans', 'stoneOfAgony', 'fishingRod'], cols:2 } ],
+    [ { title:'Flacons', items:['bottle', 'rutoLetter'] },
+      { title:'Sorts', items:['dinsFire', 'faroresWind', 'nayrusLove'] } ],
+  ],
+  // Chaînes d'objets d'échange : un bouton par âge (icône = dernier objet de la chaîne) ouvrant une fenêtre
+  // de pointage ; chaque sous-tableau = une ligne de la fenêtre, objets reliés par un trait.
+  trade:{
+    child:[
+      ['weirdEgg', 'chicken', 'zeldasLetter'],
+      ['keatonMask', 'skullMask', 'spookyMask', 'bunnyHood'],
+      ['goronMask', 'zoraMask', 'gerudoMask', 'maskOfTruth'],
+    ],
+    adult:[
+      ['pocketEgg', 'pocketCucco', 'cojiro', 'oddMushroom'],
+      ['oddPotion', 'poachersSaw', 'brokenSword', 'prescription'],
+      ['eyeballFrog', 'eyedrops', 'claimCheck'],
+    ],
+  },
+  // Capacités et langues (Ship of Harkinian), une ligne chacune.
+  skills:[
+    { title:'Capacités', items:['swim', 'climb', 'crawl', 'openChests', 'grab'] },
+    { title:'Langues', items:['speakKokiri', 'speakDeku', 'speakHylian', 'speakGoron', 'speakZora', 'speakGerudo'] },
+  ],
+  // Boutons des check-lists de lieux, dans leur propre carte à droite des capacités/langues.
+  checklistButtons:[
+    { id:'keys', icon:'icons/dungeons/key.png' },
+    { id:'beans', icon:'icons/items/bean.png' },
+  ],
+  tradeButtons:[
+    { id:'child', title:'Échanges — Enfant', icon:'maskOfTruth' },
+    { id:'adult', title:'Échanges — Adulte', icon:'claimCheck' },
+  ],
+  songs:{
+    learned:['zeldaLullaby', 'eponasSong', 'sariasSong', 'sunsSong', 'songOfTime', 'songOfStorms', 'scarecrowSong'],
+    ocarina:'ocarina',
+    // Notes en ligne, dans l'ordre des hauteurs (A, C-Bas, C-Droite, C-Gauche, C-Haut).
+    notes:['noteA', 'noteCDown', 'noteCRight', 'noteCLeft', 'noteCUp'],
+    warp:['minuet', 'bolero', 'serenade', 'requiem', 'nocturne', 'prelude'],
+  },
+  // Un bloc par donjon, qui n'affiche que les cases que le donjon possède (voir DUNGEONS), deux par ligne,
+  // teinté à la couleur du donjon (`color`) ; le Château de Ganon ferme la liste, seul et centré.
+  dungeons:{
+    rows:[
+      ['dekuTree', 'dodongosCavern'],
+      ['jabuJabu', 'bottomOfTheWell'],
+      ['gerudoTrainingGround', 'gerudoFortress'],
+      ['forestTemple', 'fireTemple'],
+      ['waterTemple', 'shadowTemple'],
+      ['spiritTemple', 'iceCavern'],
+      ['ganonsCastle'],
+    ],
+  },
+};
+// Chiffres romains pour les objets progressifs sans `sizes` (Force, Écaille) ; ceux qui ont des `sizes`
+// (Bourse : 99/200/500/999) gardent leur pastille de capacité.
+const ROMAN = ['', 'I', 'II', 'III', 'IV', 'V'];
+const tierLabel = it => it.sizes ? null : (ROMAN[store.game[it.path][it.key]] || null);
+
+/* ---------- Objets de donjon (carte / boussole / petites clés / clé de boss) ---------- */
+// NOTE : purement informatif pour l'instant — pas encore branché au Tracker/Routeur (`sat()`/`makeEdges()`).
+// `maxKeys` = valeurs vanilla par défaut, à ajuster une fois la logique Ship of Harkinian précisée.
+// `color` : teinte du thème du donjon (bordure du bloc ; le fond en est une version très atténuée).
+const DUNGEONS = [
+  { id:'dekuTree', title:'Arbre Mojo', color:'#7aa83c', map:true, compass:true },
+  { id:'dodongosCavern', title:'Caverne Dodongo', color:'#b0602c', map:true, compass:true },
+  { id:'jabuJabu', title:'Ventre de Jabu-Jabu', color:'#d0708f', map:true, compass:true },
+  { id:'bottomOfTheWell', title:'Fond du Puits', color:'#6c5f7e', map:true, compass:true, maxKeys:3 },
+  { id:'gerudoTrainingGround', title:'Gymnase Gerudo', color:'#c9a03a', maxKeys:9 },
+  { id:'gerudoFortress', title:'Repaire des Voleurs', color:'#c0674a', maxKeys:4, card:'gerudoCard' },
+  { id:'ganonsCastle', title:'Château de Ganon', color:'#8e2447', maxKeys:2, bossKey:true },
+  { id:'forestTemple', title:'Forêt', color:'#2e7d3c', map:true, compass:true, maxKeys:5, bossKey:true },
+  { id:'fireTemple', title:'Feu', color:'#c8372d', map:true, compass:true, maxKeys:8, bossKey:true },
+  { id:'waterTemple', title:'Eau', color:'#2f6fb8', map:true, compass:true, maxKeys:6, bossKey:true },
+  { id:'shadowTemple', title:'Ombre', color:'#6b3f9a', map:true, compass:true, maxKeys:6, bossKey:true },
+  { id:'spiritTemple', title:'Esprit', color:'#d9822b', map:true, compass:true, maxKeys:5, bossKey:true },
+  { id:'iceCavern', title:'Caverne de Glace', color:'#4fa9c7', map:true, compass:true },
+];
+const DUNGEON_BY_ID = {};
+DUNGEONS.forEach(d => { DUNGEON_BY_ID[d.id] = d; });
+
+/* ---------- Check-lists de lieux (clés hors donjon, trous à haricots) ---------- */
+// Purement informatif pour l'instant (voir remarque ci-dessus) : une simple liste de lieux à cocher,
+// pas encore reliée à de nouvelles connexions dans le graphe du Routeur.
+function slugify(s){ return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, ''); }
+function checklist(title, labels){ return { title, locations:labels.map(label => ({ id:slugify(label), label })) }; }
+const CHECKLISTS = {
+  keys:checklist('Clés des portes', [
+    'Poste de garde', 'Bazar du marché', 'Apothicaire du marché', 'Foire aux masques',
+    'Stand de tir du marché', 'Bowling Teigneux', 'Chasse au trésor', 'Boutique de missiles',
+    'Maison de Kiki', "Porte de l'allée", 'Bazar de Cocorico', 'Apothicaire de Cocorico',
+    'Maison du contremaître', 'Boutique de Granny', 'Maison des Araignées', "Maison d'Impa",
+    'Moulin', 'Stand de tir de Cocorico', "Cabane d'Igor", 'Maison de Talon',
+    'Écuries', 'Silo', 'Laboratoire du Lac', 'Stand de pêche',
+  ]),
+  beans:checklist('Trous à haricots', [
+    'Cratère du Péril', 'Mont du Péril', 'Colosse du Désert', 'Vallée Gerudo',
+    'Cimetière', 'Forêt Kokiri', 'Lac Hylia', 'Pont des Bois Perdus',
+    'Théâtre Mojo', 'Fleuve Zora',
+  ]),
+};

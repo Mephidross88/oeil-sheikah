@@ -11,6 +11,31 @@ const Seg = {
     :class="{on: modelValue===o[0]}" @click="$emit('update:modelValue', o[0])">{{o[1]}}</button></div>`,
 };
 
+// Tuile d'objet réutilisable (panneau Objets) : clic gauche/droit pour augmenter/diminuer/activer.
+// Icône seule (pas de libellé visible), le nom reste accessible via le `title` au survol.
+const ItemTile = {
+  props:{ k:{ type:String, required:true }, badge:{ type:String, default:null } },
+  data:() => ({ brokenIcons, ICONS }),
+  computed:{
+    item(){ return ITEM_BY_KEY[this.k]; },
+    value(){ return store.game[this.item.path][this.k]; },
+    src(){ return iconSrc(this.item.path, this.item); },
+  },
+  methods:{
+    onClick(ev){ clickItem(ev, this.item.path, this.item); },
+    onRight(ev){ rightClickItem(ev, this.item.path, this.item); },
+    itemActive, itemTitle, itemMaxed,
+  },
+  template:`<button type="button" class="icon-tile" :class="{off:!itemActive(item,value)}" :disabled="item.locked"
+    :aria-label="item.label" :title="itemTitle(item.path,item)" @click="onClick" @contextmenu.prevent="onRight">
+    <img v-if="!brokenIcons[src]" :src="src" :alt="item.label" @error="brokenIcons[src]=true">
+    <span v-else class="icon-fallback" v-html="ICONS.bag"></span>
+    <span v-if="badge" class="icon-badge" :class="{maxed:itemMaxed(item.path,item)}">{{badge}}</span>
+    <span v-else-if="item.kind==='count'" class="icon-badge" :class="{maxed:itemMaxed(item.path,item)}">{{value}}</span>
+    <span v-else-if="item.sizes && item.sizes[value]" class="icon-badge" :class="{maxed:itemMaxed(item.path,item)}">{{item.sizes[value]}}</span>
+  </button>`,
+};
+
 const DestPicker = {
   props:['source'], emits:['choose'],
   data:() => ({ open:false, q:'', hl:0, pos:{}, ICONS }),

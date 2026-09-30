@@ -67,7 +67,7 @@ function canOpenDoorOfTime(mode, it, sg){
  * `ages` = { child, adult } déjà résolus par computeAges() : évite toute dépendance circulaire. */
 function deriveGame(raw, settings, ages){
   const it = raw.items, sg = raw.songs;
-  const hasExplosives = it.bombBag >= 1 || it.bombchus;
+  const hasExplosives = it.bombBag >= 1 || it.bombchus >= 1;
   // Ouverture du raccourci Bois Perdus <-> Ville Goron (event "GC Woods Warp Open" du randomizer) :
   // explosifs, Feu de Din, Arc (adulte) ou Force suffisent, une fois pour toutes.
   const gcWoodsWarpOpen = hasExplosives || (it.dinsFire && it.magic >= 1) || (ages.adult && it.bow >= 1) || it.strength >= 1;
@@ -84,7 +84,7 @@ function deriveGame(raw, settings, ages){
     },
     songs: sg,
     items: {
-      bombs: it.bombBag >= 1, bombchus: it.bombchus, titanMass: it.titanMass, bow: it.bow >= 1,
+      bombs: it.bombBag >= 1, bombchus: it.bombchus >= 1, titanMass: it.titanMass, bow: it.bow >= 1,
       goronBracelet: it.strength >= 1, silverGauntlets: it.strength >= 2, goldGauntlets: it.strength >= 3,
       hookshot: it.hookshot >= 1, longshot: it.hookshot >= 2, sticks: it.sticks >= 1,
       dinsFire: it.dinsFire, nayrusLove: it.nayrusLove, goronTunic: it.goronTunic, ironBoots: it.ironBoots, hoverBoots: it.hoverBoots,
