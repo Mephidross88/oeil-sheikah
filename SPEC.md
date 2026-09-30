@@ -200,7 +200,7 @@ dans l'ordre :
    Titans, avec les Flèches de Feu/Glace/Lumière en sous-rangée reliée) + Utilitaires (en 2×2 : Monocle de
    Vérité, Haricots Magiques, Pierre de Souffrance, Canne à Pêche — `cols:2`) ; Flacons (Bouteilles, Lettre
    de Ruto) + Sorts (Feu de Din, Vent de Farore, Amour de Nayru, Plume de Roc — seulement avec l'option « Plume
-   de Roc », icône `icons/items/rocs_feather.png`). Objets à munitions, progressifs avec pastille de capacité et un
+   de Roc », icône `icons/magic/rock_feather.png`). Objets à munitions, progressifs avec pastille de capacité et un
    palier « Infini » (∞) selon l'option « Améliorations infinies » : Bâton Mojo 10 → 20 → 30, Lance-Pierre et
    Arc 30 → 40 → 50, Bombes 20 → 30 → 40, Noix Mojo 20 → 30 → 40 (capacités de l'item tracker de SoH).
    Missiles selon l'option « Sac de missiles » : « Progressif » → 20 → 30 → 50 ; « Aucun » / « Un sac » →

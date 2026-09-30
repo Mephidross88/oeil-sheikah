@@ -50,7 +50,7 @@ const ITEM_GROUPS = [
       levels:s => [...(s.shuffleChildWallet === 'On' ? [0] : []), 1, 2, 3, ...(s.includeTycoonWallet === 'On' ? [4] : []), ...(s.infiniteUpgrades !== 'Off' ? [5] : [])] },
     { key:'skulltulaTokens', label:"Skulltulas d'Or", kind:'count', max:100, icon:'rewards/skulltula.png' },
     // Greg (rubis vert) : ne compte que s'il sert au pont arc-en-ciel ou à la clé de boss de Ganon.
-    { key:'greg', label:'Greg (rubis vert)', kind:'bool', icon:'rewards/greg.png', visible:s => s.rainbowBridge === 'Greg'
+    { key:'greg', label:'Greg', kind:'bool', icon:'rewards/greg.png', visible:s => s.rainbowBridge === 'Greg'
       || (['Stones','Medallions','Dungeon rewards','Dungeons'].includes(s.rainbowBridge) && s.bridgeRewardOptions !== 'Standard Rewards')
       || (['LACS-Stones','LACS-Medallions','LACS-Rewards','LACS-Dungeons'].includes(s.ganonsBossKey) && s.gcbkRewardOptions !== 'Standard Reward') },
     { key:'gerudoCard', label:'Carte Gerudo', kind:'bool', icon:'items/gerudo.png' },
@@ -121,7 +121,7 @@ const ITEM_GROUPS = [
     { key:'dinsFire', label:'Feu de Din', kind:'bool', icon:'magic/din.png' },
     { key:'faroresWind', label:'Vent de Farore', kind:'bool', icon:'magic/farore.png' },
     { key:'nayrusLove', label:'Amour de Nayru', kind:'bool', icon:'magic/nayru.png' },
-    { key:'rocsFeather', label:'Plume de Roc', kind:'bool', icon:'items/rocs_feather.png', visible:s => s.rocsFeather === 'On' },
+    { key:'rocsFeather', label:'Plume de Roc', kind:'bool', icon:'magic/rock_feather.png', visible:s => s.rocsFeather === 'On' },
   ]},
   { title:'Ocarina', path:'items', items:[
     { key:'ocarina', label:'Ocarina', kind:'level', stages:['Aucune',"Ocarina de Fée","Ocarina du Temps"],
