@@ -14,8 +14,11 @@ const tree = await (await fetch(`https://api.github.com/repos/HarbourMasters/Shi
 if (!tree.tree) throw new Error('Arbre introuvable pour ' + COMMIT + ' : ' + JSON.stringify(tree).slice(0, 200));
 const wanted = tree.tree.map(e => e.path).filter(p =>
   p.startsWith(RANDO + 'location_access/') && p.endsWith('.cpp') ||
-  /^soh\/soh\/Enhancements\/randomizer\/(location_list|location|fishsanity|randomizer_check_objects|Shuffle[A-Za-z]+)\.cpp$/.test(p));
-wanted.push('soh/soh/util.cpp');
+  /^soh\/soh\/Enhancements\/randomizer\/(location_list|location|fishsanity|randomizer_check_objects|Shuffle[A-Za-z]+)\.cpp$/.test(p) ||
+  // logique (tools/soh-logic) : régions, fonctions de logique, entrées, options
+  /^soh\/soh\/Enhancements\/randomizer\/(location_access|logic|entrance|settings|randomizer_entrance_tracker)\.(cpp|h)$/.test(p) ||
+  /^soh\/soh\/Enhancements\/randomizer\/(RandomizerOptions|randomizerTypes|dungeon)\.h$/.test(p));
+wanted.push('soh/soh/util.cpp', 'soh/soh/Enhancements/randomizer/randomizerEnums/RandomizerOptions.h');
 
 for (const p of wanted){
   const dest = path.join(SRC, p.startsWith(RANDO) ? p.slice(RANDO.length) : path.basename(p));

@@ -51,6 +51,10 @@ et le mettre à jour quand une règle change.
   gros fichier, ne pas le lire en entier ni l'éditer à la main pour autre chose qu'une retouche ponctuelle.
 - `tools/soh-checks/` : scripts Node lancés à la main (jamais chargés par l'appli) qui régénèrent `checks-data.js`
   depuis les sources de SoH ; traductions des libellés dans `translate.mjs`. Mode d'emploi dans son `README.md`.
+- `soh-logic-data.js` : logique de SoH (`window.SOH_LOGIC` : 1 026 régions avec événements, checks et sorties, conditions
+  converties en fonctions JS sur le contexte global `L`), **fichier généré** par `tools/soh-logic/extract_logic.mjs`
+  (sources téléchargées par `tools/soh-checks/fetch_sources.mjs`). Pas encore chargé par `index.html` : le moteur
+  (`js/soh-logic.js`) est en cours de construction sur la branche `logique`.
 - `tools/soh-entrances/apply_names.mjs` : table sortie ↔ entrée du tracker d'entrées de SoH et traductions ; réécrit les
   champs `label` / `soh` de `areas-data.js` (relancer après toute modification de la table).
 - `icons/` : images. `icons/exits/` (types de sortie), `icons/items/` (convention par défaut du panneau
