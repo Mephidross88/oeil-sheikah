@@ -519,7 +519,7 @@ select.sel:hover{border-color:var(--gold)}
 .node b{font-family:var(--serif);font-size:17.5px;font-weight:700;display:block;line-height:1.2}
 .node .sub{color:var(--muted);font-size:15px}
 .conn{display:flex;flex-direction:column;align-items:center;padding:4px 0}
-.conn .ln{width:2px;height:14px;background:var(--line)}
+.conn .ln{width:1.2px;height:14px;background:var(--line)}
 .conn .lab{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;font-size:14px;color:var(--muted);padding:3px 0;max-width:420px;text-align:center}
 /* mode de déplacement : pastille icône + libellé, couleur par mode */
 .mv{--mv:var(--muted);display:inline-flex;align-items:center;gap:10px;padding:4px 8px;border-radius:999px;font-weight:600;
@@ -538,6 +538,7 @@ select.sel:hover{border-color:var(--gold)}
 .mv[class*="song-"]{background:color-mix(in srgb,var(--mv) 20%,var(--surface))}
 .mv.reset{--mv:var(--red)}
 .conn .lab .c{font-variant-numeric:tabular-nums}
+.conn-cost{font-size:12px;color:var(--muted)}
 
 /* objets utilisés par une étape (sous la pastille ou le titre du changement d'âge) */
 .reqs{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:4px;max-width:320px}
@@ -545,12 +546,11 @@ select.sel:hover{border-color:var(--gold)}
 .alt-mark{font-size:12px;font-weight:700;line-height:1;padding:5px 7px;border-radius:999px;cursor:help;
   color:var(--gold-deep);background:var(--gold-soft);border:1px dashed var(--gold)}
 .reqs img{width:26px;height:26px;object-fit:contain;padding:2px;border-radius:7px;background:var(--surface);border:1px solid var(--line)}
-.conn .arrow{width:12px;height:12px;color:var(--line)}
+.conn .arrow{width:12px;height:12px;margin-top:-4px;color:var(--line)}
 /* changement d'âge : grande icône centrée sur l'axe du chemin, halo doré */
-.ageband{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;width:min(420px,100%);margin:18px 0 4px;padding:16px 20px 14px;
+.ageband{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;width:min(420px,100%);margin:0 0 4px;padding:16px 20px 14px;
   border:2px solid var(--gold);border-radius:16px;box-shadow:var(--shadow);
   background:radial-gradient(circle at 50% 42%,color-mix(in srgb,var(--gold) 30%,var(--surface)) 0,var(--gold-soft) 62%)}
-.ageband::before{content:"";position:absolute;bottom:calc(100% + 2px);left:50%;width:2px;height:18px;margin-left:-1px;background:var(--line)}
 .ageband .age-art{width:104px;height:104px;object-fit:contain;filter:drop-shadow(0 3px 6px rgba(50,36,10,.25))}
 .ageband b{font-family:var(--serif);font-size:21px;color:var(--gold-deep)}
 .note{max-width:1240px;color:var(--muted);font-size:14.5px}

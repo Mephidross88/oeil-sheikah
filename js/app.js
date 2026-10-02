@@ -769,15 +769,18 @@ const App = {
             </div>
             <div v-else-if="it.t==='edge'" class="conn">
               <span class="ln"></span>
-              <div class="lab"><span class="mv" :class="[it.e.kind, it.e.kind === 'warp' ? 'song-' + WARP_SONGS[it.e.warp] : '']"><img class="mv-ic" :src="edgeIcon(it.e)" alt="">
+              <!-- transition simple : pas de pastille, le trait suffit (objets et coût éventuels seulement) -->
+              <div class="lab" v-if="it.e.kind !== 'transition' || it.reqs.icons.length || ui.router.showCost"><span v-if="it.e.kind !== 'transition'" class="mv" :class="[it.e.kind, it.e.kind === 'warp' ? 'song-' + WARP_SONGS[it.e.warp] : '']"><img class="mv-ic" :src="edgeIcon(it.e)" alt="">
                 <span class="mv-txt">{{edgeLabel(it.e)}}<small v-if="ui.router.showCost">Coût : {{it.e.cost}}</small></span>
                 <img class="mv-ic" :src="edgeIcon(it.e)" alt=""></span>
+                <small v-else-if="ui.router.showCost" class="conn-cost">coût {{it.e.cost}}</small>
                 <span v-if="it.reqs.icons.length" class="reqs" :class="{alt:it.reqs.alts.length}">
                   <img v-for="r in it.reqs.icons" :key="r.key" :src="r.src" :title="r.title" alt="">
                   <span v-if="it.reqs.alts.length" class="alt-mark" :title="it.reqs.altTitle">ou…</span></span></div>
               <span class="ln"></span><span class="arrow" v-html="ICONS.caret"></span>
             </div>
-            <div v-else class="ageband" :title="ageLabel(it.from) + ' vers ' + ageLabel(it.to) + ', au Temple du Temps'">
+            <div v-if="it.t==='age'" class="conn"><span class="ln"></span><span class="ln"></span><span class="arrow" v-html="ICONS.caret"></span></div>
+            <div v-if="it.t==='age'" class="ageband" :title="ageLabel(it.from) + ' vers ' + ageLabel(it.to) + ', au Temple du Temps'">
               <img class="age-art" :src="'icons/route/age_' + it.from + '_to_' + it.to + '.png'" alt=""><b>Changement d'âge</b></div>
           </template>
         </div>

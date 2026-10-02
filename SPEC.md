@@ -567,8 +567,9 @@ Règles d'interface :
     (la première, par laquelle on arrive, en médaillon sur le bord haut ; les suivantes avec une petite icône), reliées
     par « à pied » et les objets utilisés pour cette marche ; marches consécutives fusionnées ; dans la
     carte d'arrivée, la sortie visée (dernière) est mise en évidence ;
-  - entre deux cartes, une pastille par changement de lieu (transition, téléporteur bleu, vol du hibou, chant,
-    sauvegarder-recharger, et marche vers une autre zone : course d'Igor, mains du Temple de l'Esprit) : libellé centré entre deux fois l'icône du mode, couleur propre au mode. Chant de
+  - entre deux cartes, un simple trait pour une transition (avec ses objets éventuels, et son coût si affiché), et une
+    pastille pour les déplacements « actifs » (téléporteur bleu, vol du hibou, chant, sauvegarder-recharger, et marche
+    vers une autre zone : course d'Igor, mains du Temple de l'Esprit) : libellé centré entre deux fois l'icône du mode, couleur propre au mode. Chant de
     téléportation : nom du chant seul (les notes autour suffisent), couleur du chant ;
   - bandeau dédié pour chaque changement d'âge (grande icône centrée `icons/route/age_child_to_adult.png` ou
     `age_adult_to_child.png`, titre « Changement d'âge », détail au survol) ;
