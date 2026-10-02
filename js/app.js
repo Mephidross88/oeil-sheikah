@@ -573,7 +573,8 @@ const App = {
 
     const savedAt = computed(() => lastSaved.value ? lastSaved.value.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit', second:'2-digit' }) : null);
 
-    return { store, ui, s, views, canSplit, splitOn, shown, paneOf, swapPanes, openSide, closeSide, navOpen, itemsOpen, modal, tip, tipData, backup, stats, missingSpawns, visibleAreas,
+    const LINK_LABEL = { off:'Auto-tracking désactivé', connecting:'Relais introuvable', relay:'Relais prêt, jeu non connecté', game:'Jeu connecté' };
+    return { store, ui, s, views, link, LINK_LABEL, linkRequestState, canSplit, splitOn, shown, paneOf, swapPanes, openSide, closeSide, navOpen, itemsOpen, modal, tip, tipData, backup, stats, missingSpawns, visibleAreas,
       ICONS, ITEMS_PAGE, ITEM_BY_KEY, DUNGEONS, DUNGEON_BY_ID, CHECKLISTS, AREA, EXIT, DATA_ERRORS,
       iconKey, exitIcon, areaName, toggleArea, setAll, jump, go, showTip, hideTip, toggleTip, setMapping, clearMapping,
       checkAreasC, checkStats, toggleCheckArea, lastCheck, toggleCheck, toggleExcluded, undoCheck, goToCheck, goToZone, goMsg, setAllChecks, jumpCheck, setCheck, setExcluded, CHECK_AREA,
@@ -653,6 +654,8 @@ const App = {
             :title="ui.theme==='dark' ? 'Thème sombre (cliquer pour suivre le système)' : 'Thème sombre'"></button>
         </div>
       </div>
+      <button type="button" class="link-btn" :class="link.status" @click="modal='link'" title="Auto-tracking : suivre la partie de Ship of Harkinian en direct">
+        <i></i>{{LINK_LABEL[link.status]}}</button>
       <button class="side-btn" @click="openBackup">Exporter ou importer la partie</button>
       <button class="danger-btn" @click="modal='reset'">Tout remettre à zéro</button>
     </div>
@@ -752,11 +755,6 @@ const App = {
         </div>
       </div>
 
-      <div v-if="stats.editable > stats.mapped" class="warn-box">
-        <span class="warn-box-ic" v-html="ICONS.warn"></span>
-        <div><b>{{stats.editable - stats.mapped}} entrée{{stats.editable - stats.mapped > 1 ? 's' : ''}} à découvrir.</b>
-        Tant que sa destination n'est pas notée dans <a href="#" @click.prevent="go('entrances')">Entrées</a>, une entrée
-        mélangée ne mène nulle part pour la logique : les checks derrière elle ne sont pas comptés comme faisables.</div></div>
       <div v-if="!checkAreasC.length" class="empty"><b>Aucun check à afficher.</b>
         {{ui.checks.q ? 'Aucun résultat pour cette recherche.' : 'Vérifiez la Configuration ou les filtres.'}}</div>
       <article v-for="x in checkAreasC" :key="x.area.id" class="area check-area" :id="'carea-'+x.area.id"
@@ -1154,6 +1152,29 @@ const App = {
           <textarea v-model="backup.text" spellcheck="false" aria-label="Données de la partie"></textarea>
           <div v-if="backup.msg" class="msg" :class="backup.ok?'ok':'ko'">{{backup.msg}}</div>
           <div class="mactions"><button class="btn" @click="copyBackup">Copier</button><button class="btn primary" @click="importBackup">Importer</button></div>
+        </div>
+      </template>
+      <template v-else-if="modal==='link'">
+        <header><h3>Auto-tracking</h3><button @click="modal=null" aria-label="Fermer" v-html="ICONS.close"></button></header>
+        <div class="body link-modal">
+          <p style="margin-top:0">Suit votre partie de Ship of Harkinian en direct, via un petit relais local qui se fait passer pour un
+            serveur Anchor. Le relais est en lecture seule : il ne modifie jamais votre partie.</p>
+          <ol class="link-steps">
+            <li>Lancez le relais : <code>node tools/soh-link/relay.mjs</code> (dans le dossier de L'Œil Sheikah).</li>
+            <li>Dans SoH, menu Réseau &gt; Anchor : Host <code>127.0.0.1</code>, port <code>43383</code>, Room ID au choix (pas « Global Room »), puis Enable.</li>
+            <li>Activez l'auto-tracking ci-dessous.</li>
+          </ol>
+          <label class="check link-on"><input type="checkbox" v-model="ui.link.enabled">Activer l'auto-tracking</label>
+          <div class="link-opts"><span>Suivre :</span>
+            <label class="check"><input type="checkbox" v-model="ui.link.checks">les checks faits</label></div>
+          <label class="link-url">Adresse du relais <input class="sel" v-model.lazy="ui.link.url" spellcheck="false"></label>
+          <div class="link-status" :class="link.status"><i></i><b>{{LINK_LABEL[link.status]}}</b>
+            <span v-if="link.status==='game' && link.client">— {{link.client.name || 'joueur sans nom'}}, sauvegarde {{link.client.isSaveLoaded ? 'chargée' : 'non chargée'}}</span>
+            <button v-if="link.status==='game'" type="button" class="btn" @click="linkRequestState">Relire la sauvegarde</button></div>
+          <div class="link-log">
+            <div v-for="(l, i) in link.log" :key="i"><span>{{l.t}}</span>{{l.text}}</div>
+            <div v-if="!link.log.length" class="muted">Aucun événement pour l'instant.</div>
+          </div>
         </div>
       </template>
       <template v-else-if="modal==='spoiler'">

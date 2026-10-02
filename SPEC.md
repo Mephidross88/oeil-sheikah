@@ -462,8 +462,8 @@ check) ; règles dans `js/checks.js`.
   logique au survol » (« Show Logic » de SoH : condition SoH du check dans l'infobulle, par région), « Suivre
   aussi les Skulltulas non mélangées », zones groupées Overworld / Donjons avec « faits | accessibles | total » et le
   code couleur des zones (voir Zones).
-- **Entrées mélangées** : les destinations notées dans Entrées sont prises en compte ; tant qu'il reste des entrées à
-  découvrir, un avertissement rappelle qu'une entrée pas encore notée ne mène nulle part pour la logique.
+- **Entrées mélangées** : les destinations notées dans Entrées sont prises en compte ; une entrée pas encore notée ne
+  mène nulle part pour la logique (pas d'avertissement sur la page Checks).
 - **Progression globale** : cadre « Checks » de la bande de progression (voir plus haut) — anneau de pourcentage,
   « faits / total », restants, faisables maintenant, zones terminées, et détail Overworld / Donjons. Il dépend seulement de la configuration (checks mélangés, version active des donjons, hors exclus),
   jamais des filtres d'affichage (catégories, âge, Skulltulas non mélangées, recherche, zones masquées) ; les
@@ -622,3 +622,23 @@ Règles d'interface :
 - Coûts masqués par défaut ; case « Afficher les coûts » dans la barre de gauche (`ui.router.showCost`, sauvegardée) : coût total dans le
   résumé et « Coût : X » en petit sous le libellé de chaque pastille.
 - Si aucun chemin : expliquer les causes possibles (sorties non découvertes, objet ou âge manquant).
+
+## Auto-tracking (en cours)
+Suivi en direct d'une partie de Ship of Harkinian, sans modifier le jeu.
+- **Relais** `tools/soh-link/relay.mjs` (Node, sans dépendance), lancé à la main pendant qu'on joue. SoH s'y connecte
+  avec son mode multijoueur Anchor (menu Réseau > Anchor : Host `127.0.0.1`, port `43383`, Room ID au choix, pas la
+  salle globale) : TCP, messages JSON séparés par un octet nul. Le relais répond à la poignée de main (liste des joueurs
+  avec le jeu marqué `self`, état de salle avec `syncItemsAndFlags` activé, sans quoi le jeu n'envoie pas sa
+  sauvegarde), demande la sauvegarde complète (`REQUEST_TEAM_STATE` → `UPDATE_TEAM_STATE`), et transmet les événements
+  à l'appli par un flux SSE (`http://127.0.0.1:43390/events` ; `POST /request-state` pour relire la sauvegarde).
+  **Lecture seule** : il n'envoie au jeu que `ALL_CLIENT_STATE`, `UPDATE_ROOM_STATE` et `REQUEST_TEAM_STATE`, jamais
+  d'objet, de drapeau ni d'état d'équipe (qu'un vrai serveur Anchor peut appliquer à la sauvegarde). Mouvements du
+  joueur résumés (scène, entrée d'arrivée, âge, seulement quand ils changent) ; `--dump` enregistre les paquets reçus.
+- **Appli** (`js/link.js`) : voyant dans le pied de la barre de gauche (gris : désactivé, orange : relais introuvable,
+  doré : relais prêt, vert : jeu connecté), fenêtre « Auto-tracking » (mode d'emploi, activation et adresse du relais
+  dans `ui.link`, état, « Relire la sauvegarde », journal des événements). Reconnexion automatique.
+- **Checks** (option « les checks faits », `ui.link.checks`) : un check fait dans le jeu (statut SoH « ramassé » ou
+  « sauvegardé », `SET_CHECK_STATUS` en direct, et tous ceux de la sauvegarde complète `rando.itemLocations`) est coché ;
+  jamais décoché (un check coché à la main reste coché). Le jeu désigne les checks par leur numéro dans l'énumération
+  `RandomizerCheck` de SoH : `nums` de `checks-data.js` (généré), `CHECK_BY_NUM`.
+- Étapes suivantes : remplir le panneau Objets, position pour le Routeur, entrées découvertes.

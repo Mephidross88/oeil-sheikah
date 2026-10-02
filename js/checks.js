@@ -18,8 +18,10 @@ const CHECK_CATS = [
 ].map(([id, label, color]) => ({ id, label, color, icon:`icons/checks/${id}.png` }));
 const CHECK_CAT = {};
 CHECK_CATS.forEach(c => { CHECK_CAT[c.id] = c; });
-const CHECK_BY_ID = {}, CHECK_BY_SOH = {};
+const CHECK_BY_ID = {}, CHECK_BY_SOH = {}, CHECK_BY_NUM = {};
 CHECKS.forEach(c => { CHECK_BY_ID[c.id] = c; CHECK_BY_SOH[c.soh] = c; });
+// numéro SoH (énumération RandomizerCheck) -> check : auto-tracking (js/link.js)
+(window.CHECKS_DATA.nums || []).forEach((n, i) => { CHECK_BY_NUM[n] = CHECKS[i]; });
 const CHECKS_BY_AREA = {};
 CHECKS.forEach(c => { (CHECKS_BY_AREA[c.area] = CHECKS_BY_AREA[c.area] || []).push(c); });
 

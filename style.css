@@ -97,6 +97,25 @@ svg{display:block}
 .side-foot{margin-top:auto;flex-shrink:0;display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--ink-line);padding-top:14px}
 .saved{font-size:13px;color:var(--ink-muted);display:flex;align-items:center;gap:6px}
 .side-foot-row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+/* auto-tracking : voyant (gris : désactivé, orange : relais introuvable, doré : relais prêt, vert : jeu connecté) */
+.link-btn{display:flex;align-items:center;gap:8px;border:0;background:none;color:var(--ink-muted);font-size:13px;padding:2px 0;cursor:pointer;text-align:left}
+.link-btn:hover{color:var(--ink-text)}
+.link-btn i,.link-status i{width:8px;height:8px;border-radius:50%;flex:none;background:#6b5f4a}
+.link-btn.connecting i,.link-status.connecting i{background:#e0884a}
+.link-btn.relay i,.link-status.relay i{background:var(--gold)}
+.link-btn.game i,.link-status.game i{background:#7fd3a0;box-shadow:0 0 0 3px rgba(127,211,160,.25)}
+.link-modal{display:flex;flex-direction:column;gap:12px}
+.link-steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
+.link-modal code{background:var(--surface-2);border:1px solid var(--line);border-radius:5px;padding:0 5px;font-size:13px}
+.link-modal .check{color:var(--text)}
+.link-opts{display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;font-size:14px;color:var(--muted)}
+.link-url{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--muted)}
+.link-url .sel{flex:1;min-height:36px;padding:6px 10px}
+.link-status{display:flex;align-items:center;flex-wrap:wrap;gap:8px;font-size:14.5px}
+.link-status .btn{margin-left:auto}
+.link-log{max-height:220px;overflow-y:auto;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--surface-2);
+  font-size:13px;font-variant-numeric:tabular-nums;display:flex;flex-direction:column;gap:2px}
+.link-log span{color:var(--muted);margin-right:8px}
 /* thème : soleil / lune ; aucun des deux allumé = suit le système */
 .theme-sw{display:flex;gap:2px;padding:2px;border:1px solid var(--ink-line);border-radius:999px;flex:none}
 .theme-sw button{width:26px;height:26px;display:grid;place-items:center;border:0;border-radius:50%;background:none;color:var(--ink-muted);padding:0;cursor:pointer}
