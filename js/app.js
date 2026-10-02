@@ -135,19 +135,31 @@ const App = {
       if (!r.fromExit || !r.toExit || !EXIT[r.fromExit] || !EXIT[r.toExit]) return { state:'idle' };
       const res = shortest(routeC.value.edges, r.fromExit, r.fromAge, r.toExit, r.toAge);
       if (!res) return { state:'none' };
-      const items = [{ t:'node', key:r.fromExit, age:r.fromAge, role:'start' }];
+      // Une carte par passage dans une zone : sorties successives (rows) reliées par la marche (walks[i] entre rows[i] et
+      // rows[i+1]) ; entre deux cartes, les vrais changements de lieu (pastilles) et les changements d'âge (bandeaux).
+      const items = [];
+      let card = null;
+      const newCard = key => { card = { t:'card', key0:key, rows:[{ key }], walks:[], walking:false }; items.push(card); };
+      newCard(r.fromExit); card.start = true;
       for (const e of res.edges){
-        const prev = items[items.length - 2];
-        if (e.kind === 'age') items.push({ t:'age', from:e.fromAge, to:e.age });   // débloqué une fois pour toutes : pas d'objets
-        // marches consécutives fusionnées en un seul tronçon (le chemin passe parfois par d'autres sorties de la zone)
-        else if (e.kind === 'walk' && prev?.t === 'edge' && prev.e.kind === 'walk'){
-          prev.e = { ...prev.e, to:e.to, cost:prev.e.cost + e.cost, passes:[...(prev.e.passes || []), ...(e.passes || [])] };
-          prev.reqs = reqsOf(prev.e);
-          items[items.length - 1] = { t:'node', key:e.to, age:e.age };
+        if (e.kind === 'age'){ items.push({ t:'age', from:e.fromAge, to:e.age }); card = null; continue; }   // débloqué une fois pour toutes : pas d'objets
+        if (e.kind === 'walk' && EXIT[e.to].areaId === EXIT[card ? card.key0 : e.from].areaId){
+          if (!card) newCard(e.from);
+          const w = card.walks[card.walks.length - 1];
+          // marches consécutives fusionnées (le chemin passe parfois par d'autres sorties de la zone)
+          if (card.walking){
+            w.e = { ...w.e, to:e.to, cost:w.e.cost + e.cost, passes:[...(w.e.passes || []), ...(e.passes || [])] };
+            w.reqs = reqsOf(w.e);
+            card.rows[card.rows.length - 1] = { key:e.to };
+          }
+          else { card.walks.push({ e, reqs:reqsOf(e) }); card.rows.push({ key:e.to }); card.walking = true; }
+          continue;
         }
-        else { items.push({ t:'edge', e, reqs:reqsOf(e) }); items.push({ t:'node', key:e.to, age:e.age }); }
+        // transition, hibou, chant, téléporteur, rechargement, ou marche vers une autre zone (course d'Igor…)
+        items.push({ t:'edge', e, reqs:reqsOf(e) });
+        newCard(e.to);
       }
-      const last = [...items].reverse().find(i => i.t === 'node'); last.role = last.role ? 'both' : 'end';
+      [...items].reverse().find(i => i.t === 'card').end = true;
       const count = k => res.edges.filter(e => e.kind === k).length;
       return { state:'ok', items, cost:Math.round(res.cost), steps:res.edges.length,
         transitions:count('transition') + count('bluewarp') + count('owl'), ages:count('age'), warps:count('warp'), resets:count('reset') };
@@ -740,10 +752,20 @@ const App = {
         </div>
         <div class="path">
           <template v-for="(it,i) in route.items" :key="i">
-            <div v-if="it.t==='node'" class="node" :class="it.role==='start'?'start':(it.role==='end'||it.role==='both')?'end':''">
-              <type-icon :type="iconKey(EXIT[it.key])" :src="exitIcon(EXIT[it.key])"></type-icon>
-              <div class="role" v-if="it.role">{{it.role==='start'?'Départ':it.role==='end'?'Arrivée':'Départ et arrivée'}}</div>
-              <b>{{areaName(it.key)}}</b><div class="sub" :title="EXIT[it.key].soh">{{EXIT[it.key].label}}</div>
+            <div v-if="it.t==='card'" class="node" :class="{start:it.start && !it.end, end:it.end}">
+              <type-icon :type="iconKey(EXIT[it.key0])" :src="exitIcon(EXIT[it.key0])"></type-icon>
+              <div class="role" v-if="it.start || it.end">{{it.start && it.end ? 'Départ et arrivée' : it.start ? 'Départ' : 'Arrivée'}}</div>
+              <b>{{areaName(it.key0)}}</b>
+              <template v-for="(row, j) in it.rows" :key="j">
+                <div v-if="j" class="node-walk">
+                  <span class="nw-line"><img src="icons/route/walk.png" alt="">à pied<small v-if="ui.router.showCost"> · coût {{it.walks[j-1].e.cost}}</small></span>
+                  <span v-if="it.walks[j-1].reqs.icons.length" class="reqs">
+                    <img v-for="r in it.walks[j-1].reqs.icons" :key="r.key" :src="r.src" :title="r.title" alt="">
+                    <span v-if="it.walks[j-1].reqs.alts.length" class="alt-mark" :title="it.walks[j-1].reqs.altTitle">ou…</span></span>
+                </div>
+                <div class="sub node-exit" :class="{goal:it.end && j && j === it.rows.length - 1}" :title="EXIT[row.key].soh">
+                  <type-icon v-if="j" class="mini" :type="iconKey(EXIT[row.key])" :src="exitIcon(EXIT[row.key])"></type-icon>{{EXIT[row.key].label}}</div>
+              </template>
             </div>
             <div v-else-if="it.t==='edge'" class="conn">
               <span class="ln"></span>

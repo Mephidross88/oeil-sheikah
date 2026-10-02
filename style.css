@@ -503,6 +503,16 @@ select.sel:hover{border-color:var(--gold)}
 .node .ticon{position:absolute;top:-26px;left:50%;transform:translateX(-50%);width:52px;height:52px;border-radius:50%;
   background:inherit;border:inherit;box-shadow:var(--shadow)}
 .node .ticon svg,.node .ticon img{width:38px;height:38px}
+/* sorties suivantes d'une même zone : petite icône en ligne, marche (et objets utilisés) entre deux sorties */
+.node .ticon.mini{position:static;transform:none;display:inline-grid;vertical-align:-6px;width:24px;height:24px;margin-right:6px;
+  background:none;border:0;box-shadow:none}
+.node .ticon.mini img,.node .ticon.mini svg{width:22px;height:22px}
+.node-walk{display:flex;flex-direction:column;align-items:center;gap:4px;margin:6px 0}
+.nw-line{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--green)}
+.nw-line::before,.nw-line::after{content:"";width:22px;height:1px;background:color-mix(in srgb,var(--green) 40%,transparent)}
+.nw-line img{width:20px;height:20px;object-fit:contain}
+.nw-line small{font-weight:400;opacity:.75}
+.node .node-exit.goal{color:var(--green);font-weight:700}
 .node.start{border-color:var(--ocarina);background:var(--ocarina-soft)}
 .node.end{border-color:var(--green);background:var(--green-soft)}
 .node .role{font-size:13px;color:var(--muted)}
