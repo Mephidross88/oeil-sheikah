@@ -587,7 +587,7 @@ const App = {
       setTheme, startHere, prevStart, backToPrev, routerAreas, exitsOf, swap, route, edgeLabel, edgeIcon, WARP_SONGS, ageLabel, openBackup, copyBackup, importBackup, resetAll, declineSpoiler, savedAt, TYPE_LABEL };
   },
   template:`
-<div class="shell" :class="{'nav-open':navOpen, split:splitOn, 'items-folded':ui.itemsFolded}">
+<div class="shell" :class="{'nav-open':navOpen, split:splitOn, 'items-folded':ui.itemsFolded, 'nav-folded':ui.navFolded}">
   <header class="topbar">
     <button @click="navOpen=!navOpen" aria-label="Menu" v-html="ICONS.menu"></button>
     <span class="brand-mark" v-html="ICONS.eye"></span><span>L'Œil Sheikah</span>
@@ -596,10 +596,12 @@ const App = {
 
   <aside class="side">
     <div class="brand"><span class="brand-mark" v-html="ICONS.eye"></span>
-      <div><div class="brand-name">L'Œil Sheikah</div><div class="brand-sub">Tout voir, tout savoir</div></div></div>
+      <div class="brand-text"><div class="brand-name">L'Œil Sheikah</div><div class="brand-sub">Tout voir, tout savoir</div></div>
+      <button type="button" class="nav-fold" @click="ui.navFolded=!ui.navFolded" :aria-expanded="!ui.navFolded"
+        :title="ui.navFolded ? 'Déplier la barre de gauche' : 'Réduire la barre de gauche'" v-html="ICONS.chevron"></button></div>
     <nav class="nav">
-      <button v-for="v in views" :key="v.id" class="nav-item" :class="{active:shown(v.id), 'in-side':paneOf(v.id)==='side' && shown(v.id)}" @click="go(v.id)">
-        <span v-html="v.icon"></span>{{v.label}}
+      <button v-for="v in views" :key="v.id" class="nav-item" :class="{active:shown(v.id), 'in-side':paneOf(v.id)==='side' && shown(v.id)}" :title="ui.navFolded ? v.label : null" @click="go(v.id)">
+        <span v-html="v.icon"></span><span class="nav-label">{{v.label}}</span>
         <span v-if="canSplit && !shown(v.id)" class="nav-split" role="button" :title="'Ouvrir ' + v.label + ' à côté'" v-html="ICONS.split"
           @click.stop="openSide(v.id)"></span></button>
     </nav>

@@ -35,6 +35,9 @@ la page correspondante, souligné quand on y est. Côte à côte, empilés sur m
   second panneau revient quand l'écran s'élargit).
 - **Panneau Objets repliable** (écran large) : bouton en haut du panneau, qui le réduit à une fine colonne
   « Objets » pour le rouvrir (`ui.itemsFolded`) ; utile en côte à côte.
+- **Barre de gauche réduite** (écran large) : bouton ‹ à côté du titre, qui la réduit à une colonne d'icônes
+  (`ui.navFolded`) : menu (nom au survol), sélecteur de thème ; options des pages, export et remise à zéro masqués
+  jusqu'à ce qu'on la déplie (bouton ›).
 - Pied du panneau : état de la sauvegarde, sélecteur de thème (soleil = clair, lune = sombre ; recliquer l'icône
   allumée revient à « auto », qui suit le système ; `ui.theme` : `auto` / `light` / `dark`, sauvegardé, appliqué par
   l'attribut `data-theme` de `<html>`), export/import de la partie, remise à zéro.

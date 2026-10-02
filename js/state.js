@@ -19,7 +19,7 @@ function defaults(){
     // walk : coût estimé par région SoH traversée quand areas-data.js n'a pas de coût de marche (intérieur des donjons…)
     costs:{ transition:3, warp:15, reset:25, age:12, walk:4 },
     game, mappings:{},
-    ui:{ view:'checks', split:'', itemsFolded:false, theme:'auto', collapsed:{}, configTab:'logic', importQuests:false, spoilerPrompt:true,
+    ui:{ view:'checks', split:'', itemsFolded:false, navFolded:false, theme:'auto', collapsed:{}, configTab:'logic', importQuests:false, spoilerPrompt:true,
       checks:{ q:'', hideDone:false, hideDoneZones:false, onlyAvailable:false, showLogic:false, showExcluded:false, alwaysGS:false, sortAvail:true, age:'all', hiddenCats:{}, collapsed:{} },
       filters:{ showReachableTargets:false, showInaccessibleAreas:false, showDiscovered:true, showVanilla:true },
       router:{ fromArea:'', fromExit:'', fromAge:'child', toArea:'', toExit:'', toAge:'any', showCost:false, prevFrom:null } },
