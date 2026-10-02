@@ -46,5 +46,7 @@ const ICONS = {
   eye:       S('<path d="M2 12C5 6 9 4 12 4s7 2 10 8c-3 6-7 8-10 8s-7-2-10-8z"/><circle cx="12" cy="12" r="2.6" fill="currentColor" stroke="none"/><path d="M12 16.6l-1.7 4.1a1.7 1.7 0 003.4 0z" fill="currentColor" stroke="none"/>'),
   check:     S('<path d="M4 12.5l5 5L20 6"/>', 'stroke-width="2.6"'),
   circleO:   S('<circle cx="12" cy="12" r="8.5"/>'),
+  sun:       S('<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/>'),
+  moon:      S('<path d="M20 14.5A8 8 0 019.5 4a8 8 0 1010.5 10.5z"/>'),
 };
 const TYPE_LABEL = { overworld:'Extérieur', interior:'Intérieur', grotto:'Grotte', dungeon:'Donjon', boss:'Boss', owl:'Hibou', warp:'Téléportation', spawn:'Point d’apparition' };

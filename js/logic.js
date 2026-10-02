@@ -84,6 +84,27 @@ const SOH_BOTTLES = new Set(['RG_BOTTLE_WITH_BIG_POE', 'RG_BOTTLE_WITH_BLUE_FIRE
   'RG_BOTTLE_WITH_BUGS', 'RG_BOTTLE_WITH_FAIRY', 'RG_BOTTLE_WITH_FISH', 'RG_BOTTLE_WITH_GREEN_POTION', 'RG_BOTTLE_WITH_MILK',
   'RG_BOTTLE_WITH_POE', 'RG_BOTTLE_WITH_RED_POTION', 'RG_EMPTY_BOTTLE']);
 const SOH_BOMBCHUS = new Set(['RG_PROGRESSIVE_BOMBCHU_BAG', 'RG_BOMBCHU_5', 'RG_BOMBCHU_10', 'RG_BOMBCHU_20']);
+// Objets à paliers : [clé du panneau, palier] (bool si pas de palier).
+const RG_LEVEL = { RG_FAIRY_OCARINA:['ocarina', 1], RG_OCARINA_OF_TIME:['ocarina', 2], RG_FAIRY_BOW:['bow', 1],
+  RG_HOOKSHOT:['hookshot', 1], RG_LONGSHOT:['hookshot', 2], RG_STICKS:['sticks', 1], RG_PROGRESSIVE_STICK_UPGRADE:['sticks', 1],
+  RG_NUTS:['nuts', 1], RG_PROGRESSIVE_NUT_UPGRADE:['nuts', 1], RG_FAIRY_SLINGSHOT:['slingshot', 1],
+  RG_GORONS_BRACELET:['strength', 1], RG_SILVER_GAUNTLETS:['strength', 2], RG_GOLDEN_GAUNTLETS:['strength', 3],
+  RG_BOMB_BAG:['bombBag', 1], RG_PROGRESSIVE_BOMB_BAG:['bombBag', 1], RG_MAGIC_SINGLE:['magic', 1],
+  RG_GERUDO_MEMBERSHIP_CARD:['gerudoCard'], RG_SKULL_MASK:['skullMask'], RG_MASK_OF_TRUTH:['maskOfTruth'],
+  RG_CHILD_WALLET:['wallet', 1], RG_ADULT_WALLET:['wallet', 2], RG_GIANT_WALLET:['wallet', 3], RG_TYCOON_WALLET:['wallet', 4],
+  RG_SILVER_SCALE:['scale', 1], RG_GOLDEN_SCALE:['scale', 2] };
+/** Objet du panneau derrière un objet SoH (objets requis affichés par le Routeur) : { key, level? } ou null (capacité
+   non mélangée, touche d'ocarina, clé de donjon…). */
+function rgItem(rg, s){
+  if (rg in SOH_ITEM_FLAG) return { key:SOH_ITEM_FLAG[rg] };
+  if (rg in SOH_SONG) return { key:SOH_SONG[rg] };
+  if (rg in SOH_TRADE_KEY) return { key:SOH_TRADE_KEY[rg] };
+  if (rg in SOH_SHUFFLED_FLAG){ const [key, opt] = SOH_SHUFFLED_FLAG[rg]; return s[opt] === 'On' && !/^note/.test(key) ? { key } : null; }
+  if (SOH_BOTTLES.has(rg)) return { key:'bottle' };
+  if (SOH_BOMBCHUS.has(rg)) return { key:'bombchus', level:1 };
+  if (rg in RG_LEVEL){ const [key, level] = RG_LEVEL[rg]; return { key, level }; }
+  return null;
+}
 // Événement de logique (logicVal, item_list.cpp) des objets vendus en vanilla qui servent à la logique.
 const SOH_BUY_EVENT = { RG_BUY_DEKU_STICK_1:'LOGIC_STICK_ACCESS', RG_BUY_DEKU_NUTS_5:'LOGIC_NUT_ACCESS',
   RG_BUY_DEKU_NUTS_10:'LOGIC_NUT_ACCESS', RG_BUY_BOMBCHUS_10:'LOGIC_BUY_BOMBCHUS', RG_BUY_BOMBCHUS_20:'LOGIC_BUY_BOMBCHUS',
@@ -772,6 +793,25 @@ function sohRegionView(rr){
 }
 
 // Évalue une condition dans un état âge/moment (CheckConditionAtAgeTime).
+// Routeur : objets possédés consultés par une condition (L.trace = Set pendant l'évaluation) et objets considérés comme
+// absents (L.blocked = Set) pour chercher le minimum nécessaire ; null en dehors du Routeur.
+L.trace = null; L.blocked = null;
+{ const has = L.HasItem;
+  L.HasItem = function(rg){
+    if (this.blocked && this.blocked.has(rg)) return false;
+    const r = has.call(this, rg);
+    if (r && this.trace) this.trace.add(rg);
+    return r;
+  }; }
+// Préférences du Routeur quand une étape a plusieurs solutions : objets écartés en premier (lents ou consommables), puis
+// les autres, les préférés en dernier (sans action : Carte Gerudo, écailles ; puis outils rapides).
+const ROUTE_AVOID = ['RG_EPONAS_SONG', 'RG_MINUET_OF_FOREST', 'RG_BOLERO_OF_FIRE', 'RG_SERENADE_OF_WATER', 'RG_REQUIEM_OF_SPIRIT',
+  'RG_NOCTURNE_OF_SHADOW', 'RG_PRELUDE_OF_LIGHT', 'RG_BOMBCHU_5', 'RG_BOMBCHU_10', 'RG_BOMBCHU_20', 'RG_PROGRESSIVE_BOMBCHU_BAG',
+  'RG_FARORES_WIND', 'RG_NAYRUS_LOVE', 'RG_DINS_FIRE', 'RG_LIGHT_ARROWS', 'RG_ICE_ARROWS', 'RG_FIRE_ARROWS', 'RG_MAGIC_SINGLE',
+  'RG_STICKS', 'RG_NUTS'];
+const ROUTE_PREFER = ['RG_GERUDO_MEMBERSHIP_CARD', 'RG_SILVER_SCALE', 'RG_GOLDEN_SCALE', 'RG_HOOKSHOT', 'RG_LONGSHOT', 'RG_FAIRY_BOW', 'RG_HOVER_BOOTS', 'RG_IRON_BOOTS', 'RG_FAIRY_SLINGSHOT',
+  'RG_BOOMERANG', 'RG_MEGATON_HAMMER'];
+const routeRank = rg => ROUTE_AVOID.includes(rg) ? ROUTE_AVOID.indexOf(rg) : ROUTE_PREFER.includes(rg) ? 200 - ROUTE_PREFER.indexOf(rg) : 100;
 function sohAt(fn, child, day){
   L.IsChild = child; L.IsAdult = !child; L.AtDay = day; L.AtNight = !day;
   return fn();
@@ -1053,35 +1093,118 @@ for (const e of ALL_EXITS){ const r = frontRegion(e); if (r) (EXITS_AT_REGION[r]
 const startRegions = (e, mode) => (mode === 'in' ? [arrivalRegion(e.key) || frontRegion(e)]
   : mode === 'front' ? [frontRegion(e)] : exitRegions(e)).filter(Boolean);
 
+// Charpentiers de la Forteresse réellement libérés (cochés dans Checks, ou Carte Gerudo de leur récompense) : 4 en Normal,
+// celui de la cellule à 1 torche en Rapide, aucun en Libres.
+const CARPENTER_CHECKS = { Normal:['TH_1_TORCH_CARPENTER', 'TH_DOUBLE_CELL_CARPENTER', 'TH_DEAD_END_CARPENTER', 'TH_STEEP_SLOPE_CARPENTER'],
+  Fast:['TH_1_TORCH_CARPENTER'], Free:[] };
+const carpentersFreed = (s, g) => !!g.checks?.TH_FREED_CARPENTERS || (CARPENTER_CHECKS[s.fortressCarpenters] || []).every(id => g.checks?.[id]);
+
 /** Graphe du Routeur pour l'état noté : { edges(key, age, mode) } à passer à shortest(). costs = store.costs. */
 function routeGraph(settings, game, links, eff, costs){
   computeSoh(settings, game, links);   // état logique (événements, accès, options) de la partie notée
-  const ok = {};
+  const ok = {}, cond = {};
   for (const [rr, r] of Object.entries(SOH.regions)){
     L.cur = rr;
-    for (const [to, fn] of r.exits)
+    for (const [to, fn] of r.exits){
+      cond[rr + '>' + to] = fn;
       ok[rr + '>' + to] = { child:sohAt(fn, true, true) || sohAt(fn, true, false), adult:sohAt(fn, false, true) || sohAt(fn, false, false) };
+    }
   }
   L.cur = null;
   const pass = (from, to, age) => !!ok[from + '>' + to]?.[age];
+  // État logique de cette partie pour needs(), évalué plus tard (trajet affiché) alors que d'autres appels à computeSoh
+  // (sohC, sohFullC…) ont pu remplacer celui de L. Objets affichés : les charpentiers comptent seulement s'ils sont
+  // vraiment libérés (pour la logique, il suffit de pouvoir les libérer), ex. pont de la Vallée Gerudo.
+  const state = { s:L.s, g:L.g, access:L.access, optIdx:L.optIdx, BigPoes:L.BigPoes,
+    events:{ ...L.events, LOGIC_TH_RESCUED_ALL_CARPENTERS:carpentersFreed(settings, game) } };
+
+  // Objets nécessaires à un passage : objets consultés par la condition (de jour, sinon de nuit) en considérant `blocked`
+  // comme absents, null si elle échoue alors.
+  function traceWith(from, to, age, blocked){
+    const fn = cond[from + '>' + to];
+    if (!fn) return new Set();
+    const saved = { s:L.s, g:L.g, events:L.events, access:L.access, optIdx:L.optIdx, BigPoes:L.BigPoes };
+    Object.assign(L, state);
+    L.cur = from; L.blocked = blocked;
+    try {
+      for (const day of [true, false]){
+        L.trace = new Set();
+        if (sohAt(fn, age === 'child', day)) return L.trace;
+      }
+      return null;
+    } finally { L.trace = null; L.blocked = null; L.cur = null; Object.assign(L, saved); }
+  }
+  // Ensemble minimal (chaque objet y est indispensable) qui respecte les préférences : on repère tous les objets utiles
+  // (consultés, y compris quand un autre est retiré), puis on les retire un à un, les moins appréciés d'abord (routeRank),
+  // tant que la condition reste vraie.
+  // Seuls les objets du panneau peuvent manquer (pas les capacités non mélangées, possédées d'office, ni les clés).
+  const removable = rg => { const x = rgItem(rg, settings); return !!(x && ITEM_BY_KEY[x.key]); };
+  function minimal(from, to, age, blocked0){
+    const t0 = traceWith(from, to, age, new Set(blocked0));
+    if (!t0) return null;
+    // découverte : on retire aussi les objets trouvés, seuls ou cumulés (ex. carte, puis carte + arc -> grappin)
+    const pool = new Set([...t0].filter(removable)), q = [...pool].map(x => [...blocked0, x]);
+    for (let i = 0; q.length && i < 60; i++){
+      const bl = q.shift(), t = traceWith(from, to, age, new Set(bl));
+      if (t) for (const y of t) if (removable(y) && !pool.has(y)){ pool.add(y); q.push([...bl, y], [...blocked0, y]); }
+    }
+    const blocked = new Set(blocked0), tried = new Set();
+    for (let guard = 0; guard < 10; guard++){
+      for (const x of [...pool].filter(x => !tried.has(x)).sort((a, b) => routeRank(a) - routeRank(b))){
+        tried.add(x); blocked.add(x);
+        if (!traceWith(from, to, age, blocked)) blocked.delete(x);
+      }
+      const t = traceWith(from, to, age, blocked);
+      if ([...t].every(x => tried.has(x) || !removable(x))) return t;
+      t.forEach(x => { if (removable(x)) pool.add(x); });
+    }
+    return traceWith(from, to, age, blocked);
+  }
+  // Objets retenus pour un passage et autres solutions : { items, alts:[{ instead, alt }] } (instead : objets retenus
+  // que la solution remplace). Solutions trouvées en retirant tour à tour les objets des solutions déjà vues (4 au plus).
+  const needMemo = {};
+  function needsOf(from, to, age){
+    const id = from + '>' + to + '|' + age;
+    if (needMemo[id]) return needMemo[id];
+    const items = [...(minimal(from, to, age, []) || [])], alts = [];
+    const seen = new Set([[...items].sort().join(',')]), q = items.map(x => [x]), tried = new Set();
+    while (q.length && alts.length < 4){
+      const blocked = q.shift(), bk = [...blocked].sort().join(',');
+      if (tried.has(bk)) continue;
+      tried.add(bk);
+      const m = minimal(from, to, age, blocked);
+      if (!m) continue;
+      const k = [...m].sort().join(',');
+      if (!seen.has(k)){ seen.add(k); alts.push({ instead:items.filter(x => !m.has(x)), alt:[...m] }); }
+      if (blocked.length < 3) for (const x of m) q.push([...blocked, x]);
+    }
+    return (needMemo[id] = { items, alts });
+  }
   const spawnOf = { child:eff['spawns::spawn_child'], adult:eff['spawns::spawn_adult'] };
   const rooms = bossRoomExits(eff, settings);
   const warps = Object.keys(WARP_SONGS).filter(k => eff[k] && EXIT[k].entr != null).map(k => ({ key:k, to:eff[k], region:SOH_ENTRANCE[EXIT[k].entr].from }));
 
-  // Régions joignables à pied depuis une sortie, avec le nombre de régions traversées.
-  const walkMemo = {};
+  // Régions joignables à pied depuis une sortie, avec le nombre de régions traversées ; via : région précédente sur le
+  // chemin trouvé (passages franchis, walkPasses).
+  const walkMemo = {}, viaMemo = {};
   function walk(key, age, mode){
     const id = key + '|' + age + '|' + mode;
     if (walkMemo[id]) return walkMemo[id];
-    const depth = new Map(startRegions(EXIT[key], mode).map(r => [r, 0])), q = [...depth.keys()];
+    const depth = new Map(startRegions(EXIT[key], mode).map(r => [r, 0])), q = [...depth.keys()], via = new Map();
     while (q.length){
       const rr = q.shift();
       for (const [to] of SOH.regions[rr]?.exits || []){
         if (depth.has(to) || ENTRANCE_EDGES.has(rr + '>' + to) || !pass(rr, to, age)) continue;
-        depth.set(to, depth.get(rr) + 1); q.push(to);
+        depth.set(to, depth.get(rr) + 1); via.set(to, rr); q.push(to);
       }
     }
+    viaMemo[id] = via;
     return (walkMemo[id] = depth);
+  }
+  function walkPasses(key, age, mode, region){
+    const via = viaMemo[key + '|' + age + '|' + mode], out = [];
+    for (let r = region, i = 0; via.has(r) && i < 200; r = via.get(r), i++) out.unshift([via.get(r), r]);
+    return out;
   }
   function resetTarget(key, age){
     const e = EXIT[key];
@@ -1107,7 +1230,8 @@ function routeGraph(settings, game, links, eff, costs){
     for (const [rr, d] of depth) for (const to of EXITS_AT_REGION[rr] || []){
       if (to === key || seen.has(to) || EXIT[to].areaId === SPAWN_AREA) continue;
       seen.add(to);
-      out.push({ from:key, fromAge:age, to, age, mode:'front', cost:WALK_COST[key + '>' + to] ?? WALK_COST_ANY[key + '>' + to] ?? Math.max(1, d) * costs.walk, kind:'walk' });
+      out.push({ from:key, fromAge:age, to, age, mode:'front', cost:WALK_COST[key + '>' + to] ?? WALK_COST_ANY[key + '>' + to] ?? Math.max(1, d) * costs.walk,
+        kind:'walk', passes:walkPasses(key, age, mode, rr) });
     }
     // transition par la sortie (condition de son entrée SoH, depuis sa région de départ joignable à pied) ; salle de
     // boss : porte de sortie et téléporteur bleu
@@ -1115,18 +1239,30 @@ function routeGraph(settings, game, links, eff, costs){
     const exits = p ? [[p.back, rooms[key]?.back, 'transition'], [p.blueWarp, rooms[key]?.blueWarp, 'bluewarp']]
       : !e.destOnly && e.entr != null ? [[SOH_ENTRANCE[e.entr], eff[key], e.type === 'owl' ? 'owl' : 'transition']] : [];
     for (const [s, to, kind] of exits) if (s && to && depth.has(s.from) && pass(s.from, s.to, age))
-      out.push({ from:key, fromAge:age, to, age, mode:'in', cost:costs.transition, kind });
+      out.push({ from:key, fromAge:age, to, age, mode:'in', cost:costs.transition, kind,
+        passes:[...walkPasses(key, age, mode, s.from), [s.from, s.to]] });
     // changement d'âge au Temple du Temps
     if (key === TOT && depth.has(TIME_DOOR)){
       const other = age === 'child' ? 'adult' : 'child';
-      out.push({ from:key, fromAge:age, to:key, age:other, mode, cost:costs.age, kind:'age' });
+      out.push({ from:key, fromAge:age, to:key, age:other, mode, cost:costs.age, kind:'age', passes:walkPasses(key, age, mode, TIME_DOOR) });
     }
     for (const w of warps) if (w.to !== key && pass('RR_ROOT_EXITS', w.region, age))
-      out.push({ from:key, fromAge:age, to:w.to, age, mode:'in', cost:costs.warp, kind:'warp', warp:w.key });
+      out.push({ from:key, fromAge:age, to:w.to, age, mode:'in', cost:costs.warp, kind:'warp', warp:w.key, passes:[['RR_ROOT_EXITS', w.region]] });
     const rt = resetTarget(key, age);
     if (rt && rt !== key) out.push({ from:key, fromAge:age, to:rt, age, mode:'in', cost:costs.reset, kind:'reset' });
     return (memo[id] = out);
   }
+  // Chaque arête porte `passes` : passages SoH [région, région] franchis. needs(arête) : objets SoH (RG_…) retenus pour
+  // la franchir (minimum selon les préférences) et alternatives, calculés à la demande (trajet affiché seulement).
+  function needs(e){
+    const items = new Set(), alts = [];
+    for (const [from, to] of e.passes || []){
+      const n = needsOf(from, to, e.fromAge);
+      n.items.forEach(x => items.add(x));
+      alts.push(...n.alts);
+    }
+    return { items:[...items], alts };
+  }
   // regions(key, age, mode) : régions joignables à pied depuis ce nœud (contrôle par replay_spoilers.mjs)
-  return { edges, regions:(key, age, mode = 'start') => walk(key, age, mode) };
+  return { edges, needs, regions:(key, age, mode = 'start') => walk(key, age, mode) };
 }

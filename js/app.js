@@ -5,6 +5,10 @@ const App = {
     const navOpen = ref(false), itemsOpen = ref(false), modal = ref(null), tip = reactive({ show:false, key:null, style:{} });
     const backup = reactive({ text:'', msg:'', ok:true });
     const ui = store.ui, s = store.settings;
+    // Thème : « auto » suit le système (prefers-color-scheme), sinon data-theme force clair ou sombre (voir style.css).
+    watch(() => ui.theme, t => { if (t === 'auto') delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = t; },
+      { immediate:true });
+    const setTheme = t => { ui.theme = ui.theme === t ? 'auto' : t; };
 
     const views = [
       { id:'entrances', label:'Entrées', icon:ICONS.entrances },
@@ -134,13 +138,14 @@ const App = {
       const items = [{ t:'node', key:r.fromExit, age:r.fromAge, role:'start' }];
       for (const e of res.edges){
         const prev = items[items.length - 2];
-        if (e.kind === 'age') items.push({ t:'age', from:e.fromAge, to:e.age });
+        if (e.kind === 'age') items.push({ t:'age', from:e.fromAge, to:e.age });   // débloqué une fois pour toutes : pas d'objets
         // marches consécutives fusionnées en un seul tronçon (le chemin passe parfois par d'autres sorties de la zone)
         else if (e.kind === 'walk' && prev?.t === 'edge' && prev.e.kind === 'walk'){
-          prev.e = { ...prev.e, to:e.to, cost:prev.e.cost + e.cost };
+          prev.e = { ...prev.e, to:e.to, cost:prev.e.cost + e.cost, passes:[...(prev.e.passes || []), ...(e.passes || [])] };
+          prev.reqs = reqsOf(prev.e);
           items[items.length - 1] = { t:'node', key:e.to, age:e.age };
         }
-        else { items.push({ t:'edge', e }); items.push({ t:'node', key:e.to, age:e.age }); }
+        else { items.push({ t:'edge', e, reqs:reqsOf(e) }); items.push({ t:'node', key:e.to, age:e.age }); }
       }
       const last = [...items].reverse().find(i => i.t === 'node'); last.role = last.role ? 'both' : 'end';
       const count = k => res.edges.filter(e => e.kind === k).length;
@@ -148,7 +153,38 @@ const App = {
         transitions:count('transition') + count('bluewarp') + count('owl'), ages:count('age'), warps:count('warp'), resets:count('reset') };
     });
     const edgeLabel = e => ({ walk:'À pied', transition:'Transition', bluewarp:'Téléporteur bleu', owl:'Vol du hibou',
-      warp:'Chant : ' + (EXIT[e.warp]?.label || ''), reset:'Sauvegarder et recharger' }[e.kind]);
+      warp:EXIT[e.warp]?.label || 'Chant', reset:'Sauvegarder et recharger' }[e.kind]);   // chant : les notes autour suffisent
+    // Objets d'une étape (routeGraph.needs) : icônes des objets retenus et alternatives (texte de l'infobulle).
+    function reqsOf(e){
+      const n = routeC.value.needs(e);
+      // chant de téléportation : déjà indiqué par la pastille
+      const icons = reqIcons(n.items).filter(r => !(e.kind === 'warp' && r.key === WARP_SONGS[e.warp]));
+      const names = rgs => reqIcons(rgs).map(r => r.title).join(' + ');
+      const alts = [...new Set(n.alts.filter(a => names(a.instead) && names(a.alt)).map(a => `${names(a.alt)} (au lieu de ${names(a.instead)})`))];
+      return { icons, alts, altTitle:alts.length ? 'Autres possibilités :\n' + alts.map(a => '• ' + a).join('\n') : '' };
+    }
+    // Objets SoH (RG_…) -> icônes du panneau Objets, un par objet (palier le plus haut), dans l'ordre du panneau.
+    function reqIcons(rgs){
+      const best = new Map();
+      for (const rg of rgs || []){
+        const x = rgItem(rg, s), it = x && ITEM_BY_KEY[x.key];
+        if (!it || !itemVisible(it)) continue;
+        if (!best.has(x.key) || (x.level || 0) > (best.get(x.key).level || 0)) best.set(x.key, x);
+      }
+      // un chant sous-entend l'ocarina (sauf l'Ocarina du Temps, demandé pour lui-même, ex. Porte du Temps)
+      if ([...best.keys()].some(k => ITEM_BY_KEY[k].path === 'songs') && best.get('ocarina')?.level === 1) best.delete('ocarina');
+      const order = Object.keys(ITEM_BY_KEY);
+      return [...best.values()].sort((a, b) => order.indexOf(a.key) - order.indexOf(b.key)).map(({ key, level }) => {
+        const it = ITEM_BY_KEY[key];
+        const src = it.kind === 'level' && !it.sizes && level
+          ? (it.icons ? 'icons/' + it.icons[level - 1] : 'icons/items/' + key + '_' + level + '.png')
+          : 'icons/' + (it.icon || 'items/' + key + '.png');
+        // nom du palier quand il désigne un objet (Super-Grappin, Gantelets d'Argent…), pas une capacité (« 20 », « Simple »)
+        return { key, src, title:it.kind === 'level' && !it.sizes && key !== 'magic' && it.stages && level ? it.stages[level] : it.label };
+      });
+    }
+    // icône d'un mode de déplacement (icons/route/) ; chant : icône de l'objet chant
+    const edgeIcon = e => e.kind === 'warp' ? `icons/songs/teleport/${WARP_SONGS[e.warp]}.png` : `icons/route/${e.kind}.png`;
     const ageLabel = a => a === 'child' ? 'Enfant' : 'Adulte';
 
     /* Panneau Objets piloté par la configuration : cadres et cases vides masqués */
@@ -446,7 +482,7 @@ const App = {
 
     return { store, ui, s, views, navOpen, itemsOpen, modal, tip, tipData, backup, stats, missingSpawns, visibleAreas,
       ICONS, ITEMS_PAGE, ITEM_BY_KEY, DUNGEONS, DUNGEON_BY_ID, CHECKLISTS, AREA, EXIT, DATA_ERRORS,
-      iconKey, areaName, toggleArea, setAll, jump, go, showTip, hideTip, toggleTip, setMapping, clearMapping,
+      iconKey, exitIcon, areaName, toggleArea, setAll, jump, go, showTip, hideTip, toggleTip, setMapping, clearMapping,
       checkAreasC, checkStats, toggleCheckArea, setAllChecks, jumpCheck, setCheck, setExcluded, CHECK_AREA,
       CHECK_CATS, CHECK_CAT, catCounts, toggleCat, soloCat, allCats, CHECK_AGES, ageLabelShort, ageKnown, checkGroups,
       lg, canNow, timeOf, checkLogicTitle, CHILD, ADULT,
@@ -455,7 +491,7 @@ const App = {
       itemVisible, tierLabel, iconSrc, checklistModal, openChecklist, setChecklist, checklistStats,
       tradeModal, openTrade, tradeStats, counterClass,
       TRIALS, trialStatus, cycleTrial, setDungeonFlag, addDungeonKeys, dungeonQuest, dungeonMaxKeys, cycleDungeonQuest, questLabel, questClass, questTitle, keysLabel, dungeonKeyRing, setKeyRing, dungeonKeysDone, keysTitle, brokenIcons,
-      routerAreas, exitsOf, swap, route, edgeLabel, ageLabel, openBackup, copyBackup, importBackup, resetAll, declineSpoiler, savedAt, TYPE_LABEL };
+      setTheme, routerAreas, exitsOf, swap, route, edgeLabel, edgeIcon, WARP_SONGS, ageLabel, openBackup, copyBackup, importBackup, resetAll, declineSpoiler, savedAt, TYPE_LABEL };
   },
   template:`
 <div class="shell" :class="{'nav-open':navOpen}">
@@ -487,6 +523,10 @@ const App = {
       </div>
     </section>
 
+    <section v-if="ui.view==='router'" class="side-sec">
+      <label class="check" title="Coût total dans le résumé et coût de chaque étape (réglables dans Configuration)"><input type="checkbox" v-model="ui.router.showCost">Afficher les coûts</label>
+    </section>
+
     <section v-if="ui.view==='checks'" class="side-sec">
       <div class="side-row"><button class="side-btn" @click="setAllChecks(false)">Tout déplier</button><button class="side-btn" @click="setAllChecks(true)">Tout replier</button></div>
       <label class="check"><input type="checkbox" v-model="ui.checks.showExcluded">Afficher les checks exclus</label>
@@ -505,8 +545,16 @@ const App = {
     </section>
 
     <div class="side-foot">
-      <div class="saved" v-if="savedAt"><i></i>Enregistré à {{savedAt}}</div>
-      <div class="saved" v-else><i></i>Sauvegarde automatique active</div>
+      <div class="side-foot-row">
+        <div class="saved" v-if="savedAt"><i></i>Enregistré à {{savedAt}}</div>
+        <div class="saved" v-else><i></i>Sauvegarde automatique active</div>
+        <div class="theme-sw" role="group" aria-label="Thème">
+          <button type="button" :class="{on:ui.theme==='light'}" :aria-pressed="ui.theme==='light'" v-html="ICONS.sun" @click="setTheme('light')"
+            :title="ui.theme==='light' ? 'Thème clair (cliquer pour suivre le système)' : 'Thème clair'"></button>
+          <button type="button" :class="{on:ui.theme==='dark'}" :aria-pressed="ui.theme==='dark'" v-html="ICONS.moon" @click="setTheme('dark')"
+            :title="ui.theme==='dark' ? 'Thème sombre (cliquer pour suivre le système)' : 'Thème sombre'"></button>
+        </div>
+      </div>
       <button class="side-btn" @click="openBackup">Exporter ou importer la partie</button>
       <button class="danger-btn" @click="modal='reset'">Tout remettre à zéro</button>
     </div>
@@ -548,7 +596,7 @@ const App = {
           <div v-if="!ui.collapsed[va.area.id]" class="rows" :class="{'no-from':!decoupled}">
             <div class="row row-head"><span></span><span></span><span>Sortie</span><span v-if="decoupled">Accessible depuis</span><span>{{decoupled?'Va vers':'Sortie associée'}}</span><span></span></div>
             <div v-for="r in va.rows" :key="r.e.key" class="row" :class="'m-'+r.mode" :id="'row-'+r.e.key">
-              <type-icon :type="iconKey(r.e)"></type-icon>
+              <type-icon :type="iconKey(r.e)" :src="exitIcon(r.e)"></type-icon>
               <button class="globe" :class="{none:!r.e.connections.length}" :aria-label="'Connexions depuis '+r.e.label"
                 @mouseenter="r.e.connections.length && showTip($event,r.e.key)" @mouseleave="hideTip" @focus="r.e.connections.length && showTip($event,r.e.key)" @blur="hideTip"
                 @click.stop="r.e.connections.length && toggleTip($event,r.e.key)" v-html="ICONS.globe"></button>
@@ -679,31 +727,39 @@ const App = {
         Vérifiez aussi que l'âge demandé est accessible.</div></div>
       <template v-else>
         <div class="rsum">
-          <div class="stat"><b>{{route.cost}}</b><span>coût estimé</span></div>
-          <div class="stat"><b>{{route.transitions}}</b><span>transition{{route.transitions>1?'s':''}}</span></div>
-          <div class="stat" v-if="route.warps"><b>{{route.warps}}</b><span>chant{{route.warps>1?'s':''}} de téléportation</span></div>
-          <div class="stat" v-if="route.resets"><b>{{route.resets}}</b><span>rechargement{{route.resets>1?'s':''}}</span></div>
-          <div class="stat" v-if="route.ages"><b>{{route.ages}}</b><span>changement{{route.ages>1?'s':''}} d'âge</span></div>
+          <div class="rstat transition"><span class="rstat-ic"><img src="icons/route/transition.png" alt=""></span>
+            <div><b>{{route.transitions}}</b><span>transition{{route.transitions>1?'s':''}}</span></div></div>
+          <div class="rstat warp" v-if="route.warps"><span class="rstat-ic"><img src="icons/exits/warp.png" alt=""></span>
+            <div><b>{{route.warps}}</b><span>chant{{route.warps>1?'s':''}} de téléportation</span></div></div>
+          <div class="rstat reset" v-if="route.resets"><span class="rstat-ic"><img src="icons/route/reset.png" alt=""></span>
+            <div><b>{{route.resets}}</b><span>rechargement{{route.resets>1?'s':''}}</span></div></div>
+          <div class="rstat agechg" v-if="route.ages"><span class="rstat-ic"><img src="icons/route/age_child_to_adult.png" alt=""></span>
+            <div><b>{{route.ages}}</b><span>changement{{route.ages>1?'s':''}} d'âge</span></div></div>
+          <div class="rstat cost" v-if="ui.router.showCost"><span class="rstat-ic" v-html="ICONS.router"></span>
+            <div><b>{{route.cost}}</b><span>coût total</span></div></div>
         </div>
         <div class="path">
           <template v-for="(it,i) in route.items" :key="i">
             <div v-if="it.t==='node'" class="node" :class="it.role==='start'?'start':(it.role==='end'||it.role==='both')?'end':''">
-              <type-icon :type="iconKey(EXIT[it.key])"></type-icon>
-              <div><div class="role" v-if="it.role">{{it.role==='start'?'Départ':it.role==='end'?'Arrivée':'Départ et arrivée'}}</div>
-                <b>{{areaName(it.key)}}</b><div class="sub" :title="EXIT[it.key].soh">{{EXIT[it.key].label}}</div></div>
-              <span class="age" :class="it.age">{{ageLabel(it.age)}}</span>
+              <type-icon :type="iconKey(EXIT[it.key])" :src="exitIcon(EXIT[it.key])"></type-icon>
+              <div class="role" v-if="it.role">{{it.role==='start'?'Départ':it.role==='end'?'Arrivée':'Départ et arrivée'}}</div>
+              <b>{{areaName(it.key)}}</b><div class="sub" :title="EXIT[it.key].soh">{{EXIT[it.key].label}}</div>
             </div>
             <div v-else-if="it.t==='edge'" class="conn">
               <span class="ln"></span>
-              <div class="lab"><span class="k" :class="it.e.kind">{{edgeLabel(it.e)}}</span><span class="c">{{it.e.cost}}</span>
-                <span v-for="rq in (it.e.reqs||[])" :key="rq" class="req">{{rq}}</span></div>
+              <div class="lab"><span class="mv" :class="[it.e.kind, it.e.kind === 'warp' ? 'song-' + WARP_SONGS[it.e.warp] : '']"><img class="mv-ic" :src="edgeIcon(it.e)" alt="">
+                <span class="mv-txt">{{edgeLabel(it.e)}}<small v-if="ui.router.showCost">Coût : {{it.e.cost}}</small></span>
+                <img class="mv-ic" :src="edgeIcon(it.e)" alt=""></span>
+                <span v-if="it.reqs.icons.length" class="reqs" :class="{alt:it.reqs.alts.length}">
+                  <img v-for="r in it.reqs.icons" :key="r.key" :src="r.src" :title="r.title" alt="">
+                  <span v-if="it.reqs.alts.length" class="alt-mark" :title="it.reqs.altTitle">ou…</span></span></div>
               <span class="ln"></span><span class="arrow" v-html="ICONS.caret"></span>
             </div>
-            <div v-else class="ageband"><span class="sword" v-html="ICONS.sword"></span>
-              <b>Changement d'âge</b><span>{{ageLabel(it.from)}} vers {{ageLabel(it.to)}}, au Temple du Temps</span></div>
+            <div v-else class="ageband" :title="ageLabel(it.from) + ' vers ' + ageLabel(it.to) + ', au Temple du Temps'">
+              <img class="age-art" :src="'icons/route/age_' + it.from + '_to_' + it.to + '.png'" alt=""><b>Changement d'âge</b></div>
           </template>
         </div>
-        <p class="note">Coûts de transition, chant, rechargement et changement d'âge réglables dans Configuration.</p>
+        <p class="note" v-if="ui.router.showCost">Coûts de marche, transition, chant, rechargement et changement d'âge réglables dans Configuration.</p>
       </template>
     </template>
 

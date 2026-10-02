@@ -26,6 +26,9 @@ la page correspondante, souligné quand on y est. Côte à côte, empilés sur m
 
 ## Navigation (panneau de gauche)
 - Accès aux quatre modules : Entrées (anciennement « Tracker », id `entrances`), Routeur, Checks, Configuration.
+- Pied du panneau : état de la sauvegarde, sélecteur de thème (soleil = clair, lune = sombre ; recliquer l'icône
+  allumée revient à « auto », qui suit le système ; `ui.theme` : `auto` / `light` / `dark`, sauvegardé, appliqué par
+  l'attribut `data-theme` de `<html>`), export/import de la partie, remise à zéro.
 - Dans Entrées uniquement : tout déplier / tout replier, navigation rapide vers les zones, et filtres :
   - Proposer les destinations déjà atteignables ou déjà mappées dans les listes : OFF par défaut.
     Une destination déjà mappée (déjà la cible d'une autre sortie, y compris pour les sorties à sens
@@ -559,6 +562,32 @@ Règles d'interface :
   changement d'âge au Temple du Temps.
 - Un changement d'âge peut être choisi même s'il n'est pas imposé, s'il raccourcit le trajet
   (ex. pour profiter du spawn de l'autre âge).
-- Affichage vertical : cartes de sorties reliées par des étiquettes (type de déplacement, coût),
-  bandeau dédié pour chaque changement d'âge, résumé (coût total, transitions, chants, rechargements, changements d'âge).
+- Affichage vertical, sur un axe central :
+  - cartes de sorties au texte centré, icône du type de sortie en médaillon sur le bord haut ;
+  - entre deux cartes, une pastille par mode de déplacement (à pied, transition, téléporteur bleu, vol du hibou, chant,
+    sauvegarder-recharger) : libellé centré entre deux fois l'icône du mode, couleur propre au mode. Chant de
+    téléportation : nom du chant seul (les notes autour suffisent), couleur du chant ;
+  - bandeau dédié pour chaque changement d'âge (grande icône centrée `icons/route/age_child_to_adult.png` ou
+    `age_adult_to_child.png`, titre « Changement d'âge », détail au survol) ;
+  - résumé (transitions, chants, rechargements, changements d'âge). Les cartes n'indiquent pas l'âge (seul le bandeau le
+  change). Icônes des modes : `icons/route/<mode>.png` (walk, transition, bluewarp, owl, reset), chant : icône de
+  l'objet (`icons/songs/teleport/`).
+- Résumé : compteurs centrés au-dessus du chemin, chacun avec l'icône et la couleur du mode concerné.
+- Objets utilisés : sous chaque pastille (pas pour le changement d'âge, débloqué une fois pour toutes), icônes des objets du panneau retenus
+  pour franchir l'étape (`needs` de `routeGraph`, `rgItem` : objet SoH → objet du panneau ; palier le plus haut, ordre
+  du panneau ; capacités non mélangées, touches d'ocarina et clés non affichées ; un chant sous-entend l'Ocarina de Fée,
+  qui n'est alors pas affiché ; le chant d'un chant de téléportation n'est pas répété sous sa pastille). Pour chaque passage SoH franchi (pour
+  une marche, ceux du chemin trouvé dans la zone), on garde un ensemble minimal : la condition est réévaluée en retirant
+  les objets un à un, les moins appréciés d'abord (`ROUTE_AVOID` : Épona, chants de téléportation, Missiles, magie,
+  bâtons, noix ; `ROUTE_PREFER`, retirés en dernier : Carte Gerudo et écailles (sans action), grappins, arc, bottes,
+  lance-pierre, boomerang, masse). Ex. raccourcis des Bois Perdus : écaille plutôt que bottes de plomb. Pour les objets
+  affichés, les charpentiers de la Forteresse ne comptent comme libérés que s'ils le sont vraiment (cochés dans Checks :
+  4 en Normal, celui de la cellule à 1 torche en Rapide, ou Carte Gerudo de leur récompense) : le pont de la Vallée
+  Gerudo ne demande alors plus rien. Seuls les objets du panneau peuvent être retirés (pas les capacités non mélangées ni les clés).
+  Ex. pont de la Vallée Gerudo : Grappin long plutôt qu'Épona ; gardes Gerudo : Carte Gerudo plutôt qu'arc ou grappin.
+  S'il existe d'autres solutions (jusqu'à 4, trouvées en retirant les objets des solutions déjà vues), repère « ou… » à
+  côté des icônes, et le détail au survol (« Arc (au lieu de Carte Gerudo) »). Calcul seulement pour le trajet affiché.
+  Les objets cachés derrière un événement de logique ne sont pas montrés.
+- Coûts masqués par défaut ; case « Afficher les coûts » dans la barre de gauche (`ui.router.showCost`, sauvegardée) : coût total dans le
+  résumé et « Coût : X » en petit sous le libellé de chaque pastille.
 - Si aucun chemin : expliquer les causes possibles (sorties non découvertes, objet ou âge manquant).

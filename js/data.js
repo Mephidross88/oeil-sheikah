@@ -24,3 +24,5 @@ const BOSS_DOORS = ALL_EXITS.filter(e => e.type === 'boss' || e.key === GANON_TO
 const DUNGEON_AREAS = new Set(BOSS_ROOMS.map(e => e.areaId));
 const dungeonExitOf = areaId => AREA[areaId]?.exits.find(e => e.type === 'dungeon' && !e.specialTag) || null;
 const iconKey = e => e.shuffleTag === 'spawn' ? 'spawn' : e.type;
+// Image propre à une sortie : chant de téléportation -> icône de l'objet chant (sinon celle du type).
+const exitIcon = e => WARP_SONGS[e.key] ? `icons/songs/teleport/${WARP_SONGS[e.key]}.png` : null;

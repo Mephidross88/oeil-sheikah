@@ -1,7 +1,8 @@
 /* ---------- Composants ---------- */
+// src : image propre à la sortie (ex. chant de téléportation), à la place de celle du type
 const TypeIcon = {
-  props:['type'],
-  computed:{ custom(){ return CUSTOM_ICONS[this.type]; }, svg(){ return ICONS[this.type] || ICONS.overworld; }, title(){ return TYPE_LABEL[this.type]; } },
+  props:['type', 'src'],
+  computed:{ custom(){ return this.src || CUSTOM_ICONS[this.type]; }, svg(){ return ICONS[this.type] || ICONS.overworld; }, title(){ return TYPE_LABEL[this.type]; } },
   template:`<span class="ticon" :class="'t-'+type" :title="title"><img v-if="custom" :src="custom" alt=""><span v-else v-html="svg" style="display:contents"></span></span>`,
 };
 

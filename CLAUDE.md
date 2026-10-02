@@ -44,7 +44,9 @@ et le mettre à jour quand une règle change.
      `exitRegions`/`arrivalRegion` (régions SoH d'une sortie), `bossRoomExits` (porte de sortie et téléporteur bleu de
      chaque salle de boss), et `routeGraph(settings, game, links, eff, costs)` : graphe du Routeur (nœuds (sortie, âge,
      position) — position `in` apparu à la sortie, `front` arrivé à pied, `start` départ choisi ; marche par les
-     sorties internes des régions SoH, transitions, chants, sauvegarder-recharger, changement d'âge), à passer à `shortest`. Pur (sans Vue), lit `store` seulement via ses arguments.
+     sorties internes des régions SoH, transitions, chants, sauvegarder-recharger, changement d'âge), à passer à `shortest`,
+     et `needs(arête)` : objets SoH retenus pour franchir une étape (ensemble minimal selon `ROUTE_AVOID`/`ROUTE_PREFER`)
+     et alternatives ; `rgItem` (objet SoH → objet du panneau). Pur (sans Vue), lit `store` seulement via ses arguments.
   8. `js/state.js` : persistance (`defaults`, `merge`, `load`, `store`, sauvegarde auto), les `computed`
      dérivés au niveau module (`effC`, `linksC` — destinations notées → liaisons, `sohC` — logique SoH avec
      l'inventaire noté et les entrées notées, `agesC` — âges accessibles, `reachC` — sorties atteignables, `routeC` —
@@ -78,7 +80,8 @@ et le mettre à jour quand une règle change.
 - `tools/soh-entrances/apply_names.mjs` : table sortie ↔ entrée du tracker d'entrées de SoH et traductions ; réécrit les
   champs `label` / `soh` / `entr` de `areas-data.js` et aligne `shuffleTag` sur le type d'entrée SoH (relancer après
   toute modification de la table).
-- `icons/` : images. `icons/exits/` (types de sortie), `icons/items/` (convention par défaut du panneau
+- `icons/` : images, 192 px. `icons/exits/` (types de sortie), `icons/route/` (modes de déplacement et changements
+  d'âge du Routeur), `icons/items/` (convention par défaut du panneau
   Objets) et `icons/rewards/...` (chemins personnalisés d'exemple) — voir SPEC.md > Panneau Objets pour la
   convention de nommage et comment personnaliser un chemin par objet (`icon`/`icons` dans `ITEM_GROUPS`).
 
@@ -127,6 +130,7 @@ et le mettre à jour quand une règle change.
   (`ONE_WAY_TARGETS`, types SoH des entrées d'arrivée) : ne consomment pas leur destination.
 - Accessibilité : uniquement la logique SoH (`sohC`, `reachC`) ; une sortie randomisée non notée est une impasse.
 - Coûts du Routeur réglables dans `store.costs` (dont `walk` : coût estimé par région SoH traversée sans coût connu).
+- Thème : `store.ui.theme` (`auto` suit le système, `light`/`dark` posent `data-theme` sur `<html>`).
 
 ## Débogage
 `window.__PF` expose `store`, `effC`, `linksC`, `reachC`, `agesC`, `routeC`, `shortest`, `candidatesFor`, `setMapping`, `EXIT`,
