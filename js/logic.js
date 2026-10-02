@@ -632,7 +632,10 @@ const L = {
     if (!id) return n <= 0;
     const d = this.g.dungeons[id];
     if (keysAtStart(id, this.s) || (d.ringGot && DUNGEON_BY_ID[id].keyRing)) return true;
-    const bonus = id === 'fireTemple' && !this.IsFireLoopLocked() && this.quest('FIRE_TEMPLE') === 'Vanilla' ? 1 : 0;
+    // Clés offertes par SoH : Temple du Feu Vanilla (porte du sous-sol ouverte d'office) ; Temple de l'Esprit MQ avec
+    // clés « Vanilla » : 3 petites clés au départ (starting_inventory.cpp, savefile.cpp).
+    const bonus = id === 'fireTemple' && !this.IsFireLoopLocked() && this.quest('FIRE_TEMPLE') === 'Vanilla' ? 1
+      : id === 'spiritTemple' && this.s.smallKeys === 'Vanilla' && this.quest('SPIRIT_TEMPLE') === 'MQ' ? 3 : 0;
     return d.keys + bonus >= n;
   },
   IsFireLoopLocked(){ return ['Anywhere', 'Overworld', 'Any Dungeon'].includes(this.s.smallKeys); },

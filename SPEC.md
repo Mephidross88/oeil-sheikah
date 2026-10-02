@@ -183,7 +183,10 @@ passages SoH — **faits** ; 5. Routeur sur le graphe SoH).
   d'office (capacités, langues, touches d'ocarina, canne à pêche, âmes de haricot, bourse enfant, capacités de
   base des bâtons et noix), cartes/clés « Au départ », Carte Gerudo offerte (charpentiers libres, carte non
   mélangée), clé squelette, trousseau obtenu (toutes les petites clés). Temple du Feu Vanilla avec clés dans le
-  donjon : +1 petite clé (porte du sous-sol ouverte d'office par SoH).
+  donjon : +1 petite clé (porte du sous-sol ouverte d'office par SoH). Temple de l'Esprit MQ avec petites clés
+  « Vanilla » : +3 petites clés offertes au départ par SoH (`starting_inventory.cpp`, `savefile.cpp` : sans elles,
+  le placement vanilla des clés de l'Esprit MQ peut se bloquer) ; le compteur du panneau ne compte que les clés
+  trouvées (infobulle).
 - **Boutiques et pestes non mélangées** : les atteindre donne l'événement de leur objet vanilla (bâtons Mojo →
   accès aux bâtons, noix, missiles, poisson, insectes, fée, flamme bleue), comme SoH.
 - **Écarts assumés** avec le tracker de SoH : donjons terminés = ceux dont le boss est battable en logique (et non
@@ -196,14 +199,10 @@ passages SoH — **faits** ; 5. Routeur sur le graphe SoH).
   (`entrances` : l'entrée `index` mène là où mène normalement l'entrée `override`) ; tous les lieux du playthrough
   et du spoiler doivent être atteints. Les entrées du spoiler sont aussi converties en destinations notées et les
   liaisons qu'en déduit l'appli (`entranceLinks`) comparées à celles du spoiler : aucune différence attendue.
-  Résultat actuel : 31/32 spoilers 9.2.3 conformes, liaisons identiques sur les 32, dont 5 à entrées mélangées
+  Résultat actuel : 32/32 spoilers 9.2.3 conformes, liaisons identiques, dont 5 à entrées mélangées
   (couplées ou découplées, pools mélangés, salles de boss — « Mix Bosses » compris — et Tour de Ganon mélangées),
   couvrant donjons MQ, trousseaux, petites clés vanilla, épreuves de Ganon tirées au sort et quête d'échange adulte
-  non mélangée. **Écart connu** (22-14-61-53-24 : entrées découplées, Boss « Full » + « Mix Bosses », Temple de
-  l'Esprit MQ, clés vanilla) : SoH atteint les 3 petites clés de l'aile enfant (Child Climb South, Silver Block
-  Hallway, Child Hammer Switch), pas notre moteur ; avec ces 3 clés en plus, tout le spoiler est atteint. Fonctions
-  propres à l'Esprit (`SpiritShared`, `SpiritCertainAccess`, `IsReverseAccessPossible`…) relues conformes ; piste :
-  écart entre le mode « remplissage » du générateur et le mode « checks disponibles » du tracker. À creuser.
+  non mélangée.
 
 ## Panneau Objets (droite)
 Zone latérale droite, étroite (repliable sur mobile via un bouton dans la barre du haut), pas une page à
