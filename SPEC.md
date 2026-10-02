@@ -661,4 +661,15 @@ Suivi en direct d'une partie de Ship of Harkinian, sans modifier le jeu.
   (bombes, noix, missiles, bâtons, graines, flèches, magie, cœur). Seulement pendant que l'auto-tracking tourne (le jeu
   n'envoie pas de compteur), et pas les objets ramassés par terre sans fenêtre « objet obtenu ». Icônes
   `icons/loot/ice_trap.png`, `rupee.png`, `junk.png` (dessin de repli sinon).
-- Étape suivante : entrées découvertes.
+- **Objet trouvé** (option « Afficher l'objet trouvé » de la page Checks, `ui.checks.showFound`) : le jeu envoie, à
+  quelques millisecondes d'écart et dans un ordre variable, « objet reçu » et « check ramassé » ; ils sont appariés
+  (400 ms) et l'objet est noté (`game.found`, numéro RandomizerGet). Affiché à la suite du libellé du check : icône et
+  nom du panneau Objets, sinon nom français de SoH (`rgFr`, `item_list.cpp`). Seulement pour les checks faits pendant
+  que l'auto-tracking tourne (le jeu ne dit pas ce que contenaient les checks faits avant).
+- **Spoiler caché** (facultatif, fenêtre Auto-tracking : « Charger le spoiler… ») : le fichier spoiler de la seed est
+  gardé à part (localStorage `oeil-sheikah-spoiler`, jamais affiché tel quel) et ne sert qu'à révéler ce que le jeu a
+  déjà montré, seulement si son `finalSeed` est le seed envoyé par le jeu : objet de chaque check ramassé (statut SoH 4+,
+  y compris ceux faits avant de lancer le relais, d'après la sauvegarde complète) ; objets et prix des boutiques, pestes
+  et marchands vus (statut 1+ : `game.seen`, l'apparence de l'objet, comme en jeu, pour ne pas trahir un piège de glace
+  déguisé ; affichés en pointillés avec le prix). « Oublier » efface le spoiler gardé.
+- Étape suivante : entrées découvertes (le spoiler caché servira au rattrapage des entrées déjà découvertes).

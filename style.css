@@ -535,6 +535,19 @@ svg{display:block}
 .ci-main{flex:1;min-width:0;display:flex;align-items:center;gap:10px;background:none;border:0;padding:6px 8px;text-align:left;color:var(--text);font-size:14.5px}
 .ci-main .cr-mark{width:16px;height:16px;flex:none;color:var(--line)}
 .ci-label{overflow:hidden;text-overflow:ellipsis}
+/* objet trouvé dans le check (auto-tracking) : à la suite du libellé, discret */
+.ci-found{display:inline-flex;align-items:center;gap:4px;margin-left:8px;padding:0 7px 0 4px;border-radius:999px;font-size:12.5px;
+  color:var(--ocarina);background:var(--ocarina-soft);text-decoration:none;font-style:normal;vertical-align:1px;white-space:nowrap}
+.ci-found img{width:16px;height:16px;object-fit:contain}
+.ci-found.seen{background:none;border:1px dashed color-mix(in srgb,var(--ocarina) 55%,var(--line))}
+.ci-found.seen b{margin-left:4px;color:var(--gold-deep)}
+.link-spoiler{border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px}
+.link-spoiler p{margin:4px 0 8px;color:var(--muted);font-size:13.5px}
+.link-spoiler-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.link-spoiler-row .btn:first-of-type{margin-left:auto}
+.link-spoiler .ok{color:var(--green)}
+.link-spoiler .ko{color:var(--red)}
+.check-item.done .ci-label .ci-found{display:inline-flex}
 .check-item.done .ci-main{color:var(--muted)}
 .check-item.done .cr-mark{color:var(--green)}
 .check-item.done .ci-label{text-decoration:line-through;text-decoration-color:color-mix(in srgb, var(--muted) 60%, transparent)}

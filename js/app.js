@@ -207,6 +207,33 @@ const App = {
       const alts = [...new Set(n.alts.filter(a => names(a.instead) && names(a.alt)).map(a => `${names(a.alt)} (au lieu de ${names(a.instead)})`))];
       return { icons, alts, altTitle:alts.length ? 'Autres possibilités :\n' + alts.map(a => '• ' + a).join('\n') : '' };
     }
+    // Objet trouvé dans un check (game.found, numéro RandomizerGet) : nom et icône du panneau Objets quand il y en a un,
+    // sinon nom français de SoH (âmes de haricot : nom de la check-list).
+    function foundInfo(n){
+      if (typeof n === 'string') return { title:n };   // nom du spoiler sans objet SoH reconnu
+      const name = LINK_DATA.rg[n], rg = 'RG_' + name, icon = reqIcons([rg])[0];
+      if (icon) return icon;
+      if (SOH_BEAN_SOUL[rg]) return { title:'Âme de haricot : ' + CHECKLISTS.beans.locations.find(l => l.id === SOH_BEAN_SOUL[rg]).label };
+      return { title:LINK_DATA.rgFr[n] || (name || '?').toLowerCase().replace(/_/g, ' ') };
+    }
+    // Objet vu en boutique (game.seen : [nom affiché, prix]) : icône si l'objet est reconnu.
+    function seenInfo(v){
+      const name = String(v[0]).replace(/^Acheter\s*:\s*/, ''), n = RG_BY_FR[name], i = n !== undefined ? foundInfo(n) : {};   // « Acheter: » : objet non mélangé
+      return { ...i, title:name, price:v[1] };
+    }
+    function loadSpoilerFile(ev){
+      const file = ev.target.files[0];
+      ev.target.value = '';
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        let data;
+        try { data = JSON.parse(reader.result); } catch (e){ linkLog('Spoiler illisible : ce n’est pas un JSON valide'); return; }
+        if (!data || typeof data.locations !== 'object'){ linkLog('Ce fichier n’est pas un spoiler SoH (pas de « locations »)'); return; }
+        linkSetSpoiler(data, file.name);
+      };
+      reader.readAsText(file);
+    }
     // Objets SoH (RG_…) -> icônes du panneau Objets, un par objet (palier le plus haut), dans l'ordre du panneau.
     function reqIcons(rgs){
       const best = new Map();
@@ -577,7 +604,7 @@ const App = {
     return { store, ui, s, views, link, LINK_LABEL, linkRequestState, canSplit, splitOn, shown, paneOf, swapPanes, openSide, closeSide, navOpen, itemsOpen, modal, tip, tipData, backup, stats, missingSpawns, visibleAreas,
       ICONS, ITEMS_PAGE, ITEM_BY_KEY, DUNGEONS, DUNGEON_BY_ID, CHECKLISTS, AREA, EXIT, DATA_ERRORS,
       iconKey, exitIcon, areaName, toggleArea, setAll, jump, go, showTip, hideTip, toggleTip, setMapping, clearMapping,
-      checkAreasC, checkStats, toggleCheckArea, lastCheck, toggleCheck, toggleExcluded, undoCheck, goToCheck, goToZone, goMsg, setAllChecks, jumpCheck, setCheck, setExcluded, CHECK_AREA,
+      checkAreasC, checkStats, toggleCheckArea, lastCheck, toggleCheck, toggleExcluded, undoCheck, foundInfo, seenInfo, loadSpoilerFile, linkClearSpoiler, linkSpoilerOk, goToCheck, goToZone, goMsg, setAllChecks, jumpCheck, setCheck, setExcluded, CHECK_AREA,
       CHECK_CATS, CHECK_CAT, catCounts, toggleCat, zoneTitle, soloCat, allCats, CHECK_AGES, ageLabelShort, ageKnown, checkGroups,
       lg, canNow, timeOf, checkLogicTitle, CHILD, ADULT,
       panelSkills, panelChecklists, cells, dungeonRows, skeletonShown, atStart, visibleKeys,
@@ -631,6 +658,7 @@ const App = {
       <div v-if="splitOn" class="side-title side-page">Checks</div>
       <div class="side-row"><button class="side-btn" @click="setAllChecks(false)">Tout déplier</button><button class="side-btn" @click="setAllChecks(true)">Tout replier</button></div>
       <label class="check"><input type="checkbox" v-model="ui.checks.showExcluded">Afficher les checks exclus</label>
+      <label class="check" title="Objet obtenu dans chaque check, noté par l'auto-tracking"><input type="checkbox" v-model="ui.checks.showFound">Afficher l'objet trouvé</label>
       <label class="check" title="Ajoute à l'infobulle de chaque check sa condition dans la logique de SoH (option « Show Logic » du tracker de SoH)"><input type="checkbox" v-model="ui.checks.showLogic">Afficher la logique au survol</label>
       <label class="check" title="Lister aussi les Skulltulas dont le symbole n'est pas mélangé (utile pour les récompenses de la Maison des Skulltulas) — option « Always show Gold Skulltulas » du tracker de SoH"><input type="checkbox" v-model="ui.checks.alwaysGS">Suivre aussi les Skulltulas non mélangées</label>
       <div class="zone-nav check-nav">
@@ -784,7 +812,10 @@ const App = {
               :class="{done:store.game.checks[c.id], excluded:s.excluded[c.id], avail:!store.game.checks[c.id] && canNow(c), locked:!store.game.checks[c.id] && !canNow(c)}">
               <button type="button" class="ci-main" :title="checkLogicTitle(c)" @click="toggleCheck(c)">
                 <span class="ci-cat"><img v-if="!brokenIcons[CHECK_CAT[c.cat].icon]" :src="CHECK_CAT[c.cat].icon" alt="" @error="brokenIcons[CHECK_CAT[c.cat].icon]=true"><span v-else class="cat-fallback" :style="{'--cc':CHECK_CAT[c.cat].color}">{{CHECK_CAT[c.cat].label[0]}}</span></span>
-                <span class="ci-label">{{c.label}}</span>
+                <span class="ci-label">{{c.label}}<span v-if="ui.checks.showFound && store.game.found[c.id] !== undefined" class="ci-found"
+                  :title="'Objet trouvé : ' + foundInfo(store.game.found[c.id]).title"><img v-if="foundInfo(store.game.found[c.id]).src" :src="foundInfo(store.game.found[c.id]).src" alt="">{{foundInfo(store.game.found[c.id]).title}}</span><span
+                  v-else-if="ui.checks.showFound && store.game.seen[c.id]" class="ci-found seen" :title="'En vente : ' + seenInfo(store.game.seen[c.id]).title + (store.game.seen[c.id][1] != null ? ' — ' + store.game.seen[c.id][1] + ' rubis' : '')"><img
+                  v-if="seenInfo(store.game.seen[c.id]).src" :src="seenInfo(store.game.seen[c.id]).src" alt="">{{seenInfo(store.game.seen[c.id]).title}}<b v-if="store.game.seen[c.id][1] != null">{{store.game.seen[c.id][1]}} ₹</b></span></span>
                 <span v-if="timeOf(lg(c).ever)" class="time-mark" :class="timeOf(lg(c).ever)">{{timeOf(lg(c).ever) === 'night' ? '☾' : '☀'}}</span>
                 <span v-if="lg(c).age" class="age-pill" :class="lg(c).age">
                   <i v-if="lg(c).age !== 'adult'" :class="{now:lg(c).now & CHILD}">E</i><i v-if="lg(c).age !== 'child'" :class="{now:lg(c).now & ADULT}">A</i></span>
@@ -1187,6 +1218,22 @@ const App = {
             <button v-if="link.status==='game'" type="button" class="btn" @click="linkRequestState">Relire la sauvegarde</button></div>
           <div v-if="link.status==='game' && link.position" class="link-pos">Position : <b>{{areaName(link.position.key)}}</b> · {{EXIT[link.position.key].label}}
             <span v-if="link.position.age">({{ageLabel(link.position.age)}})</span></div>
+          <div class="link-spoiler">
+            <b>Spoiler caché</b> <span class="muted">(facultatif)</span>
+            <p>Avec le fichier spoiler de cette seed, l'appli connaît aussi ce que vous avez trouvé avant de lancer le relais,
+              et les objets et prix des boutiques. Elle ne montre jamais que ce que le jeu vous a déjà montré.</p>
+            <div class="link-spoiler-row">
+              <template v-if="link.spoiler">
+                <span>{{link.spoiler.file}} ({{link.spoiler.count}} checks)</span>
+                <span v-if="link.status==='game' && link.client && link.client.seed && link.spoiler.seed && link.client.seed !== link.spoiler.seed" class="ko">
+                  — ne correspond pas à la partie connectée (ignoré)</span>
+                <span v-else-if="link.status==='game' && linkSpoilerOk()" class="ok">— correspond à la partie connectée</span>
+                <button type="button" class="btn" @click="linkClearSpoiler">Oublier</button>
+              </template>
+              <label class="btn import-btn">{{link.spoiler ? 'Remplacer…' : 'Charger le spoiler…'}}
+                <input type="file" accept=".json,application/json" @change="loadSpoilerFile" hidden></label>
+            </div>
+          </div>
           <div class="link-log">
             <div v-for="(l, i) in link.log" :key="i"><span>{{l.t}}</span>{{l.text}}</div>
             <div v-if="!link.log.length" class="muted">Aucun événement pour l'instant.</div>

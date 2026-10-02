@@ -25,7 +25,9 @@ wanted.push('soh/soh/util.cpp', 'soh/soh/Enhancements/randomizer/randomizerEnums
   'soh/include/tables/entrance_table.h', 'soh/soh/Enhancements/randomizer/randomizerEnums/RandomizerMiscEnums.h',
   // auto-tracking (tools/soh-link) : numéros des checks (RC) et des objets (RG) envoyés par le jeu
   'soh/soh/Enhancements/randomizer/randomizerEnums/RandomizerCheck.h', 'soh/soh/Enhancements/randomizer/randomizerEnums/RandomizerGet.h',
-  'soh/soh/Enhancements/randomizer/randomizerEnums/RandomizerInf.h');
+  'soh/soh/Enhancements/randomizer/randomizerEnums/RandomizerInf.h',
+  // noms français des objets et numéros GetItemID (objets reçus)
+  'soh/soh/Enhancements/randomizer/item_list.cpp', 'soh/include/z64item.h');
 
 for (const p of wanted){
   const dest = path.join(SRC, p.startsWith(RANDO) ? p.slice(RANDO.length) : path.basename(p));

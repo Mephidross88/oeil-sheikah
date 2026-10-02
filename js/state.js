@@ -4,7 +4,9 @@ function defaults(){
   // trials : épreuves de Ganon tirées au sort, '' inconnue / 'required' / 'skipped'
   // loot : trouvailles comptées par l'auto-tracking (pièges de glace, rubis et leur valeur, objets de remplissage)
   const game = { items:{}, songs:{}, dungeons:{}, checklists:{}, checks:{}, trials:Object.fromEntries(TRIALS.map(t => [t.id, ''])),
-    loot:{ iceTraps:0, rupees:0, rupeeValue:0, junk:0 } };
+    loot:{ iceTraps:0, rupees:0, rupeeValue:0, junk:0 },
+    found:{},     // found : objet trouvé dans chaque check { id: numéro RandomizerGet, ou nom du spoiler } (auto-tracking)
+    seen:{} };    // seen : objets vus en boutique / chez les pestes et marchands { id: [nom affiché, prix] } (spoiler caché)
   ITEM_GROUPS.forEach(g => g.items.forEach(it => { game[g.path][it.key] = it.locked ? true : it.kind === 'bool' ? false : 0; }));
   DUNGEONS.forEach(d => { game.dungeons[d.id] = { map:false, compass:false, keys:0, bossKey:false, soul:false, quest:'', keyRing:'', ringGot:false }; });
   Object.entries(CHECKLISTS).forEach(([name, c]) => {
@@ -22,7 +24,7 @@ function defaults(){
     costs:{ transition:3, warp:15, reset:25, age:12, walk:4 },
     game, mappings:{},
     ui:{ view:'checks', link:{ enabled:false, url:'http://127.0.0.1:43390', checks:true, items:true, position:true, loot:true }, split:'', itemsFolded:false, navFolded:false, theme:'auto', collapsed:{}, configTab:'logic', importQuests:false, spoilerPrompt:true,
-      checks:{ q:'', hideDone:false, hideDoneZones:false, onlyAvailable:false, showLogic:false, showExcluded:false, alwaysGS:false, sortAvail:true, age:'all', hiddenCats:{}, collapsed:{} },
+      checks:{ q:'', hideDone:false, hideDoneZones:false, onlyAvailable:false, showLogic:false, showExcluded:false, alwaysGS:false, sortAvail:true, showFound:true, age:'all', hiddenCats:{}, collapsed:{} },
       filters:{ showReachableTargets:false, showInaccessibleAreas:false, showDiscovered:true, showVanilla:true },
       router:{ fromArea:'', fromExit:'', fromAge:'child', toArea:'', toExit:'', toAge:'any', showCost:false, prevFrom:null } },
   };

@@ -8,6 +8,7 @@ const link = reactive({
   client:null,       // dernier état du jeu (nom, sauvegarde chargée, scène…)
   player:null,       // position brute : scène, entrée d'arrivée, âge
   position:null,     // position reconnue : { key (sortie où l'on est apparu), age }
+  spoiler:null,      // spoiler caché chargé : { file, seed, count }
   lastAt:null, log:[],
 });
 let linkSource = null;
@@ -62,10 +63,11 @@ function linkHandle(m){
   if (m.type === 'game'){
     link.status = m.connected ? 'game' : 'relay';
     link.client = m.connected ? m.clientState : null;
+    linkRevealAll();
     linkLog(m.connected ? 'Jeu connecté' : 'Jeu déconnecté');
     return;
   }
-  if (m.type === 'client'){ link.client = m.clientState; linkPositionFrom(m.clientState); return; }
+  if (m.type === 'client'){ link.client = m.clientState; linkPositionFrom(m.clientState); linkRevealAll(); return; }
   if (m.type === 'player'){ link.player = m.player; linkPositionFrom(m.player); return; }
   if (m.type === 'packet'){
     if (m.packet.type !== 'SET_FLAG' && m.packet.type !== 'UNSET_FLAG') linkLog(linkDescribe(m.packet));
@@ -79,8 +81,15 @@ const CHECK_DONE = 4;
 // la main reste coché). Objets : le panneau reprend la sauvegarde complète (linkSaveToGame). Étapes suivantes :
 // position, entrées.
 function linkApply(p){
+  if (p.type === 'SET_CHECK_STATUS'){ linkStatuses[p.rc] = Math.max(linkStatuses[p.rc] || 0, p.status); linkReveal(p.rc); }
+  if (p.type === 'UPDATE_TEAM_STATE'){
+    (p.state?.rando?.itemLocations || []).forEach((x, rc) => { if (x && x[0]) linkStatuses[rc] = Math.max(linkStatuses[rc] || 0, x[0]); });
+    linkRevealAll();
+  }
   if (store.ui.link.checks){
     if (p.type === 'SET_CHECK_STATUS' && p.status >= CHECK_DONE) linkCheckDone(p.rc);
+    if (p.type === 'SET_CHECK_STATUS' && p.status === CHECK_DONE) linkFoundCheck(p.rc);
+    if (p.type === 'GIVE_ITEM') linkFoundGive(p);
     if (p.type === 'UPDATE_TEAM_STATE'){
       const locs = p.state?.rando?.itemLocations || [];
       let n = 0;
@@ -187,6 +196,77 @@ function linkSaveToGame(st, s){
   return out;
 }
 
+/* ---------- Objet trouvé dans chaque check ----------
+   Le jeu envoie, à quelques millisecondes d'écart et dans un ordre variable, « objet reçu » (GIVE_ITEM) et « check
+   ramassé » (SET_CHECK_STATUS, statut 4) : on les apparie (game.found). Objet du jeu de base (modId 0) : numéro RG par
+   LINK_DATA.giRg. Un objet reçu sans check (ramassé par terre) ou un check sans objet reste sans paire. */
+const PAIR_MS = 400;
+let linkPendingGive = null, linkPendingCheck = null;
+function linkFoundGive(p){
+  const rg = p.modId ? p.getItemId : LINK_DATA.giRg[p.getItemId], now = Date.now();
+  if (rg === undefined) return;
+  if (linkPendingCheck && now - linkPendingCheck.t < PAIR_MS){ linkSetFound(linkPendingCheck.rc, rg); linkPendingCheck = null; }
+  else linkPendingGive = { rg, t:now };
+}
+function linkFoundCheck(rc){
+  const now = Date.now();
+  if (linkPendingGive && now - linkPendingGive.t < PAIR_MS){ linkSetFound(rc, linkPendingGive.rg); linkPendingGive = null; }
+  else linkPendingCheck = { rc, t:now };
+}
+function linkSetFound(rc, rg){
+  const c = CHECK_BY_NUM[rc];
+  if (c) store.game.found[c.id] = rg;
+}
+
+/* ---------- Spoiler caché ----------
+   Le fichier spoiler de la seed (objets, prix, entrées) est gardé à part (localStorage SPOILER_KEY, jamais affiché tel
+   quel) et ne sert qu'à révéler ce que le jeu a montré : objet d'un check ramassé (statut 4 et plus), objets et prix
+   des boutiques, pestes et marchands vus (statut 1 et plus : apparence de l'objet, comme en jeu, pour ne pas trahir un
+   piège de glace déguisé). Seulement si son seed (finalSeed) est celui de la partie connectée. */
+const SPOILER_KEY = 'oeil-sheikah-spoiler';
+const SEEN_TYPES = new Set(['SHOP', 'SCRUB', 'MERCHANT']);
+const linkStatuses = {};   // statut SoH connu de chaque check (numéro RC), d'après le jeu
+let linkSpoiler = null;    // { file, seed, locations:{ id: [objet, prix|null, apparence|null] }, entrances:[…] }
+const RG_BY_FR = {};
+(LINK_DATA.rgFr || []).forEach((n, i) => { if (n && !(n in RG_BY_FR)) RG_BY_FR[n] = i; });
+function linkSpoilerMeta(){ link.spoiler = linkSpoiler ? { file:linkSpoiler.file, seed:linkSpoiler.seed, count:Object.keys(linkSpoiler.locations).length } : null; }
+function linkLoadSpoiler(){
+  try { const raw = localStorage.getItem(SPOILER_KEY); if (raw) linkSpoiler = JSON.parse(raw); } catch (e){ linkSpoiler = null; }
+  linkSpoilerMeta();
+}
+// Le spoiler correspond-il à la partie connectée ? (inconnu tant que le jeu n'a pas envoyé son seed : on attend)
+function linkSpoilerOk(){
+  const seed = link.client?.seed;
+  return !!linkSpoiler && !!seed && (!linkSpoiler.seed || linkSpoiler.seed === seed);
+}
+function linkSetSpoiler(data, file){
+  const locations = {};
+  for (const [name, v] of Object.entries(data.locations || {})){
+    const c = CHECK_BY_SOH[name];
+    if (!c) continue;
+    const o = typeof v === 'string' ? { item:v } : v || {};
+    locations[c.id] = [o.item ?? null, o.price ?? null, o.model ?? null];
+  }
+  linkSpoiler = { file, seed:data.finalSeed ?? null, locations, entrances:Array.isArray(data.entrances) ? data.entrances : [] };
+  try { localStorage.setItem(SPOILER_KEY, JSON.stringify(linkSpoiler)); } catch (e){ linkLog('Spoiler trop gros pour être gardé dans ce navigateur'); }
+  linkSpoilerMeta();
+  linkLog(`Spoiler caché chargé (${file})`);
+  linkRevealAll();
+}
+function linkClearSpoiler(){
+  linkSpoiler = null;
+  try { localStorage.removeItem(SPOILER_KEY); } catch (e){}
+  linkSpoilerMeta();
+}
+function linkReveal(rc){
+  if (!linkSpoilerOk()) return;
+  const c = CHECK_BY_NUM[rc], st = linkStatuses[rc] || 0, loc = c && linkSpoiler.locations[c.id];
+  if (!loc || !loc[0]) return;
+  if (st >= CHECK_DONE && store.game.found[c.id] === undefined) store.game.found[c.id] = RG_BY_FR[loc[0]] ?? loc[0];
+  if (st >= 1 && SEEN_TYPES.has(c.type) && !store.game.seen[c.id]) store.game.seen[c.id] = [loc[2] || loc[0], loc[1]];
+}
+function linkRevealAll(){ if (linkSpoilerOk()) Object.keys(linkStatuses).forEach(rc => linkReveal(+rc)); }
+
 /* ---------- Trouvailles : objets reçus (GIVE_ITEM) pendant que l'auto-tracking tourne ----------
    Le jeu envoie l'objet reçu : objet du jeu de base (modId 0, GetItemID de z64item.h) ou du randomizer (modId 1,
    RandomizerGet). Les objets ramassés par terre sans fenêtre « objet obtenu » ne sont pas signalés. */
@@ -264,5 +344,6 @@ function linkCheckDone(rc){
   return true;
 }
 
+linkLoadSpoiler();
 // (Re)connexion selon l'option, au chargement et quand elle change.
 watch(() => [store.ui.link.enabled, store.ui.link.url], ([on]) => { if (on) linkStart(); else linkStop(); }, { immediate:true });
