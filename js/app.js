@@ -315,7 +315,9 @@ const App = {
         const complete = tracked.length > 0 && got === tracked.length;
         // faisables : checks suivis restants, faisables avec l'inventaire actuel
         const accessible = tracked.filter(c => !done[c.id] && canNow(c)).length;
-        return { area:a, quest, checks:shown, total:tracked.length, got, byCat, hiddenQuest, complete, accessible };
+        // état de la zone (couleurs) : terminée, tout le reste accessible, en partie, rien d'accessible (ou rien à faire)
+        const state = complete ? 'done' : !accessible ? 'none' : accessible === tracked.length - got ? 'all' : 'part';
+        return { area:a, quest, checks:shown, total:tracked.length, got, byCat, hiddenQuest, complete, accessible, state };
       });
     });
     const checkAreasC = computed(() => { const q = cf.q.trim();
@@ -346,6 +348,10 @@ const App = {
       return r;
     });
     const toggleCat = id => { cf.hiddenCats[id] = !cf.hiddenCats[id]; };
+    const plural = (n, w) => n + ' ' + w + (n > 1 ? 's' : '');
+    const zoneTitle = x => ({ done:'Zone terminée', all:'Tout le reste est accessible', part:'Une partie du reste est accessible',
+      none:x.total ? 'Rien d’accessible pour l’instant' : 'Rien à faire' })[x.state]
+      + ` — ${plural(x.got, 'fait')}, ${plural(x.accessible, 'accessible')}, ${x.total} au total`;
     // clic droit sur une pastille : n'afficher que cette catégorie (ou tout réafficher si c'était déjà le cas)
     function soloCat(id){
       const only = CHECK_CATS.every(k => k.id === id ? !cf.hiddenCats[k.id] : cf.hiddenCats[k.id]);
@@ -511,7 +517,7 @@ const App = {
       ICONS, ITEMS_PAGE, ITEM_BY_KEY, DUNGEONS, DUNGEON_BY_ID, CHECKLISTS, AREA, EXIT, DATA_ERRORS,
       iconKey, exitIcon, areaName, toggleArea, setAll, jump, go, showTip, hideTip, toggleTip, setMapping, clearMapping,
       checkAreasC, checkStats, toggleCheckArea, setAllChecks, jumpCheck, setCheck, setExcluded, CHECK_AREA,
-      CHECK_CATS, CHECK_CAT, catCounts, toggleCat, soloCat, allCats, CHECK_AGES, ageLabelShort, ageKnown, checkGroups,
+      CHECK_CATS, CHECK_CAT, catCounts, toggleCat, zoneTitle, soloCat, allCats, CHECK_AGES, ageLabelShort, ageKnown, checkGroups,
       lg, canNow, timeOf, checkLogicTitle, CHILD, ADULT,
       panelSkills, panelChecklists, cells, dungeonRows, skeletonShown, atStart, visibleKeys,
       CONFIG_TABS, TRICK_LEVELS, decoupled, configCards, trickFilter, tricksOn, trickGroups, setTricks, importReport, importSpoiler,
@@ -562,11 +568,9 @@ const App = {
       <div class="zone-nav check-nav">
         <template v-for="[g, list] in checkGroups" :key="g">
           <div class="side-title">{{g}}</div>
-          <button v-for="x in list" :key="x.area.id" :class="{done:x.complete}" @click="jumpCheck(x.area.id)">
+          <button v-for="x in list" :key="x.area.id" :class="['st-' + x.state, {done:x.complete}]" :title="zoneTitle(x)" @click="jumpCheck(x.area.id)">
             <span class="cn-name">{{x.area.label}}</span>
-            <span v-if="x.accessible" class="zp acc" :title="x.accessible + ' faisable' + (x.accessible>1?'s':'') + ' maintenant'">{{x.accessible}}</span>
-            <span v-if="x.total" class="cn-prog"><span class="cn-bar"><i :style="{width:(100*x.got/x.total)+'%'}"></i></span>
-              <span class="zp" :class="{done:x.complete}">{{x.complete ? '✓' : (x.total - x.got)}}</span></span></button>
+            <span v-if="x.total" class="cn-nums"><i>{{x.got}}</i><i class="a">{{x.accessible}}</i><i>{{x.total}}</i></span></button>
         </template>
       </div>
     </section>
@@ -681,7 +685,7 @@ const App = {
       <div v-if="!checkAreasC.length" class="empty"><b>Aucun check à afficher.</b>
         {{ui.checks.q ? 'Aucun résultat pour cette recherche.' : 'Vérifiez la Configuration ou les filtres.'}}</div>
       <article v-for="x in checkAreasC" :key="x.area.id" class="area check-area" :id="'carea-'+x.area.id"
-        :class="{collapsed:ui.checks.collapsed[x.area.id], complete:x.complete}">
+        :class="['st-' + x.state, {collapsed:ui.checks.collapsed[x.area.id], complete:x.complete}]">
         <button class="area-head" @click="toggleCheckArea(x.area.id)" :aria-expanded="!ui.checks.collapsed[x.area.id]">
           <span class="chev" v-html="ICONS.chevron"></span>
           <h2>{{x.area.label}}</h2>
@@ -691,11 +695,11 @@ const App = {
             <span v-for="b in x.byCat" v-show="b.left" :key="b.cat.id" class="zc" :title="b.cat.label + ' : ' + b.left + ' à faire'">
               <img v-if="!brokenIcons[b.cat.icon]" :src="b.cat.icon" alt=""><span v-else class="cat-fallback" :style="{'--cc':b.cat.color}">{{b.cat.label[0]}}</span>{{b.left}}</span>
           </span>
-          <span v-if="!x.complete" class="acc-pill" :class="{none:!x.accessible}" :title="x.accessible + ' check' + (x.accessible>1?'s':'') + ' restant' + (x.accessible>1?'s':'') + ' faisable' + (x.accessible>1?'s':'') + ' avec l’inventaire actuel'">{{x.accessible}} faisable{{x.accessible>1?'s':''}}</span>
-          <span class="area-prog">
-            <span v-if="x.complete" class="zone-done">Terminée</span>
-            <span v-else class="bar"><i :style="{width:(x.total ? 100*x.got/x.total : 0)+'%'}"></i></span>
-            <span class="count">{{x.got}}/{{x.total}}</span></span>
+          <span class="zone-prog" :title="zoneTitle(x)">
+            <span class="zbar"><i class="d" :style="{width:(x.total ? 100*x.got/x.total : 0)+'%'}"></i><i class="a" :style="{width:(x.total ? 100*x.accessible/x.total : 0)+'%'}"></i></span>
+            <span class="zn"><b>{{x.got}}</b><small>fait{{x.got>1?'s':''}}</small></span>
+            <span class="zn acc"><b>{{x.accessible}}</b><small>accessible{{x.accessible>1?'s':''}}</small></span>
+            <span class="zn"><b>{{x.total}}</b><small>total</small></span></span>
         </button>
         <div v-if="!ui.checks.collapsed[x.area.id]" class="check-body">
           <p v-if="x.hiddenQuest" class="quest-note">Version du donjon inconnue : {{x.hiddenQuest}} check{{x.hiddenQuest>1?'s':''}} propre{{x.hiddenQuest>1?'s':''}} à la version Vanilla ou Master Quest {{x.hiddenQuest>1?'sont masqués':'est masqué'}}.

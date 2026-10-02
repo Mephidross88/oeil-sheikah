@@ -341,7 +341,28 @@ svg{display:block}
 .pc-groups{display:flex;gap:14px;margin-top:6px;font-size:13.5px;color:var(--muted)}
 .pc-groups b{color:var(--text);font-variant-numeric:tabular-nums}
 
-.check-area.complete{opacity:.8}
+.check-area.complete{opacity:.55}
+.check-area.complete .area-head img{filter:grayscale(1)}
+/* progression d'une zone : faits / accessibles / total, et couleur selon l'état (terminée : grisée ;
+   tout le reste accessible : vert ; en partie : neutre ; rien d'accessible ou rien à faire : rouge) */
+.check-area{border-left-width:4px}
+.check-area.st-all{border-left-color:var(--green)}
+.check-area.st-none{border-left-color:var(--red)}
+.zone-prog{--zp:var(--muted);margin-left:auto;display:flex;align-items:center;gap:2px;flex:none;padding:3px 4px 3px 10px;border-radius:12px;
+  border:1px solid var(--line);background:var(--surface);font-variant-numeric:tabular-nums}
+.zone-prog .zn{display:flex;flex-direction:column;align-items:center;min-width:52px;padding:0 4px;line-height:1.1}
+.zone-prog .zn + .zn{border-left:1px solid var(--line)}
+.zone-prog .zn b{font-size:16px;color:var(--text)}
+.zone-prog .zn small{font-size:11px;color:var(--muted)}
+.zone-prog .zn.acc b{color:var(--zp)}
+.zbar{display:flex;width:70px;height:6px;margin-right:8px;border-radius:9px;background:var(--surface-2);border:1px solid var(--line);overflow:hidden}
+.zbar i{display:block;height:100%}
+.zbar i.d{background:var(--muted)}
+.zbar i.a{background:var(--zp)}
+.st-all .zone-prog{--zp:var(--green);border-color:color-mix(in srgb,var(--green) 50%,var(--line));background:var(--green-soft)}
+.st-part .zone-prog{--zp:var(--gold-deep)}
+.st-none .zone-prog{--zp:var(--red);border-color:color-mix(in srgb,var(--red) 50%,var(--line));background:var(--red-soft)}
+.st-done .zone-prog{--zp:var(--muted)}
 /* Barre d'outils : recherche, âge, faits, pastilles de catégorie */
 .checks-toolbar{max-width:1240px;display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
 .checks-toolbar .checks-search{margin-bottom:0}
@@ -368,8 +389,6 @@ svg{display:block}
 .zone-cats{display:flex;flex-wrap:wrap;gap:4px 10px;margin-left:8px;min-width:0}
 .zc{display:inline-flex;align-items:center;gap:3px;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
 .zc img,.zc .cat-fallback{width:18px;height:18px}
-.zone-done{color:var(--green);font-weight:700;font-size:13.5px}
-.acc-pill{font-size:12.5px;padding:2px 8px;border-radius:999px;background:var(--green-soft);color:var(--green);white-space:nowrap}
 /* Ligne de check : icône de catégorie, libellé, âge, coche */
 .ci-cat{width:22px;height:22px;flex:none;display:grid;place-items:center}
 .ci-cat img{width:22px;height:22px;object-fit:contain}
@@ -386,17 +405,19 @@ svg{display:block}
 /* Faisable maintenant / pas encore faisable (logique) */
 .check-item.avail .ci-cat{box-shadow:0 0 0 2px var(--green-soft);border-radius:6px}
 .check-item.locked .ci-label,.check-item.locked .ci-cat{opacity:.5}
-.acc-pill.none{background:var(--surface-2);color:var(--muted)}
-.zone-nav .zp.acc{flex:none;color:var(--green);background:var(--green-soft);font-weight:700;font-size:11.5px;padding:0 6px;border-radius:999px;margin:0 6px 0 auto}
 /* Navigation des zones (panneau de gauche) : groupes Overworld / Donjons, mini-barre */
 .check-nav .side-title{margin:10px 8px 2px}
 .check-nav button{align-items:center}
 .cn-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.cn-prog{display:flex;align-items:center;gap:6px;flex:none}
-.cn-bar{width:34px;height:4px;border-radius:4px;background:rgba(255,255,255,.12);overflow:hidden}
-.cn-bar i{display:block;height:100%;background:var(--gold)}
-.check-nav button.done .cn-name{color:var(--ink-muted)}
-.check-nav button.done .cn-bar i{background:#7fd3a0}
+/* faits · accessibles · total (même code couleur que les en-têtes de zone ; panneau toujours sombre) */
+.cn-nums{display:flex;flex:none;margin-left:auto;font-size:12px;font-variant-numeric:tabular-nums;color:var(--ink-muted)}
+.cn-nums i{font-style:normal;min-width:20px;text-align:center}
+.cn-nums i + i{border-left:1px solid var(--ink-line)}
+.cn-nums i.a{font-weight:700;color:var(--ink-text)}
+.check-nav button.st-all .cn-nums i.a{color:#7fd3a0}
+.check-nav button.st-none .cn-nums i.a{color:#e8907a}
+.check-nav button.st-none .cn-name{color:#e8b0a2}
+.check-nav button.done .cn-name,.check-nav button.done .cn-nums,.check-nav button.done .cn-nums i.a{color:var(--ink-muted);opacity:.7}
 .dg-quest-pill{min-width:30px;height:22px;padding:0 7px;border-radius:999px;display:inline-grid;place-items:center;font-size:12px;font-weight:800;color:#fff;cursor:pointer}
 .dg-quest-pill.vanilla{background:#c0392b}
 .dg-quest-pill.mq{background:#2462b8}
@@ -665,7 +686,7 @@ select.sel:hover{border-color:var(--gold)}
   .c-from:not(:empty)::before{content:"Accessible depuis";font-size:12.5px;color:var(--muted);display:block}
   .row:not(.m-open) .c-dest::before{content:"Va vers";font-size:12.5px;color:var(--muted);display:block}
   .no-from .row:not(.m-open) .c-dest::before{content:"Sortie associée"}
-  .area-prog .bar{display:none}
+  .area-prog .bar,.zbar{display:none}
   .cgrid{grid-template-columns:1fr}
 }
 @container (max-width: 760px){

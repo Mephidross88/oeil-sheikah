@@ -448,8 +448,8 @@ check) ; règles dans `js/checks.js`.
   Les checks suivis = listés, non exclus, dans les catégories et l'âge choisis : compteurs, barres et zones
   terminées en dépendent. Panneau de gauche : tout déplier / replier, « Afficher les checks exclus », « Afficher la
   logique au survol » (« Show Logic » de SoH : condition SoH du check dans l'infobulle, par région), « Suivre
-  aussi les Skulltulas non mélangées », zones groupées Overworld / Donjons avec pastille verte du nombre de
-  faisables, mini-barre et restants (✓ si terminée).
+  aussi les Skulltulas non mélangées », zones groupées Overworld / Donjons avec « faits | accessibles | total » et le
+  code couleur des zones (voir Zones).
 - **Entrées mélangées** : les destinations notées dans Entrées sont prises en compte ; tant qu'il reste des entrées à
   découvrir, un avertissement rappelle qu'une entrée pas encore notée ne mène nulle part pour la logique.
 - **Progression globale** : cadre « Checks » de la bande de progression (voir plus haut) — anneau de pourcentage,
@@ -457,8 +457,10 @@ check) ; règles dans `js/checks.js`.
   jamais des filtres d'affichage (catégories, âge, Skulltulas non mélangées, recherche, zones masquées) ; les
   compteurs des zones et des pastilles, eux, suivent les filtres.
 - **Zones** : repliables (présentation des Entrées) ; en-tête avec badge V / MQ / ? (donjons), restants par catégorie
-  (icône + nombre), « n faisables » (checks suivis restants faisables maintenant, grisé à 0), barre et « faits /
-  suivis », « Terminée » quand tout est fait. Checks sur 2 colonnes (1 sur mobile) : icône de catégorie, libellé,
+  (icône + nombre), puis la progression : barre (faits, puis accessibles) et trois valeurs « faits | accessibles |
+  total » (accessibles = checks suivis restants faisables maintenant). Code couleur de la zone (pastille de progression,
+  liseré gauche, nom dans le panneau de gauche) : terminée → grisée ; tout le reste accessible → vert ; en partie →
+  neutre ; rien d'accessible (ou rien à faire) → rouge. Le détail est repris au survol. Checks sur 2 colonnes (1 sur mobile) : icône de catégorie, libellé,
   ☾ / ☀, pastille d'âge, coche ; un clic (gauche) bascule fait / à faire (`game.checks`, stockage creux `{ id: true }`) ; nom SoH
   au survol ; ⊘ au survol pour exclure.
 
