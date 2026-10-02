@@ -853,7 +853,8 @@ const App = {
           <div class="rstat cost" v-if="ui.router.showCost"><span class="rstat-ic" v-html="ICONS.router"></span>
             <div><b>{{route.cost}}</b><span>coût total</span></div></div>
         </div>
-        <p class="path-hint">Cliquez sur une sortie du trajet pour repartir de là.
+        <p class="path-hint"><template v-if="ui.link.enabled && ui.link.position && link.status==='game'"><span class="live-start"><span v-html="ICONS.live"></span>Départ suivi en direct</span></template>
+          Cliquez sur une sortie du trajet pour repartir de là.
           <button v-if="prevStart" type="button" class="prev-start" @click="backToPrev"
             :title="'Départ précédent : ' + areaName(prevStart.exit) + ' · ' + EXIT[prevStart.exit].label + ' (' + ageLabel(prevStart.age) + ')'">
             <span v-html="ICONS.undo"></span>Revenir à {{areaName(prevStart.exit)}} · {{EXIT[prevStart.exit].label}}</button></p>
@@ -1167,11 +1168,14 @@ const App = {
           <label class="check link-on"><input type="checkbox" v-model="ui.link.enabled">Activer l'auto-tracking</label>
           <div class="link-opts"><span>Suivre :</span>
             <label class="check"><input type="checkbox" v-model="ui.link.checks">les checks faits</label>
-            <label class="check"><input type="checkbox" v-model="ui.link.items">les objets</label></div>
+            <label class="check"><input type="checkbox" v-model="ui.link.items">les objets</label>
+            <label class="check" title="Le départ du Routeur suit l'endroit où vous apparaissez dans le jeu"><input type="checkbox" v-model="ui.link.position">la position (départ du Routeur)</label></div>
           <label class="link-url">Adresse du relais <input class="sel" v-model.lazy="ui.link.url" spellcheck="false"></label>
           <div class="link-status" :class="link.status"><i></i><b>{{LINK_LABEL[link.status]}}</b>
             <span v-if="link.status==='game' && link.client">— {{link.client.name || 'joueur sans nom'}}, sauvegarde {{link.client.isSaveLoaded ? 'chargée' : 'non chargée'}}</span>
             <button v-if="link.status==='game'" type="button" class="btn" @click="linkRequestState">Relire la sauvegarde</button></div>
+          <div v-if="link.status==='game' && link.position" class="link-pos">Position : <b>{{areaName(link.position.key)}}</b> · {{EXIT[link.position.key].label}}
+            <span v-if="link.position.age">({{ageLabel(link.position.age)}})</span></div>
           <div class="link-log">
             <div v-for="(l, i) in link.log" :key="i"><span>{{l.t}}</span>{{l.text}}</div>
             <div v-if="!link.log.length" class="muted">Aucun événement pour l'instant.</div>

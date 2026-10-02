@@ -6,7 +6,8 @@
 const link = reactive({
   status:'off',      // off | connecting (relais injoignable, nouvelle tentative auto) | relay (relais OK) | game (jeu connecté)
   client:null,       // dernier état du jeu (nom, sauvegarde chargée, scène…)
-  player:null,       // position : scène, entrée d'arrivée, âge
+  player:null,       // position brute : scène, entrée d'arrivée, âge
+  position:null,     // position reconnue : { key (sortie où l'on est apparu), age }
   lastAt:null, log:[],
 });
 let linkSource = null;
@@ -51,6 +52,7 @@ function linkHandle(m){
     link.status = m.game ? 'game' : 'relay';
     link.client = m.clientState || null; link.player = m.player || null;
     if (m.teamState) linkApply({ type:'UPDATE_TEAM_STATE', state:m.teamState });
+    linkPositionFrom(m.player || m.clientState);
     return;
   }
   if (m.type === 'game'){
@@ -59,8 +61,8 @@ function linkHandle(m){
     linkLog(m.connected ? 'Jeu connecté' : 'Jeu déconnecté');
     return;
   }
-  if (m.type === 'client'){ link.client = m.clientState; return; }
-  if (m.type === 'player'){ link.player = m.player; return; }
+  if (m.type === 'client'){ link.client = m.clientState; linkPositionFrom(m.clientState); return; }
+  if (m.type === 'player'){ link.player = m.player; linkPositionFrom(m.player); return; }
   if (m.type === 'packet'){
     if (m.packet.type !== 'SET_FLAG' && m.packet.type !== 'UNSET_FLAG') linkLog(linkDescribe(m.packet));
     linkApply(m.packet);
@@ -178,6 +180,22 @@ function linkSaveToGame(st, s){
   for (const [rg, id] of Object.entries(SOH_DOOR_KEY)) out.checklists.keys[id] = flag(rg.slice(3) + '_OBTAINED');
   for (const [rg, id] of Object.entries(SOH_BEAN_SOUL)) out.checklists.beans[id] = flag(rg.slice(3));
   return out;
+}
+
+/* ---------- Position : sortie où l'on vient d'apparaître (entrée d'arrivée du jeu, gSaveContext.entranceIndex) ----------
+   et âge (linkAge : 0 adulte, 1 enfant, seulement dans les mises à jour du joueur). Option : le départ du Routeur la
+   suit (ui.link.position). Entrée inconnue (grottes, scènes non mélangées, écran titre) : position inchangée. */
+function linkPositionFrom(x){
+  if (!x || (x.isSaveLoaded === false)) return;
+  const key = EXIT_BY_ARRIVAL[x.entranceIndex];
+  const age = x.linkAge === 0 ? 'adult' : x.linkAge === 1 ? 'child' : link.position?.age || null;
+  if (!key || !EXIT[key]) return;
+  if (link.position && link.position.key === key && link.position.age === age) return;
+  link.position = { key, age };
+  if (!store.ui.link.position) return;
+  const r = store.ui.router;
+  if (r.fromExit !== key){ r.fromArea = EXIT[key].areaId; r.fromExit = key; }
+  if (age) r.fromAge = age;
 }
 
 // Petites clés en poche vues pour la dernière fois, par index de donjon (ajout de celles ramassées en direct).

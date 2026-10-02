@@ -124,6 +124,10 @@ svg{display:block}
 .link-url .sel{flex:1;min-height:36px;padding:6px 10px}
 .link-status{display:flex;align-items:center;flex-wrap:wrap;gap:8px;font-size:14.5px}
 .link-status .btn{margin-left:auto}
+.link-pos{font-size:14px;color:var(--muted)}
+.link-pos b{color:var(--text)}
+.live-start{display:inline-flex;align-items:center;gap:5px;color:var(--green);font-weight:600}
+.live-start svg{width:15px;height:15px}
 .link-log{max-height:220px;overflow-y:auto;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--surface-2);
   font-size:13px;font-variant-numeric:tabular-nums;display:flex;flex-direction:column;gap:2px}
 .link-log span{color:var(--muted);margin-right:8px}

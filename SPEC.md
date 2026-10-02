@@ -652,4 +652,8 @@ Suivi en direct d'une partie de Ship of Harkinian, sans modifier le jeu.
   total de la jauge est connu : réceptacles notés conservés, quarts ajustés), objets verrouillés, chant de
   l'Épouvantail. Le relais redemande la sauvegarde complète après chaque objet reçu (`GIVE_ITEM`, objets de donjon).
   Numéros des drapeaux : `data/link-data.js`, **généré** par `tools/soh-link/gen_link_data.mjs`.
-- Étapes suivantes : position pour le Routeur, entrées découvertes.
+- **Position** (option « la position », `ui.link.position`) : sortie où l'on vient d'apparaître, d'après l'entrée
+  d'arrivée du jeu (`entranceIndex` des états du joueur, via `EXIT_BY_ARRIVAL`), et âge (`linkAge` des mises à jour du
+  joueur) ; affichée dans la fenêtre Auto-tracking, et le départ du Routeur la suit (mention « Départ suivi en direct »).
+  Entrée d'arrivée inconnue (grottes, zones non mélangées, écran titre) : position inchangée.
+- Étape suivante : entrées découvertes.
