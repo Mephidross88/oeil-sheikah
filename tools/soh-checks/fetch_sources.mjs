@@ -24,7 +24,8 @@ wanted.push('soh/soh/util.cpp', 'soh/soh/Enhancements/randomizer/randomizerEnums
   // entrées : numéros ENTR_* (table des entrées du jeu) et décalages des grottes
   'soh/include/tables/entrance_table.h', 'soh/soh/Enhancements/randomizer/randomizerEnums/RandomizerMiscEnums.h',
   // auto-tracking (tools/soh-link) : numéros des checks (RC) et des objets (RG) envoyés par le jeu
-  'soh/soh/Enhancements/randomizer/randomizerEnums/RandomizerCheck.h', 'soh/soh/Enhancements/randomizer/randomizerEnums/RandomizerGet.h');
+  'soh/soh/Enhancements/randomizer/randomizerEnums/RandomizerCheck.h', 'soh/soh/Enhancements/randomizer/randomizerEnums/RandomizerGet.h',
+  'soh/soh/Enhancements/randomizer/randomizerEnums/RandomizerInf.h');
 
 for (const p of wanted){
   const dest = path.join(SRC, p.startsWith(RANDO) ? p.slice(RANDO.length) : path.basename(p));

@@ -59,7 +59,9 @@ et le mettre à jour quand une règle change.
      `addDungeonKeys`, `dungeonQuest`/`dungeonMaxKeys`/`cycleDungeonQuest` — version Vanilla/MQ, `dungeonKeyRing`/`setKeyRing`/`dungeonKeysDone` — trousseaux et clé squelette, `trialStatus`/`cycleTrial` — épreuves de Ganon tirées au sort), et `applyStartingItems` (objets de départ de la configuration → panneau Objets), et pour la page Checks `areaQuest`,
      `checkListed`, `setCheck`, `setExcluded`.
   8b. `js/link.js` : auto-tracking — connexion (EventSource) au relais local `tools/soh-link/relay.mjs`, état `link`
-     (statut, journal), `linkApply` (paquets du jeu → partie). Option persistante `store.ui.link`.
+     (statut, journal), `linkApply` (paquets du jeu → partie : checks, `linkSaveToGame` sauvegarde SoH → panneau
+     Objets). Option persistante `store.ui.link`. Données `data/link-data.js` (drapeaux RandomizerInf, noms RandomizerGet),
+     **fichier généré** par `tools/soh-link/gen_link_data.mjs`.
   9. `js/components.js` : composants Vue réutilisables (`TypeIcon`, `Seg`, `DestPicker`, `ItemTile`,
      `ProgressCard` — cadre de progression des pages Checks et Entrées).
   10. `js/app.js` : le composant racine `App` (template complet, dont le panneau Objets et ses modales de

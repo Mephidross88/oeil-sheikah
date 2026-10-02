@@ -69,6 +69,16 @@ svg{display:block}
   .nav-folded .nav-item{justify-content:center;padding:10px 0}
   .nav-folded .side-foot-row{justify-content:center}
   .nav-folded .theme-sw{flex-direction:column}
+  /* auto-tracking : icône « en direct » teintée selon l'état, avec le voyant en pastille */
+  .nav-folded .side-foot > button.link-btn{display:grid;place-items:center;position:relative;width:40px;height:34px;margin:0 auto;padding:0;border-radius:9px}
+  .nav-folded .link-btn:hover{background:rgba(255,255,255,.07)}
+  .nav-folded .link-label{display:none}
+  .nav-folded .link-ic{display:grid;place-items:center}
+  .nav-folded .link-ic svg{width:20px;height:20px}
+  .nav-folded .link-btn i{position:absolute;right:6px;bottom:5px;box-shadow:0 0 0 2px var(--ink)}
+  .nav-folded .link-btn.game{color:#7fd3a0}
+  .nav-folded .link-btn.relay{color:var(--gold)}
+  .nav-folded .link-btn.connecting{color:#e0884a}
 }
 .nav{display:flex;flex-direction:column;gap:2px}
 .nav-item{display:flex;align-items:center;gap:12px;background:none;border:0;border-radius:10px;padding:10px 12px;color:var(--ink-text);text-align:left;font-size:16.5px}
@@ -100,6 +110,7 @@ svg{display:block}
 /* auto-tracking : voyant (gris : désactivé, orange : relais introuvable, doré : relais prêt, vert : jeu connecté) */
 .link-btn{display:flex;align-items:center;gap:8px;border:0;background:none;color:var(--ink-muted);font-size:13px;padding:2px 0;cursor:pointer;text-align:left}
 .link-btn:hover{color:var(--ink-text)}
+.link-ic{display:none}
 .link-btn i,.link-status i{width:8px;height:8px;border-radius:50%;flex:none;background:#6b5f4a}
 .link-btn.connecting i,.link-status.connecting i{background:#e0884a}
 .link-btn.relay i,.link-status.relay i{background:var(--gold)}

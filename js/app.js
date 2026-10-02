@@ -654,8 +654,8 @@ const App = {
             :title="ui.theme==='dark' ? 'Thème sombre (cliquer pour suivre le système)' : 'Thème sombre'"></button>
         </div>
       </div>
-      <button type="button" class="link-btn" :class="link.status" @click="modal='link'" title="Auto-tracking : suivre la partie de Ship of Harkinian en direct">
-        <i></i>{{LINK_LABEL[link.status]}}</button>
+      <button type="button" class="link-btn" :class="link.status" @click="modal='link'" :title="'Auto-tracking : ' + LINK_LABEL[link.status]">
+        <span class="link-ic" v-html="ICONS.live"></span><i></i><span class="link-label">{{LINK_LABEL[link.status]}}</span></button>
       <button class="side-btn" @click="openBackup">Exporter ou importer la partie</button>
       <button class="danger-btn" @click="modal='reset'">Tout remettre à zéro</button>
     </div>
@@ -1166,7 +1166,8 @@ const App = {
           </ol>
           <label class="check link-on"><input type="checkbox" v-model="ui.link.enabled">Activer l'auto-tracking</label>
           <div class="link-opts"><span>Suivre :</span>
-            <label class="check"><input type="checkbox" v-model="ui.link.checks">les checks faits</label></div>
+            <label class="check"><input type="checkbox" v-model="ui.link.checks">les checks faits</label>
+            <label class="check"><input type="checkbox" v-model="ui.link.items">les objets</label></div>
           <label class="link-url">Adresse du relais <input class="sel" v-model.lazy="ui.link.url" spellcheck="false"></label>
           <div class="link-status" :class="link.status"><i></i><b>{{LINK_LABEL[link.status]}}</b>
             <span v-if="link.status==='game' && link.client">— {{link.client.name || 'joueur sans nom'}}, sauvegarde {{link.client.isSaveLoaded ? 'chargée' : 'non chargée'}}</span>

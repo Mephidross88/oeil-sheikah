@@ -47,6 +47,9 @@ function sendToGame(payload){
 function requestState(){
   if (clientState?.isSaveLoaded) sendToGame({ type:'REQUEST_TEAM_STATE', targetTeamId:clientState.teamId || 'default' });
 }
+// objet reçu, objets de donjon : on redemande la sauvegarde complète (inventaire à jour) peu après
+let stateTimer = null;
+function requestStateSoon(){ clearTimeout(stateTimer); stateTimer = setTimeout(requestState, 700); }
 
 function onGamePacket(p){
   const type = p.type;
@@ -85,6 +88,7 @@ function onGamePacket(p){
     return;
   }
   if (DROP.has(type)) return;
+  if (type === 'GIVE_ITEM' || type === 'UPDATE_DUNGEON_ITEMS') requestStateSoon();
   if (VERBOSE || type !== 'SET_FLAG' && type !== 'UNSET_FLAG') log('←', type, type === 'SET_CHECK_STATUS' ? `rc ${p.rc} statut ${p.status}` : type === 'ENTRANCE_DISCOVERED' ? `entrée ${p.entranceIndex}` : '');
   broadcast({ type:'packet', packet:p });
 }

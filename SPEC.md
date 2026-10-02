@@ -36,7 +36,8 @@ la page correspondante, souligné quand on y est. Côte à côte, empilés sur m
 - **Panneau Objets repliable** (écran large) : bouton en haut du panneau, qui le réduit à une fine colonne
   « Objets » pour le rouvrir (`ui.itemsFolded`) ; utile en côte à côte.
 - **Barre de gauche réduite** (écran large) : bouton ‹ à côté du titre, qui la réduit à une colonne d'icônes
-  (`ui.navFolded`) : menu (nom au survol), sélecteur de thème ; options des pages, export et remise à zéro masqués
+  (`ui.navFolded`) : menu (nom au survol), sélecteur de thème, icône « en direct » de l'auto-tracking teintée selon son
+  état (clic : fenêtre Auto-tracking) ; options des pages, export et remise à zéro masqués
   jusqu'à ce qu'on la déplie (bouton ›).
 - Pied du panneau : état de la sauvegarde, sélecteur de thème (soleil = clair, lune = sombre ; recliquer l'icône
   allumée revient à « auto », qui suit le système ; `ui.theme` : `auto` / `light` / `dark`, sauvegardé, appliqué par
@@ -641,4 +642,14 @@ Suivi en direct d'une partie de Ship of Harkinian, sans modifier le jeu.
   « sauvegardé », `SET_CHECK_STATUS` en direct, et tous ceux de la sauvegarde complète `rando.itemLocations`) est coché ;
   jamais décoché (un check coché à la main reste coché). Le jeu désigne les checks par leur numéro dans l'énumération
   `RandomizerCheck` de SoH : `nums` de `checks-data.js` (généré), `CHECK_BY_NUM`.
-- Étapes suivantes : remplir le panneau Objets, position pour le Routeur, entrées découvertes.
+- **Objets** (option « les objets », `ui.link.items`) : le panneau Objets reprend la sauvegarde complète
+  (`linkSaveToGame`) : emplacements d'inventaire, équipement, améliorations (capacités ; « infini » par les drapeaux du
+  randomizer), objets de quête (médaillons, pierres, chants, Pierre de Souffrance, Carte Gerudo), Skulltulas, Triforce,
+  magie, double défense, drapeaux du randomizer (`ship.randomizerInf` : capacités, touches d'ocarina, bourse, clé
+  squelette, Greg, canne à pêche, plume de Roc, objets d'échange possédés, âmes de boss, âmes de haricot, clés des
+  portes), cartes, boussoles et clés de boss des donjons. Exceptions : petites clés (le jeu ne garde que celles en
+  poche : jamais moins que ce qu'il montre, plus celles ramassées en direct via `UPDATE_DUNGEON_ITEMS`), cœurs (seul le
+  total de la jauge est connu : réceptacles notés conservés, quarts ajustés), objets verrouillés, chant de
+  l'Épouvantail. Le relais redemande la sauvegarde complète après chaque objet reçu (`GIVE_ITEM`, objets de donjon).
+  Numéros des drapeaux : `data/link-data.js`, **généré** par `tools/soh-link/gen_link_data.mjs`.
+- Étapes suivantes : position pour le Routeur, entrées découvertes.
