@@ -186,7 +186,10 @@ function iconSrc(path, it){
 const STARTING_ITEMS = [
   ['startingOcarina', 'ocarina', v => ({ 'Fairy Ocarina':1, 'Ocarina of Time':2 })[v] || 0],
   ['startingDekuShield', 'dekuShield'], ['startingKokiriSword', 'kokiriSword'], ['startingMasterSword', 'masterSword'],
-  ['startingSticks', 'sticks'], ['startingNuts', 'nuts'], ['startingBeans', 'beans'],
+  // bâtons / noix de départ : munitions seulement, données par SoH si le sac n'est pas mélangé (savefile.cpp) ;
+  // un sac mélangé reste à trouver
+  ['startingSticks', 'sticks', (v, s) => v === 'Yes' && s.shuffleStickBag !== 'On' ? 1 : 0],
+  ['startingNuts', 'nuts', (v, s) => v === 'Yes' && s.shuffleNutBag !== 'On' ? 1 : 0], ['startingBeans', 'beans'],
   ['startingSkulltulaTokens', 'skulltulaTokens', v => v],
   ['startingZeldasLullaby', 'zeldaLullaby'], ['startingEponasSong', 'eponasSong'], ['startingSariasSong', 'sariasSong'],
   ['startingSunsSong', 'sunsSong'], ['startingSongOfTime', 'songOfTime'], ['startingSongOfStorms', 'songOfStorms'],
@@ -198,7 +201,7 @@ const STARTING_ITEMS = [
 function applyStartingItems(s){
   let n = 0;
   for (const [setting, key, level = v => (v === 'On' || v === 'Yes') ? 1 : 0] of STARTING_ITEMS){
-    const it = ITEM_BY_KEY[key], want = level(s[setting]);
+    const it = ITEM_BY_KEY[key], want = level(s[setting], s);
     const cur = store.game[it.path][key];
     if (it.kind === 'bool'){ if (want && !cur){ store.game[it.path][key] = true; n++; } }
     else if (want > cur){ store.game[it.path][key] = Math.min(want, it.kind === 'level' ? Math.max(...itemLevels(it)) : itemMax(it)); n++; }

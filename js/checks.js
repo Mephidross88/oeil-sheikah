@@ -67,15 +67,18 @@ function checkShuffled(c, s, alwaysGS){
   if (t === 'SMALL_KEY') return s.smallKeys !== 'Vanilla';
   if (t === 'BOSS_KEY') return s.bossKeys !== 'Vanilla';
   if (t === 'GANON_BOSS_KEY') return s.ganonsBossKey !== 'Vanilla';
-  if (t === 'LINKS_POCKET') return s.linksPocket !== 'Nothing';
+  // récompenses « en fin de donjon » : SoH force la poche de Link sur une récompense (FinalizeSettings)
+  if (t === 'LINKS_POCKET') return s.linksPocket !== 'Nothing' || s.dungeonRewards === 'End of Dungeons';
   if (t === 'GF_KEY') return s.gerudoFortressKeys !== 'Vanilla'
     && (s.fortressCarpenters === 'Normal' || (s.fortressCarpenters === 'Fast' && c.id === 'TH_1_TORCH_CARPENTER'));
   if (c.id === 'TH_FREED_CARPENTERS') return on(s.shuffleGerudoCard);
   if (c.id === 'KF_KOKIRI_SWORD_CHEST') return on(s.shuffleKokiriSword);
   if (c.id === 'TOT_MASTER_SWORD') return on(s.shuffleMasterSword);
   if (c.id === 'LH_HYRULE_LOACH') return s.fishsanity === 'Shuffle only Hyrule Loach';
-  if (c.id === 'HC_MALON_EGG') return on(s.shuffleWeirdEgg);
-  if (c.id === 'KAK_100_GOLD_SKULLTULA_REWARD') return on(s.shuffle100GsReward);
+  // FinalizeSettings : œuf jamais mélangé si on passe Zelda enfant ; récompense des 100 Skulltulas toujours mélangée si
+  // la clé de Ganon y est
+  if (c.id === 'HC_MALON_EGG') return on(s.shuffleWeirdEgg) && s.skipChildZelda !== 'Skip';
+  if (c.id === 'KAK_100_GOLD_SKULLTULA_REWARD') return on(s.shuffle100GsReward) || s.ganonsBossKey === '100 GS Reward';
   return true; // STANDARD, DUNGEON_REWARD, BOSS_HEART_OR_OTHER_REWARD…
 }
 

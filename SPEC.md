@@ -91,7 +91,14 @@ l'utilisateur ; ne pas se fier à la branche `develop`, qui a d'autres options).
 - **Objets de départ** (« Start with… » : ocarina, bouclier Mojo, épées Kokiri et de Légende, bâtons, noix,
   haricots, 12 chants, symboles de Skulltula) : réglages stockés mais sans onglet (onglet `starting` marqué
   `hidden`) ; à l'import, ils sont cochés dans le panneau Objets (`applyStartingItems`), sans jamais
-  diminuer ce que le joueur a déjà noté. Non repris : cœurs de départ, bourses pleines (rubis).
+  diminuer ce que le joueur a déjà noté. Bâtons / noix de départ : seulement si le sac correspondant n'est pas
+  mélangé (sinon SoH n'en donne pas, `savefile.cpp`). Non repris : cœurs de départ (lus directement par la
+  logique), bourses pleines (rubis).
+- **Réglages corrigés par SoH à la génération** (`FinalizeSettings`, `settings.cpp`), appliqués aussi par l'appli :
+  départ en enfant forcé si la Porte du Temps est fermée sans ocarinas mélangés, ou si la forêt est fermée sans
+  apparitions, overworld, intérieurs, grottes ni entrées découplées (`sohStartingAge`) ; Œuf Bizarre jamais mélangé
+  quand on passe Zelda enfant ; récompense des 100 Skulltulas toujours mélangée si la clé de Ganon y est ; poche de
+  Link toujours une récompense avec les récompenses « en fin de donjon ».
 - Afficher en tête les incohérences détectées dans les données.
 
 **Correspondance avec Entrées** (`isRandomized`, pools de `entrance.cpp`) : chaque sortie suit le type de son
@@ -186,7 +193,10 @@ passages SoH — **faits** ; 5. Routeur sur le graphe SoH).
   donjon : +1 petite clé (porte du sous-sol ouverte d'office par SoH). Temple de l'Esprit MQ avec petites clés
   « Vanilla » : +3 petites clés offertes au départ par SoH (`starting_inventory.cpp`, `savefile.cpp` : sans elles,
   le placement vanilla des clés de l'Esprit MQ peut se bloquer) ; le compteur du panneau ne compte que les clés
-  trouvées (infobulle).
+  trouvées (infobulle). Chasse à la Triforce « Victoire » : clé de boss de Ganon comptée comme possédée (SoH la met
+  dans l'inventaire de départ de la logique sans la donner en jeu) ; sa case disparaît du panneau. Audit des cas
+  particuliers hors logique (2026-10) : `starting_inventory.cpp`, `Logic::Reset`, `Randomizer_InitSaveFile`
+  (`savefile.cpp`) et `FinalizeSettings` relus ; tout ce qui touche la logique ou la liste des checks est repris.
 - **Boutiques et pestes non mélangées** : les atteindre donne l'événement de leur objet vanilla (bâtons Mojo →
   accès aux bâtons, noix, missiles, poisson, insectes, fée, flamme bleue), comme SoH.
 - **Écarts assumés** avec le tracker de SoH : donjons terminés = ceux dont le boss est battable en logique (et non

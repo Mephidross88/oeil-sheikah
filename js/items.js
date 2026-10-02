@@ -292,7 +292,8 @@ function dungeonCells(id, s){
     map:!!d.map,
     compass:!!d.compass,
     keys:!!d.maxKeys && !(id === 'gerudoFortress' && free),
-    bossKey:!!d.bossKey,
+    // clé de boss de Ganon : aucune en jeu en Chasse à la Triforce « Victoire » (la logique la compte comme possédée)
+    bossKey:!!d.bossKey && !(id === 'ganonsCastle' && s.triforceHunt === 'Win'),
     card:!!d.card,
     // âme du boss (option « Âmes de boss ») ; celle de Ganon seulement en « Oui + Ganon »
     soul:!!d.boss && (id === 'ganonsCastle' ? s.shuffleBossSouls === 'On + Ganon' : s.shuffleBossSouls !== 'Off'),
@@ -322,7 +323,10 @@ function configTrials(s){
 // Objets de donjon possédés dès le départ (option « Au départ ») : cases pleines, non cliquables.
 const mapsAtStart = (id, s) => s.mapsCompasses === 'Start With';
 const keysAtStart = (id, s) => id !== 'gerudoFortress' && s.smallKeys === 'Start With';
-const bossKeyAtStart = (id, s) => (id === 'ganonsCastle' ? s.ganonsBossKey : s.bossKeys) === 'Start With';
+// Clé de boss de Ganon : aussi en Chasse à la Triforce « Victoire », où SoH la place dans l'inventaire de départ de la
+// logique (starting_inventory.cpp) sans la donner en jeu.
+const bossKeyAtStart = (id, s) => id === 'ganonsCastle' ? s.ganonsBossKey === 'Start With' || s.triforceHunt === 'Win'
+  : s.bossKeys === 'Start With';
 // Statut Vanilla / MQ imposé par la configuration ('Vanilla' | 'MQ'), ou null s'il est tiré au sort
 // (le joueur le note alors dans le panneau). Reprend la répartition de SoH (settings.cpp, FinalizeSettings).
 function configQuest(id, s){

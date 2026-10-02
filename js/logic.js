@@ -743,7 +743,14 @@ const L = {
 };
 
 // Âge de départ effectif (option « Âge de départ », ou « Âge tiré » s'il est aléatoire).
-const sohStartingAge = s => s.startingAge === 'Random' ? s.selectedStartingAge : s.startingAge;
+// FinalizeSettings (settings.cpp) : avec la Porte du Temps fermée sans ocarinas mélangés, ou la forêt fermée sans
+// entrées qui permettent d'en sortir, SoH force le départ en enfant.
+function sohStartingAge(s){
+  if (s.logic !== 'No Logic' && ((s.doorOfTime === 'Closed' && s.shuffleOcarinas !== 'On')
+    || (s.closedForest === 'On' && s.overworldSpawns !== 'On' && s.overworldEntrances !== 'On' && s.interiorEntrances === 'Off'
+      && s.grottoEntrances !== 'On' && s.decoupleEntrances !== 'On'))) return 'Child';
+  return s.startingAge === 'Random' ? s.selectedStartingAge : s.startingAge;
+}
 
 // Vue d'une région pour les conditions (Region::Child, Adult, AnyAgeTime, CanPlantBeanCheck…).
 function sohRegionView(rr){
