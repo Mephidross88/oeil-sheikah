@@ -25,7 +25,8 @@ total », restants, zones terminées, détail par groupe (voir Checks et Entrée
 la page correspondante, souligné quand on y est. Côte à côte, empilés sur mobile.
 
 ## Navigation (panneau de gauche)
-- Accès aux quatre modules : Entrées (anciennement « Tracker », id `entrances`), Routeur, Checks, Configuration.
+- Accès aux quatre modules, dans cet ordre : Checks, Entrées (anciennement « Tracker », id `entrances`), Routeur,
+  Configuration. Page ouverte au premier lancement : Checks ; ensuite, la dernière page consultée.
 - Pied du panneau : état de la sauvegarde, sélecteur de thème (soleil = clair, lune = sombre ; recliquer l'icône
   allumée revient à « auto », qui suit le système ; `ui.theme` : `auto` / `light` / `dark`, sauvegardé, appliqué par
   l'attribut `data-theme` de `<html>`), export/import de la partie, remise à zéro.

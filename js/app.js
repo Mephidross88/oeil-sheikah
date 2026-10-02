@@ -11,9 +11,9 @@ const App = {
     const setTheme = t => { ui.theme = ui.theme === t ? 'auto' : t; };
 
     const views = [
+      { id:'checks', label:'Checks', icon:ICONS.checks },
       { id:'entrances', label:'Entrées', icon:ICONS.entrances },
       { id:'router', label:'Routeur', icon:ICONS.router },
-      { id:'checks', label:'Checks', icon:ICONS.checks },
       { id:'config', label:'Configuration', icon:ICONS.config },
     ];
     if (!views.some(v => v.id === ui.view)) ui.view = views[0].id;
