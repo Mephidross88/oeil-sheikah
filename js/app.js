@@ -1144,11 +1144,11 @@ const App = {
 
       <!-- Trouvailles comptées par l'auto-tracking (option) -->
       <section v-if="ui.link.loot" class="panel-card loot-card" title="Comptées par l'auto-tracking : objets reçus pendant qu'il tourne (pas ceux ramassés par terre sans fenêtre « objet obtenu »)">
-        <div class="loot ice"><span class="loot-ic"><img v-if="!brokenIcons['icons/loot/ice_trap.png']" src="icons/loot/ice_trap.png" alt="" @error="brokenIcons['icons/loot/ice_trap.png']=true"><span v-else v-html="ICONS.snow"></span></span>
+        <div class="loot ice"><span class="loot-ic"><img v-if="!brokenIcons['icons/loots/ice_trap.png']" src="icons/loots/ice_trap.png" alt="" @error="brokenIcons['icons/loots/ice_trap.png']=true"><span v-else v-html="ICONS.snow"></span></span>
           <b>{{store.game.loot.iceTraps}}</b><span>piège{{store.game.loot.iceTraps>1?'s':''}} de glace</span></div>
-        <div class="loot rupee"><span class="loot-ic"><img v-if="!brokenIcons['icons/loot/rupee.png']" src="icons/loot/rupee.png" alt="" @error="brokenIcons['icons/loot/rupee.png']=true"><span v-else v-html="ICONS.rupee"></span></span>
+        <div class="loot rupee"><span class="loot-ic"><img v-if="!brokenIcons['icons/loots/rupee.png']" src="icons/loots/rupee.png" alt="" @error="brokenIcons['icons/loots/rupee.png']=true"><span v-else v-html="ICONS.rupee"></span></span>
           <b>{{store.game.loot.rupees}}</b><span>rubis · {{store.game.loot.rupeeValue}} ₹</span></div>
-        <div class="loot junk"><span class="loot-ic"><img v-if="!brokenIcons['icons/loot/junk.png']" src="icons/loot/junk.png" alt="" @error="brokenIcons['icons/loot/junk.png']=true"><span v-else v-html="ICONS.bag"></span></span>
+        <div class="loot junk"><span class="loot-ic"><img v-if="!brokenIcons['icons/loots/junk.png']" src="icons/loots/junk.png" alt="" @error="brokenIcons['icons/loots/junk.png']=true"><span v-else v-html="ICONS.bag"></span></span>
           <b>{{store.game.loot.junk}}</b><span>munitions et cœurs</span></div>
       </section>
     </div>

@@ -660,7 +660,7 @@ Suivi en direct d'une partie de Ship of Harkinian, sans modifier le jeu.
   `game.loot` et affichés en bas du panneau Objets : pièges de glace, rubis (nombre et valeur), munitions et cœurs
   (bombes, noix, missiles, bâtons, graines, flèches, magie, cœur). Seulement pendant que l'auto-tracking tourne (le jeu
   n'envoie pas de compteur), et pas les objets ramassés par terre sans fenêtre « objet obtenu ». Icônes
-  `icons/loot/ice_trap.png`, `rupee.png`, `junk.png` (dessin de repli sinon).
+  `icons/loots/ice_trap.png`, `rupee.png`, `junk.png` (dessin de repli sinon).
 - **Objet trouvé** (option « Afficher l'objet trouvé » de la page Checks, `ui.checks.showFound`) : le jeu envoie, à
   quelques millisecondes d'écart et dans un ordre variable, « objet reçu » et « check ramassé » ; ils sont appariés
   (400 ms) et l'objet est noté (`game.found`, numéro RandomizerGet). Affiché à la suite du libellé du check : icône et
