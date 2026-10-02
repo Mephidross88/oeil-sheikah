@@ -16,6 +16,17 @@ const App = {
       { id:'router', label:'Routeur', icon:ICONS.router },
       { id:'config', label:'Configuration', icon:ICONS.config },
     ];
+    // Mise en page côte à côte : second panneau (ui.split), seulement sur un écran assez large (sinon page principale
+    // seule). go() n'ouvre une page que si elle n'est pas déjà affichée (dans un panneau ou l'autre).
+    const SPLIT_MIN = 1500, winW = ref(window.innerWidth);
+    window.addEventListener('resize', () => { winW.value = window.innerWidth; });
+    const canSplit = computed(() => winW.value >= SPLIT_MIN);
+    const splitOn = computed(() => !!ui.split && ui.split !== ui.view && canSplit.value && views.some(v => v.id === ui.split));
+    const shown = v => ui.view === v || (splitOn.value && ui.split === v);
+    const paneOf = v => splitOn.value && ui.split === v ? 'side' : 'main';
+    function swapPanes(){ if (!ui.split) return; const m = ui.view; ui.view = ui.split; ui.split = m; }
+    function openSide(v){ if (v === ui.view){ if (ui.split) swapPanes(); return; } ui.split = v; }
+    const closeSide = () => { ui.split = ''; };
     if (!views.some(v => v.id === ui.view)) ui.view = views[0].id;
 
     function rowInfo(e){
@@ -98,7 +109,13 @@ const App = {
         if (rowKey){ el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
       });
     }
-    function go(v){ ui.view = v; navOpen.value = false; window.scrollTo({ top:0 }); }
+    function go(v){
+      navOpen.value = false;
+      if (shown(v)) return;
+      ui.view = v;
+      if (ui.split === v) ui.split = '';
+      window.scrollTo({ top:0 });
+    }
 
     /* Infobulle des connexions internes : sorties de la même zone et coût de marche (les conditions de passage sont
        celles de la logique SoH, par région ; le Routeur les reprendra à l'étape 5) */
@@ -556,7 +573,7 @@ const App = {
 
     const savedAt = computed(() => lastSaved.value ? lastSaved.value.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit', second:'2-digit' }) : null);
 
-    return { store, ui, s, views, navOpen, itemsOpen, modal, tip, tipData, backup, stats, missingSpawns, visibleAreas,
+    return { store, ui, s, views, canSplit, splitOn, shown, paneOf, swapPanes, openSide, closeSide, navOpen, itemsOpen, modal, tip, tipData, backup, stats, missingSpawns, visibleAreas,
       ICONS, ITEMS_PAGE, ITEM_BY_KEY, DUNGEONS, DUNGEON_BY_ID, CHECKLISTS, AREA, EXIT, DATA_ERRORS,
       iconKey, exitIcon, areaName, toggleArea, setAll, jump, go, showTip, hideTip, toggleTip, setMapping, clearMapping,
       checkAreasC, checkStats, toggleCheckArea, lastCheck, toggleCheck, toggleExcluded, undoCheck, goToCheck, goToZone, goMsg, setAllChecks, jumpCheck, setCheck, setExcluded, CHECK_AREA,
@@ -570,7 +587,7 @@ const App = {
       setTheme, startHere, prevStart, backToPrev, routerAreas, exitsOf, swap, route, edgeLabel, edgeIcon, WARP_SONGS, ageLabel, openBackup, copyBackup, importBackup, resetAll, declineSpoiler, savedAt, TYPE_LABEL };
   },
   template:`
-<div class="shell" :class="{'nav-open':navOpen}">
+<div class="shell" :class="{'nav-open':navOpen, split:splitOn, 'items-folded':ui.itemsFolded}">
   <header class="topbar">
     <button @click="navOpen=!navOpen" aria-label="Menu" v-html="ICONS.menu"></button>
     <span class="brand-mark" v-html="ICONS.eye"></span><span>L'Œil Sheikah</span>
@@ -581,11 +598,14 @@ const App = {
     <div class="brand"><span class="brand-mark" v-html="ICONS.eye"></span>
       <div><div class="brand-name">L'Œil Sheikah</div><div class="brand-sub">Tout voir, tout savoir</div></div></div>
     <nav class="nav">
-      <button v-for="v in views" :key="v.id" class="nav-item" :class="{active:ui.view===v.id}" @click="go(v.id)">
-        <span v-html="v.icon"></span>{{v.label}}</button>
+      <button v-for="v in views" :key="v.id" class="nav-item" :class="{active:shown(v.id), 'in-side':paneOf(v.id)==='side' && shown(v.id)}" @click="go(v.id)">
+        <span v-html="v.icon"></span>{{v.label}}
+        <span v-if="canSplit && !shown(v.id)" class="nav-split" role="button" :title="'Ouvrir ' + v.label + ' à côté'" v-html="ICONS.split"
+          @click.stop="openSide(v.id)"></span></button>
     </nav>
 
-    <section v-if="ui.view==='entrances'" class="side-sec">
+    <section v-if="shown('entrances')" class="side-sec" :style="{order:paneOf('entrances')==='side' ? 2 : 1}">
+      <div v-if="splitOn" class="side-title side-page">Entrées</div>
       <div class="side-row"><button class="side-btn" @click="setAll(false)">Tout déplier</button><button class="side-btn" @click="setAll(true)">Tout replier</button></div>
       <label class="check"><input type="checkbox" v-model="ui.filters.showReachableTargets">Proposer les destinations déjà atteignables ou déjà mappées</label>
       <label class="check"><input type="checkbox" v-model="ui.filters.showInaccessibleAreas">Afficher les zones non atteintes</label>
@@ -599,11 +619,13 @@ const App = {
       </div>
     </section>
 
-    <section v-if="ui.view==='router'" class="side-sec">
+    <section v-if="shown('router')" class="side-sec compact" :style="{order:paneOf('router')==='side' ? 2 : 1}">
+      <div v-if="splitOn" class="side-title side-page">Routeur</div>
       <label class="check" title="Coût total dans le résumé et coût de chaque étape (réglables dans Configuration)"><input type="checkbox" v-model="ui.router.showCost">Afficher les coûts</label>
     </section>
 
-    <section v-if="ui.view==='checks'" class="side-sec">
+    <section v-if="shown('checks')" class="side-sec" :style="{order:paneOf('checks')==='side' ? 2 : 1}">
+      <div v-if="splitOn" class="side-title side-page">Checks</div>
       <div class="side-row"><button class="side-btn" @click="setAllChecks(false)">Tout déplier</button><button class="side-btn" @click="setAllChecks(true)">Tout replier</button></div>
       <label class="check"><input type="checkbox" v-model="ui.checks.showExcluded">Afficher les checks exclus</label>
       <label class="check" title="Ajoute à l'infobulle de chaque check sa condition dans la logique de SoH (option « Show Logic » du tracker de SoH)"><input type="checkbox" v-model="ui.checks.showLogic">Afficher la logique au survol</label>
@@ -640,8 +662,12 @@ const App = {
       <progress-card :stats="checkStats" unit="checks" title="Checks" :active="ui.view==='checks'" @open="go('checks')"></progress-card>
       <progress-card v-if="stats.editable" :stats="stats" unit="sorties" title="Entrées" :active="ui.view==='entrances'" @open="go('entrances')"></progress-card>
     </div>
+    <div class="panes" :class="{split:splitOn}">
     <!-- ================= TRACKER ================= -->
-    <template v-if="ui.view==='entrances'">
+    <section v-if="shown('entrances')" class="pane" :class="'pane-' + paneOf('entrances')">
+      <div v-if="paneOf('entrances')==='side'" class="pane-bar">
+        <button type="button" title="Échanger les deux panneaux" v-html="ICONS.swapH" @click="swapPanes"></button>
+        <button type="button" title="Fermer ce panneau" v-html="ICONS.close" @click="closeSide"></button></div>
       <div class="page-head"><h1>Entrées</h1></div>
       <div class="container">
         <div v-if="missingSpawns.length" class="warn-box">
@@ -692,11 +718,14 @@ const App = {
           </div>
         </article>
       </div>
-    </template>
+    </section>
 
     <!-- ================= ROUTEUR ================= -->
     <!-- ================= CHECKS ================= -->
-    <template v-if="ui.view==='checks'">
+    <section v-if="shown('checks')" class="pane" :class="'pane-' + paneOf('checks')">
+      <div v-if="paneOf('checks')==='side'" class="pane-bar">
+        <button type="button" title="Échanger les deux panneaux" v-html="ICONS.swapH" @click="swapPanes"></button>
+        <button type="button" title="Fermer ce panneau" v-html="ICONS.close" @click="closeSide"></button></div>
       <div class="page-head"><h1>Checks</h1></div>
 
       <div class="checks-toolbar">
@@ -774,9 +803,12 @@ const App = {
         <template v-else>{{lastCheck.text}}
           <button type="button" @click="undoCheck"><span v-html="ICONS.undo"></span>Annuler</button></template>
       </div>
-    </template>
+    </section>
 
-    <template v-if="ui.view==='router'">
+    <section v-if="shown('router')" class="pane" :class="'pane-' + paneOf('router')">
+      <div v-if="paneOf('router')==='side'" class="pane-bar">
+        <button type="button" title="Échanger les deux panneaux" v-html="ICONS.swapH" @click="swapPanes"></button>
+        <button type="button" title="Fermer ce panneau" v-html="ICONS.close" @click="closeSide"></button></div>
       <div class="page-head"><h1>Routeur</h1><p class="lede">Chemin le plus court entre deux sorties, selon ce que vous avez découvert et l'état de la partie.</p></div>
       <div class="rform">
         <div class="rline">
@@ -862,10 +894,13 @@ const App = {
         </div>
         <p class="note" v-if="ui.router.showCost">Coûts de marche, transition, chant, rechargement et changement d'âge réglables dans Configuration.</p>
       </template>
-    </template>
+    </section>
 
     <!-- ================= CONFIGURATION ================= -->
-    <template v-if="ui.view==='config'">
+    <section v-if="shown('config')" class="pane" :class="'pane-' + paneOf('config')">
+      <div v-if="paneOf('config')==='side'" class="pane-bar">
+        <button type="button" title="Échanger les deux panneaux" v-html="ICONS.swapH" @click="swapPanes"></button>
+        <button type="button" title="Fermer ce panneau" v-html="ICONS.close" @click="closeSide"></button></div>
       <div class="page-head"><h1>Configuration</h1><p class="lede">Réglages du randomizer de Ship of Harkinian 9.2.3 « Ackbar Delta ».</p>
         <div class="import-box">
           <label class="btn primary import-btn">Importer depuis un spoiler SoH
@@ -932,10 +967,14 @@ const App = {
           </div>
         </section>
       </div>
-    </template>
+    </section>
+    </div>
   </main>
 
   <aside class="side side-right" :class="{open:itemsOpen}">
+    <button type="button" class="items-fold" :class="{folded:ui.itemsFolded}" @click="ui.itemsFolded=!ui.itemsFolded"
+      :title="ui.itemsFolded ? 'Afficher le panneau Objets' : 'Replier le panneau Objets'" :aria-expanded="!ui.itemsFolded">
+      <span v-html="ui.itemsFolded ? ICONS.bag : ICONS.chevron"></span><span v-if="ui.itemsFolded" class="if-label">Objets</span></button>
     <div class="side-right-head">
       <button @click="itemsOpen=false" aria-label="Fermer" v-html="ICONS.close"></button>
     </div>

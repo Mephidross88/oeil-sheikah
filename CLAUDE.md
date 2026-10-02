@@ -132,6 +132,9 @@ et le mettre à jour quand une règle change.
 - Accessibilité : uniquement la logique SoH (`sohC`, `reachC`) ; une sortie randomisée non notée est une impasse.
 - Coûts du Routeur réglables dans `store.costs` (dont `walk` : coût estimé par région SoH traversée sans coût connu).
 - Thème : `store.ui.theme` (`auto` suit le système, `light`/`dark` posent `data-theme` sur `<html>`).
+- Mise en page : `ui.view` (panneau principal), `ui.split` (page du second panneau, côte à côte si l'écran fait au moins
+  1500 px ; `shown(v)` / `paneOf(v)` dans `App`), `ui.itemsFolded` (panneau Objets replié). Chaque page du template est
+  une `<section class="pane">` ; ne pas réutiliser la classe `side` (barre latérale) ailleurs.
 
 ## Débogage
 `window.__PF` expose `store`, `effC`, `linksC`, `reachC`, `agesC`, `routeC`, `shortest`, `candidatesFor`, `setMapping`, `EXIT`,

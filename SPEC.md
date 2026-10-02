@@ -27,6 +27,14 @@ la page correspondante, souligné quand on y est. Côte à côte, empilés sur m
 ## Navigation (panneau de gauche)
 - Accès aux quatre modules, dans cet ordre : Checks, Entrées (anciennement « Tracker », id `entrances`), Routeur,
   Configuration. Page ouverte au premier lancement : Checks ; ensuite, la dernière page consultée.
+- **Côte à côte** (écran d'au moins 1500 px) : au survol d'un élément du menu, icône « ouvrir à côté » qui affiche
+  cette page dans un second panneau à droite (`ui.split`) ; un clic normal change le panneau principal (`ui.view`).
+  Chaque panneau défile seul ; le second a ⇄ (échanger les panneaux) et ✕ (fermer). Une page déjà affichée dans un
+  panneau n'est pas rouverte (menu, cartes de progression, « Y aller » de Checks qui met à jour le Routeur à côté).
+  La barre de gauche montre les options des deux pages, titrées. En dessous de 1500 px : page principale seule (le
+  second panneau revient quand l'écran s'élargit).
+- **Panneau Objets repliable** (écran large) : bouton en haut du panneau, qui le réduit à une fine colonne
+  « Objets » pour le rouvrir (`ui.itemsFolded`) ; utile en côte à côte.
 - Pied du panneau : état de la sauvegarde, sélecteur de thème (soleil = clair, lune = sombre ; recliquer l'icône
   allumée revient à « auto », qui suit le système ; `ui.theme` : `auto` / `light` / `dark`, sauvegardé, appliqué par
   l'attribut `data-theme` de `<html>`), export/import de la partie, remise à zéro.
