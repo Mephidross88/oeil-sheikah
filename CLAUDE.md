@@ -9,8 +9,8 @@ Le comportement attendu est décrit dans `SPEC.md` : le lire avant toute évolut
 et le mettre à jour quand une règle change.
 
 ## Fichiers
-- `index.html` : squelette, charge Vue 3 (CDN jsDelivr, build global), puis `areas-data.js`, `checks-data.js` et
-  `logic-data.js`, puis les fichiers
+- `index.html` : squelette, charge Vue 3 (CDN jsDelivr, build global), puis `data/areas-data.js`, `data/checks-data.js`
+  et `data/logic-data.js`, puis les fichiers
   de `js/` **dans l'ordre listé ci-dessous** (scripts classiques, pas de modules ES : chaque fichier partage
   le même scope global de haut niveau, comme s'il s'agissait d'un seul fichier — un `const`/`function` déclaré
   dans un fichier est directement utilisable dans les suivants ; ne pas redéclarer un identifiant existant).
@@ -59,12 +59,12 @@ et le mettre à jour quand une règle change.
   10. `js/app.js` : le composant racine `App` (template complet, dont le panneau Objets et ses modales de
      pointage) + `createApp(...).mount('#app')`.
 - `style.css` : styles, variables de thème dans `:root` (clair + sombre).
-- `areas-data.js` : données (`window.AREAS_DATA`). Gros fichier : ne le lire que si la tâche porte sur les données.
-- `checks-data.js` : checks SoH (`window.CHECKS_DATA`), **fichier généré** (voir son en-tête et SPEC.md > Checks) ;
+- `data/areas-data.js` : données (`window.AREAS_DATA`). Gros fichier : ne le lire que si la tâche porte sur les données.
+- `data/checks-data.js` : checks SoH (`window.CHECKS_DATA`), **fichier généré** (voir son en-tête et SPEC.md > Checks) ;
   gros fichier, ne pas le lire en entier ni l'éditer à la main pour autre chose qu'une retouche ponctuelle.
 - `tools/soh-checks/` : scripts Node lancés à la main (jamais chargés par l'appli) qui régénèrent `checks-data.js`
   depuis les sources de SoH ; traductions des libellés dans `translate.mjs`. Mode d'emploi dans son `README.md`.
-- `logic-data.js` : données de logique converties depuis les sources de SoH (`window.SOH_LOGIC` : 1 026 régions avec événements, checks et sorties, conditions
+- `data/logic-data.js` : données de logique converties depuis les sources de SoH (`window.SOH_LOGIC` : 1 026 régions avec événements, checks et sorties, conditions
   converties en fonctions JS sur le contexte global `L`), **fichier généré** par `tools/soh-logic/extract_logic.mjs`
   (sources téléchargées par `tools/soh-checks/fetch_sources.mjs`), plus les prix vanilla des boutiques/pestes/marchands
   et la table des entrées de SoH (`entrances` : numéro ENTR, type, région de départ, région d'arrivée vanilla).
@@ -98,7 +98,9 @@ et le mettre à jour quand une règle change.
   Ex. `kokiri_forest::kf_to_midos` (« Maison de Mido ») est côté forêt ; en la prenant, on arrive à
   `midos_to_kf` (« Sortie de la maison de Mido »), à l'intérieur.
 - `connections` : coûts de marche entre sorties d'une même zone (`targetExitId`, `cost`), repris d'OoT Randomizer et
-  utilisés par le Routeur ; c'est la logique SoH qui dit si le passage est possible.
+  utilisés par le Routeur ; c'est la logique SoH qui dit si le passage est possible. `targetExitId` sous la forme
+  `"zone::sortie"` : passage à pied vers une autre zone, à sens unique (fin de la course d'Igor, sortie par les mains
+  du Temple de l'Esprit).
 - `destinationOnly` : plateformes de téléportation, arrivée de la rivière Gerudo, toit de la maison d'Impa (atterrissage
   du hibou du Chemin du Péril) — on ne peut pas les prendre.
 - `specialTag` boss_child / boss_adult : salles de boss ; leur sortie est le téléporteur bleu, calculée

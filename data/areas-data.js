@@ -3155,6 +3155,10 @@ window.AREAS_DATA = [
         "vanillaTargetExitId": "gerudo_fortress::hideout_g_gf",
         "connections": [
           {
+            "targetExitId": "hideout_a_gf",
+            "cost": 5
+          },
+          {
             "targetExitId": "hideout_gf_h",
             "cost": 5
           }
@@ -3169,6 +3173,10 @@ window.AREAS_DATA = [
         "shuffleTag": "hideout",
         "vanillaTargetExitId": "gerudo_fortress::hideout_h_gf",
         "connections": [
+          {
+            "targetExitId": "hideout_a_gf",
+            "cost": 5
+          },
           {
             "targetExitId": "hideout_gf_g",
             "cost": 5
@@ -3221,7 +3229,13 @@ window.AREAS_DATA = [
         "entr": 734,
         "type": "interior",
         "shuffleTag": "hideout",
-        "vanillaTargetExitId": "gerudo_fortress::hideout_l_gf"
+        "vanillaTargetExitId": "gerudo_fortress::hideout_l_gf",
+        "connections": [
+          {
+            "targetExitId": "hideout_gf_m",
+            "cost": 15
+          }
+        ]
       },
       {
         "id": "hideout_gf_m",
@@ -3230,7 +3244,13 @@ window.AREAS_DATA = [
         "entr": 730,
         "type": "interior",
         "shuffleTag": "hideout",
-        "vanillaTargetExitId": "gerudo_fortress::hideout_m_gf"
+        "vanillaTargetExitId": "gerudo_fortress::hideout_m_gf",
+        "connections": [
+          {
+            "targetExitId": "hideout_gf_l",
+            "cost": 15
+          }
+        ]
       },
       {
         "id": "hideout_a_gf",
@@ -5139,7 +5159,7 @@ window.AREAS_DATA = [
             "cost": 13
           },
           {
-            "targetExitId": "potions_to_kak_back",
+            "targetExitId": "kak_to_potions_back",
             "cost": 23
           },
           {
@@ -5210,7 +5230,7 @@ window.AREAS_DATA = [
             "cost": 3
           },
           {
-            "targetExitId": "potions_to_kak_back",
+            "targetExitId": "kak_to_potions_back",
             "cost": 11
           },
           {
@@ -5281,7 +5301,7 @@ window.AREAS_DATA = [
             "cost": 12
           },
           {
-            "targetExitId": "potions_to_kak_back",
+            "targetExitId": "kak_to_potions_back",
             "cost": 9
           },
           {
@@ -5352,7 +5372,7 @@ window.AREAS_DATA = [
             "cost": 8
           },
           {
-            "targetExitId": "potions_to_kak_back",
+            "targetExitId": "kak_to_potions_back",
             "cost": 18
           },
           {
@@ -5432,7 +5452,7 @@ window.AREAS_DATA = [
             "cost": 1
           },
           {
-            "targetExitId": "potions_to_kak_back",
+            "targetExitId": "kak_to_potions_back",
             "cost": 8
           },
           {
@@ -5512,7 +5532,7 @@ window.AREAS_DATA = [
             "cost": 9
           },
           {
-            "targetExitId": "potions_to_kak_back",
+            "targetExitId": "kak_to_potions_back",
             "cost": 19
           },
           {
@@ -5592,7 +5612,7 @@ window.AREAS_DATA = [
             "cost": 12
           },
           {
-            "targetExitId": "potions_to_kak_back",
+            "targetExitId": "kak_to_potions_back",
             "cost": 4
           },
           {
@@ -5672,7 +5692,7 @@ window.AREAS_DATA = [
             "cost": 11
           },
           {
-            "targetExitId": "potions_to_kak_back",
+            "targetExitId": "kak_to_potions_back",
             "cost": 21
           },
           {
@@ -5752,7 +5772,7 @@ window.AREAS_DATA = [
             "cost": 12
           },
           {
-            "targetExitId": "potions_to_kak_back",
+            "targetExitId": "kak_to_potions_back",
             "cost": 22
           },
           {
@@ -5836,7 +5856,7 @@ window.AREAS_DATA = [
             "cost": 12
           },
           {
-            "targetExitId": "potions_to_kak_back",
+            "targetExitId": "kak_to_potions_back",
             "cost": 22
           },
           {
@@ -5907,7 +5927,7 @@ window.AREAS_DATA = [
             "cost": 9
           },
           {
-            "targetExitId": "potions_to_kak_back",
+            "targetExitId": "kak_to_potions_back",
             "cost": 19
           },
           {
@@ -5987,7 +6007,7 @@ window.AREAS_DATA = [
             "cost": 8
           },
           {
-            "targetExitId": "potions_to_kak_back",
+            "targetExitId": "kak_to_potions_back",
             "cost": 8
           },
           {
@@ -6018,7 +6038,7 @@ window.AREAS_DATA = [
         "vanillaTargetExitId": "kakariko_village::kak_to_potions",
         "connections": [
           {
-            "targetExitId": "kak_to_potions_back",
+            "targetExitId": "potions_to_kak_back",
             "cost": 1
           }
         ]
@@ -6031,21 +6051,6 @@ window.AREAS_DATA = [
         "type": "interior",
         "shuffleTag": "interior_all",
         "vanillaTargetExitId": "kakariko_village::potions_to_kak_back",
-        "connections": [
-          {
-            "targetExitId": "potions_to_kak",
-            "cost": 1
-          }
-        ]
-      },
-      {
-        "id": "potions_to_kak_back",
-        "label": "Apothicaire, arrière",
-        "soh": "Kak Potion Shop Back",
-        "entr": 1279,
-        "type": "interior",
-        "shuffleTag": "interior_all",
-        "vanillaTargetExitId": "kakariko_village::kak_to_potions_back",
         "connections": [
           {
             "targetExitId": "kak_to_hf",
@@ -6110,6 +6115,21 @@ window.AREAS_DATA = [
         ]
       },
       {
+        "id": "potions_to_kak_back",
+        "label": "Apothicaire, arrière",
+        "soh": "Kak Potion Shop Back",
+        "entr": 1279,
+        "type": "interior",
+        "shuffleTag": "interior_all",
+        "vanillaTargetExitId": "kakariko_village::kak_to_potions_back",
+        "connections": [
+          {
+            "targetExitId": "potions_to_kak",
+            "cost": 1
+          }
+        ]
+      },
+      {
         "id": "kak_to_windmill",
         "label": "Entrée du moulin",
         "soh": "Kak Windmill Entry",
@@ -6163,7 +6183,7 @@ window.AREAS_DATA = [
             "cost": 13
           },
           {
-            "targetExitId": "potions_to_kak_back",
+            "targetExitId": "kak_to_potions_back",
             "cost": 23
           },
           {
@@ -6243,7 +6263,7 @@ window.AREAS_DATA = [
             "cost": 7
           },
           {
-            "targetExitId": "potions_to_kak_back",
+            "targetExitId": "kak_to_potions_back",
             "cost": 17
           },
           {
@@ -6323,7 +6343,7 @@ window.AREAS_DATA = [
             "cost": 13
           },
           {
-            "targetExitId": "potions_to_kak_back",
+            "targetExitId": "kak_to_potions_back",
             "cost": 3
           },
           {
@@ -6403,7 +6423,7 @@ window.AREAS_DATA = [
             "cost": 11
           },
           {
-            "targetExitId": "potions_to_kak_back",
+            "targetExitId": "kak_to_potions_back",
             "cost": 21
           },
           {
@@ -6575,7 +6595,13 @@ window.AREAS_DATA = [
         "entr": 857,
         "type": "grotto",
         "shuffleTag": "grotto",
-        "vanillaTargetExitId": "graveyard::graveyard_to_dampesgrave"
+        "vanillaTargetExitId": "graveyard::graveyard_to_dampesgrave",
+        "connections": [
+          {
+            "targetExitId": "kakariko_village::windmill_to_kak",
+            "cost": 99
+          }
+        ]
       },
       {
         "id": "graveyard_to_redeadgrave",
@@ -8374,6 +8400,10 @@ window.AREAS_DATA = [
         "connections": [
           {
             "targetExitId": "spirittemple_boss",
+            "cost": 120
+          },
+          {
+            "targetExitId": "desert_colossus::colossus_to_spirittemple",
             "cost": 120
           }
         ]

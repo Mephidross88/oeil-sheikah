@@ -1,4 +1,4 @@
-# Génération de `checks-data.js`
+# Génération de `data/checks-data.js`
 
 Scripts Node (≥ 18) lancés à la main pour régénérer la liste des checks à partir des sources de
 Ship of Harkinian. Ils ne sont jamais chargés par l'application.
@@ -7,7 +7,7 @@ Ship of Harkinian. Ils ne sont jamais chargés par l'application.
 cd tools/soh-checks
 node fetch_sources.mjs cb71e22   # sources SoH du commit voulu -> ./src (ignoré par Git)
 node extract_checks.mjs          # -> checks_raw.json (checks, zones, régions de logique ; ignoré par Git)
-node gen_checks.mjs              # -> ../../checks-data.js (libellés français via translate.mjs)
+node gen_checks.mjs              # -> ../../data/checks-data.js (libellés français via translate.mjs)
 ```
 
 - `extract_checks.mjs` : lit `location_list.cpp`, `fishsanity.cpp`, `Shuffle*.cpp` (métadonnées : type,

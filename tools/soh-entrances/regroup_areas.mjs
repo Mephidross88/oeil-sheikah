@@ -1,6 +1,6 @@
 // Regroupe les sorties de areas-data.js selon les 32 zones du tracker de checks de SoH (RCAREA, GetAreaFromScene),
 // plus la pseudo-zone « spawns » (apparitions et chants de téléportation, qui ne sont pas des lieux).
-// Réécrit ../../areas-data.js. Script de migration ponctuel (déjà appliqué : il refuse de s'exécuter deux fois),
+// Réécrit ../../data/areas-data.js. Script de migration ponctuel (déjà appliqué : il refuse de s'exécuter deux fois),
 // conservé pour trace de la correspondance ancienne zone -> zone SoH.
 import fs from 'fs';
 
@@ -43,7 +43,7 @@ const EXIT_AREA = {
   'gerudo_fortress::gtg_to_gt':'gerudo_training_ground',
 };
 
-const FILE = new URL('../../areas-data.js', import.meta.url);
+const FILE = new URL('../../data/areas-data.js', import.meta.url);
 const text = fs.readFileSync(FILE, 'utf8');
 const header = text.slice(0, text.indexOf('window.AREAS_DATA'));
 const data = JSON.parse(text.slice(text.indexOf('['), text.lastIndexOf(']') + 1));

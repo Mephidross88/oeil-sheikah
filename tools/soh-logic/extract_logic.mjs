@@ -1,5 +1,5 @@
 // Extrait la logique de Ship of Harkinian (régions, événements, checks, sorties, avec leurs conditions converties
-// du C++ vers JavaScript) et écrit ../../logic-data.js. Sources : ../soh-checks/src (voir fetch_sources.mjs).
+// du C++ vers JavaScript) et écrit ../../data/logic-data.js. Sources : ../soh-checks/src (voir fetch_sources.mjs).
 // Usage : node extract_logic.mjs
 import fs from 'fs';
 import path from 'path';
@@ -277,7 +277,7 @@ for (const [rr, r] of Object.entries(regions)){
 lines.push('  },');
 lines.push('};');
 const out = lines.join('\n') + '\n';
-fs.writeFileSync(path.join(HERE, '../../logic-data.js'), out);
+fs.writeFileSync(path.join(HERE, '../../data/logic-data.js'), out);
 
 const funcs = {};
 for (const m of out.matchAll(/\bL\.([A-Za-z]+)\(/g)) funcs[m[1]] = (funcs[m[1]] || 0) + 1;

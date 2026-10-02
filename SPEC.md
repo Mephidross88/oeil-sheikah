@@ -527,7 +527,10 @@ SoH avec l'inventaire, les événements et les entrées notés (`routeGraph` dan
 - **Marche** : d'une sortie, on rejoint toute sortie dont une région SoH est atteignable par les sorties internes des
   régions (tout passage qui n'est pas une entrée mélangeable), conditions évaluées à l'âge du trajet, de jour ou de
   nuit. Coût : celui d'`areas-data.js` (plus court chemin dans la zone, dans le sens des données, sinon dans les deux
-  sens), à défaut nombre de régions traversées × « marche estimée » (intérieur des donjons, certaines portes).
+  sens), à défaut nombre de régions traversées × « marche estimée ». Deux passages à pied changent de zone, notés dans
+  les données comme liaisons `"zone::sortie"` et enchaînés avec la marche de part et d'autre : fin de la course d'Igor
+  (Tombe d'Igor → Moulin, 99) et sortie par les mains du Temple de l'Esprit (Entrée du temple → Devant le temple au
+  Colosse, 120).
   Les marches consécutives sont fusionnées à l'affichage.
 - **Transition** par une sortie dont la destination est connue, si la condition SoH de son entrée est remplie (portes
   verrouillées, hibou enfant…) ; salle de boss : téléporteur bleu (boss vaincu).

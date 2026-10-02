@@ -1,7 +1,7 @@
-// Génère checks-data.js (projet) à partir de checks_raw.json (extract_checks.mjs) et de translate.mjs.
+// Génère data/checks-data.js (projet) à partir de checks_raw.json (extract_checks.mjs) et de translate.mjs.
 import fs from 'fs';
 import { translate } from './translate.mjs';
-const OUT = process.argv[2] || new URL('../../checks-data.js', import.meta.url);
+const OUT = process.argv[2] || new URL('../../data/checks-data.js', import.meta.url);
 const raw = JSON.parse(fs.readFileSync(new URL('./checks_raw.json', import.meta.url), 'utf8'));
 
 // Zones : libellé FR + donjon du panneau Objets (pour la version Vanilla / MQ)

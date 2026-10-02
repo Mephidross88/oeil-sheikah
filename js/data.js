@@ -13,7 +13,8 @@ const AREAS = RAW.map(a => ({ id:a.id, name:a.name, exits:(a.exits||[]).map(e =>
   id:e.id, key:`${a.id}::${e.id}`, areaId:a.id, label:e.label, soh:e.soh || '', entr:e.entr ?? null, type:e.type, shuffleTag:e.shuffleTag,
   vanilla:(e.vanillaTargetExitId==null || e.vanillaTargetExitId==='null') ? null : e.vanillaTargetExitId,
   destOnly:!!e.destinationOnly, specialTag:e.specialTag||null,
-  connections:(e.connections||[]).map(c => ({ to:`${a.id}::${c.targetExitId}`, cost:c.cost })),
+  // cible dans la zone, ou « zone::sortie » pour un passage à pied vers une autre zone (fin de la course d'Igor…)
+  connections:(e.connections||[]).map(c => ({ to:c.targetExitId.includes('::') ? c.targetExitId : `${a.id}::${c.targetExitId}`, cost:c.cost })),
 }))}));
 const AREA = Object.fromEntries(AREAS.map(a => [a.id, a]));
 const EXIT = {}; AREAS.forEach(a => a.exits.forEach(e => { EXIT[e.key] = e; }));

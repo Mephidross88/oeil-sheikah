@@ -1,6 +1,6 @@
 // Renomme les sorties de areas-data.js d'après le tracker d'entrées de Ship of Harkinian (9.2.3, commit cb71e22,
 // randomizer_entrance_tracker.cpp) : libellé français + nom SoH exact (champ `soh`, affiché au survol).
-// Usage : node apply_names.mjs   (réécrit ../../areas-data.js ; la table ci-dessous est la source de vérité)
+// Usage : node apply_names.mjs   (réécrit ../../data/areas-data.js ; la table ci-dessous est la source de vérité)
 import fs from 'fs';
 
 // Nom de départ SoH (source name) de chaque entrée, et sa traduction.
@@ -287,10 +287,10 @@ const TAG_BY_TYPE = { Dungeon:'dungeon_simple', GanonDungeon:'dungeon_ganon', Ga
   Interior:'interior_simple', SpecialInterior:'interior_all', ThievesHideout:'hideout', Overworld:'overworld', OwlDrop:'owl',
   Spawn:'spawn', WarpSong:'warp', ChildBoss:'boss_warp_child', AdultBoss:'boss_warp_adult' };
 const TYPE_BY_TAG = { grotto:'grotto', interior_simple:'interior', interior_all:'interior' };   // icône (`type`) qui suit le pool
-const LOGIC = fs.readFileSync(new URL('../../logic-data.js', import.meta.url), 'utf8');
+const LOGIC = fs.readFileSync(new URL('../../data/logic-data.js', import.meta.url), 'utf8');
 const SOH_TYPE = Object.fromEntries(JSON.parse(LOGIC.match(/^\s*entrances:(\[.*\]),\s*$/m)[1]).map(([n, type]) => [n, type]));
 
-const FILE = new URL('../../areas-data.js', import.meta.url);
+const FILE = new URL('../../data/areas-data.js', import.meta.url);
 const text = fs.readFileSync(FILE, 'utf8');
 const header = text.slice(0, text.indexOf('window.AREAS_DATA'));
 const data = JSON.parse(text.slice(text.indexOf('['), text.lastIndexOf(']') + 1));

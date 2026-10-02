@@ -1020,6 +1020,17 @@ function walkCosts(both){
     for (let k = 0; k < n; k++) for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) if (D[i][k] + D[k][j] < D[i][j]) D[i][j] = D[i][k] + D[k][j];
     ex.forEach((e, i) => ex.forEach((f, j) => { if (i !== j && D[i][j] < Infinity) out[e.key + '>' + f.key] = D[i][j]; }));
   }
+  // passages à pied vers une autre zone (sens unique : fin de la course d'Igor, sortie par les mains du Temple de
+  // l'Esprit) : marche jusqu'au départ du passage, passage, puis marche dans la zone d'arrivée
+  const at = (x, y) => x === y ? 0 : out[x + '>' + y];
+  for (const a of AREAS) for (const e of a.exits) for (const c of e.connections){
+    const b = EXIT[c.to];
+    if (!b || b.areaId === a.id) continue;
+    for (const x of a.exits) for (const y of AREA[b.areaId].exits){
+      const d = at(x.key, e.key) + c.cost + at(b.key, y.key), k = x.key + '>' + y.key;
+      if (x !== y && d < (out[k] ?? Infinity)) out[k] = d;
+    }
+  }
   return out;
 }
 const WALK_COST = walkCosts(false), WALK_COST_ANY = walkCosts(true);
