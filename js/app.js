@@ -1110,6 +1110,16 @@ const App = {
         </div>
       </div>
       </section>
+
+      <!-- Trouvailles comptées par l'auto-tracking (option) -->
+      <section v-if="ui.link.loot" class="panel-card loot-card" title="Comptées par l'auto-tracking : objets reçus pendant qu'il tourne (pas ceux ramassés par terre sans fenêtre « objet obtenu »)">
+        <div class="loot ice"><span class="loot-ic"><img v-if="!brokenIcons['icons/loot/ice_trap.png']" src="icons/loot/ice_trap.png" alt="" @error="brokenIcons['icons/loot/ice_trap.png']=true"><span v-else v-html="ICONS.snow"></span></span>
+          <b>{{store.game.loot.iceTraps}}</b><span>piège{{store.game.loot.iceTraps>1?'s':''}} de glace</span></div>
+        <div class="loot rupee"><span class="loot-ic"><img v-if="!brokenIcons['icons/loot/rupee.png']" src="icons/loot/rupee.png" alt="" @error="brokenIcons['icons/loot/rupee.png']=true"><span v-else v-html="ICONS.rupee"></span></span>
+          <b>{{store.game.loot.rupees}}</b><span>rubis · {{store.game.loot.rupeeValue}} ₹</span></div>
+        <div class="loot junk"><span class="loot-ic"><img v-if="!brokenIcons['icons/loot/junk.png']" src="icons/loot/junk.png" alt="" @error="brokenIcons['icons/loot/junk.png']=true"><span v-else v-html="ICONS.bag"></span></span>
+          <b>{{store.game.loot.junk}}</b><span>munitions et cœurs</span></div>
+      </section>
     </div>
   </aside>
 
@@ -1169,7 +1179,8 @@ const App = {
           <div class="link-opts"><span>Suivre :</span>
             <label class="check"><input type="checkbox" v-model="ui.link.checks">les checks faits</label>
             <label class="check"><input type="checkbox" v-model="ui.link.items">les objets</label>
-            <label class="check" title="Le départ du Routeur suit l'endroit où vous apparaissez dans le jeu"><input type="checkbox" v-model="ui.link.position">la position (départ du Routeur)</label></div>
+            <label class="check" title="Le départ du Routeur suit l'endroit où vous apparaissez dans le jeu"><input type="checkbox" v-model="ui.link.position">la position (départ du Routeur)</label>
+            <label class="check" title="Pièges de glace, rubis et munitions reçus, affichés en bas du panneau Objets"><input type="checkbox" v-model="ui.link.loot">les trouvailles (pour le fun)</label></div>
           <label class="link-url">Adresse du relais <input class="sel" v-model.lazy="ui.link.url" spellcheck="false"></label>
           <div class="link-status" :class="link.status"><i></i><b>{{LINK_LABEL[link.status]}}</b>
             <span v-if="link.status==='game' && link.client">— {{link.client.name || 'joueur sans nom'}}, sauvegarde {{link.client.isSaveLoaded ? 'chargée' : 'non chargée'}}</span>

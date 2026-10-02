@@ -656,4 +656,9 @@ Suivi en direct d'une partie de Ship of Harkinian, sans modifier le jeu.
   d'arrivée du jeu (`entranceIndex` des états du joueur, via `EXIT_BY_ARRIVAL`), et âge (`linkAge` des mises à jour du
   joueur) ; affichée dans la fenêtre Auto-tracking, et le départ du Routeur la suit (mention « Départ suivi en direct »).
   Entrée d'arrivée inconnue (grottes, zones non mélangées, écran titre) : position inchangée.
+- **Trouvailles** (option « les trouvailles », `ui.link.loot`, pour le fun) : objets reçus (`GIVE_ITEM`) comptés dans
+  `game.loot` et affichés en bas du panneau Objets : pièges de glace, rubis (nombre et valeur), munitions et cœurs
+  (bombes, noix, missiles, bâtons, graines, flèches, magie, cœur). Seulement pendant que l'auto-tracking tourne (le jeu
+  n'envoie pas de compteur), et pas les objets ramassés par terre sans fenêtre « objet obtenu ». Icônes
+  `icons/loot/ice_trap.png`, `rupee.png`, `junk.png` (dessin de repli sinon).
 - Étape suivante : entrées découvertes.

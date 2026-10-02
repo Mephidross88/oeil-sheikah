@@ -33,13 +33,17 @@ function linkRequestState(){
   fetch(store.ui.link.url.replace(/\/+$/, '') + '/request-state', { method:'POST' }).catch(() => linkLog('Relais injoignable'));
 }
 
+// Noms des objets du jeu de base reçus le plus souvent (GetItemID), pour le journal.
+const GI_NAMES = { 0x3E:'quart de cœur', 0x48:'cœur', 0x4C:'rubis vert', 0x4D:'rubis bleu', 0x4E:'rubis rouge', 0x55:'rubis pourpre',
+  0x56:'rubis d’or', 0x7C:'piège de glace', 0x49:'flèches', 0x4A:'flèches', 0x4B:'flèches', 0x01:'bombes', 0x66:'bombes', 0x02:'noix Mojo',
+  0x07:'bâton Mojo', 0x3C:'graines', 0x43:'magie', 0x44:'magie' };
 // Description courte d'un paquet du jeu (journal).
 function linkDescribe(p){
   switch (p.type){
     case 'SET_CHECK_STATUS': { const c = CHECK_BY_NUM[p.rc]; return `${c ? c.label + ' (' + CHECK_AREA[c.area].label + ')' : 'Check ' + p.rc} : ${CHECK_STATUS_FR[p.status] || p.status}${p.skipped ? ' (ignoré)' : ''}`; }
     case 'ENTRANCE_DISCOVERED': return `Entrée découverte : ${p.entranceIndex}`;
     case 'UPDATE_TEAM_STATE': return 'Sauvegarde complète reçue';
-    case 'GIVE_ITEM': return `Objet reçu : ${p.modId ? (LINK_DATA.rg[p.getItemId] || p.getItemId).toLowerCase().replace(/_/g, ' ') : 'objet du jeu ' + p.getItemId}`;
+    case 'GIVE_ITEM': return `Objet reçu : ${p.modId ? (LINK_DATA.rg[p.getItemId] || p.getItemId).toLowerCase().replace(/_/g, ' ') : GI_NAMES[p.getItemId] || 'objet du jeu ' + p.getItemId}`;
     case 'UPDATE_DUNGEON_ITEMS': return 'Objets de donjon mis à jour';
     case 'GAME_COMPLETE': return 'Ganon vaincu !';
     default: return p.type;
@@ -84,6 +88,7 @@ function linkApply(p){
       if (n) linkLog(`${n} check${n > 1 ? 's' : ''} coché${n > 1 ? 's' : ''} d'après la sauvegarde`);
     }
   }
+  if (p.type === 'GIVE_ITEM') linkLoot(p);
   if (store.ui.link.items){
     if (p.type === 'UPDATE_TEAM_STATE' && p.state?.inventory) linkApplyItems(p.state);
     // petite clé ramassée en direct : le jeu n'envoie que les clés en poche, on ajoute ce qui arrive
@@ -180,6 +185,30 @@ function linkSaveToGame(st, s){
   for (const [rg, id] of Object.entries(SOH_DOOR_KEY)) out.checklists.keys[id] = flag(rg.slice(3) + '_OBTAINED');
   for (const [rg, id] of Object.entries(SOH_BEAN_SOUL)) out.checklists.beans[id] = flag(rg.slice(3));
   return out;
+}
+
+/* ---------- Trouvailles : objets reçus (GIVE_ITEM) pendant que l'auto-tracking tourne ----------
+   Le jeu envoie l'objet reçu : objet du jeu de base (modId 0, GetItemID de z64item.h) ou du randomizer (modId 1,
+   RandomizerGet). Les objets ramassés par terre sans fenêtre « objet obtenu » ne sont pas signalés. */
+const GI_RUPEES = { 0x4C:1, 0x4D:5, 0x4E:20, 0x55:50, 0x56:200 };
+const GI_JUNK = new Set([0x01, 0x65, 0x66, 0x67, 0x68, 0x02, 0x63, 0x64, 0x03, 0x6A, 0x6B, 0x07, 0x61, 0x62, 0x3C, 0x69,
+  0x43, 0x44, 0x48, 0x49, 0x4A, 0x4B]);   // bombes, noix, missiles, bâtons, graines, magie, cœur, flèches
+const GI_ICE_TRAP = 0x7C;
+const RG_RUPEES = { GREEN_RUPEE:1, TREASURE_GAME_GREEN_RUPEE:1, BLUE_RUPEE:5, RED_RUPEE:20, PURPLE_RUPEE:50, HUGE_RUPEE:200 };
+const RG_JUNK = /^(RECOVERY_HEART|TREASURE_GAME_HEART|BOMBS_\d+|BOMBCHU_(5|10|20)|ARROWS_\d+|DEKU_NUTS_\d+|DEKU_SEEDS_\d+|DEKU_STICK_1|MAGIC_JAR.*)$/;
+function linkLoot(p){
+  if (!store.ui.link.loot) return;
+  const l = store.game.loot, id = p.getItemId;
+  if (p.modId){
+    const name = LINK_DATA.rg[id] || '';
+    if (name === 'ICE_TRAP') l.iceTraps++;
+    else if (name in RG_RUPEES){ l.rupees++; l.rupeeValue += RG_RUPEES[name]; }
+    else if (RG_JUNK.test(name)) l.junk++;
+    return;
+  }
+  if (id === GI_ICE_TRAP) l.iceTraps++;
+  else if (id in GI_RUPEES){ l.rupees++; l.rupeeValue += GI_RUPEES[id]; }
+  else if (GI_JUNK.has(id)) l.junk++;
 }
 
 /* ---------- Position : sortie où l'on vient d'apparaître (entrée d'arrivée du jeu, gSaveContext.entranceIndex) ----------

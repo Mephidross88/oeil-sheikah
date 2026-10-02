@@ -125,6 +125,16 @@ svg{display:block}
 .link-status{display:flex;align-items:center;flex-wrap:wrap;gap:8px;font-size:14.5px}
 .link-status .btn{margin-left:auto}
 .link-pos{font-size:14px;color:var(--muted)}
+/* trouvailles (panneau Objets) */
+.loot-card{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.loot{display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center}
+.loot-ic{display:grid;place-items:center;width:34px;height:34px}
+.loot-ic img,.loot-ic svg{width:30px;height:30px;object-fit:contain}
+.loot.ice .loot-ic{color:#4aa3d8}
+.loot.rupee .loot-ic{color:#3aa05a}
+.loot.junk .loot-ic{color:var(--gold-deep)}
+.loot b{font-family:var(--serif);font-size:20px;line-height:1}
+.loot span:last-child{font-size:12px;color:var(--muted)}
 .link-pos b{color:var(--text)}
 .live-start{display:inline-flex;align-items:center;gap:5px;color:var(--green);font-weight:600}
 .live-start svg{width:15px;height:15px}
