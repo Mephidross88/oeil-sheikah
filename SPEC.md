@@ -556,6 +556,10 @@ Règles d'interface :
 - Départ : zone, sortie, âge (Enfant / Adulte ; jamais « peu importe »).
 - Arrivée : zone, sortie, âge (Enfant / Adulte / Peu importe). Bouton pour inverser départ et arrivée.
 - Calcul automatique dès que départ et arrivée sont choisis (pas de bouton).
+- Clic sur une sortie du trajet : elle devient le départ, avec l'âge qu'on a à ce moment du trajet (le reste du chemin
+  est recalculé depuis là ; sur la sortie d'arrivée, on repart de l'arrivée). Survol surligné, indication au-dessus du
+  trajet. L'ancien départ est gardé (`ui.router.prevFrom`) : bouton « Revenir à … » à côté de l'indication
+  (en cas de clic malencontreux) ; y revenir échange les deux départs.
 - Le chemin peut combiner : marche (selon la logique SoH et l'âge courant), transitions,
   chants de téléportation (ocarina + chant connus), vol du hibou (enfant), téléporteurs bleus,
   sauvegarder-recharger (retour au spawn de l'âge ; à l'entrée du donjon si on est dans un donjon),

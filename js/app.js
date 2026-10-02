@@ -122,6 +122,20 @@ const App = {
     const exitsOf = id => (AREA[id]?.exits || []);
     watch(() => ui.router.fromArea, id => { if (!exitsOf(id).some(e => e.key === ui.router.fromExit)) ui.router.fromExit = ''; });
     watch(() => ui.router.toArea, id => { if (!exitsOf(id).some(e => e.key === ui.router.toExit)) ui.router.toExit = ''; });
+    // Clic sur une sortie du trajet : elle devient le départ (avec l'âge qu'on y a), le trajet repart de là.
+    // L'ancien départ est gardé (prevFrom) pour y revenir en un clic (clic malencontreux) ; revenir l'échange avec l'actuel.
+    function setStart(key, age){
+      const rr = ui.router;
+      if (rr.fromExit === key && rr.fromAge === age) return;
+      if (rr.fromExit && EXIT[rr.fromExit]) rr.prevFrom = { exit:rr.fromExit, age:rr.fromAge };
+      rr.fromArea = EXIT[key].areaId; rr.fromExit = key; rr.fromAge = age;
+    }
+    const startHere = row => setStart(row.key, row.age);
+    const prevStart = computed(() => {
+      const p = ui.router.prevFrom;
+      return p && EXIT[p.exit] && !(p.exit === ui.router.fromExit && p.age === ui.router.fromAge) ? p : null;
+    });
+    const backToPrev = () => setStart(prevStart.value.exit, prevStart.value.age);
     function swap(){
       const r = ui.router;
       [r.fromArea, r.toArea] = [r.toArea, r.fromArea];
@@ -139,25 +153,26 @@ const App = {
       // rows[i+1]) ; entre deux cartes, les vrais changements de lieu (pastilles) et les changements d'âge (bandeaux).
       const items = [];
       let card = null;
-      const newCard = key => { card = { t:'card', key0:key, rows:[{ key }], walks:[], walking:false }; items.push(card); };
-      newCard(r.fromExit); card.start = true;
+      // row.age : âge à cette sortie (pour en faire le nouveau départ, startHere)
+      const newCard = (key, age) => { card = { t:'card', key0:key, rows:[{ key, age }], walks:[], walking:false }; items.push(card); };
+      newCard(r.fromExit, r.fromAge); card.start = true;
       for (const e of res.edges){
         if (e.kind === 'age'){ items.push({ t:'age', from:e.fromAge, to:e.age }); card = null; continue; }   // débloqué une fois pour toutes : pas d'objets
         if (e.kind === 'walk' && EXIT[e.to].areaId === EXIT[card ? card.key0 : e.from].areaId){
-          if (!card) newCard(e.from);
+          if (!card) newCard(e.from, e.fromAge);
           const w = card.walks[card.walks.length - 1];
           // marches consécutives fusionnées (le chemin passe parfois par d'autres sorties de la zone)
           if (card.walking){
             w.e = { ...w.e, to:e.to, cost:w.e.cost + e.cost, passes:[...(w.e.passes || []), ...(e.passes || [])] };
             w.reqs = reqsOf(w.e);
-            card.rows[card.rows.length - 1] = { key:e.to };
+            card.rows[card.rows.length - 1] = { key:e.to, age:e.age };
           }
-          else { card.walks.push({ e, reqs:reqsOf(e) }); card.rows.push({ key:e.to }); card.walking = true; }
+          else { card.walks.push({ e, reqs:reqsOf(e) }); card.rows.push({ key:e.to, age:e.age }); card.walking = true; }
           continue;
         }
         // transition, hibou, chant, téléporteur, rechargement, ou marche vers une autre zone (course d'Igor…)
         items.push({ t:'edge', e, reqs:reqsOf(e) });
-        newCard(e.to);
+        newCard(e.to, e.age);
       }
       [...items].reverse().find(i => i.t === 'card').end = true;
       const count = k => res.edges.filter(e => e.kind === k).length;
@@ -503,7 +518,7 @@ const App = {
       itemVisible, tierLabel, iconSrc, checklistModal, openChecklist, setChecklist, checklistStats,
       tradeModal, openTrade, tradeStats, counterClass,
       TRIALS, trialStatus, cycleTrial, setDungeonFlag, addDungeonKeys, dungeonQuest, dungeonMaxKeys, cycleDungeonQuest, questLabel, questClass, questTitle, keysLabel, dungeonKeyRing, setKeyRing, dungeonKeysDone, keysTitle, brokenIcons,
-      setTheme, routerAreas, exitsOf, swap, route, edgeLabel, edgeIcon, WARP_SONGS, ageLabel, openBackup, copyBackup, importBackup, resetAll, declineSpoiler, savedAt, TYPE_LABEL };
+      setTheme, startHere, prevStart, backToPrev, routerAreas, exitsOf, swap, route, edgeLabel, edgeIcon, WARP_SONGS, ageLabel, openBackup, copyBackup, importBackup, resetAll, declineSpoiler, savedAt, TYPE_LABEL };
   },
   template:`
 <div class="shell" :class="{'nav-open':navOpen}">
@@ -750,6 +765,10 @@ const App = {
           <div class="rstat cost" v-if="ui.router.showCost"><span class="rstat-ic" v-html="ICONS.router"></span>
             <div><b>{{route.cost}}</b><span>coût total</span></div></div>
         </div>
+        <p class="path-hint">Cliquez sur une sortie du trajet pour repartir de là.
+          <button v-if="prevStart" type="button" class="prev-start" @click="backToPrev"
+            :title="'Départ précédent : ' + areaName(prevStart.exit) + ' · ' + EXIT[prevStart.exit].label + ' (' + ageLabel(prevStart.age) + ')'">
+            <span v-html="ICONS.undo"></span>Revenir à {{areaName(prevStart.exit)}} · {{EXIT[prevStart.exit].label}}</button></p>
         <div class="path">
           <template v-for="(it,i) in route.items" :key="i">
             <div v-if="it.t==='card'" class="node" :class="{start:it.start && !it.end, end:it.end}">
@@ -763,7 +782,8 @@ const App = {
                     <img v-for="r in it.walks[j-1].reqs.icons" :key="r.key" :src="r.src" :title="r.title" alt="">
                     <span v-if="it.walks[j-1].reqs.alts.length" class="alt-mark" :title="it.walks[j-1].reqs.altTitle">ou…</span></span>
                 </div>
-                <div class="sub node-exit" :class="{goal:it.end && j && j === it.rows.length - 1}" :title="EXIT[row.key].soh">
+                <div class="sub node-exit" :class="{goal:it.end && j && j === it.rows.length - 1, here:it.start && !j}" role="button" tabindex="0"
+                  :title="it.start && !j ? 'Point de départ' : 'Partir d’ici (' + EXIT[row.key].soh + ')'" @click="startHere(row)" @keydown.enter="startHere(row)">
                   <type-icon v-if="j" class="mini" :type="iconKey(EXIT[row.key])" :src="exitIcon(EXIT[row.key])"></type-icon>{{EXIT[row.key].label}}</div>
               </template>
             </div>

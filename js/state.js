@@ -22,7 +22,7 @@ function defaults(){
     ui:{ view:'entrances', theme:'auto', collapsed:{}, configTab:'logic', importQuests:false, spoilerPrompt:true,
       checks:{ q:'', hideDone:false, hideDoneZones:false, onlyAvailable:false, showLogic:false, showExcluded:false, alwaysGS:false, age:'all', hiddenCats:{}, collapsed:{} },
       filters:{ showReachableTargets:false, showInaccessibleAreas:false, showDiscovered:true, showVanilla:true },
-      router:{ fromArea:'', fromExit:'', fromAge:'child', toArea:'', toExit:'', toAge:'any', showCost:false } },
+      router:{ fromArea:'', fromExit:'', fromAge:'child', toArea:'', toExit:'', toAge:'any', showCost:false, prevFrom:null } },
   };
 }
 function merge(base, src){
