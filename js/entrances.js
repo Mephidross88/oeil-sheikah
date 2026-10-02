@@ -106,18 +106,20 @@ function computeIncoming(eff){
 /* ---------- Routeur ---------- */
 // Le graphe de déplacement (marche, transitions, chants, sauvegarde, changement d'âge) est construit sur la logique SoH par
 // routeGraph (js/logic.js) ; seul l'algorithme de plus court chemin est ici.
-/** Dijkstra sur les états (sortie, âge, position : voir routeGraph ; « start » au départ). */
+/** Dijkstra sur les états (sortie, âge, position : voir routeGraph ; « start » au départ). `goal` : clé de sortie (avec
+   goalAge, ou 'any'), ou prédicat (clé, âge, position) -> bool pour le but le plus proche (« Y aller » de Checks). */
 function shortest(edges, start, startAge, goal, goalAge){
+  const isGoal = typeof goal === 'function' ? goal : (k, a) => k === goal && (goalAge === 'any' || goalAge === a);
   const id = (k, a, m) => k + '|' + a + '|' + m;
   const dist = new Map([[id(start, startAge, 'start'), 0]]), prev = new Map(), heap = [[0, start, startAge, 'start']];
   while (heap.length){
     let bi = 0; for (let i = 1; i < heap.length; i++) if (heap[i][0] < heap[bi][0]) bi = i;
     const [d, k, a, m] = heap.splice(bi, 1)[0], cur = id(k, a, m);
     if (d > dist.get(cur)) continue;
-    if (k === goal && (goalAge === 'any' || goalAge === a)){
+    if (isGoal(k, a, m)){
       const path = []; let n = cur;
       while (prev.has(n)){ const p = prev.get(n); path.unshift(p.edge); n = p.from; }
-      return { edges:path, cost:path.reduce((s, e) => s + e.cost, 0), endAge:a };
+      return { edges:path, cost:path.reduce((s, e) => s + e.cost, 0), endKey:k, endAge:a };
     }
     for (const e of edges(k, a, m)){
       const nd = d + e.cost + 0.001, nid = id(e.to, e.age, e.mode);   // +epsilon : à coût égal, moins d'étapes

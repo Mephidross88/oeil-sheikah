@@ -312,6 +312,8 @@ const App = {
         // version inconnue : checks propres à Vanilla ou MQ masqués (seuls les checks communs sont listés)
         const hiddenQuest = a.dungeon && !quest ? all.filter(c => c.quest !== 'B' && checkShuffled(c, s, cf.alwaysGS)).length : 0;
         if (cf.onlyAvailable) shown = shown.filter(c => done[c.id] || canNow(c));
+        // faisables d'abord, puis pas encore faisables, puis faits (ordre d'origine dans chaque groupe)
+        if (cf.sortAvail){ const rank = c => done[c.id] ? 2 : canNow(c) ? 0 : 1; shown = shown.map((c, i) => [c, i]).sort((x, y) => rank(x[0]) - rank(y[0]) || x[1] - y[1]).map(x => x[0]); }
         const complete = tracked.length > 0 && got === tracked.length;
         // faisables : checks suivis restants, faisables avec l'inventaire actuel
         const accessible = tracked.filter(c => !done[c.id] && canNow(c)).length;
@@ -363,6 +365,47 @@ const App = {
     const checkGroups = computed(() => [['Overworld', checkAreasC.value.filter(x => !x.area.dungeon)],
       ['Donjons', checkAreasC.value.filter(x => x.area.dungeon)]].filter(g => g[1].length));
     const toggleCheckArea = id => { cf.collapsed[id] = !cf.collapsed[id]; };
+    // Cocher / décocher ou exclure / réintégrer un check, avec « Annuler » pendant quelques secondes (clic malencontreux).
+    const lastCheck = ref(null);
+    let lastCheckTimer = null;
+    const CHECK_ACTIONS = { done:{ set:setCheck, get:id => !!store.game.checks[id], on:'coché', off:'décoché' },
+      excluded:{ set:setExcluded, get:id => !!s.excluded[id], on:'exclu', off:'réintégré' } };
+    function toggleCheckState(c, kind){
+      const a = CHECK_ACTIONS[kind], was = a.get(c.id);
+      a.set(c.id, !was);
+      lastCheck.value = { id:c.id, kind, was, text:`« ${c.label} » ${was ? a.off : a.on}` };
+      clearTimeout(lastCheckTimer);
+      lastCheckTimer = setTimeout(() => { lastCheck.value = null; }, 8000);
+    }
+    const toggleCheck = c => toggleCheckState(c, 'done');
+    const toggleExcluded = c => toggleCheckState(c, 'excluded');
+    function undoCheck(){
+      const l = lastCheck.value;
+      if (l) CHECK_ACTIONS[l.kind].set(l.id, l.was);
+      lastCheck.value = null; clearTimeout(lastCheckTimer);
+    }
+    // « Y aller » : le Routeur part du départ actuel (ui.router) et vise la sortie la plus proche d'où l'on rejoint à pied
+    // le check (une de ses régions SoH, à l'âge où il est faisable) ou la zone ; sans départ, une sortie qui y mène.
+    const goMsg = ref('');
+    function routeTo(isGoal, age){
+      const r = ui.router;
+      let found = null;
+      if (r.fromExit && EXIT[r.fromExit]){
+        const res = shortest(routeC.value.edges, r.fromExit, r.fromAge, isGoal);
+        if (res) found = { key:res.endKey, age:res.endAge };
+      }
+      if (!found) for (const e of ALL_EXITS) for (const a of ['child', 'adult'])
+        if (!found && e.areaId !== SPAWN_AREA && isGoal(e.key, a, 'start')) found = { key:e.key, age:a };
+      if (!found){ goMsg.value = 'Aucune sortie connue ne mène là pour l’instant.'; setTimeout(() => { goMsg.value = ''; }, 5000); return; }
+      r.toArea = EXIT[found.key].areaId; r.toExit = found.key; r.toAge = age || 'any';
+      go('router');
+    }
+    function goToCheck(c){
+      const regs = new Set(CHECK_REGIONS['RC_' + c.id] || []), now = lg(c).now || 0;
+      const age = (now & CHILD) && !(now & ADULT) ? 'child' : (now & ADULT) && !(now & CHILD) ? 'adult' : null;
+      routeTo((k, a, m) => (!age || a === age) && [...routeC.value.regions(k, a, m).keys()].some(rr => regs.has(rr)), age);
+    }
+    const goToZone = id => { const z = id.toLowerCase(); routeTo(k => EXIT[k].areaId === z, null); };
     function setAllChecks(collapsed){ CHECK_AREAS.forEach(a => { cf.collapsed[a.id] = collapsed; }); }
     function jumpCheck(id){
       cf.collapsed[id] = false; navOpen.value = false;
@@ -516,7 +559,7 @@ const App = {
     return { store, ui, s, views, navOpen, itemsOpen, modal, tip, tipData, backup, stats, missingSpawns, visibleAreas,
       ICONS, ITEMS_PAGE, ITEM_BY_KEY, DUNGEONS, DUNGEON_BY_ID, CHECKLISTS, AREA, EXIT, DATA_ERRORS,
       iconKey, exitIcon, areaName, toggleArea, setAll, jump, go, showTip, hideTip, toggleTip, setMapping, clearMapping,
-      checkAreasC, checkStats, toggleCheckArea, setAllChecks, jumpCheck, setCheck, setExcluded, CHECK_AREA,
+      checkAreasC, checkStats, toggleCheckArea, lastCheck, toggleCheck, toggleExcluded, undoCheck, goToCheck, goToZone, goMsg, setAllChecks, jumpCheck, setCheck, setExcluded, CHECK_AREA,
       CHECK_CATS, CHECK_CAT, catCounts, toggleCat, zoneTitle, soloCat, allCats, CHECK_AGES, ageLabelShort, ageKnown, checkGroups,
       lg, canNow, timeOf, checkLogicTitle, CHILD, ADULT,
       panelSkills, panelChecklists, cells, dungeonRows, skeletonShown, atStart, visibleKeys,
@@ -666,6 +709,7 @@ const App = {
           <label class="check" title="N'afficher que les checks faisables avec l'inventaire actuel (et ceux déjà faits) — option « Only show available » du tracker de SoH"><input type="checkbox" v-model="ui.checks.onlyAvailable">Seulement les faisables</label>
           <label class="check"><input type="checkbox" v-model="ui.checks.hideDone">Masquer les checks faits</label>
           <label class="check"><input type="checkbox" v-model="ui.checks.hideDoneZones">Masquer les zones terminées</label>
+          <label class="check" title="Dans chaque zone : faisables maintenant, puis pas encore faisables, puis faits"><input type="checkbox" v-model="ui.checks.sortAvail">Faisables en premier</label>
         </div>
         <div class="cat-chips">
           <button v-for="k in CHECK_CATS" v-show="catCounts[k.id].total" :key="k.id" type="button" class="cat-chip" :class="{off:ui.checks.hiddenCats[k.id]}"
@@ -695,6 +739,8 @@ const App = {
             <span v-for="b in x.byCat" v-show="b.left" :key="b.cat.id" class="zc" :title="b.cat.label + ' : ' + b.left + ' à faire'">
               <img v-if="!brokenIcons[b.cat.icon]" :src="b.cat.icon" alt=""><span v-else class="cat-fallback" :style="{'--cc':b.cat.color}">{{b.cat.label[0]}}</span>{{b.left}}</span>
           </span>
+          <span class="go-btn zone-go" role="button" tabindex="0" title="Y aller (Routeur, depuis le départ actuel)" v-html="ICONS.router"
+            @click.stop="goToZone(x.area.id)" @keydown.enter.stop="goToZone(x.area.id)"></span>
           <span class="zone-prog" :title="zoneTitle(x)">
             <span class="zbar"><i class="d" :style="{width:(x.total ? 100*x.got/x.total : 0)+'%'}"></i><i class="a" :style="{width:(x.total ? 100*x.accessible/x.total : 0)+'%'}"></i></span>
             <span class="zn"><b>{{x.got}}</b><small>fait{{x.got>1?'s':''}}</small></span>
@@ -707,7 +753,7 @@ const App = {
           <ul v-if="x.checks.length" class="check-list-grid">
             <li v-for="c in x.checks" :key="c.id" class="check-item"
               :class="{done:store.game.checks[c.id], excluded:s.excluded[c.id], avail:!store.game.checks[c.id] && canNow(c), locked:!store.game.checks[c.id] && !canNow(c)}">
-              <button type="button" class="ci-main" :title="checkLogicTitle(c)" @click="setCheck(c.id, !store.game.checks[c.id])">
+              <button type="button" class="ci-main" :title="checkLogicTitle(c)" @click="toggleCheck(c)">
                 <span class="ci-cat"><img v-if="!brokenIcons[CHECK_CAT[c.cat].icon]" :src="CHECK_CAT[c.cat].icon" alt="" @error="brokenIcons[CHECK_CAT[c.cat].icon]=true"><span v-else class="cat-fallback" :style="{'--cc':CHECK_CAT[c.cat].color}">{{CHECK_CAT[c.cat].label[0]}}</span></span>
                 <span class="ci-label">{{c.label}}</span>
                 <span v-if="timeOf(lg(c).ever)" class="time-mark" :class="timeOf(lg(c).ever)">{{timeOf(lg(c).ever) === 'night' ? '☾' : '☀'}}</span>
@@ -715,13 +761,19 @@ const App = {
                   <i v-if="lg(c).age !== 'adult'" :class="{now:lg(c).now & CHILD}">E</i><i v-if="lg(c).age !== 'child'" :class="{now:lg(c).now & ADULT}">A</i></span>
                 <span v-else class="age-pill never">—</span>
                 <span class="cr-mark" v-html="store.game.checks[c.id] ? ICONS.check : ICONS.circleO"></span></button>
+              <button v-if="!store.game.checks[c.id]" type="button" class="ci-ex ci-go" title="Y aller (Routeur, depuis le départ actuel)" v-html="ICONS.router" @click="goToCheck(c)"></button>
               <button type="button" class="ci-ex" :title="s.excluded[c.id] ? 'Réintégrer ce check' : 'Exclure ce check (ne compte plus)'"
-                @click="setExcluded(c.id, !s.excluded[c.id])">{{s.excluded[c.id] ? '↺' : '⊘'}}</button>
+                @click="toggleExcluded(c)">{{s.excluded[c.id] ? '↺' : '⊘'}}</button>
             </li>
           </ul>
           <p v-else class="quest-note">{{x.total ? 'Tous les checks affichés de cette zone sont faits.' : 'Aucun check avec les filtres actuels.'}}</p>
         </div>
       </article>
+      <div v-if="lastCheck || goMsg" class="toast" role="status">
+        <template v-if="goMsg">{{goMsg}}</template>
+        <template v-else>{{lastCheck.text}}
+          <button type="button" @click="undoCheck"><span v-html="ICONS.undo"></span>Annuler</button></template>
+      </div>
     </template>
 
     <template v-if="ui.view==='router'">

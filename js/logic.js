@@ -1050,6 +1050,9 @@ function blueWarpTargets(eff, settings){
    téléportation (RR_ROOT_EXITS), sauvegarder-recharger (entrée du donjon dans un donjon, sinon apparition de l'âge),
    changement d'âge au Temple du Temps (derrière la Porte du Temps atteignable, comme le voyage dans le temps de
    fill.cpp). Les conditions sont évaluées sur l'état noté (inventaire, événements) ; jour ou nuit indifférents. */
+// Régions SoH où se trouve chaque check (RC_… -> [RR_…]) : « Y aller » de la page Checks.
+const CHECK_REGIONS = {};
+for (const [rr, r] of Object.entries(SOH.regions)) for (const [rc] of r.checks || []) (CHECK_REGIONS[rc] ||= []).push(rr);
 const ENTRANCE_EDGES = new Set(SOH.entrances.map(([, , from, to]) => from + '>' + to));
 const TIME_DOOR = 'RR_TOT_BEYOND_DOOR_OF_TIME';
 // Coûts de marche d'areas-data.js : plus court chemin entre deux sorties d'une zone (conditions ignorées, c'est la logique

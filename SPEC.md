@@ -460,7 +460,16 @@ check) ; règles dans `js/checks.js`.
   (icône + nombre), puis la progression : barre (faits, puis accessibles) et trois valeurs « faits | accessibles |
   total » (accessibles = checks suivis restants faisables maintenant). Code couleur de la zone (pastille de progression,
   liseré gauche, nom dans le panneau de gauche) : terminée → grisée ; tout le reste accessible → vert ; en partie →
-  neutre ; rien d'accessible (ou rien à faire) → rouge. Le détail est repris au survol. Checks sur 2 colonnes (1 sur mobile) : icône de catégorie, libellé,
+  neutre ; rien d'accessible (ou rien à faire) → rouge. Le détail est repris au survol.
+- **Liste des checks** : 2 colonnes, 1 seule quand la liste est étroite (moins de 640 px, ex. panneaux latéraux
+  ouverts) pour garder les libellés lisibles. Option « Faisables en premier » (`ui.checks.sortAvail`, activée par
+  défaut) : dans chaque zone, faisables maintenant, puis pas encore faisables, puis faits.
+- **Annuler** : cocher / décocher ou exclure / réintégrer un check affiche quelques secondes un bandeau en bas
+  d'écran (« … coché · Annuler », « … exclu · Annuler ») pour revenir en arrière (clic malencontreux).
+- **Y aller** : bouton (icône du Routeur) au survol d'un check à faire et dans l'en-tête de zone. Ouvre le Routeur
+  avec pour arrivée la sortie la plus proche, depuis le départ actuel du Routeur, d'où l'on rejoint à pied le check
+  (une de ses régions SoH, `CHECK_REGIONS`, à l'âge où il est faisable s'il n'est faisable qu'à un âge) ou la zone.
+  Sans départ noté : une sortie d'où l'on y va à pied. Message si aucune sortie connue n'y mène. Checks sur 2 colonnes (1 sur mobile) : icône de catégorie, libellé,
   ☾ / ☀, pastille d'âge, coche ; un clic (gauche) bascule fait / à faire (`game.checks`, stockage creux `{ id: true }`) ; nom SoH
   au survol ; ⊘ au survol pour exclure.
 

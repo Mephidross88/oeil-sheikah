@@ -24,7 +24,8 @@ et le mettre à jour quand une règle change.
      Fichier généré à partir de `settings.cpp` de SoH ; les valeurs stockées sont les chaînes SoH exactes.
   4. `js/entrances.js` : règles de la page Entrées, pures (sans Vue) — sorties randomisées et pools (`isRandomized`,
      `poolOf`, `isMixed`, pool des salles de boss), déblocage des sens uniques (`isUnlocked`), cibles effectives
-     (`computeEff`), validation des données (`DATA_ERRORS`) — et `shortest` (Dijkstra, pour le Routeur).
+     (`computeEff`), validation des données (`DATA_ERRORS`) — et `shortest` (Dijkstra, pour le Routeur ; but = sortie ou
+     prédicat, pour « Y aller » de Checks).
   5. `js/items.js` : `ITEM_GROUPS` (catalogue du panneau Objets, source de vérité des métadonnées et des
      clés de sauvegarde) et ses helpers (`itemMax`, `itemVisible`, `visibleKeys`, `dungeonCells`, `configQuest`, `configKeyRing`, `TRIALS`/`configTrials` (épreuves de Ganon) — visibilité
      pilotée par `store.settings`) ; `ITEM_BY_KEY` (lookup clé → objet) et

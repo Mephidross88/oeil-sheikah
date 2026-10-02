@@ -422,7 +422,7 @@ svg{display:block}
 .dg-quest-pill.vanilla{background:#c0392b}
 .dg-quest-pill.mq{background:#2462b8}
 .dg-quest-pill.unknown{background:var(--surface);color:var(--text);border:1.5px dashed var(--text)}
-.check-body{padding:0 14px 14px}
+.check-body{padding:0 14px 14px;container-type:inline-size}
 .quest-note{margin:0 4px 10px;color:var(--muted);font-size:14px}
 .check-list-grid{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 16px}
 .check-item{display:flex;align-items:center;border-radius:8px}
@@ -438,7 +438,22 @@ svg{display:block}
 .check-item:hover .ci-ex,.ci-ex:focus-visible{opacity:1}
 .ci-ex:hover{background:var(--surface);color:var(--text)}
 .check-item.excluded .ci-ex{opacity:1}
-@media (max-width:760px){ .check-list-grid{grid-template-columns:1fr} }
+/* une colonne quand la liste est étroite (panneaux latéraux ouverts, mobile) : libellés lisibles */
+@container (max-width: 640px){ .check-list-grid{grid-template-columns:1fr} }
+/* « Y aller » (Routeur) : au survol d'un check, et dans l'en-tête de zone */
+.ci-go{display:grid;place-items:center}
+.ci-go svg{width:16px;height:16px}
+.go-btn{display:grid;place-items:center;width:30px;height:30px;flex:none;border-radius:8px;color:var(--ocarina);cursor:pointer}
+.go-btn svg{width:18px;height:18px}
+.go-btn:hover,.go-btn:focus-visible{background:var(--ocarina-soft);outline:0}
+.zone-go{margin-left:auto}
+.zone-go + .zone-prog{margin-left:0}
+/* bandeau en bas d'écran : annuler le dernier coché, message */
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:40;display:flex;align-items:center;gap:12px;max-width:calc(100vw - 32px);
+  padding:10px 12px 10px 18px;border-radius:12px;background:var(--ink);color:var(--ink-text);box-shadow:0 6px 24px rgba(0,0,0,.3);font-size:14.5px}
+.toast button{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--ink-line);border-radius:8px;background:var(--ink-2);color:var(--gold);
+  padding:5px 12px;font-weight:700;cursor:pointer}
+.toast button svg{width:15px;height:15px}
 .empty b{color:var(--text)}
 .warn-box{display:flex;gap:14px;align-items:flex-start;background:var(--gold-soft);border:1px solid var(--gold);border-left:5px solid var(--gold-deep);
   border-radius:14px;padding:18px 22px;color:var(--text);max-width:640px;box-shadow:var(--shadow);margin-bottom:16px}
