@@ -233,6 +233,12 @@ svg{display:block}
 .dg-flag:hover{border-color:var(--gold)}
 .dg-flag.on{border-color:var(--gold);background:var(--gold-soft);color:var(--gold-deep)}
 .dg-flag.fixed,.dg-keys.fixed{cursor:default}
+/* Épreuves de Ganon : pastille à la teinte du médaillon — inconnue (pointillés), requise (pleine), dissipée (atténuée, ✓) */
+.dg-trial{width:26px;height:26px;border-radius:50%;padding:0;font-size:12px;font-weight:700;line-height:1;display:grid;place-items:center;
+  border:2px solid var(--tr);background:var(--tr);color:#fff}
+.dg-trial.unknown{border-style:dashed;background:var(--surface);color:var(--muted)}
+.dg-trial.skipped{background:color-mix(in srgb, var(--tr) 22%, var(--surface));color:var(--tr)}
+.dg-trial:hover{box-shadow:0 0 0 2px var(--gold)}
 .dg-flag.fixed:hover,.dg-keys.fixed:hover{border-color:var(--gold)}
 .dg-keys{display:flex;align-items:center;justify-content:center;gap:4px;height:36px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--muted);
   padding:0 8px;font-size:13px;font-variant-numeric:tabular-nums}

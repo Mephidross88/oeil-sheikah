@@ -22,12 +22,12 @@ et le mettre à jour quand une règle change.
      (onglets/cartes), `SETTINGS_DEF` (clé camelCase, nom SoH exact, libellé FR, choix `[valeurSoH, libellé]`,
      défaut, règle de visibilité `show(s)`), `SETTINGS_IGNORED`, `TRICKS`/`TRICK_AREAS`/`TRICK_LEVELS`.
      Fichier généré à partir de `settings.cpp` de SoH ; les valeurs stockées sont les chaînes SoH exactes.
-  4. `js/ootr-logic.js` : ancienne logique (OoT Randomizer) encore utilisée par Entrées et Routeur, remplacée par
-     `js/logic.js` aux étapes 4 et 5 puis supprimée. Logique pure (sans Vue) — conditions (`sat`, `REQUIREMENTS`), dérivation de
-     l'inventaire (`deriveGame`, `canOpenDoorOfTime`), pools de randomisation, `computeEff`, graphe de
-     déplacement (`makeEdges`, `flood`, `computeAges`), `shortest` (Dijkstra).
+  4. `js/ootr-logic.js` : reste de l'ancienne logique (OoT Randomizer), supprimé à l'étape 5 (Routeur sur la logique
+     SoH). Pur (sans Vue) : règles de la page Entrées — sorties randomisées et pools (`isRandomized`, `poolOf`,
+     `isMixed`, pool des salles de boss), déblocage des sens uniques (`isUnlocked`), cibles effectives
+     (`computeEff`) — et `shortest` (Dijkstra, pour le Routeur).
   5. `js/items.js` : `ITEM_GROUPS` (catalogue du panneau Objets, source de vérité des métadonnées et des
-     clés de sauvegarde) et ses helpers (`itemMax`, `itemVisible`, `visibleKeys`, `dungeonCells`, `configQuest`, `configKeyRing` — visibilité
+     clés de sauvegarde) et ses helpers (`itemMax`, `itemVisible`, `visibleKeys`, `dungeonCells`, `configQuest`, `configKeyRing`, `TRIALS`/`configTrials` (épreuves de Ganon) — visibilité
      pilotée par `store.settings`) ; `ITEM_BY_KEY` (lookup clé → objet) et
      `ITEMS_PAGE` (mise en page du panneau — quels objets dans quel bloc visuel, sans redéfinir leurs
      métadonnées) ; `DUNGEONS`/`DUNGEON_BY_ID` (carte/boussole/petites clés/clé de boss par donjon) et
@@ -40,15 +40,18 @@ et le mettre à jour quand une règle change.
      Contexte global `L` lu par les conditions de `logic-data.js` (âge/moment courants, `HasItem`/`CanUse`
      sur l'inventaire du panneau Objets, options via `L.opt(RSK)`, astuces, événements, fonctions de logique),
      et `computeSoh(settings, game, links?)` → `{ access:{RR: bits}, events, checks:{RC: bits} }` (bits : `CD`
-     enfant jour, `CN` enfant nuit, `AD`/`AN` adulte ; `links` : entrées mélangées `{ 'RR_A>RR_B': 'RR_C' }`).
-     Pur (sans Vue), lit `store` seulement via ses arguments.
+     enfant jour, `CN` enfant nuit, `AD`/`AN` adulte ; `links` : entrées mélangées `{ 'RR_A>RR_B': 'RR_C' }`,
+     `null` = impasse). En fin de fichier, `entranceLinks(eff, settings)` traduit les destinations notées dans Entrées
+     en `links` (sortie randomisée non notée → impasse ; salles de boss et téléporteurs bleus selon la règle de SoH),
+     et `exitRegions`/`arrivalRegion` (régions SoH d'une sortie). Pur (sans Vue), lit `store` seulement via ses arguments.
   8. `js/state.js` : persistance (`defaults`, `merge`, `load`, `store`, sauvegarde auto), les `computed`
-     dérivés au niveau module (`effC`, `agesC`, `gameC`, `edgesC`, `reachC`, `sohC` — logique SoH avec l'inventaire noté, `sohFullC` — avec un inventaire « tout obtenu »
-     (`fullGame`), pour l'âge des checks), les mutations du mapping
+     dérivés au niveau module (`effC`, `linksC` — destinations notées → liaisons, `sohC` — logique SoH avec
+     l'inventaire noté et les entrées notées, `agesC` — âges accessibles, `reachC` — sorties atteignables, `sohFullC`
+     — avec un inventaire « tout obtenu » (`fullGame`), pour l'âge des checks), les mutations du mapping
      (`setMapping`, `clearMapping`, `candidatesFor`), les helpers de tuile d'objet partagés par `App` et
      `ItemTile` (`itemActive`, `iconSrc`, `itemTitle`, `itemMaxed`, `clickItem`, `rightClickItem`), et les
      mutations des check-lists/donjons (`setChecklist`, `checklistStats`, `setDungeonFlag`,
-     `addDungeonKeys`, `dungeonQuest`/`dungeonMaxKeys`/`cycleDungeonQuest` — version Vanilla/MQ, `dungeonKeyRing`/`setKeyRing`/`dungeonKeysDone` — trousseaux et clé squelette), et `applyStartingItems` (objets de départ de la configuration → panneau Objets), et pour la page Checks `areaQuest`,
+     `addDungeonKeys`, `dungeonQuest`/`dungeonMaxKeys`/`cycleDungeonQuest` — version Vanilla/MQ, `dungeonKeyRing`/`setKeyRing`/`dungeonKeysDone` — trousseaux et clé squelette, `trialStatus`/`cycleTrial` — épreuves de Ganon tirées au sort), et `applyStartingItems` (objets de départ de la configuration → panneau Objets), et pour la page Checks `areaQuest`,
      `checkListed`, `setCheck`, `setExcluded`.
   9. `js/components.js` : composants Vue réutilisables (`TypeIcon`, `Seg`, `DestPicker`, `ItemTile`,
      `ProgressCard` — cadre de progression des pages Checks et Entrées).
@@ -66,10 +69,12 @@ et le mettre à jour quand une règle change.
   et la table des entrées de SoH (`entrances` : numéro ENTR, type, région de départ, région d'arrivée vanilla).
   Gros fichier : ne le lire que par extraits (grep sur un `RR_…` ou `RC_…`).
 - `tools/soh-logic/` : `extract_logic.mjs` (régénère `logic-data.js`) et `replay_spoilers.mjs` (test du moteur :
-  rejoue des spoilers SoH sphère par sphère, voir SPEC.md > Logique Ship of Harkinian ; à relancer après toute
-  modification de `js/logic.js` ou de la conversion).
+  rejoue des spoilers SoH sphère par sphère, et compare aux entrées du spoiler les liaisons déduites des destinations
+  notées, voir SPEC.md > Logique Ship of Harkinian ; à relancer après toute modification de `js/logic.js`, de la
+  conversion, des règles d'entrées ou de `areas-data.js`).
 - `tools/soh-entrances/apply_names.mjs` : table sortie ↔ entrée du tracker d'entrées de SoH et traductions ; réécrit les
-  champs `label` / `soh` de `areas-data.js` (relancer après toute modification de la table).
+  champs `label` / `soh` / `entr` de `areas-data.js` et aligne `shuffleTag` sur le type d'entrée SoH (relancer après
+  toute modification de la table).
 - `icons/` : images. `icons/exits/` (types de sortie), `icons/items/` (convention par défaut du panneau
   Objets) et `icons/rewards/...` (chemins personnalisés d'exemple) — voir SPEC.md > Panneau Objets pour la
   convention de nommage et comment personnaliser un chemin par objet (`icon`/`icons` dans `ITEM_GROUPS`).
@@ -84,40 +89,40 @@ et le mettre à jour quand une règle change.
 
 ## Modèle de données
 - Zone : `{ id, name, exits[] }` — les 32 zones du tracker de checks de SoH (id = RCAREA en minuscules, même découpage
-  que la page Checks) + la pseudo-zone `spawns` (apparitions, chants de téléportation). Sortie : `{ id, label, soh, type, shuffleTag, vanillaTargetExitId, connections?, destinationOnly?, specialTag? }`
-  (`label` = nom SoH traduit, `soh` = nom exact du tracker d'entrées de SoH, affiché au survol).
+  que la page Checks) + la pseudo-zone `spawns` (apparitions, chants de téléportation). Sortie : `{ id, label, soh, entr?, type, shuffleTag, vanillaTargetExitId, connections?, destinationOnly?, specialTag? }`
+  (`label` = nom SoH traduit, `soh` = nom exact du tracker d'entrées de SoH, affiché au survol, `entr` = numéro de
+  l'entrée SoH, comme dans `SOH_LOGIC.entrances` ; absent pour les arrivées seules).
 - Clé d'une sortie : `"zoneId::exitId"`.
 - « Cible » d'une sortie T = l'endroit où l'on apparaît : on se trouve à l'emplacement de la sortie T.
   Ex. `kokiri_forest::kf_to_midos` (« Maison de Mido ») est côté forêt ; en la prenant, on arrive à
   `midos_to_kf` (« Sortie de la maison de Mido »), à l'intérieur.
-- `connections` : déplacements à pied dans la même zone, `cost` + `requirements` en DNF
-  (liste de groupes ; un groupe entièrement satisfait suffit).
-- `destinationOnly` : plateformes de téléportation, arrivée de la rivière Gerudo (on ne peut pas les prendre).
+- `connections` : déplacements à pied dans la même zone, `cost` + `requirements` en DNF (conditions OoT Randomizer,
+  plus lues ; le Routeur reprendra les coûts à l'étape 5).
+- `destinationOnly` : plateformes de téléportation, arrivée de la rivière Gerudo, toit de la maison d'Impa (atterrissage
+  du hibou du Chemin du Péril) — on ne peut pas les prendre.
 - `specialTag` boss_child / boss_adult : salles de boss ; leur sortie est le téléporteur bleu, calculée
-  automatiquement (retour devant l'entrée qui mène au donjon dont on a franchi la porte de boss).
+  automatiquement en entrées couplées, notée par le joueur en entrées découplées (`bossRoomNoted`).
 
-## Ancienne logique Entrées / Routeur (js/ootr-logic.js, js/state.js)
+## Règles de la page Entrées (js/ootr-logic.js, js/state.js)
 - `store.settings` = une clé par entrée de `SETTINGS_DEF` (valeurs SoH : `'On'`/`'Off'`, `'Deku Only'`…) + `tricks`
   (`{ RT_…: bool }`). Tester les valeurs SoH exactes (`s.bossEntrances === 'Full'`), jamais des booléens.
 - `isRandomized(exit, settings)` : sortie randomisée selon la configuration (détermine le mode `vanilla` vs le reste).
   `isDecoupled(s)` (entrées découplées), `isMixed(exit, s)` (type d'entrée inclus dans les pools mélangés via les
   options « Mix … »).
-- `isUnlocked(exit, game)` : sortie à sens unique (spawn/chant) effectivement connaissable dans la partie en cours
-  (spawn enfant/adulte avec l'âge correspondant accessible, chant avec Ocarina + chant appris). Tant que ce n'est
-  pas le cas, la sortie est `isRandomized` mais pas éditable (mode `locked` dans `rowInfo`) : pas de liste
-  déroulante tant que le joueur ne peut pas réellement connaître cette destination.
+- `isUnlocked(exit, ages, game)` : sortie à sens unique (spawn/chant) effectivement connaissable dans la partie en
+  cours (spawn enfant/adulte avec l'âge correspondant accessible selon `agesC`, chant avec Ocarina + chant appris).
+  Tant que ce n'est pas le cas, la sortie est `isRandomized` mais pas éditable (mode `locked` dans `rowInfo`).
 - `computeEff()` : cible effective de chaque sortie (mapping utilisateur, vanilla ou calcul boss). Se base sur
   `isRandomized` seul (pas `isUnlocked`) : une destination déjà notée reste connue même si l'état de la partie
   qui l'a débloquée est ensuite décoché.
-- Entrées couplées par défaut : `setMapping(A, B)` écrit aussi `B → A` (sauf `settings.decoupled`, sens uniques, boss).
-- Pools (`poolOf`) : les listes ne proposent que des destinations du même type, sauf `settings.mixedPools`.
-  Hiboux, chants, spawns, rivière Gerudo = sens unique, ne consomment pas leur destination.
-- `sat(requirement, game, age)` : les objets réservés à un âge exigent l'âge COURANT.
-- Graphe sur les états (sortie, âge) : `makeEdges()` produit marche, transition, téléporteur bleu, hibou (enfant),
-  chants, sauvegarder/recharger (entrée du donjon si on est dans un donjon, sinon spawn de l'âge),
-  changement d'âge au Temple du Temps (`TOT`). `shortest()` = Dijkstra, `flood()` = zones atteignables.
-- Coûts réglables dans `store.costs`.
+- Entrées couplées par défaut : `setMapping(A, B)` écrit aussi `B → A` (`isCoupledPair` : deux sorties à double sens,
+  ou porte de boss ↔ Tour de Ganon ; jamais en entrées découplées).
+- Pools (`poolOf`, `candidatesFor`) : les listes ne proposent que des destinations du même pool, sauf pools
+  mélangés. Portes de boss → salles (et Tour de Ganon) ; salles notées → devant une porte de boss. Sens uniques
+  (`ONE_WAY_TARGETS`, types SoH des entrées d'arrivée) : ne consomment pas leur destination.
+- Accessibilité : uniquement la logique SoH (`sohC`, `reachC`) ; une sortie randomisée non notée est une impasse.
+- Coûts du Routeur réglables dans `store.costs`.
 
 ## Débogage
-`window.__PF` expose `store`, `effC`, `reachC`, `edgesC`, `shortest`, `candidatesFor`, `setMapping`, `EXIT`,
-`sohC`, `sohFullC`, `computeSoh`, `L`, `SOH` pour tester dans la console du navigateur.
+`window.__PF` expose `store`, `effC`, `linksC`, `reachC`, `agesC`, `shortest`, `candidatesFor`, `setMapping`, `EXIT`,
+`sohC`, `sohFullC`, `computeSoh`, `entranceLinks`, `L`, `SOH` pour tester dans la console du navigateur.

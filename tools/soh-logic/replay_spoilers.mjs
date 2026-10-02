@@ -3,8 +3,10 @@
 // ramasse les objets de TOUS les checks accessibles (objets du spoiler, ou objet vanilla d'un check non mélangé),
 // jusqu'au point fixe. Attendu : chaque lieu du « playthrough » et chaque lieu du spoiler finit par être atteint.
 // (Les numéros de sphère du playthrough, compressés par SoH après élagage, ne sont qu'indicatifs : voir V=1.)
-// Usage : node replay_spoilers.mjs <dossier ou fichiers .json …>   (V=1 : détail ; les spoilers à entrées mélangées
-// sont ignorés tant que le moteur ne gère pas les entrées).
+// Entrées mélangées : le rejeu utilise les entrées du spoiler ; en plus, ces entrées sont converties en destinations notées
+// (store.mappings, comme dans la page Entrées) et les liaisons qu'en déduit l'appli (entranceLinks) sont comparées à celles
+// du spoiler (aucune différence attendue).
+// Usage : node replay_spoilers.mjs <dossier ou fichiers .json …>   (V=1 : détail)
 import fs from 'fs';
 import vm from 'vm';
 import path from 'path';
@@ -23,7 +25,7 @@ function loadApp(){
   for (const f of ['areas-data.js', 'checks-data.js', 'logic-data.js', 'js/icons.js', 'js/data.js', 'js/config.js', 'js/ootr-logic.js',
     'js/items.js', 'js/checks.js', 'js/logic.js', 'js/state.js'])
     vm.runInContext(fs.readFileSync(path.join(APP, f), 'utf8'), ctx, { filename:f });
-  vm.runInContext('globalThis.__T = { store, defaults, computeSoh, SETTING_BY_SOH, TRICKS, DUNGEONS, CHECK_BY_SOH, CHECK_BY_ID, checkShuffled, checkQuestActive, applyStartingItems, configQuest, CHECKLISTS, ITEM_BY_KEY, itemLevels, SOH, L, sohWarned };', ctx);
+  vm.runInContext('globalThis.__T = { store, defaults, computeSoh, SETTING_BY_SOH, TRICKS, DUNGEONS, CHECK_BY_SOH, CHECK_BY_ID, checkShuffled, checkQuestActive, applyStartingItems, configQuest, CHECKLISTS, ITEM_BY_KEY, itemLevels, SOH, L, sohWarned, TRIALS, configTrials, entranceLinks, computeEff, EXIT_BY_ENTR, SOH_ENTRANCE, BOSS_DOORS };', ctx);
   return ctx.__T;
 }
 const T = loadApp();
@@ -157,6 +159,26 @@ function giveVanilla(c){
   }
 }
 
+// Entrées du spoiler -> destinations notées, puis liaisons qu'en déduit l'appli, comparées à celles du spoiler.
+function checkLinks(data, links){
+  const st = T.store, decoupled = st.settings.decoupleEntrances === 'On';
+  st.mappings = {};
+  for (const e of data.entrances || []){
+    const x = T.EXIT_BY_ENTR[e.index];
+    if (!x || (x.specialTag && !decoupled)) continue;   // téléporteurs bleus, et salles de boss en entrées couplées : calculés
+    // on apparaît à la cible vanilla de l'entrée « override » ; porte de sortie d'une salle de boss : devant sa porte de boss
+    const w = T.EXIT_BY_ENTR[e.override];
+    const z = !w ? null : w.specialTag ? T.BOSS_DOORS.find(d => d.vanilla === w.key)?.key : w.vanilla;
+    if (z) st.mappings[x.key] = z;
+  }
+  const ours = T.entranceLinks(T.computeEff(st), st.settings), diffs = [];
+  for (const k of new Set([...Object.keys(ours), ...Object.keys(links)])){
+    const v = k.split('>')[1], o = k in ours ? ours[k] : v, t = k in links ? links[k] : v;
+    if (o !== t) diffs.push(`${k} : appli ${o}, spoiler ${t}`);
+  }
+  return diffs;
+}
+
 function replay(file){
   const data = JSON.parse(fs.readFileSync(file, 'utf8'));
   const st = T.store, def = T.defaults();
@@ -168,6 +190,9 @@ function replay(file){
   for (const n of data.enabledTricks || []){ const t = TRICK_BY_NAME[n]; if (t) st.settings.tricks[t.key] = true; else console.log('  astuce inconnue', n); }
   const mq = data.masterQuestDungeons || [];
   T.DUNGEONS.forEach(d => { if (d.quest) st.game.dungeons[d.id].quest = mq.includes(d.soh) ? 'MQ' : 'Vanilla'; });
+  // épreuves de Ganon tirées au sort : liste « requiredTrials » du spoiler (comme l'import des tirages du seed)
+  if (T.configTrials(st.settings) === null)
+    T.TRIALS.forEach(t => { st.game.trials[t.id] = (data.requiredTrials || []).some(r => t.match.test(r)) ? 'required' : 'skipped'; });
   // trousseaux tirés : on considère le trousseau obtenu à la place des clés (voir give)
   T.applyStartingItems(st.settings);
   // plancher des objets à paliers (raiseToFirstLevel)
@@ -181,6 +206,7 @@ function replay(file){
     if (!a || !b){ console.log(`  entrée inconnue : ${e.index} -> ${e.override}`); continue; }
     links[a.from + '>' + a.to] = b.to;
   }
+  const linkDiffs = checkLinks(data, links);
 
   const locItem = {};
   for (const [loc, v] of Object.entries(data.locations)) locItem[loc] = typeof v === 'string' ? v : v.item;
@@ -212,7 +238,7 @@ function replay(file){
   // lieux du spoiler jamais atteints (tous doivent l'être si « All Locations Reachable »)
   const unreached = Object.keys(locItem).filter(l => !(l in sphereOf) && T.CHECK_BY_SOH[l]);
   return { file:path.basename(file), version:data.version, spheres:sphere, reached:Object.keys(sphereOf).length, total:Object.keys(locItem).length,
-    late, never, unreached };
+    late, never, unreached, linkDiffs };
 }
 
 const args = process.argv.slice(2);
@@ -227,6 +253,8 @@ for (const f of files){
   console.log(`${r.file} : ${r.spheres} sphères ; playthrough : ${r.never.length} lieu(x) jamais atteint(s) ; spoiler : ${r.unreached.length} lieu(x) non atteint(s)`
     + (r.never.length || r.unreached.length ? '  <-- ÉCART' : ''));
   r.never.slice(0, 8).forEach(x => console.log('   JAMAIS  ', x));
+  if (r.linkDiffs.length) console.log(`   ${r.linkDiffs.length} liaison(s) déduite(s) des entrées notées différente(s) du spoiler  <-- ÉCART`);
+  r.linkDiffs.slice(0, 8).forEach(x => console.log('   LIAISON ', x));
   if (process.env.V) r.late.slice(0, 5).forEach(x => console.log('   RETARD  ', x));
   if (process.env.V) r.unreached.slice(0, 40).forEach(x => console.log('   non atteint', x));
 }

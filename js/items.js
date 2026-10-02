@@ -140,7 +140,7 @@ const ITEM_GROUPS = [
   ]},
   // Spécificité Ship of Harkinian : les mouvements/capacités et les langues peuvent être mélangés dans le
   // pool d'objets (une option par capacité, une seule pour toutes les langues). Visibles seulement si
-  // mélangés ; purement informatifs pour l'instant (pas encore branchés à `sat()`).
+  // mélangés ; lus par la logique SoH (js/logic.js).
   { title:'Capacités', path:'items', items:[
     { key:'swim', label:'Nager', kind:'bool', icon:'abilities/swim.png', visible:s => s.shuffleSwim === 'On' },
     { key:'climb', label:'Grimper', kind:'bool', icon:'abilities/climb.png', visible:s => s.shuffleClimb === 'On' },
@@ -262,7 +262,6 @@ const ROMAN = ['', 'I', 'II', 'III', 'IV', 'V'];
 const tierLabel = it => it.sizes ? null : (ROMAN[store.game[it.path][it.key]] || null);
 
 /* ---------- Objets de donjon (carte / boussole / petites clés / clé de boss) ---------- */
-// NOTE : purement informatif pour l'instant — pas encore branché à Entrées/Routeur (`sat()`/`makeEdges()`).
 // `maxKeys` = valeurs vanilla par défaut, à ajuster une fois la logique Ship of Harkinian précisée.
 // `color` : teinte du thème du donjon (bordure du bloc ; le fond en est une version très atténuée).
 // boss : nom du boss (âme de boss, option « Âmes de boss ») ; keyRing : réglage SoH « trousseau de clés » du donjon ; quest : réglage SoH du statut Vanilla / Master Quest ; soh : nom du donjon dans la liste
@@ -299,7 +298,26 @@ function dungeonCells(id, s){
     soul:!!d.boss && (id === 'ganonsCastle' ? s.shuffleBossSouls === 'On + Ganon' : s.shuffleBossSouls !== 'Off'),
     // statut Vanilla / MQ à noter : seulement s'il n'est pas imposé par la configuration
     quest:!!d.quest && !configQuest(id, s),
+    // épreuves de Ganon à noter : seulement si elles sont tirées au sort
+    trials:id === 'ganonsCastle' && configTrials(s) === null,
   };
+}
+// Épreuves de Ganon (réglage « Ganon's Trials ») : id, libellé, teinte du médaillon, clé SoH (TK_…), mot-clé dans la
+// liste « requiredTrials » des spoilers (français ou anglais).
+const TRIALS = [
+  { id:'forest', label:'Forêt', color:'#3f9a3f', tk:'TK_FOREST_TRIAL', match:/forêt|forest/i },
+  { id:'fire', label:'Feu', color:'#d0482a', tk:'TK_FIRE_TRIAL', match:/feu|fire/i },
+  { id:'water', label:'Eau', color:'#2f7fd0', tk:'TK_WATER_TRIAL', match:/eau|water/i },
+  { id:'shadow', label:'Ombre', color:'#7a4fb0', tk:'TK_SHADOW_TRIAL', match:/ombre|shadow/i },
+  { id:'spirit', label:'Esprit', color:'#d08a2a', tk:'TK_SPIRIT_TRIAL', match:/esprit|spirit/i },
+  { id:'light', label:'Lumière', color:'#c9b52e', tk:'TK_LIGHT_TRIAL', match:/lumière|light/i },
+];
+// Épreuves imposées par la configuration : 'skipped' (aucune : « Aucune » ou nombre fixe 0), 'required' (nombre fixe 6),
+// ou null quand lesquelles sont requises est tiré au sort (le joueur les note dans le panneau, ou import du spoiler).
+function configTrials(s){
+  if (s.ganonsTrials === 'Skip' || (s.ganonsTrials === 'Set Number' && s.ganonsTrialsCount === 0)) return 'skipped';
+  if (s.ganonsTrials === 'Set Number' && s.ganonsTrialsCount >= 6) return 'required';
+  return null;
 }
 // Objets de donjon possédés dès le départ (option « Au départ ») : cases pleines, non cliquables.
 const mapsAtStart = (id, s) => s.mapsCompasses === 'Start With';

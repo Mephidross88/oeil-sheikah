@@ -114,7 +114,13 @@ const L = {
   quest(soh){ const id = SOH_DUNGEON[soh]; return configQuest(id, this.s) || this.g.dungeons[id].quest || ''; },
   mq(soh){ return this.quest(soh) !== 'Vanilla'; },
   vanilla(soh){ return this.quest(soh) !== 'MQ'; },
-  trialSkipped(){ return this.s.ganonsTrials === 'Skip' || (this.s.ganonsTrials === 'Set Number' && this.s.ganonsTrialsCount === 0); },
+  // Trial::IsSkipped : imposé par la configuration, sinon épreuve notée « dissipée » (inconnue = requise).
+  trialSkipped(tk){
+    const c = configTrials(this.s);
+    if (c) return c === 'skipped';
+    const t = TRIALS.find(x => x.tk === tk);
+    return !!t && this.g.trials?.[t.id] === 'skipped';
+  },
   Get(ev){ return !!this.events[ev]; },
   Set(ev){ this.events[ev] = true; },
 
@@ -773,8 +779,9 @@ function sohStates(fn, have, stopAtFirst){
 /* ---------- Recherche d'accessibilité (fill.cpp : ReachabilitySearch en mode « checks disponibles ») ----------
    settings : store.settings ; game : store.game ; links (facultatif) : entrées mélangées connues,
    { 'RR_DÉPART>RR_ARRIVÉE_VANILLA': 'RR_ARRIVÉE_RÉELLE' } (Entrance::Connect : la sortie garde sa condition, seule
-   la région d'arrivée change). Renvoie { access:{RR: bits}, events:{LOGIC: true}, checks:{RC: bits} } — bits des
-   états âge/moment dans lesquels le check est faisable (0 = inaccessible). */
+   la région d'arrivée change ; null = destination inconnue, la sortie ne mène nulle part). Renvoie
+   { access:{RR: bits}, events:{LOGIC: true}, checks:{RC: bits} } — bits des états âge/moment dans lesquels le check
+   est faisable (0 = inaccessible). */
 function computeSoh(settings, game, links = {}){
   L.s = settings; L.g = game; L.events = {}; L.access = {}; L.optIdx = {}; L.cur = null; L.curCheck = null; L.BigPoes = 0;
   const access = L.access, added = new Set(), pool = ['RR_ROOT'], checksFound = new Set();
@@ -805,7 +812,8 @@ function computeSoh(settings, game, links = {}){
   }
   function processExits(rr){
     for (const [vanillaTo, fn] of SOH.regions[rr].exits){
-      const to = links[rr + '>' + vanillaTo] || vanillaTo;
+      const k = rr + '>' + vanillaTo, to = k in links ? links[k] : vanillaTo;
+      if (!to) continue;   // destination pas encore notée : impasse
       if (!SOH.regions[to]){ sohWarn('région inconnue : ' + to); continue; }
       const from = access[rr] || 0, have = access[to] || 0;
       const gain = sohStates(fn, from & ~have, false);   // UpdateToDAccess : états du parent que la cible n'a pas encore
@@ -864,4 +872,113 @@ function computeSoh(settings, game, links = {}){
   }
   L.cur = null; L.curCheck = null;
   return { access:{ ...access }, events:{ ...L.events }, checks };
+}
+
+/* ---------- Entrées notées -> liaisons de computeSoh ----------
+   Chaque sortie de areas-data.js porte le numéro de son entrée SoH (`entr`, voir tools/soh-entrances/apply_names.mjs).
+   Noter « la sortie X mène à la sortie Z » (on apparaît à Z) revient pour SoH à remplacer l'entrée de X par l'entrée
+   qui, en vanilla, fait apparaître à Z : la sortie X mène alors à la région d'arrivée vanilla de cette entrée. */
+const SOH_ENTRANCE = {};
+SOH.entrances.forEach(([n, type, from, to]) => { SOH_ENTRANCE[n] = { n, type, from, to }; });
+const EXIT_BY_ENTR = {};
+ALL_EXITS.forEach(e => { if (e.entr != null) EXIT_BY_ENTR[e.entr] = e; });
+// Entrée qui fait apparaître à chaque sortie Z (celle dont Z est la cible vanilla) ; une entrée à double sens passe avant
+// un sens unique (ex. une porte de grotte, également cible vanilla d'un spawn ou d'un chant).
+const ARRIVAL_ENTR = {};
+for (const two of [true, false]) for (const w of ALL_EXITS){
+  if (w.entr == null || !w.vanilla || w.specialTag || isTwoWay(w) !== two || w.vanilla in ARRIVAL_ENTR) continue;
+  ARRIVAL_ENTR[w.vanilla] = w.entr;
+}
+// Devant une porte de boss : on y apparaît en sortant de sa salle vanilla par la porte (entrée de la salle de boss).
+for (const d of BOSS_DOORS) if (EXIT[d.vanilla]?.specialTag) ARRIVAL_ENTR[d.key] = EXIT[d.vanilla].entr;
+// Types SoH des entrées qui font apparaître à chaque sortie (destinations possibles des sens uniques).
+const ARRIVAL_TYPES = {};
+for (const w of ALL_EXITS) if (w.entr != null && w.vanilla && !w.specialTag) (ARRIVAL_TYPES[w.vanilla] ||= new Set()).add(SOH_ENTRANCE[w.entr]?.type);
+// Région où l'on apparaît en arrivant à une sortie.
+const arrivalRegion = key => SOH_ENTRANCE[ARRIVAL_ENTR[key]]?.to || null;
+// Régions où se trouve une sortie (départ de son entrée, et région d'arrivée quand on y apparaît) : page Entrées.
+const exitRegions = e => [SOH_ENTRANCE[e.entr]?.from, arrivalRegion(e.key)].filter(Boolean);
+
+// Téléporteurs bleus (entrance.cpp, fin de ShuffleAllEntrances) : salle de boss -> entrée du donjon dont elle dépend.
+const BOSS_DUNGEON_ENTRYWAY = { RR_DEKU_TREE_BOSS_ROOM:'RR_DEKU_TREE_ENTRYWAY', RR_DODONGOS_CAVERN_BOSS_ROOM:'RR_DODONGOS_CAVERN_ENTRYWAY',
+  RR_JABU_JABUS_BELLY_BOSS_ROOM:'RR_JABU_JABUS_BELLY_ENTRYWAY', RR_FOREST_TEMPLE_BOSS_ROOM:'RR_FOREST_TEMPLE_ENTRYWAY',
+  RR_FIRE_TEMPLE_BOSS_ROOM:'RR_FIRE_TEMPLE_ENTRYWAY', RR_WATER_TEMPLE_BOSS_ROOM:'RR_WATER_TEMPLE_ENTRYWAY',
+  RR_SPIRIT_TEMPLE_BOSS_ROOM:'RR_SPIRIT_TEMPLE_ENTRYWAY', RR_SHADOW_TEMPLE_BOSS_ROOM:'RR_SHADOW_TEMPLE_ENTRYWAY',
+  RR_GANONS_TOWER_STAIRS_1:'RR_GANONS_CASTLE_ENTRYWAY' };
+const BOSS_ROOM_PAIRS = SOH.entrances.filter(([, type]) => type === 'BlueWarp').map(([n, , room]) => {
+  const ent = SOH.entrances, dungeonExit = ent.find(([, t, from]) => /Dungeon$/.test(t) && from === BOSS_DUNGEON_ENTRYWAY[room]);
+  return { room, blueWarp:SOH_ENTRANCE[n],
+    back:SOH_ENTRANCE[ent.find(([, t, from]) => /Boss$|^GanonTower$/.test(t) && from === room)[0]],   // porte de sortie de la salle
+    dungeonExit:SOH_ENTRANCE[dungeonExit[0]] };
+});
+const BOSS_PAIR_BY_BACK = Object.fromEntries(BOSS_ROOM_PAIRS.map(p => [p.back.n, p]));
+const BOSS_PAIR_BY_DUNGEON_EXIT = Object.fromEntries(BOSS_ROOM_PAIRS.map(p => [p.dungeonExit.n, p]));
+
+// Entrées de remplacement (GetReplacement de SoH) déduites des destinations notées (eff = computeEff) :
+// replacement(n) = entrée SoH par laquelle passe en réalité l'entrée n (elle-même si rien ne change, null si inconnue),
+// blueWarp(p) = entrée dont le téléporteur bleu de la salle p prend la destination.
+function entranceReplacer(eff, settings){
+  const decoupled = isDecoupled(settings);
+  function replacement(n){
+    const x = EXIT_BY_ENTR[n];
+    if (x && !x.specialTag){
+      const z = eff[x.key];
+      if (z === x.vanilla) return n;
+      return z ? ARRIVAL_ENTR[z] ?? null : null;
+    }
+    const pair = BOSS_PAIR_BY_BACK[n];
+    if (!pair) return n;
+    // Porte de sortie d'une salle de boss : en entrées couplées, elle ramène devant ce qui mène à cette salle (inverse
+    // de son entrée) ; en entrées découplées, elle est mélangée à part et notée dans Entrées.
+    const room = x?.key, vanillaDoor = BOSS_DOORS.find(d => d.vanilla === room);
+    if (!vanillaDoor || !isRandomized(vanillaDoor, settings)) return n;
+    if (decoupled) return eff[room] ? ARRIVAL_ENTR[eff[room]] ?? null : null;
+    // ce qui mène à la salle : une porte de boss, ou toute sortie à double sens en pools mélangés
+    const via = ALL_EXITS.find(e => !e.specialTag && poolOf(e) !== 'oneway' && eff[e.key] === room);
+    return via ? ARRIVAL_ENTR[via.key] ?? null : null;
+  }
+  // Téléporteur bleu (fin de ShuffleAllEntrances) : là où mène la porte de sortie de la salle ; en entrées couplées, on
+  // remonte de salle en donjon (porte de boss puis entrée du donjon) et l'entrée d'un donjon donne son téléporteur vanilla.
+  // Garde-fou contre une boucle due à des destinations notées incohérentes.
+  function blueWarp(p){
+    let t = replacement(p.back.n);
+    if (decoupled) return t;
+    for (let i = 0; i < 12 && t != null && BOSS_PAIR_BY_BACK[t]; i++) t = replacement(BOSS_PAIR_BY_BACK[t].dungeonExit.n);
+    if (t != null && BOSS_PAIR_BY_BACK[t]) return null;
+    return t != null && BOSS_PAIR_BY_DUNGEON_EXIT[t] ? BOSS_PAIR_BY_DUNGEON_EXIT[t].blueWarp.n : t;
+  }
+  return { replacement, blueWarp };
+}
+
+/** Liaisons { 'RR_DÉPART>RR_ARRIVÉE_VANILLA': région | null } des destinations connues (eff = computeEff), pour computeSoh.
+   Sortie randomisée sans destination notée -> null (impasse). */
+function entranceLinks(eff, settings){
+  const links = {}, { replacement, blueWarp } = entranceReplacer(eff, settings);
+  const set = (e, t) => { const to = t == null ? null : SOH_ENTRANCE[t].to; if (to !== e.to) links[e.from + '>' + e.to] = to; };
+  for (const x of ALL_EXITS){
+    if (x.entr == null || x.specialTag || !SOH_ENTRANCE[x.entr]) continue;
+    set(SOH_ENTRANCE[x.entr], replacement(x.entr));
+  }
+  for (const p of BOSS_ROOM_PAIRS){
+    set(p.back, replacement(p.back.n));
+    set(p.blueWarp, blueWarp(p));
+  }
+  return links;
+}
+
+// Sortie où l'on apparaît en prenant une entrée SoH (inverse d'ARRIVAL_ENTR).
+const EXIT_BY_ARRIVAL = Object.fromEntries(Object.entries(ARRIVAL_ENTR).map(([key, n]) => [n, key]));
+/** Destination affichée du téléporteur bleu de chaque salle de boss calculée automatiquement (page Entrées, « A »),
+   tirée du même calcul que la logique : { clé de la salle: sortie | null }. */
+function blueWarpTargets(eff, settings){
+  const { blueWarp } = entranceReplacer(eff, settings), out = {};
+  for (const p of BOSS_ROOM_PAIRS){
+    const room = EXIT_BY_ENTR[p.back.n];
+    if (!room?.specialTag || bossRoomNoted(room, settings)) continue;
+    const t = blueWarp(p), q = BOSS_ROOM_PAIRS.find(b => b.blueWarp.n === t);
+    // téléporteur vanilla d'un donjon : sa destination vanilla (celle de la salle du donjon, ou devant le Château de Ganon)
+    const qRoom = q && EXIT_BY_ENTR[q.back.n];
+    out[room.key] = t == null ? null : !q ? EXIT_BY_ARRIVAL[t] ?? null : qRoom?.specialTag ? qRoom.vanilla : EXIT_BY_ARRIVAL[q.dungeonExit.n] ?? null;
+  }
+  return out;
 }

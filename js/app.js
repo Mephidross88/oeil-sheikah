@@ -15,9 +15,9 @@ const App = {
     if (!views.some(v => v.id === ui.view)) ui.view = views[0].id;
 
     function rowInfo(e){
-      if (e.specialTag) return { mode:'auto', target:effC.value[e.key] };
-      if (!isRandomized(e, store.settings)) return { mode:'vanilla', target:e.vanilla };
-      if (!isUnlocked(e, gameC.value)) return { mode:'locked', target:null, reason:lockedReason(e) };
+      if (e.specialTag && !bossRoomNoted(e, store.settings)) return { mode:'auto', target:effC.value[e.key] };
+      if (!e.specialTag && !isRandomized(e, store.settings)) return { mode:'vanilla', target:e.vanilla };
+      if (!isUnlocked(e, agesC.value, store.game)) return { mode:'locked', target:null, reason:lockedReason(e) };
       const t = store.mappings[e.key];
       return t && EXIT[t] ? { mode:'set', target:t } : { mode:'open', target:null };
     }
@@ -96,16 +96,12 @@ const App = {
     }
     function go(v){ ui.view = v; navOpen.value = false; window.scrollTo({ top:0 }); }
 
-    /* Infobulle des connexions internes */
+    /* Infobulle des connexions internes : sorties de la même zone et coût de marche (les conditions de passage sont
+       celles de la logique SoH, par région ; le Routeur les reprendra à l'étape 5) */
     const tipData = computed(() => {
       if (!tip.key) return null;
-      const e = EXIT[tip.key], G = gameC.value, ms = G.milestone;
-      const ages = [ms.childAvailable && 'child', ms.adultAvailable && 'adult'].filter(Boolean);
-      return { title:e.label, items:e.connections.map(c => {
-        const ok = ages.filter(a => connGroup(c, G, a));
-        const only = ok.length === 1 && ages.length === 2 ? (ok[0] === 'child' ? 'Enfant uniquement' : 'Adulte uniquement') : '';
-        return { label:EXIT[c.to]?.label || c.to, cost:c.cost, ok:ok.length > 0, cond:c.req && c.req.length ? fmtReq(c.req) : '', only };
-      }) };
+      const e = EXIT[tip.key];
+      return { title:e.label, items:e.connections.map(c => ({ label:EXIT[c.to]?.label || c.to, cost:c.cost })) };
     });
     function showTip(ev, key){
       const r = ev.currentTarget.getBoundingClientRect(), vw = window.innerWidth, vh = window.innerHeight;
@@ -130,21 +126,8 @@ const App = {
         if (r.toAge !== 'any') { const a = r.fromAge; r.fromAge = r.toAge; r.toAge = a; }
       });
     }
-    const route = computed(() => {
-      const r = ui.router;
-      if (!r.fromExit || !r.toExit || !EXIT[r.fromExit] || !EXIT[r.toExit]) return { state:'idle' };
-      const res = shortest(edgesC.value, r.fromExit, r.fromAge, r.toExit, r.toAge);
-      if (!res) return { state:'none' };
-      const items = [{ t:'node', key:r.fromExit, age:r.fromAge, role:'start' }];
-      for (const e of res.edges){
-        if (e.kind === 'age') items.push({ t:'age', from:e.fromAge, to:e.age });
-        else { items.push({ t:'edge', e }); items.push({ t:'node', key:e.to, age:e.age }); }
-      }
-      const last = [...items].reverse().find(i => i.t === 'node'); last.role = last.role ? 'both' : 'end';
-      const count = k => res.edges.filter(e => e.kind === k).length;
-      return { state:'ok', items, cost:Math.round(res.cost), steps:res.edges.length,
-        transitions:count('transition') + count('bluewarp') + count('owl'), ages:count('age'), warps:count('warp'), resets:count('reset') };
-    });
+    // En pause pendant la migration vers la logique SoH : le graphe de déplacement est reconstruit à l'étape 5.
+    const route = computed(() => ({ state:'migrating' }));
     const edgeLabel = e => ({ walk:'À pied', transition:'Transition', bluewarp:'Téléporteur bleu', owl:'Vol du hibou',
       warp:'Chant : ' + (EXIT[e.warp]?.label || ''), reset:'Sauvegarder et recharger' }[e.kind]);
     const ageLabel = a => a === 'child' ? 'Enfant' : 'Adulte';
@@ -367,6 +350,17 @@ const App = {
             if (ui.importQuests && configKeyRing(d.id, s) === null){ store.game.dungeons[d.id].keyRing = drawn === 'Yes' ? 'yes' : 'no'; rings++; }
           });
         }
+        // Épreuves de Ganon tirées au sort : SoH écrit le nombre tiré dans « Ganon's Trials Count » (remis par défaut pour
+        // ne rien révéler) et la liste des épreuves requises dans « requiredTrials » (gardée si l'import des tirages est coché).
+        let trials = 0;
+        if (s.ganonsTrials === 'Random Number') s.ganonsTrialsCount = SETTINGS_DEF.find(x => x.key === 'ganonsTrialsCount').def;
+        if (configTrials(s) === null){
+          TRIALS.forEach(t => { store.game.trials[t.id] = ''; });
+          if (ui.importQuests && Array.isArray(data.requiredTrials)){
+            TRIALS.forEach(t => { store.game.trials[t.id] = data.requiredTrials.some(r => t.match.test(r)) ? 'required' : 'skipped'; });
+            trials = data.requiredTrials.length;
+          }
+        }
         // Checks exclus à la génération (« excludedLocations », absent s'il n'y en a aucun) : réglage de la seed, pas un spoil.
         Object.keys(s.excluded).forEach(k => { delete s.excluded[k]; });
         let excl = 0;
@@ -392,6 +386,7 @@ const App = {
             + (started ? `, ${started} objet${started>1?'s':''} de départ coché${started>1?'s':''}` : '')
             + (quests ? `, version de ${quests} donjon${quests>1?'s':''} renseignée` : '')
             + (rings ? `, trousseaux de ${rings} donjon${rings>1?'s':''} renseignés` : '')
+            + (ui.importQuests && configTrials(s) === null && Array.isArray(data.requiredTrials) ? `, ${trials} épreuve${trials>1?'s':''} de Ganon requise${trials>1?'s':''}` : '')
             + (excl ? `, ${excl} check${excl>1?'s':''} exclu${excl>1?'s':''}` : '') + '.' };
       };
       reader.readAsText(file);
@@ -438,7 +433,7 @@ const App = {
       CONFIG_TABS, TRICK_LEVELS, decoupled, configCards, trickFilter, tricksOn, trickGroups, setTricks, importReport, importSpoiler,
       itemVisible, tierLabel, iconSrc, checklistModal, openChecklist, setChecklist, checklistStats,
       tradeModal, openTrade, tradeStats, counterClass,
-      setDungeonFlag, addDungeonKeys, dungeonQuest, dungeonMaxKeys, cycleDungeonQuest, questLabel, questClass, questTitle, keysLabel, dungeonKeyRing, setKeyRing, dungeonKeysDone, keysTitle, brokenIcons,
+      TRIALS, trialStatus, cycleTrial, setDungeonFlag, addDungeonKeys, dungeonQuest, dungeonMaxKeys, cycleDungeonQuest, questLabel, questClass, questTitle, keysLabel, dungeonKeyRing, setKeyRing, dungeonKeysDone, keysTitle, brokenIcons,
       routerAreas, exitsOf, swap, route, edgeLabel, ageLabel, openBackup, copyBackup, importBackup, resetAll, declineSpoiler, savedAt, TYPE_LABEL };
   },
   template:`
@@ -582,10 +577,11 @@ const App = {
         </div>
       </div>
 
-      <div v-if="stats.editable" class="warn-box">
+      <div v-if="stats.editable > stats.mapped" class="warn-box">
         <span class="warn-box-ic" v-html="ICONS.warn"></span>
-        <div><b>Entrées mélangées.</b> L'accessibilité des checks suppose pour l'instant les entrées d'origine du jeu :
-        les destinations notées dans <a href="#" @click.prevent="go('entrances')">Entrées</a> ne sont pas encore prises en compte.</div></div>
+        <div><b>{{stats.editable - stats.mapped}} entrée{{stats.editable - stats.mapped > 1 ? 's' : ''}} à découvrir.</b>
+        Tant que sa destination n'est pas notée dans <a href="#" @click.prevent="go('entrances')">Entrées</a>, une entrée
+        mélangée ne mène nulle part pour la logique : les checks derrière elle ne sont pas comptés comme faisables.</div></div>
       <div v-if="!checkAreasC.length" class="empty"><b>Aucun check à afficher.</b>
         {{ui.checks.q ? 'Aucun résultat pour cette recherche.' : 'Vérifiez la Configuration ou les filtres.'}}</div>
       <article v-for="x in checkAreasC" :key="x.area.id" class="area check-area" :id="'carea-'+x.area.id"
@@ -654,7 +650,11 @@ const App = {
         </div>
       </div>
 
-      <div v-if="route.state==='idle'" class="empty" style="margin-top:20px">Choisissez une sortie de départ et une sortie d'arrivée : l'itinéraire se calcule tout seul.</div>
+      <div v-if="route.state==='migrating'" class="warn-box" style="margin-top:20px">
+        <span class="warn-box-ic" v-html="ICONS.warn"></span>
+        <div><b>Routeur indisponible pour l'instant.</b>
+        Il est en cours de passage à la logique de Ship of Harkinian et reviendra à la prochaine étape.</div></div>
+      <div v-else-if="route.state==='idle'" class="empty" style="margin-top:20px">Choisissez une sortie de départ et une sortie d'arrivée : l'itinéraire se calcule tout seul.</div>
       <div v-else-if="route.state==='none'" class="warn-box" style="margin-top:20px">
         <span class="warn-box-ic" v-html="ICONS.warn"></span>
         <div><b>Aucun itinéraire connu.</b>
@@ -679,7 +679,7 @@ const App = {
             <div v-else-if="it.t==='edge'" class="conn">
               <span class="ln"></span>
               <div class="lab"><span class="k" :class="it.e.kind">{{edgeLabel(it.e)}}</span><span class="c">{{it.e.cost}}</span>
-                <span v-for="rq in (it.e.reqs||[])" :key="rq" class="req">{{REQ_LABEL[rq]||rq}}</span></div>
+                <span v-for="rq in (it.e.reqs||[])" :key="rq" class="req">{{rq}}</span></div>
               <span class="ln"></span><span class="arrow" v-html="ICONS.caret"></span>
             </div>
             <div v-else class="ageband"><span class="sword" v-html="ICONS.sword"></span>
@@ -696,8 +696,8 @@ const App = {
         <div class="import-box">
           <label class="btn primary import-btn">Importer depuis un spoiler SoH
             <input type="file" accept=".json,application/json" @change="importSpoiler" hidden></label>
-          <label class="check import-opt" title="Révèle ce que le seed a tiré au sort : quels donjons sont en Master Quest (liste « masterQuestDungeons ») et lesquels ont un trousseau de clés.">
-            <input type="checkbox" v-model="ui.importQuests">Importer aussi les tirages du seed : donjons MQ et trousseaux (peut spoiler)</label></div></div>
+          <label class="check import-opt" title="Révèle ce que le seed a tiré au sort : quels donjons sont en Master Quest (liste « masterQuestDungeons »), lesquels ont un trousseau de clés et quelles épreuves de Ganon sont requises.">
+            <input type="checkbox" v-model="ui.importQuests">Importer aussi les tirages du seed : donjons MQ, trousseaux et épreuves de Ganon (peut spoiler)</label></div></div>
       <div v-if="importReport" class="import-report" :class="importReport.ok ? 'ok' : 'ko'">
         <b>{{importReport.title}}</b>
         <ul v-if="importReport.notes.length"><li v-for="(n,i) in importReport.notes" :key="i">{{n}}</li></ul>
@@ -880,6 +880,12 @@ const App = {
                   :title="ITEM_BY_KEY[DUNGEON_BY_ID[id].card].label" @click.stop="store.game.items[DUNGEON_BY_ID[id].card]=true" @contextmenu.stop.prevent="store.game.items[DUNGEON_BY_ID[id].card]=false">
                   <img :src="iconSrc('items', ITEM_BY_KEY[DUNGEON_BY_ID[id].card])" alt=""></button>
               </div>
+              <!-- épreuves de Ganon tirées au sort : inconnue (?) / requise / dissipée (✓) -->
+              <div v-if="cells(id).trials" class="dg-line dg-trials">
+                <button v-for="t in TRIALS" :key="t.id" type="button" class="dg-trial" :class="trialStatus(t.id) || 'unknown'" :style="{'--tr':t.color}"
+                  :title="'Épreuve ' + t.label + ' — ' + ({required:'requise', skipped:'dissipée'}[trialStatus(t.id)] || 'inconnue (comptée comme requise)') + ' — clic : suivant, clic droit : précédent'"
+                  @click.stop="cycleTrial(t.id)" @contextmenu.stop.prevent="cycleTrial(t.id,true)">{{trialStatus(t.id)==='skipped' ? '✓' : trialStatus(t.id) ? t.label[0] : '?'}}</button>
+              </div>
             </div>
           </div>
           <div v-if="row.length===1" class="dg-side"><ItemTile v-if="skeletonShown && row[0]==='ganonsCastle'" k="skeletonKey"/></div>
@@ -897,9 +903,8 @@ const App = {
   <!-- Infobulle -->
   <div v-if="tip.show && tipData" class="tip" :style="tip.style" role="tooltip">
     <h4>Depuis « {{tipData.title}} », à pied</h4>
-    <ul><li v-for="(c,i) in tipData.items" :key="i" :class="c.ok?'ok':'ko'">
-      <span>{{c.label}}</span><span class="cost">{{c.cost}}</span>
-      <span v-if="c.cond || c.only" class="cond">{{c.only || ''}}{{c.only && c.cond ? ' : ' : ''}}{{c.cond}}</span></li></ul>
+    <ul><li v-for="(c,i) in tipData.items" :key="i" class="ok">
+      <span>{{c.label}}</span><span class="cost">{{c.cost}}</span></li></ul>
   </div>
 
   <!-- Modales -->
@@ -941,7 +946,7 @@ const App = {
           <template v-if="!importReport || !importReport.ok">
             <p style="margin-top:0">Importez le spoiler log (.json) généré par Ship of Harkinian pour régler la Configuration automatiquement.
               Seuls les réglages et les astuces sont lus, jamais l'emplacement des objets.</p>
-            <label class="check import-opt"><input type="checkbox" v-model="ui.importQuests">Importer aussi les tirages du seed : donjons MQ et trousseaux (peut spoiler)</label>
+            <label class="check import-opt"><input type="checkbox" v-model="ui.importQuests">Importer aussi les tirages du seed : donjons MQ, trousseaux et épreuves de Ganon (peut spoiler)</label>
             <div v-if="importReport" class="msg ko">{{importReport.title}}</div>
             <div class="mactions"><button class="btn" @click="declineSpoiler">Non, merci</button>
               <label class="btn primary import-btn">Importer un spoiler…
@@ -967,7 +972,6 @@ const App = {
 };
 
 const app = createApp(App);
-app.config.globalProperties.REQ_LABEL = REQ_LABEL;
 app.mount('#app');
 document.addEventListener('click', ev => { /* ferme l'infobulle en tactile */ if (!ev.target.closest('.globe')) { const t = document.querySelector('.tip'); if (t) window.dispatchEvent(new Event('scroll')); } });
-window.__PF = { store, effC, reachC, edgesC, shortest, candidatesFor, setMapping, EXIT, sohC, sohFullC, computeSoh, L, SOH };
+window.__PF = { store, effC, linksC, reachC, agesC, shortest, candidatesFor, setMapping, EXIT, sohC, sohFullC, computeSoh, entranceLinks, L, SOH };

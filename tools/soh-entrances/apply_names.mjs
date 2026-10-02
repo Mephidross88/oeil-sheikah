@@ -158,6 +158,7 @@ const DEST = {
   pad_dmc:['DMC Warp Pad', 'Plateforme de téléportation'], pad_lh:['Lake Hylia Warp Pad', 'Plateforme de téléportation'],
   pad_gy:['Graveyard Warp Pad', 'Plateforme de téléportation'], pad_colossus:['Desert Colossus Warp Pad', 'Plateforme de téléportation'],
   lh_river:['Lake Hylia River Exit', 'Arrivée de la rivière'],
+  kak_roof:['Kakariko Village Owl Drop', 'Toit de la maison d\'Impa'],   // atterrissage du hibou du Chemin du Péril
 };
 
 // Nos sorties -> entrée SoH (index dans entranceData, ou clé de DEST).
@@ -179,10 +180,10 @@ const MAP = {
   'market::backhouse_to_market':276, 'hyrule_castle::castle_to_adultgreatfairy':289, 'hyrule_castle::adultgreatfairy_to_castle':291,
   'hyrule_castle::castle_to_childgreatfairy':285, 'hyrule_castle::childgreatfairy_to_castle':287, 'hyrule_castle::castle_to_grotto':286, 'hyrule_castle::grotto_to_castle':288,
   'market::templeplaza_to_templeoftime':282, 'market::templeoftime_to_templeplaza':283, 'hyrule_castle::castle_to_ganon':290, 'ganons_castle::ganon_to_castle':292,
-  'ganons_castle::castle_to_tower':293, 'ganons_castle::tower_to_castle':294, 'market::prelude_pad':'pad_tot',
+  'ganons_castle::castle_to_tower':294, 'ganons_castle::tower_to_castle':293, 'market::prelude_pad':'pad_tot',
   'kakariko_village::kak_to_hf':55, 'kakariko_village::kak_to_dmt':57, 'kakariko_village::kak_to_graveyard':56, 'kakariko_village::kak_to_carpenter':58, 'kakariko_village::carpenter_to_kak':71,
   'kakariko_village::kak_to_bazaar':65, 'kakariko_village::bazaar_to_kak':78, 'kakariko_village::kak_to_shooting':63, 'kakariko_village::shooting_to_kak':76, 'kakariko_village::kak_to_odd':64,
-  'kakariko_village::odd_to_kak':77, 'kakariko_village::kak_to_impas':60, 'kakariko_village::impas_to_kak':73, 'kakariko_village::kak_to_impas_back':61, 'kakariko_village::impas_to_kak_back':74,
+  'kakariko_village::odd_to_kak':77, 'kakariko_village::kak_to_impas':60, 'kakariko_village::impas_to_kak':73, 'kakariko_village::kak_to_impas_back':61, 'kakariko_village::impas_to_kak_back':74, 'kakariko_village::owl_impas_roof':'kak_roof',
   'kakariko_village::kak_to_skulltulas':59, 'kakariko_village::skulltulas_to_kak':72, 'kakariko_village::kak_to_potions':66, 'kakariko_village::potions_to_kak':79,
   'kakariko_village::kak_to_potions_back':67, 'kakariko_village::potions_to_kak_back':80, 'kakariko_village::kak_to_windmill':62, 'kakariko_village::windmill_to_kak':75,
   'kakariko_village::kak_to_redeadgrotto':69, 'kakariko_village::redeadgrotto_to_kak':82, 'kakariko_village::kak_to_opengrotto':68, 'kakariko_village::opengrotto_to_kak':81,
@@ -230,7 +231,7 @@ const MAP = {
   'gerudo_valley::gv_to_stormgrotto':210, 'gerudo_valley::stormgrotto_to_gv':213,
   'gerudo_fortress::gf_to_gv':214, 'gerudo_fortress::gf_to_hw':215, 'gerudo_fortress::gf_to_grotto':216, 'gerudo_fortress::grotto_to_gf':218,
   'gerudo_fortress::gf_to_gtg':217, 'gerudo_training_ground::gtg_to_gt':219,
-  // Repaire : appariement déduit des noms extérieurs (voir SPEC.md) — à confirmer en jeu
+  // Repaire des Voleurs : appariement intérieur <-> extérieur vérifié sur le tracker de SoH (voir plus bas)
   'gerudo_fortress::hideout_gf_a':220, 'gerudo_fortress::hideout_a_gf':233, 'gerudo_fortress::hideout_gf_b':221, 'gerudo_fortress::hideout_b_gf':234,
   'gerudo_fortress::hideout_gf_c':222, 'gerudo_fortress::hideout_c_gf':235, 'gerudo_fortress::hideout_gf_d':223, 'gerudo_fortress::hideout_d_gf':236,
   'gerudo_fortress::hideout_gf_e':228, 'gerudo_fortress::hideout_e_gf':241, 'gerudo_fortress::hideout_gf_f':229, 'gerudo_fortress::hideout_f_gf':242,
@@ -251,6 +252,44 @@ const MAP = {
   'spirit_temple::spiritemple_to_colossus':254, 'spirit_temple::spirittemple_boss':255, 'spirit_temple::twinrova':256,
 };
 
+// Numéro d'entrée SoH (ENTR) de chaque ligne du tracker, comme dans `SOH_LOGIC.entrances` de logic-data.js (même calcul
+// que tools/soh-logic/extract_logic.mjs : position dans entrance_table.h ; grottes 0x700 + n à l'entrée, 0x800 + n à la sortie).
+// Il relie nos sorties à la logique (destinations notées dans Entrées -> liaisons de computeSoh).
+const SRC = new URL('../soh-checks/src/', import.meta.url);
+const read = f => fs.readFileSync(new URL(f, SRC), 'utf8');
+const ENTR_NUM = {};
+for (const m of read('entrance_table.h').matchAll(/\/\*\s*0x([0-9A-Fa-f]+)\s*\*\/\s*DEFINE_ENTRANCE\((ENTR_\w+)/g)) ENTR_NUM[m[2]] = parseInt(m[1], 16);
+const GROTTO = {};
+for (const m of read('randomizerEnums/RandomizerMiscEnums.h').matchAll(/\/\*\s*0x([0-9A-Fa-f]+)\s*\*\/\s*RANDO_ENUM_ITEM\((GROTTO_\w+_OFFSET)\)/g)) GROTTO[m[2]] = parseInt(m[1], 16);
+const TRACKER = (() => {
+  const t = read('randomizer_entrance_tracker.cpp'), start = t.indexOf('entranceData[] = {');
+  const body = t.slice(start, t.indexOf('\n};', start)), rows = [];
+  const num = id => {
+    const g = id.match(/ENTRANCE_GROTTO_(LOAD|EXIT)\((\w+)\)/);
+    const n = g ? (g[1] === 'LOAD' ? 0x700 : 0x800) + GROTTO[g[2]] : ENTR_NUM[id];
+    if (n === undefined || Number.isNaN(n)) throw new Error('numéro d\'entrée inconnu : ' + id);
+    return n;
+  };
+  for (const line of body.split('\n')){
+    const m = line.match(/^\s*\{\s*(ENTR_\w+|ENTRANCE_GROTTO_(?:LOAD|EXIT)\(\w+\))\s*,\s*(-1|ENTR_\w+|ENTRANCE_GROTTO_(?:LOAD|EXIT)\(\w+\))\s*,.*?"((?:[^"\\]|\\.)*)"\s*,\s*"/);
+    if (!m) continue;
+    // reverse : entrée inverse (on revient par elle), null pour un sens unique
+    rows.push({ n:num(m[1]), reverse:m[2] === '-1' ? null : num(m[2]), name:m[3].replace(/\\"/g, '"') });
+  }
+  return rows;
+})();
+for (const [i, [name]] of Object.entries(SOH))
+  if (TRACKER[i]?.name !== name) throw new Error(`Table décalée par rapport au tracker : ${i} « ${name} » ≠ « ${TRACKER[i]?.name} »`);
+
+// Pool de randomisation (shuffleTag) imposé par le type de l'entrée SoH (entrance.cpp, logic-data.js) ; les salles de boss
+// (specialTag) et la rivière Gerudo (sens unique) gardent le leur. Un écart est corrigé dans areas-data.js et signalé.
+const TAG_BY_TYPE = { Dungeon:'dungeon_simple', GanonDungeon:'dungeon_ganon', GanonTower:'ganon_tower', GrottoGrave:'grotto',
+  Interior:'interior_simple', SpecialInterior:'interior_all', ThievesHideout:'hideout', Overworld:'overworld', OwlDrop:'owl',
+  Spawn:'spawn', WarpSong:'warp', ChildBoss:'boss_warp_child', AdultBoss:'boss_warp_adult' };
+const TYPE_BY_TAG = { grotto:'grotto', interior_simple:'interior', interior_all:'interior' };   // icône (`type`) qui suit le pool
+const LOGIC = fs.readFileSync(new URL('../../logic-data.js', import.meta.url), 'utf8');
+const SOH_TYPE = Object.fromEntries(JSON.parse(LOGIC.match(/^\s*entrances:(\[.*\]),\s*$/m)[1]).map(([n, type]) => [n, type]));
+
 const FILE = new URL('../../areas-data.js', import.meta.url);
 const text = fs.readFileSync(FILE, 'utf8');
 const header = text.slice(0, text.indexOf('window.AREAS_DATA'));
@@ -261,11 +300,33 @@ for (const area of data) for (const e of area.exits){
   const def = typeof ref === 'number' ? SOH[ref] : DEST[ref];
   if (!def){ missing.push(key); continue; }
   if (typeof ref === 'number'){ if (used.has(ref)) console.warn('Entrée SoH utilisée deux fois :', ref, key); used.add(ref); }
-  // ordre des clés conservé, `soh` inséré après `label`
+  // ordre des clés conservé, `soh` (et `entr` pour une entrée du tracker) inséré après `label`
   const out = {};
-  for (const [k, v] of Object.entries(e)){ if (k === 'soh') continue; out[k] = k === 'label' ? def[1] : v; if (k === 'label') out.soh = def[0]; }
+  for (const [k, v] of Object.entries(e)){
+    if (k === 'soh' || k === 'entr') continue;
+    out[k] = k === 'label' ? def[1] : v;
+    if (k === 'label'){ out.soh = def[0]; if (typeof ref === 'number') out.entr = TRACKER[ref].n; }
+  }
   Object.keys(e).forEach(k => delete e[k]); Object.assign(e, out);
+  const want = out.entr != null && !out.specialTag && out.shuffleTag !== 'gerudo_river' && TAG_BY_TYPE[SOH_TYPE[out.entr]];
+  if (want && want !== out.shuffleTag){
+    console.log(`Pool corrigé : ${key} ${out.shuffleTag} -> ${want} (${SOH_TYPE[out.entr]})`);
+    e.shuffleTag = want; if (TYPE_BY_TAG[want]) e.type = TYPE_BY_TAG[want];
+  }
 }
 if (missing.length) throw new Error('Sorties sans correspondance SoH : ' + missing.join(', '));
+// Appariements : la cible vanilla d'une sortie à double sens doit être son entrée inverse dans le tracker de SoH (porte
+// extérieure <-> porte intérieure, Repaire des Voleurs compris).
+{
+  const byKey = {}, reverse = Object.fromEntries(TRACKER.map(r => [r.n, r.reverse]));
+  for (const area of data) for (const e of area.exits) byKey[`${area.id}::${e.id}`] = e;
+  const bad = [];
+  for (const [key, e] of Object.entries(byKey)){
+    const v = byKey[e.vanillaTargetExitId];
+    if (e.entr == null || e.specialTag || !v || v.entr == null || reverse[e.entr] == null) continue;
+    if (reverse[e.entr] !== v.entr) bad.push(`${key} -> ${e.vanillaTargetExitId} (inverse SoH ${reverse[e.entr]}, cible ${v.entr})`);
+  }
+  if (bad.length) throw new Error('Appariements différents de SoH :\n  ' + bad.join('\n  '));
+}
 fs.writeFileSync(FILE, header + 'window.AREAS_DATA = ' + JSON.stringify(data, null, 2) + ';\n');
 console.log(`${Object.keys(MAP).length} sorties renommées ; entrées SoH utilisées : ${used.size}`);

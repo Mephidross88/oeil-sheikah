@@ -1,7 +1,8 @@
 /* ---------- État persistant ---------- */
 const STORE_KEY = 'oeil-sheikah-v1';
 function defaults(){
-  const game = { items:{}, songs:{}, dungeons:{}, checklists:{}, checks:{} };
+  // trials : épreuves de Ganon tirées au sort, '' inconnue / 'required' / 'skipped'
+  const game = { items:{}, songs:{}, dungeons:{}, checklists:{}, checks:{}, trials:Object.fromEntries(TRIALS.map(t => [t.id, ''])) };
   ITEM_GROUPS.forEach(g => g.items.forEach(it => { game[g.path][it.key] = it.locked ? true : it.kind === 'bool' ? false : 0; }));
   DUNGEONS.forEach(d => { game.dungeons[d.id] = { map:false, compass:false, keys:0, bossKey:false, soul:false, quest:'', keyRing:'', ringGot:false }; });
   Object.entries(CHECKLISTS).forEach(([name, c]) => {
@@ -56,17 +57,24 @@ function raiseToFirstLevel(){
 }
 watch(() => [store.settings, store.game], raiseToFirstLevel, { deep:true, immediate:true });
 
-const effC = computed(() => computeEff(store));
+// Cibles effectives : destinations notées ou vanilla, et téléporteurs bleus calculés comme dans la logique SoH.
+const effC = computed(() => { const eff = computeEff(store); return Object.assign(eff, blueWarpTargets(eff, store.settings)); });
 const incC = computed(() => computeIncoming(effC.value));
-const agesC = computed(() => computeAges(store, effC.value));
-const gameC = computed(() => deriveGame(store.game, store.settings, agesC.value));
-const edgesC = computed(() => makeEdges(gameC.value, store.costs, effC.value));
-const reachC = computed(() => flood(agesC.value, effC.value, edgesC.value));
+// Destinations notées dans Entrées -> liaisons de la logique (sortie randomisée pas encore notée : impasse, null).
+const linksC = computed(() => entranceLinks(effC.value, store.settings));
 // Logique Ship of Harkinian (js/logic.js) : régions, événements et checks accessibles avec l'inventaire noté.
-const sohC = computed(() => computeSoh(store.settings, store.game));
+const sohC = computed(() => computeSoh(store.settings, store.game, linksC.value));
+// Âges accessibles (région racine de SoH, après voyage dans le temps éventuel).
+const agesC = computed(() => { const r = sohC.value.access.RR_ROOT || 0; return { child:!!(r & CHILD), adult:!!(r & ADULT) }; });
+// Sorties atteignables (page Entrées) : l'une de leurs régions SoH est accessible.
+const reachC = computed(() => {
+  const access = sohC.value.access;
+  return new Set(ALL_EXITS.filter(e => exitRegions(e).some(r => access[r])).map(e => e.key));
+});
 // Même calcul avec un inventaire « tout obtenu » (objets au maximum, chants, objets de donjon, âmes, clés des
 // portes…) : âges et moments où chaque check est faisable un jour (pastilles Enfant / Adulte, filtre d'âge).
-// Ne dépend que de la configuration et de la version des donjons notée.
+// Ne dépend que de la configuration, de la version des donjons notée et des entrées notées (une entrée pas encore
+// notée y garde sa destination vanilla, pour ne pas déclarer « jamais faisable » ce qui est seulement inconnu).
 function fullGame(s){
   const g = defaults().game;
   ITEM_GROUPS.forEach(gr => gr.items.forEach(it => {
@@ -74,40 +82,61 @@ function fullGame(s){
   }));
   DUNGEONS.forEach(d => Object.assign(g.dungeons[d.id], { map:true, compass:true, bossKey:true, soul:true, ringGot:true,
     keys:Math.max(d.maxKeys || 0, d.mqKeys || 0), quest:store.game.dungeons[d.id].quest }));
+  Object.assign(g.trials, store.game.trials);   // tirage du seed, comme la version des donjons
   Object.values(g.checklists).forEach(c => Object.keys(c).forEach(k => { c[k] = true; }));
   return g;
 }
-const sohFullC = computed(() => computeSoh(store.settings, fullGame(store.settings)));
+const sohFullC = computed(() => computeSoh(store.settings, fullGame(store.settings),
+  Object.fromEntries(Object.entries(linksC.value).filter(([, to]) => to))));
 
 /* ---------- Mutations ---------- */
 function clearMapping(src){
   const old = store.mappings[src];
   if (!old) return;
   delete store.mappings[src];
-  if (!isDecoupled(store.settings) && EXIT[old] && isTwoWay(EXIT[src]) && store.mappings[old] === src) delete store.mappings[old];
+  if (!isDecoupled(store.settings) && EXIT[old] && isCoupledPair(EXIT[src], EXIT[old]) && store.mappings[old] === src) delete store.mappings[old];
 }
 function setMapping(src, target){
   clearMapping(src);
   store.mappings[src] = target;
-  if (!isDecoupled(store.settings) && isTwoWay(EXIT[src]) && isTwoWay(EXIT[target]) && target !== src){
+  if (!isDecoupled(store.settings) && isCoupledPair(EXIT[src], EXIT[target]) && target !== src){
     if (store.mappings[target]) clearMapping(target);
     store.mappings[target] = src;
   }
 }
+// Destinations des sens uniques (entrance.cpp, BuildOneWayTargets) : on y apparaît comme en prenant une entrée de ces types.
+// Hiboux : ni intérieurs ni grottes, et pas la plateforme du Prélude de la Lumière.
+const ONE_WAY_TARGETS = { owl:['WarpSong', 'OwlDrop', 'Overworld'],
+  spawn:['Spawn', 'WarpSong', 'OwlDrop', 'Overworld', 'Interior', 'SpecialInterior', 'GrottoGrave'] };
+ONE_WAY_TARGETS.warp = ONE_WAY_TARGETS.spawn;
+const PRELUDE_PAD = 'market::prelude_pad';
 function candidatesFor(srcKey){
   const src = EXIT[srcKey], s = store.settings, pool = poolOf(src), eff = effC.value, inc = incC.value;
-  if (pool === 'boss'){
-    return BOSS_ROOMS.filter(r => (s.bossEntrances === 'Full' || (src.shuffleTag === 'boss_warp_child') === (r.specialTag === 'boss_child'))
-      && !BOSS_DOORS.some(d => d.key !== srcKey && eff[d.key] === r.key));
-  }
   if (pool === 'oneway'){  // hiboux, chants, spawns : destinations supplémentaires, ne consomment pas la cible
-    return ALL_EXITS.filter(e => e.areaId !== SPAWN_AREA && !e.specialTag && e.type !== 'boss'
-      && ['overworld','interior','pad'].includes(poolOf(e)));
+    const types = ONE_WAY_TARGETS[src.shuffleTag];
+    return ALL_EXITS.filter(e => e.areaId !== SPAWN_AREA && !(src.shuffleTag === 'owl' && e.key === PRELUDE_PAD)
+      && [...(ARRIVAL_TYPES[e.key] || [])].some(t => types.includes(t)));
   }
+  // Salles de boss : pool 'boss' (une porte mène à une salle ou à la Tour de Ganon) et pool 'bossBack' (une salle ressort
+  // devant une porte). « Age Restricted » : salles enfant entre elles, salles adulte et Tour de Ganon entre elles.
+  const bossRandom = e => isRandomized(isBossDoor(e) ? e : BOSS_DOORS.find(d => d.vanilla === e.key) || e, s);
+  const srcPool = isBossDoor(src) ? 'boss' : isBossRoom(src) ? 'bossBack' : pool;
+  const sameBossPool = e => s.bossEntrances === 'Full' || !(isBossDoor(src) || isBossRoom(src)) || bossChildPool(src) === bossChildPool(e);
+  // Pool d'une destination : on n'apparaît jamais « à » la rivière Gerudo, mais à son arrivée au Lac Hylia, destination
+  // de l'overworld quand la rivière est mélangée (entrées découplées).
+  const targetPool = e => e.key === GV_RIVER ? null
+    : e.key === GV_RIVER_END ? (isRandomized(EXIT[GV_RIVER], s) ? 'overworld' : null)
+    : isBossRoom(e) ? (bossRandom(e) && sameBossPool(e) ? 'boss' : null)
+    : isBossDoor(e) ? (bossRandom(e) && sameBossPool(e) ? 'bossBack' : null)
+    : isTwoWay(e) && isRandomized(e, s) ? poolOf(e) : null;
+  // Destination déjà prise par une autre sortie (les sens uniques ne consomment rien ; la sortie calculée d'une salle
+  // de boss non plus).
+  const takes = k => k !== srcKey && poolOf(EXIT[k]) !== 'oneway' && (!EXIT[k].specialTag || bossRoomNoted(EXIT[k], s));
   return ALL_EXITS.filter(e => {
-    if (e.key === srcKey || e.areaId === SPAWN_AREA || !isTwoWay(e) || !isRandomized(e, s)) return false;
-    if (poolOf(e) !== pool && !(isMixed(src, s) && isMixed(e, s))) return false;
-    if ((inc[e.key]||[]).some(k => k !== srcKey && isTwoWay(EXIT[k]))) return false;
+    const p = targetPool(e);
+    if (!p || e.key === srcKey || e.areaId === SPAWN_AREA) return false;
+    if (p !== srcPool && !(isMixed(src, s) && isMixed(e, s))) return false;
+    if ((inc[e.key]||[]).some(takes)) return false;
     if (!isDecoupled(s) && store.mappings[e.key] && store.mappings[e.key] !== srcKey) return false;
     return true;
   });
@@ -245,6 +274,16 @@ function addDungeonKeys(id, delta){
   const d = store.game.dungeons[id], def = DUNGEON_BY_ID[id];
   const max = dungeonMaxKeys(id) ?? Math.max(def.maxKeys || 0, def.mqKeys || 0);
   d.keys = Math.max(0, Math.min(max, d.keys + delta));
+}
+
+/* ---------- Épreuves de Ganon (bloc du Château de Ganon) ---------- */
+// État d'une épreuve : imposé par la configuration, sinon noté ('' inconnue : comptée comme requise par la logique).
+const trialStatus = id => configTrials(store.settings) || store.game.trials[id] || '';
+// Clic : inconnue -> requise -> dissipée -> inconnue ; clic droit : sens inverse.
+function cycleTrial(id, back){
+  if (configTrials(store.settings)) return;
+  const order = ['', 'required', 'skipped'];
+  store.game.trials[id] = order[(order.indexOf(store.game.trials[id] || '') + (back ? 2 : 1)) % 3];
 }
 
 /* ---------- Checks (page Checks, js/checks.js) ---------- */

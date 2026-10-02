@@ -7,11 +7,10 @@ Référence du rando : https://wiki.ootrandomizer.com/index.php?title=Entrance_R
 
 > **Transition en cours vers Ship of Harkinian.** L'application migre progressivement de OoT Randomizer
 > vers le randomizer de Ship of Harkinian (SoH) 9.2.3. Déjà alignés sur SoH : le panneau Objets, la
-> Configuration (réglages et astuces de SoH) et la liste des Checks, avec leur accessibilité selon la logique de
-> SoH (voir « Logique Ship of Harkinian ») ; la logique d'accessibilité de `js/ootr-logic.js` et les données des
-> Entrées/du Routeur restent celles d'OoT Randomizer, simplement branchées sur les réglages SoH équivalents
-> (voir « Configuration > Correspondance avec Entrées et Routeur ») ; elles seront revues avec la liste
-> des checks puis la logique SoH.
+> Configuration (réglages et astuces de SoH), la liste des Checks et la page Entrées, dont les destinations notées
+> alimentent la logique de SoH (voir « Logique Ship of Harkinian »). Reste d'OoT Randomizer : les connexions à pied
+> de `areas-data.js` (coûts et conditions), reprises par le Routeur, en pause jusqu'à son passage à la logique SoH
+> (étape 5).
 
 ## Principes
 - Application légère, 100 % navigateur, simple à installer, maintenir et déployer (hébergement statique).
@@ -77,7 +76,7 @@ l'utilisateur ; ne pas se fier à la branche `develop`, qui a d'autres options).
   puis affiche le résumé. Elle revient à chaque chargement (`ui.spoilerPrompt`) tant qu'on n'a ni importé un
   spoiler (depuis cette fenêtre ou la Configuration) ni répondu « Non, merci » ; la fermer (croix, Échap) ne
   fait que la reporter au prochain chargement.
-- **Tirages du seed à l'import** (case « Importer aussi les tirages du seed : donjons MQ et trousseaux (peut
+- **Tirages du seed à l'import** (case « Importer aussi les tirages du seed : donjons MQ, trousseaux et épreuves de Ganon (peut
   spoiler) », décochée par défaut, mémorisée dans `ui.importQuests`), seulement pour ce que la configuration
   laisse au hasard :
   - version des donjons : liste `masterQuestDungeons` du spoiler (absente s'il n'y a aucun donjon MQ) ;
@@ -85,6 +84,9 @@ l'utilisateur ; ne pas se fier à la branche `develop`, qui a d'autres options).
     Ces réglages sont toujours remis à leur valeur par défaut (sinon la Configuration révélerait le tirage) ; le
     tirage n'est gardé, dans la partie (`game.dungeons[id].keyRing` = 'yes'/'no'), que si la case est cochée.
     En « Sélection » + « Aléatoire » par donjon, le spoiler ne contient pas le résultat : reste inconnu.
+  - épreuves de Ganon (« Nombre aléatoire », ou « Nombre fixe » entre 1 et 5) : liste `requiredTrials` du spoiler
+    (noms localisés : « l'épreuve de la Forêt » / « Forest Trial »…), gardée dans la partie (`game.trials`). En
+    « Nombre aléatoire », SoH écrit aussi le nombre tiré dans « Ganon's Trials Count », remis à sa valeur par défaut.
   Case décochée : ces informations restent inconnues (ou ce que le joueur a noté).
 - **Objets de départ** (« Start with… » : ocarina, bouclier Mojo, épées Kokiri et de Légende, bâtons, noix,
   haricots, 12 chants, symboles de Skulltula) : réglages stockés mais sans onglet (onglet `starting` marqué
@@ -92,11 +94,13 @@ l'utilisateur ; ne pas se fier à la branche `develop`, qui a d'autres options).
   diminuer ce que le joueur a déjà noté. Non repris : cœurs de départ, bourses pleines (rubis).
 - Afficher en tête les incohérences détectées dans les données.
 
-**Correspondance avec Entrées et Routeur** (logique OoT Randomizer conservée en attendant la logique SoH) :
-entrées d'overworld, intérieurs (Simples / Tous), repaire, grottes, donjons (+ Ganon), boss (Par âge /
-Complet), tour de Ganon (seulement si les boss sont mélangés), chants de téléportation, hiboux ; « points
-d'apparition » couvre le spawn enfant et adulte ; la rivière de la Vallée Gerudo n'est jamais mélangée (absente
-de SoH) ; pools mélangés : deux types s'échangent si leurs deux options « Mix … » sont actives.
+**Correspondance avec Entrées** (`isRandomized`, pools de `entrance.cpp`) : chaque sortie suit le type de son
+entrée SoH (`shuffleTag` aligné par `tools/soh-entrances/apply_names.mjs`) — overworld, intérieurs (Simples /
+Tous), repaire, grottes et tombes (type GrottoGrave de SoH, dont les 4 tombes du cimetière et la grotte des
+tempêtes du château), donjons (+ Ganon), boss (Par âge / Complet), Tour de Ganon (mêlée aux salles de boss, adulte
+en « Par âge », seulement si les boss sont mélangés), chants de téléportation, hiboux ; « points d'apparition »
+couvre le spawn enfant et adulte ; la rivière de la Vallée Gerudo n'est mélangée (avec l'overworld) qu'en entrées
+découplées ; pools mélangés : deux types s'échangent si leurs deux options « Mix … » sont actives.
 
 **Panneau Objets piloté par la configuration** : capacités (une option par capacité), langues (« noix
 Blabla »), touches d'ocarina, canne à pêche, Triforce (chasse ≠ Non, maximum = total de morceaux), bouton
@@ -140,34 +144,15 @@ portes de l'overworld — `SmallKeys` et `CanOpenOverworldDoor` dans logic.cpp d
 clés, les trousseaux et le bouton « Clés des portes » disparaissent (les clés de boss restent) ; les blocs
 devenus vides disparaissent aussi. `dungeonKeysDone` la compte comme toutes les clés obtenues.
 
-## Âges et progression calculés
-Aucun réglage manuel : tout se déduit de la Configuration et de l'inventaire (panneau Objets), comme dans
-le vrai randomizer. Calculé dans `computeAges()` / `deriveGame()` (`js/ootr-logic.js`), lisible en lecture seule tout
-en haut du panneau Objets (pastilles vertes/grises).
-- **Âge de départ** (réglage Configuration, ou âge tiré si « Aléatoire ») : toujours acquis.
-- **Autre âge** : acquis si le Temple du Temps (`market::templeoftime_to_templeplaza`) est atteignable dans
-  l'âge de départ ET si la Porte du Temps peut s'ouvrir, selon le réglage SoH « Door of Time » :
-  - Fermée (défaut, vanilla) : 3 Pierres Spirituelles + Ocarina du Temps + Chant du Temps.
-  - Chant seul : Chant du Temps (n'importe quelle Ocarina).
-  - Ouverte : aucune condition.
-  Calcul sans dépendance circulaire : une recherche d'atteignabilité dédiée part du spawn de l'âge de
-  départ avec « l'autre âge » provisoirement marqué indisponible.
-- **Epona** : reproduit l'event `Epona` du randomizer (`can_play(Eponas_Song) and is_adult`) → Ocarina
-  (n'importe lequel) + Chant d'Epona appris (le jour n'est pas modélisé).
-- **Raccourci Bois Perdus ↔ Ville Goron** : reproduit l'event `GC Woods Warp Open` (mur à détruire côté
-  Ville Goron) → explosifs (Bombes/Missiles), Feu de Din, Arc (adulte) ou Force (palier ≥ 1) suffisent,
-  une seule fois (état persistant, jamais reperdu — les objets ne se perdent pas dans ce tracker).
-- **Raccourci du Cratère du Péril** : simplification (le graphe de zones de cette appli compresse les
-  nombreuses sous-régions du Cratère du jeu réel) → explosifs (Bombes ou Missiles) suffisent, de façon
-  persistante. Les alternatives Grappin/Bottes des Airs restent gérées séparément dans les connexions
-  (`areas-data.js`), indépendamment de ce raccourci.
-- **Pont/Carte Gerudo** : Carte Gerudo obtenue (objet manuel, la libération des charpentiers est une suite
-  d'épreuves internes au repaire, hors du graphe de sorties), y compris avec des charpentiers « Libres ».
+## Âges
+Aucun réglage manuel : les âges accessibles (`agesC`) viennent de la logique SoH (`sohC`, région racine) — l'âge de
+départ toujours, l'autre une fois le voyage dans le temps possible (Porte du Temps selon « Door of Time », entrées
+notées…). Ils servent à débloquer les spawns dans Entrées et au rappel des spawns non renseignés.
 
 ## Logique Ship of Harkinian
 Portage fidèle de la logique du randomizer de SoH 9.2.3 (commit `cb71e22`), en cours de branchement (étapes :
-1. extraction, 2. moteur, 3. âges et accessibilité des checks dans la page Checks — **faits** ; 4. entrées
-reliées aux passages SoH ; 5. Routeur sur le graphe SoH).
+1. extraction, 2. moteur, 3. âges et accessibilité des checks dans la page Checks, 4. entrées notées reliées aux
+passages SoH — **faits** ; 5. Routeur sur le graphe SoH).
 - **Données** (`logic-data.js`, généré par `tools/soh-logic/extract_logic.mjs` depuis `location_access/**`,
   `location_access.cpp`, `settings.cpp`, `location_list.cpp`) : 1 026 régions, avec leurs événements (`LOGIC_…`),
   checks et sorties, conditions C++ converties en fonctions JavaScript ; options lues par la logique ; prix et
@@ -180,8 +165,20 @@ reliées aux passages SoH ; 5. Routeur sur le graphe SoH).
   racine), le changement d'âge au Temple du Temps, et les événements, jusqu'à ce que plus rien ne change.
   Résultat (`computeSoh`, `sohC`) : accès de chaque région, événements obtenus, et pour chaque check les états
   âge/moment où il est faisable. Entrées mélangées : `computeSoh` accepte des liaisons « sortie → région d'arrivée
-  réelle » (la sortie garde sa condition, seule l'arrivée change, comme `Entrance::Connect` de SoH) ; elles seront
-  alimentées par les destinations notées dans Entrées à l'étape 4.
+  réelle » (la sortie garde sa condition, seule l'arrivée change, comme `Entrance::Connect` de SoH ; `null` : la
+  sortie ne mène nulle part).
+- **Entrées notées → liaisons** (`entranceLinks`, `linksC`) : chaque sortie porte le numéro de son entrée SoH
+  (`entr` dans `areas-data.js`). Noter « X mène à Z » (on apparaît à Z) revient à remplacer l'entrée de X par celle
+  qui, en vanilla, fait apparaître à Z : X mène à la région d'arrivée de cette entrée (une entrée à double sens
+  passe avant un sens unique). Une sortie randomisée **pas encore notée est une impasse** (`null`) : rien n'est
+  compté comme accessible derrière une entrée inconnue. Salles de boss : en entrées couplées, leur porte de sortie
+  ramène devant la porte de boss qui y mène ; en découplées, elle est notée dans Entrées. Téléporteurs bleus :
+  règle de SoH (fin de `ShuffleAllEntrances`) — en couplées, on remonte de la salle à son donjon (porte de boss,
+  puis entrée du donjon, éventuellement de donjon en donjon) et le téléporteur mène là où mène le téléporteur
+  vanilla du donjon dont l'entrée a été prise, ou devant l'entrée prise si ce n'est pas celle d'un donjon ; en
+  découplées, il mène là où ressort la salle. Le calcul « tout obtenu » (`sohFullC`, âge des checks) garde la
+  destination vanilla des entrées pas encore notées, pour ne pas déclarer « jamais faisable » ce qui est seulement
+  inconnu.
 - **Inventaire** : celui du panneau Objets, jamais les objets placés dans la seed. Objets non mélangés possédés
   d'office (capacités, langues, touches d'ocarina, canne à pêche, âmes de haricot, bourse enfant, capacités de
   base des bâtons et noix), cartes/clés « Au départ », Carte Gerudo offerte (charpentiers libres, carte non
@@ -190,16 +187,23 @@ reliées aux passages SoH ; 5. Routeur sur le graphe SoH).
 - **Boutiques et pestes non mélangées** : les atteindre donne l'événement de leur objet vanilla (bâtons Mojo →
   accès aux bâtons, noix, missiles, poisson, insectes, fée, flamme bleue), comme SoH.
 - **Écarts assumés** avec le tracker de SoH : donjons terminés = ceux dont le boss est battable en logique (et non
-  les téléporteurs bleus empruntés) ; épreuves de Ganon passées seulement si « Aucune » ou 0 ; haricots plantés
+  les téléporteurs bleus empruntés) ; épreuve de Ganon tirée au sort et pas encore notée (panneau Objets) =
+  requise ; haricots plantés
   seulement avec « Haricots déjà plantés » + haricots au départ ; version de donjon inconnue → branches Vanilla et
-  MQ toutes deux explorées ; prix vus en jeu non suivis (prix minimal). Dans l'appli, les entrées sont pour
-  l'instant celles du jeu vanilla (étape 4).
+  MQ toutes deux explorées ; prix vus en jeu non suivis (prix minimal).
 - **Validation** (outil de test, jamais dans l'appli) : `node tools/soh-logic/replay_spoilers.mjs <dossier>`
   rejoue chaque spoiler sphère par sphère en ramassant tous les objets accessibles, avec les entrées du spoiler
   (`entrances` : l'entrée `index` mène là où mène normalement l'entrée `override`) ; tous les lieux du playthrough
-  et du spoiler doivent être atteints. Résultat actuel : 30/30 spoilers 9.2.3 conformes, dont 3 à entrées
-  mélangées et découplées, couvrant donjons MQ, trousseaux, petites clés vanilla et quête d'échange adulte non
-  mélangée.
+  et du spoiler doivent être atteints. Les entrées du spoiler sont aussi converties en destinations notées et les
+  liaisons qu'en déduit l'appli (`entranceLinks`) comparées à celles du spoiler : aucune différence attendue.
+  Résultat actuel : 31/32 spoilers 9.2.3 conformes, liaisons identiques sur les 32, dont 5 à entrées mélangées
+  (couplées ou découplées, pools mélangés, salles de boss — « Mix Bosses » compris — et Tour de Ganon mélangées),
+  couvrant donjons MQ, trousseaux, petites clés vanilla, épreuves de Ganon tirées au sort et quête d'échange adulte
+  non mélangée. **Écart connu** (22-14-61-53-24 : entrées découplées, Boss « Full » + « Mix Bosses », Temple de
+  l'Esprit MQ, clés vanilla) : SoH atteint les 3 petites clés de l'aile enfant (Child Climb South, Silver Block
+  Hallway, Child Hammer Switch), pas notre moteur ; avec ces 3 clés en plus, tout le spoiler est atteint. Fonctions
+  propres à l'Esprit (`SpiritShared`, `SpiritCertainAccess`, `IsReverseAccessPossible`…) relues conformes ; piste :
+  écart entre le mode « remplissage » du générateur et le mode « checks disponibles » du tracker. À creuser.
 
 ## Panneau Objets (droite)
 Zone latérale droite, étroite (repliable sur mobile via un bouton dans la barre du haut), pas une page à
@@ -215,14 +219,10 @@ grisée tant que l'objet n'est pas trouvé (tuile d'objet, case de donjon non co
 couleur sinon ; un compteur « obtenus/total » (petites clés, échanges, clés des portes, haricots) passe en
 doré une fois complet (`counterClass` dans `js/app.js`).
 
-> **Catalogue orienté Ship of Harkinian.** Le contenu du panneau Objets (objets, donjons, check-lists) a été
-> aligné sur le randomizer de Ship of Harkinian plutôt que sur OoT Randomizer (ER) — voir la remarque en
-> tête de ce document. **La logique d'Entrées/Routeur/Configuration n'a pas encore été adaptée en
-> conséquence** (réglages ER, pool de sorties, terminologie) : c'est un chantier séparé, à traiter
-> globalement plus tard.
+> **Catalogue orienté Ship of Harkinian.** Le contenu du panneau Objets (objets, donjons, check-lists) est celui
+> du randomizer de Ship of Harkinian ; l'inventaire noté est lu tel quel par la logique SoH (Checks, Entrées).
 
-En tête de panneau : pastilles en lecture seule de l'état calculé plus haut (âges, Epona, raccourcis). Puis,
-dans l'ordre :
+Dans l'ordre :
 
 1. **Quête** : les 6 Médaillons de donjon disposés en hexagone (positionnement CSS, pas d'image dessinée),
    Morceaux de Triforce au centre (visible seulement si « Chasse à la Triforce » est activée en
@@ -232,8 +232,7 @@ dans l'ordre :
    Quarts de Cœur / Magie (progressif : Simple → Double, puis Infinie seulement avec « Améliorations
    infinies »), Skulltulas d'Or, Greg (rubis vert : seulement si le pont arc-en-ciel est « Greg » ou si une
    option « Greg compte / Greg joker » est active pour le pont ou la clé de boss de Ganon ; icône
-   `icons/rewards/greg.png`). Purement informatifs,
-   sans effet sur le Routeur (sauf Magie ≥ 1, utilisée par `sat()`).
+   `icons/rewards/greg.png`). Lus par la logique SoH.
 2. **Équipement**, sur toute la largeur (5 colonnes de tuiles de même taille) : quatre chaînes de tuiles
    reliées — Épée Kokiri → de Légende → Biggoron (3 objets distincts, pas un objet progressif — dans le jeu
    ce sont trois pickups différents, l'Épée Biggoron remplaçant le Couteau Cassé du Goron via une quête
@@ -264,7 +263,7 @@ dans l'ordre :
    Ensuite, dans un cadre de la même teinte que l'inventaire, sur une seule ligne : la tuile Ocarina
    progressive (Ocarina de Fée → Ocarina du Temps), un peu plus grande, puis les 5 notes dans l'ordre des
    hauteurs (A, C-Bas, C-Droite, C-Gauche, C-Haut), purement informatives : ne servent qu'à noter quelle note est jouée par quel bouton
-   quand le réglage rando « mélanger les notes d'ocarina » est actif, non branchées à `sat()`).
+   quand le réglage rando « mélanger les notes d'ocarina » est actif ; lues par la logique SoH).
 5. **Objets d'échange** : deux boutons (`ITEMS_PAGE.tradeButtons`), Enfant (icône Masque de Vérité) et
    Adulte (icône Reçu), avec le compteur « obtenus/11 » (`tradeStats`). Chaque bouton ouvre une fenêtre de
    pointage (`modal` = `'trade-child'`/`'trade-adult'`) : les 11 objets sur 3 lignes, chaque ligne étant
@@ -283,18 +282,14 @@ Puis :
 6. **Capacités et langues** (spécificité Ship of Harkinian, qui peut les mélanger dans le pool d'objets ;
    `ITEMS_PAGE.skills`), une ligne chacune : Nager, Grimper, Ramper, Ouvrir les coffres, Saisir ; puis Langue
    Kokiri, Mojo, Hylienne, Goron, Zora, Gerudo — des objets `bool` ordinaires d'`ITEM_GROUPS` (icônes
-   attendues dans `icons/abilities/` et `icons/languages/`), purement informatifs pour l'instant (pas encore
-   branchés à `sat()`). À droite, dans une carte étroite distincte (ces check-lists n'ont pas de lien
+   attendues dans `icons/abilities/` et `icons/languages/`), lus par la logique SoH. À droite, dans une carte étroite distincte (ces check-lists n'ont pas de lien
    logique avec les capacités/langues, seule la mise en page les rapproche ; `ITEMS_PAGE.checklistButtons`),
    les boutons carrés « Clés des portes » (option « Lock Overworld Doors »), « Trous à haricots » (option « Âmes
    de haricot »), chacun visible seulement si son option est active (carte masquée s'il n'en reste aucun) :
    compteur obtenu/total, cliquables pour
    ouvrir une modale de pointage — liste de lieux à cocher, 2 colonnes, clic gauche = coché, clic droit = décoché
    (`setChecklist`, `checklistStats` dans `js/state.js`). Catalogue des lieux dans `CHECKLISTS`
-   (`js/items.js`). **Purement informatif pour l'instant** : pas encore branché au Routeur (voir encadré
-   ci-dessus) — l'intention à terme est qu'un trou à haricot plante une connexion fixe dans le graphe, et
-   qu'un lieu « Clés des portes » coché débloque l'accès à ce qu'il y a derrière la porte, mais les
-   correspondances lieu → connexion restent à spécifier.
+   (`js/items.js`). Lus par la logique SoH : clé de la porte obtenue, âme de haricot du lieu.
 7. **Donjons**, sans titre : un bloc par donjon (nom complet + ses cases sur une ligne), deux par ligne,
    dans l'ordre de `ITEMS_PAGE.dungeons.rows` : Arbre Mojo – Caverne Dodongo ; Ventre de Jabu-Jabu – Fond du
    Puits ; Gymnase Gerudo – Repaire des Voleurs ; Forêt – Feu ; Eau – Ombre ; Esprit – Caverne de Glace ;
@@ -310,7 +305,13 @@ Puis :
    `DUNGEONS`/`DUNGEON_BY_ID` dans
    `js/items.js`, mutations `setDungeonFlag`/`addDungeonKeys` dans `js/state.js`). **Purement informatif
    pour l'instant**, comme les check-lists ci-dessus — petites clés attendues `maxKeys` (Vanilla) / `mqKeys`
-   (MQ) selon la version du donjon (pastille à côté du nom, voir Configuration > Version des donjons). Exception : la Carte Gerudo (objet `gerudoCard`
+   (MQ) selon la version du donjon (pastille à côté du nom, voir Configuration > Version des donjons).
+   **Épreuves de Ganon** : quand la configuration laisse au hasard lesquelles sont requises (« Nombre aléatoire »,
+   ou « Nombre fixe » entre 1 et 5), une 3e ligne dans le bloc du Château de Ganon : 6 pastilles à la teinte des
+   médaillons (Forêt, Feu, Eau, Ombre, Esprit, Lumière) — « ? » inconnue (pointillés), initiale requise (pleine),
+   ✓ dissipée (atténuée) ; clic : état suivant, clic droit : précédent (`game.trials`, `trialStatus`/`cycleTrial`).
+   La logique compte une épreuve inconnue comme requise (seules les dissipées ouvrent la Tour de Ganon). Les pierres
+   à potins indiquent en jeu les épreuves dissipées. Exception : la Carte Gerudo (objet `gerudoCard`
    d'`ITEM_GROUPS`, déjà utilisé par la logique) est affichée sous les petites clés du Repaire, à la manière
    d'une clé de boss (champ `card` du donjon dans `DUNGEONS`), clic gauche = obtenue, clic droit = retirée.
 
@@ -370,15 +371,8 @@ Palier de base toujours possédé (`neverEmpty:true`, uniquement pour `level`) :
 mais reste augmentable/diminuable normalement (contrairement à `locked`, sans plancher artificiel puisque
 le palier 0 est déjà le minimum réel).
 
-Les objets à paliers sont aplatis en indicateurs booléens (`deriveGame()` dans `js/ootr-logic.js`) avant d'être
-passés à `sat()` : ex. Force ≥ 1 → Bracelet Goron, ≥ 2 → Gantelets d'Argent, ≥ 3 → Gantelets d'Or ; Magie
-≥ 1 → magie disponible ; Ocarina ≥ 1 → ocarina possédée ; Bouteilles ≥ 1 → a une bouteille ; Bâton Mojo
-≥ 1 → bâtons disponibles. Seuls les objets déjà utilisés par `REQUIREMENTS`/`sat()` avant cet ajout
-conditionnent Entrées/Routeur ; tout le reste (Récompenses hors Pierres Spirituelles, armes enfant/
-adulte/communes hors force/bombes/missiles/arc/grappin/bâtons, Statistiques, notes d'ocarina, chants hors
-ceux déjà câblés) est purement informatif pour l'instant — cf. `SilverScale`/`GoronBracelet`/etc. dans
-`REQUIREMENTS` pour la liste exacte de ce qui compte pour la logique.
-- Les conditions portent sur chaque couple de sorties d'une zone, pas sur la zone entière.
+La logique SoH lit l'inventaire tel quel (paliers compris : Force, Écaille, Bourse, capacités…), voir
+« Logique Ship of Harkinian > Inventaire ».
 
 ## Checks
 Liste des checks de la seed, par zone, pour les cocher au fil de la partie. Données : `checks-data.js`
@@ -440,8 +434,8 @@ check) ; règles dans `js/checks.js`.
   logique au survol » (« Show Logic » de SoH : condition SoH du check dans l'infobulle, par région), « Suivre
   aussi les Skulltulas non mélangées », zones groupées Overworld / Donjons avec pastille verte du nombre de
   faisables, mini-barre et restants (✓ si terminée).
-- **Entrées mélangées** : tant que les destinations notées dans Entrées ne sont pas reliées à la logique (étape 4),
-  un avertissement rappelle que l'accessibilité suppose les entrées d'origine.
+- **Entrées mélangées** : les destinations notées dans Entrées sont prises en compte ; tant qu'il reste des entrées à
+  découvrir, un avertissement rappelle qu'une entrée pas encore notée ne mène nulle part pour la logique.
 - **Progression globale** : cadre « Checks » de la bande de progression (voir plus haut) — anneau de pourcentage,
   « faits / total », restants, faisables maintenant, zones terminées, et détail Overworld / Donjons. Il dépend seulement de la configuration (checks mélangés, version active des donjons, hors exclus),
   jamais des filtres d'affichage (catégories, âge, Skulltulas non mélangées, recherche, zones masquées) ; les
@@ -451,7 +445,7 @@ check) ; règles dans `js/checks.js`.
   suivis », « Terminée » quand tout est fait. Checks sur 2 colonnes (1 sur mobile) : icône de catégorie, libellé,
   ☾ / ☀, pastille d'âge, coche ; un clic (gauche) bascule fait / à faire (`game.checks`, stockage creux `{ id: true }`) ; nom SoH
   au survol ; ⊘ au survol pour exclure.
-- **À venir (branche logique)** : lien avec les Entrées (étape 4) et le Routeur (étape 5).
+- **À venir (branche logique)** : le Routeur (étape 5).
 
 ## Entrées
 Cadre « Entrées » de la bande de progression (voir plus haut), dès qu'au moins une sortie est randomisée :
@@ -465,15 +459,15 @@ téléportation, qui ne sont pas des lieux. Identifiants en minuscules des zones
 `zoras_river`…), regroupement fait par `tools/soh-entrances/regroup_areas.mjs`.
 Une carte dépliable par zone, avec progression (sorties renseignées / randomisées). Une ligne par sortie :
 1. Icône du type (extérieur, intérieur, grotte, donjon, boss, hibou, téléportation, spawn).
-2. Globe : au survol, liste des sorties atteignables à pied dans la même zone, avec coût ;
-   en noir si accessible avec l'état actuel, en rouge sinon avec la condition. Grisé si aucune connexion.
+2. Globe : au survol, liste des sorties de la même zone reliées à pied, avec leur coût (données du Routeur ; les
+   conditions de passage sont celles de la logique SoH, par région). Grisé si aucune connexion.
 3. Nom de la sortie : nom du tracker d'entrées de SoH (`randomizer_entrance_tracker.cpp`, commit `cb71e22`),
    traduit en français sans le préfixe de zone (déjà affiché), nom SoH exact au survol (champ `soh`) — y compris
    dans les listes de destinations (recherche aussi sur le nom SoH) et le Routeur. Convention SoH : côté
    extérieur « Entrée de la maison de Mido », côté intérieur « Maison de Mido » (la sortie qu'on prend depuis
    l'intérieur). Correspondance sortie ↔ entrée SoH et traductions : `tools/soh-entrances/apply_names.mjs`
-   (réécrit `areas-data.js`). Repaire des Voleurs : appariement des 13 portes déduit des noms extérieurs, à
-   confirmer en jeu.
+   (réécrit `areas-data.js`), qui vérifie aussi que chaque appariement aller-retour est celui du tracker de SoH
+   (Repaire des Voleurs compris).
 4. « Accessible depuis » : zone et sortie qui mènent ici (plusieurs possibles, ex. chant + entrée).
    Colonne masquée si les entrées découplées ne sont pas activées : la provenance est alors
    identique à la destination (colonne 5 renommée « Sortie associée » dans ce cas).
@@ -483,7 +477,10 @@ Une carte dépliable par zone, avec progression (sorties renseignées / randomis
      chant dont l'Ocarina ou le chant lui-même ne sont pas encore appris) : message indiquant la condition
      de déblocage, pas de liste déroulante ;
    - randomisée, débloquée et non renseignée : liste déroulante avec filtre texte, groupée par zone,
-     ne proposant que les destinations libres et du même type (sauf pools mélangés) ;
+     ne proposant que les destinations libres et du même pool (sauf pools mélangés) ; sens uniques : les
+     destinations de SoH (`BuildOneWayTargets`) — spawns et chants : overworld, intérieurs, grottes et tombes,
+     plateformes, apparitions, atterrissages des hiboux ; hiboux : overworld, plateformes (sauf celle du
+     Prélude), atterrissages ;
    - randomisée et renseignée : destination choisie.
    Cliquer une destination ou une provenance fait défiler vers la ligne correspondante.
 6. Indicateur à droite : « V » si vanilla ; rien si à renseigner (la liste occupe l'espace) ;
@@ -492,19 +489,32 @@ Une carte dépliable par zone, avec progression (sorties renseignées / randomis
 
 Règles :
 - Entrées couplées par défaut : noter A → B renseigne aussi B → A. Effacer l'une efface l'autre.
-- Spawns, chants, hiboux, rivière Gerudo : sorties à sens unique ; on ne peut pas y « entrer ».
-  Leur destination s'ajoute aux entrées existantes sans la consommer.
+- Spawns, chants, hiboux : sorties à sens unique ; on ne peut pas y « entrer ». Leur destination s'ajoute aux
+  entrées existantes sans la consommer. Rivière Gerudo : sens unique mélangé avec l'overworld (entrées
+  découplées) ; elle consomme sa destination, et son arrivée au Lac Hylia devient une destination d'overworld.
+- Une sortie randomisée pas encore renseignée ne mène nulle part pour la logique (impasse) : les zones et
+  checks derrière elle ne comptent pas comme atteignables.
+- Zone atteinte : l'une de ses sorties se trouve dans une région SoH accessible (région de départ de son entrée,
+  ou région où l'on apparaît en y arrivant).
 - Spawn enfant/adulte et chants de téléportation : non éditables tant qu'ils ne sont pas débloqués dans la
   partie (spawn → âge correspondant accessible ; chant → Ocarina et ce chant appris), pour éviter de noter
   une destination qu'on ne peut pas encore réellement connaître. Une destination déjà notée avant un
   décochage reste conservée (juste masquée le temps que la condition redevienne vraie).
-- Plateformes de téléportation (destinationOnly) : on peut y arriver, pas les prendre ; non affichées comme lignes.
-- Téléporteurs bleus : non éditables ; ils ramènent devant l'entrée qui mène au donjon
-  dont on a franchi la porte de boss.
+- Arrivées seules (destinationOnly : plateformes de téléportation, arrivée de la rivière Gerudo, toit de la maison
+  d'Impa où se pose le hibou du Chemin du Péril) : on peut y arriver, pas les prendre ; non affichées comme lignes.
+- Salles de boss : les portes de boss mènent aux salles (Tour de Ganon comprise si elle est mélangée). En
+  entrées couplées, la sortie de la salle (téléporteur bleu) est calculée, « A » : même calcul que la logique
+  (`blueWarpTargets`, voir « Logique Ship of Harkinian »), affiché comme la sortie où l'on apparaît. En entrées découplées avec salles mélangées, elle se note : devant quelle porte de boss on
+  ressort (porte de sortie et téléporteur bleu mènent au même endroit).
+  Avec Boss « Full » et « Mix Bosses » (pools mélangés), portes de boss, salles et devant des portes rejoignent le
+  pool mélangé : une porte peut mener à un lieu de l'overworld, une sortie d'overworld à une salle de boss ou devant
+  une porte de boss ; en entrées couplées, la sortie de la salle ramène devant ce qui y mène.
 - Convention des libellés : une sortie désigne l'endroit où l'on se trouve. « Maison de Mido » est côté forêt
   (la porte) ; la prendre mène à « Sortie de la maison de Mido », à l'intérieur.
 
 ## Routeur
+**En pause** pendant le passage à la logique SoH (étape 5) : la page garde ses sélecteurs et affiche un
+avertissement. Comportement attendu :
 - Départ : zone, sortie, âge (Enfant / Adulte ; jamais « peu importe »).
 - Arrivée : zone, sortie, âge (Enfant / Adulte / Peu importe). Bouton pour inverser départ et arrivée.
 - Calcul automatique dès que départ et arrivée sont choisis (pas de bouton).
