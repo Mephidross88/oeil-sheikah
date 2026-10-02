@@ -126,7 +126,6 @@ const App = {
         if (r.toAge !== 'any') { const a = r.fromAge; r.fromAge = r.toAge; r.toAge = a; }
       });
     }
-    // En pause pendant la migration vers la logique SoH : le graphe de déplacement est reconstruit à l'étape 5.
     const route = computed(() => {
       const r = ui.router;
       if (!r.fromExit || !r.toExit || !EXIT[r.fromExit] || !EXIT[r.toExit]) return { state:'idle' };

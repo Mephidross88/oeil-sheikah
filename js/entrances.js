@@ -104,24 +104,24 @@ function computeIncoming(eff){
 }
 
 /* ---------- Routeur ---------- */
-// Le graphe de déplacement (marche, transitions, chants, sauvegarde, changement d'âge) est reconstruit sur la logique SoH à
-// l'étape 5 ; seul l'algorithme de plus court chemin est conservé.
-/** Dijkstra sur les états (sortie, âge). */
+// Le graphe de déplacement (marche, transitions, chants, sauvegarde, changement d'âge) est construit sur la logique SoH par
+// routeGraph (js/logic.js) ; seul l'algorithme de plus court chemin est ici.
+/** Dijkstra sur les états (sortie, âge, position : voir routeGraph ; « start » au départ). */
 function shortest(edges, start, startAge, goal, goalAge){
-  const id = (k, a) => k + '|' + a;
-  const dist = new Map([[id(start, startAge), 0]]), prev = new Map(), heap = [[0, start, startAge]];
+  const id = (k, a, m) => k + '|' + a + '|' + m;
+  const dist = new Map([[id(start, startAge, 'start'), 0]]), prev = new Map(), heap = [[0, start, startAge, 'start']];
   while (heap.length){
     let bi = 0; for (let i = 1; i < heap.length; i++) if (heap[i][0] < heap[bi][0]) bi = i;
-    const [d, k, a] = heap.splice(bi, 1)[0], cur = id(k, a);
+    const [d, k, a, m] = heap.splice(bi, 1)[0], cur = id(k, a, m);
     if (d > dist.get(cur)) continue;
     if (k === goal && (goalAge === 'any' || goalAge === a)){
       const path = []; let n = cur;
       while (prev.has(n)){ const p = prev.get(n); path.unshift(p.edge); n = p.from; }
       return { edges:path, cost:path.reduce((s, e) => s + e.cost, 0), endAge:a };
     }
-    for (const e of edges(k, a)){
-      const nd = d + e.cost + 0.001, nid = id(e.to, e.age);   // +epsilon : à coût égal, moins d'étapes
-      if (nd < (dist.get(nid) ?? Infinity)){ dist.set(nid, nd); prev.set(nid, { from:cur, edge:e }); heap.push([nd, e.to, e.age]); }
+    for (const e of edges(k, a, m)){
+      const nd = d + e.cost + 0.001, nid = id(e.to, e.age, e.mode);   // +epsilon : à coût égal, moins d'étapes
+      if (nd < (dist.get(nid) ?? Infinity)){ dist.set(nid, nd); prev.set(nid, { from:cur, edge:e }); heap.push([nd, e.to, e.age, e.mode]); }
     }
   }
   return null;

@@ -978,24 +978,35 @@ function entranceLinks(eff, settings){
 
 // Sortie où l'on apparaît en prenant une entrée SoH (inverse d'ARRIVAL_ENTR).
 const EXIT_BY_ARRIVAL = Object.fromEntries(Object.entries(ARRIVAL_ENTR).map(([key, n]) => [n, key]));
-/** Destination affichée du téléporteur bleu de chaque salle de boss calculée automatiquement (page Entrées, « A »),
-   tirée du même calcul que la logique : { clé de la salle: sortie | null }. */
-function blueWarpTargets(eff, settings){
-  const { blueWarp } = entranceReplacer(eff, settings), out = {};
+/** Sorties où mènent la porte de sortie (back) et le téléporteur bleu (blueWarp) de chaque salle de boss, tirées du même
+   calcul que la logique : { clé de la salle: { back, blueWarp } } (sortie, ou null si inconnue). */
+function bossRoomExits(eff, settings){
+  const { replacement, blueWarp } = entranceReplacer(eff, settings), out = {};
+  const exitOf = n => n == null ? null : EXIT_BY_ARRIVAL[n] ?? null;
   for (const p of BOSS_ROOM_PAIRS){
     const room = EXIT_BY_ENTR[p.back.n];
-    if (!room?.specialTag || bossRoomNoted(room, settings)) continue;
+    if (!room?.specialTag) continue;
     const t = blueWarp(p), q = BOSS_ROOM_PAIRS.find(b => b.blueWarp.n === t);
     // téléporteur vanilla d'un donjon : sa destination vanilla (celle de la salle du donjon, ou devant le Château de Ganon)
     const qRoom = q && EXIT_BY_ENTR[q.back.n];
-    out[room.key] = t == null ? null : !q ? EXIT_BY_ARRIVAL[t] ?? null : qRoom?.specialTag ? qRoom.vanilla : EXIT_BY_ARRIVAL[q.dungeonExit.n] ?? null;
+    out[room.key] = { back:exitOf(replacement(p.back.n)),
+      blueWarp:t == null ? null : !q ? exitOf(t) : qRoom?.specialTag ? qRoom.vanilla : exitOf(q.dungeonExit.n) };
   }
+  return out;
+}
+/** Destination affichée du téléporteur bleu de chaque salle de boss calculée automatiquement (page Entrées, « A ») :
+   { clé de la salle: sortie | null }. */
+function blueWarpTargets(eff, settings){
+  const out = {};
+  for (const [key, x] of Object.entries(bossRoomExits(eff, settings))) if (!bossRoomNoted(EXIT[key], settings)) out[key] = x.blueWarp;
   return out;
 }
 
 /* ---------- Routeur : graphe de déplacement sur la logique SoH ----------
-   Nœud = (sortie, âge). Arêtes : marche (sorties internes des régions SoH, c.-à-d. tout passage qui n'est pas une
-   entrée mélangeable), transition (destination notée, condition SoH de l'entrée), téléporteur bleu, chant de
+   Nœud = (sortie, âge, position) : « in » = on vient d'apparaître à la sortie (région d'arrivée), « front » = arrivé à
+   pied devant elle (région de départ de son entrée), « start » = point de départ choisi (les deux). Arêtes : marche
+   (sorties internes des régions SoH, c.-à-d. tout passage qui n'est pas une entrée mélangeable), transition (destination
+   notée, condition SoH de l'entrée ; depuis une salle de boss, sa porte de sortie et son téléporteur bleu), chant de
    téléportation (RR_ROOT_EXITS), sauvegarder-recharger (entrée du donjon dans un donjon, sinon apparition de l'âge),
    changement d'âge au Temple du Temps (derrière la Porte du Temps atteignable, comme le voyage dans le temps de
    fill.cpp). Les conditions sont évaluées sur l'état noté (inventaire, événements) ; jour ou nuit indifférents. */
@@ -1034,11 +1045,15 @@ function walkCosts(both){
   return out;
 }
 const WALK_COST = walkCosts(false), WALK_COST_ANY = walkCosts(true);
-// Régions où se trouve une sortie (départ de son entrée, arrivée) ; sorties joignables depuis chaque région.
+// Région devant une sortie (départ de son entrée ; région d'arrivée pour une sortie qu'on ne peut pas prendre) ; sorties
+// devant lesquelles on se trouve dans chaque région.
+const frontRegion = e => (!e.destOnly && SOH_ENTRANCE[e.entr]?.from) || arrivalRegion(e.key);
 const EXITS_AT_REGION = {};
-for (const e of ALL_EXITS) for (const r of exitRegions(e)) (EXITS_AT_REGION[r] ||= new Set()).add(e.key);
+for (const e of ALL_EXITS){ const r = frontRegion(e); if (r) (EXITS_AT_REGION[r] ||= new Set()).add(e.key); }
+const startRegions = (e, mode) => (mode === 'in' ? [arrivalRegion(e.key) || frontRegion(e)]
+  : mode === 'front' ? [frontRegion(e)] : exitRegions(e)).filter(Boolean);
 
-/** Graphe du Routeur pour l'état noté : { edges(key, age) } à passer à shortest(). costs = store.costs. */
+/** Graphe du Routeur pour l'état noté : { edges(key, age, mode) } à passer à shortest(). costs = store.costs. */
 function routeGraph(settings, game, links, eff, costs){
   computeSoh(settings, game, links);   // état logique (événements, accès, options) de la partie notée
   const ok = {};
@@ -1050,14 +1065,15 @@ function routeGraph(settings, game, links, eff, costs){
   L.cur = null;
   const pass = (from, to, age) => !!ok[from + '>' + to]?.[age];
   const spawnOf = { child:eff['spawns::spawn_child'], adult:eff['spawns::spawn_adult'] };
+  const rooms = bossRoomExits(eff, settings);
   const warps = Object.keys(WARP_SONGS).filter(k => eff[k] && EXIT[k].entr != null).map(k => ({ key:k, to:eff[k], region:SOH_ENTRANCE[EXIT[k].entr].from }));
 
   // Régions joignables à pied depuis une sortie, avec le nombre de régions traversées.
   const walkMemo = {};
-  function walk(key, age){
-    const id = key + '|' + age;
+  function walk(key, age, mode){
+    const id = key + '|' + age + '|' + mode;
     if (walkMemo[id]) return walkMemo[id];
-    const depth = new Map(exitRegions(EXIT[key]).map(r => [r, 0])), q = [...depth.keys()];
+    const depth = new Map(startRegions(EXIT[key], mode).map(r => [r, 0])), q = [...depth.keys()];
     while (q.length){
       const rr = q.shift();
       for (const [to] of SOH.regions[rr]?.exits || []){
@@ -1080,35 +1096,37 @@ function routeGraph(settings, game, links, eff, costs){
   }
 
   const memo = {};
-  function edges(key, age){
-    const id = key + '|' + age;
+  function edges(key, age, mode = 'start'){
+    const id = key + '|' + age + '|' + mode;
     if (memo[id]) return memo[id];
     const e = EXIT[key], out = [];
     if (!e) return out;
-    // marche : sorties dont une région est joignable ; coût d'areas-data.js (dans le sens des données, sinon dans les deux
+    // marche : sorties devant lesquelles on peut aller ; coût d'areas-data.js (dans le sens des données, sinon dans les deux
     // sens), à défaut estimation par région traversée
-    const depth = walk(key, age), seen = new Set();
+    const depth = walk(key, age, mode), seen = new Set();
     for (const [rr, d] of depth) for (const to of EXITS_AT_REGION[rr] || []){
       if (to === key || seen.has(to) || EXIT[to].areaId === SPAWN_AREA) continue;
       seen.add(to);
-      out.push({ from:key, fromAge:age, to, age, cost:WALK_COST[key + '>' + to] ?? WALK_COST_ANY[key + '>' + to] ?? Math.max(1, d) * costs.walk, kind:'walk' });
+      out.push({ from:key, fromAge:age, to, age, mode:'front', cost:WALK_COST[key + '>' + to] ?? WALK_COST_ANY[key + '>' + to] ?? Math.max(1, d) * costs.walk, kind:'walk' });
     }
-    // transition par la sortie (condition de son entrée SoH ; téléporteur bleu pour une salle de boss)
-    if (!e.destOnly && eff[key] && e.entr != null){
-      const p = e.specialTag && BOSS_ROOM_PAIRS.find(p => p.back.n === e.entr), s = p ? p.blueWarp : SOH_ENTRANCE[e.entr];
-      if (s && pass(s.from, s.to, age))
-        out.push({ from:key, fromAge:age, to:eff[key], age, cost:costs.transition, kind:p ? 'bluewarp' : e.type === 'owl' ? 'owl' : 'transition' });
-    }
+    // transition par la sortie (condition de son entrée SoH, depuis sa région de départ joignable à pied) ; salle de
+    // boss : porte de sortie et téléporteur bleu
+    const p = e.specialTag && BOSS_ROOM_PAIRS.find(p => p.back.n === e.entr);
+    const exits = p ? [[p.back, rooms[key]?.back, 'transition'], [p.blueWarp, rooms[key]?.blueWarp, 'bluewarp']]
+      : !e.destOnly && e.entr != null ? [[SOH_ENTRANCE[e.entr], eff[key], e.type === 'owl' ? 'owl' : 'transition']] : [];
+    for (const [s, to, kind] of exits) if (s && to && depth.has(s.from) && pass(s.from, s.to, age))
+      out.push({ from:key, fromAge:age, to, age, mode:'in', cost:costs.transition, kind });
     // changement d'âge au Temple du Temps
     if (key === TOT && depth.has(TIME_DOOR)){
       const other = age === 'child' ? 'adult' : 'child';
-      out.push({ from:key, fromAge:age, to:key, age:other, cost:costs.age, kind:'age' });
+      out.push({ from:key, fromAge:age, to:key, age:other, mode, cost:costs.age, kind:'age' });
     }
     for (const w of warps) if (w.to !== key && pass('RR_ROOT_EXITS', w.region, age))
-      out.push({ from:key, fromAge:age, to:w.to, age, cost:costs.warp, kind:'warp', warp:w.key });
+      out.push({ from:key, fromAge:age, to:w.to, age, mode:'in', cost:costs.warp, kind:'warp', warp:w.key });
     const rt = resetTarget(key, age);
-    if (rt && rt !== key) out.push({ from:key, fromAge:age, to:rt, age, cost:costs.reset, kind:'reset' });
+    if (rt && rt !== key) out.push({ from:key, fromAge:age, to:rt, age, mode:'in', cost:costs.reset, kind:'reset' });
     return (memo[id] = out);
   }
-  return { edges };
+  // regions(key, age, mode) : régions joignables à pied depuis ce nœud (contrôle par replay_spoilers.mjs)
+  return { edges, regions:(key, age, mode = 'start') => walk(key, age, mode) };
 }

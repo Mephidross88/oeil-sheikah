@@ -41,9 +41,10 @@ et le mettre à jour quand une règle change.
      enfant jour, `CN` enfant nuit, `AD`/`AN` adulte ; `links` : entrées mélangées `{ 'RR_A>RR_B': 'RR_C' }`,
      `null` = impasse). En fin de fichier, `entranceLinks(eff, settings)` traduit les destinations notées dans Entrées
      en `links` (sortie randomisée non notée → impasse ; salles de boss et téléporteurs bleus selon la règle de SoH),
-     `exitRegions`/`arrivalRegion` (régions SoH d'une sortie), et `routeGraph(settings, game, links, eff, costs)` : graphe
-     du Routeur (nœuds (sortie, âge) ; marche par les sorties internes des régions SoH, transitions, chants,
-     sauvegarder-recharger, changement d'âge), à passer à `shortest`. Pur (sans Vue), lit `store` seulement via ses arguments.
+     `exitRegions`/`arrivalRegion` (régions SoH d'une sortie), `bossRoomExits` (porte de sortie et téléporteur bleu de
+     chaque salle de boss), et `routeGraph(settings, game, links, eff, costs)` : graphe du Routeur (nœuds (sortie, âge,
+     position) — position `in` apparu à la sortie, `front` arrivé à pied, `start` départ choisi ; marche par les
+     sorties internes des régions SoH, transitions, chants, sauvegarder-recharger, changement d'âge), à passer à `shortest`. Pur (sans Vue), lit `store` seulement via ses arguments.
   8. `js/state.js` : persistance (`defaults`, `merge`, `load`, `store`, sauvegarde auto), les `computed`
      dérivés au niveau module (`effC`, `linksC` — destinations notées → liaisons, `sohC` — logique SoH avec
      l'inventaire noté et les entrées notées, `agesC` — âges accessibles, `reachC` — sorties atteignables, `routeC` —
@@ -70,8 +71,9 @@ et le mettre à jour quand une règle change.
   et la table des entrées de SoH (`entrances` : numéro ENTR, type, région de départ, région d'arrivée vanilla).
   Gros fichier : ne le lire que par extraits (grep sur un `RR_…` ou `RC_…`).
 - `tools/soh-logic/` : `extract_logic.mjs` (régénère `logic-data.js`) et `replay_spoilers.mjs` (test du moteur :
-  rejoue des spoilers SoH sphère par sphère, et compare aux entrées du spoiler les liaisons déduites des destinations
-  notées, voir SPEC.md > Logique Ship of Harkinian ; à relancer après toute modification de `js/logic.js`, de la
+  rejoue des spoilers SoH sphère par sphère, compare aux entrées du spoiler les liaisons déduites des destinations
+  notées et, à chaque sphère, les régions atteintes par le Routeur à celles de la logique, voir SPEC.md > Logique Ship of
+  Harkinian ; à relancer après toute modification de `js/logic.js`, de la
   conversion, des règles d'entrées ou de `areas-data.js`).
 - `tools/soh-entrances/apply_names.mjs` : table sortie ↔ entrée du tracker d'entrées de SoH et traductions ; réécrit les
   champs `label` / `soh` / `entr` de `areas-data.js` et aligne `shuffleTag` sur le type d'entrée SoH (relancer après

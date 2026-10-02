@@ -209,8 +209,11 @@ passages SoH, 5. Routeur sur le graphe SoH — **faits**).
   rejoue chaque spoiler sphère par sphère en ramassant tous les objets accessibles, avec les entrées du spoiler
   (`entrances` : l'entrée `index` mène là où mène normalement l'entrée `override`) ; tous les lieux du playthrough
   et du spoiler doivent être atteints. Les entrées du spoiler sont aussi converties en destinations notées et les
-  liaisons qu'en déduit l'appli (`entranceLinks`) comparées à celles du spoiler : aucune différence attendue.
-  Résultat actuel : 32/32 spoilers 9.2.3 conformes, liaisons identiques, dont 5 à entrées mélangées
+  liaisons qu'en déduit l'appli (`entranceLinks`) comparées à celles du spoiler : aucune différence attendue. Enfin, à
+  chaque sphère, les régions que le Routeur traverse depuis l'apparition de l'âge de départ sont comparées à celles que
+  la logique déclare accessibles (hors régions de passage, et hors sauvegarde dans un donjon, que la logique SoH ne
+  modélise pas) : aucune différence attendue.
+  Résultat actuel : 32/32 spoilers 9.2.3 conformes, liaisons identiques, Routeur identique à chaque sphère, dont 5 à entrées mélangées
   (couplées ou découplées, pools mélangés, salles de boss — « Mix Bosses » compris — et Tour de Ganon mélangées),
   couvrant donjons MQ, trousseaux, petites clés vanilla, épreuves de Ganon tirées au sort et quête d'échange adulte
   non mélangée.
@@ -522,20 +525,28 @@ Règles :
   (la porte) ; la prendre mène à « Sortie de la maison de Mido », à l'intérieur.
 
 ## Routeur
-Plus court chemin (Dijkstra, `shortest`) sur un graphe dont les nœuds sont (sortie, âge), construit sur la logique
-SoH avec l'inventaire, les événements et les entrées notés (`routeGraph` dans `js/logic.js`, `routeC`) :
-- **Marche** : d'une sortie, on rejoint toute sortie dont une région SoH est atteignable par les sorties internes des
-  régions (tout passage qui n'est pas une entrée mélangeable), conditions évaluées à l'âge du trajet, de jour ou de
-  nuit. Coût : celui d'`areas-data.js` (plus court chemin dans la zone, dans le sens des données, sinon dans les deux
+Plus court chemin (Dijkstra, `shortest`) sur un graphe dont les nœuds sont (sortie, âge, position), construit sur la
+logique SoH avec l'inventaire, les événements et les entrées notés (`routeGraph` dans `js/logic.js`, `routeC`). La
+position dit dans quelle région SoH on se trouve à cette sortie : on vient d'y apparaître (région d'arrivée), on y est
+arrivé à pied (région de départ de son entrée), ou c'est le départ choisi (les deux). Les deux régions ne communiquent
+pas toujours (ex. on ressort du Gymnase Gerudo sur un rebord d'où l'on ne peut pas y rentrer ; les deux fontaines de
+Grande Fée du Château ont la même région d'arrivée).
+- **Marche** : depuis la région de la position, on rejoint toute sortie dont la région de départ est atteignable par
+  les sorties internes des régions (tout passage qui n'est pas une entrée mélangeable), conditions évaluées à l'âge du
+  trajet, de jour ou de nuit. Coût : celui d'`areas-data.js` (plus court chemin dans la zone, dans le sens des données, sinon dans les deux
   sens), à défaut nombre de régions traversées × « marche estimée ». Deux passages à pied changent de zone, notés dans
   les données comme liaisons `"zone::sortie"` et enchaînés avec la marche de part et d'autre : fin de la course d'Igor
   (Tombe d'Igor → Moulin, 99) et sortie par les mains du Temple de l'Esprit (Entrée du temple → Devant le temple au
   Colosse, 120).
   Les marches consécutives sont fusionnées à l'affichage.
-- **Transition** par une sortie dont la destination est connue, si la condition SoH de son entrée est remplie (portes
-  verrouillées, hibou enfant…) ; salle de boss : téléporteur bleu (boss vaincu).
+- **Transition** par une sortie dont la destination est connue, si la région de départ de son entrée est joignable à
+  pied depuis la position et que la condition SoH de l'entrée est remplie (portes verrouillées, hibou enfant…). Salle
+  de boss : porte de sortie (à tout moment) et téléporteur bleu (boss vaincu), destinations tirées du même calcul que
+  la logique (`bossRoomExits`).
 - **Chant de téléportation** depuis n'importe où (condition SoH : chant jouable) vers la destination notée du chant.
-- **Sauvegarder-recharger** : entrée du donjon dans un donjon, sinon apparition de l'âge.
+- **Sauvegarder-recharger** : entrée du donjon dans un donjon (salle de boss : celle du donjon dont la porte de boss y
+  mène, comme `Entrance_SetSavewarpEntrance` de SoH), sinon apparition de l'âge. La logique SoH ne compte pas la
+  sauvegarde dans un donjon, le Routeur si.
 - **Changement d'âge** au Temple du Temps, si la zone derrière la Porte du Temps est atteignable (même règle que le
   voyage dans le temps de SoH).
 Règles d'interface :

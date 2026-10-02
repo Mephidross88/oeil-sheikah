@@ -5,7 +5,8 @@
 // (Les numéros de sphère du playthrough, compressés par SoH après élagage, ne sont qu'indicatifs : voir V=1.)
 // Entrées mélangées : le rejeu utilise les entrées du spoiler ; en plus, ces entrées sont converties en destinations notées
 // (store.mappings, comme dans la page Entrées) et les liaisons qu'en déduit l'appli (entranceLinks) sont comparées à celles
-// du spoiler (aucune différence attendue).
+// du spoiler (aucune différence attendue). Enfin, à chaque sphère, les régions que le Routeur traverse depuis l'apparition
+// de l'âge de départ (routeGraph) sont comparées à celles que la logique déclare accessibles (aucune différence attendue).
 // Usage : node replay_spoilers.mjs <dossier ou fichiers .json …>   (V=1 : détail)
 import fs from 'fs';
 import vm from 'vm';
@@ -25,7 +26,7 @@ function loadApp(){
   for (const f of ['data/areas-data.js', 'data/checks-data.js', 'data/logic-data.js', 'js/icons.js', 'js/data.js', 'js/config.js', 'js/entrances.js',
     'js/items.js', 'js/checks.js', 'js/logic.js', 'js/state.js'])
     vm.runInContext(fs.readFileSync(path.join(APP, f), 'utf8'), ctx, { filename:f });
-  vm.runInContext('globalThis.__T = { store, defaults, computeSoh, SETTING_BY_SOH, TRICKS, DUNGEONS, CHECK_BY_SOH, CHECK_BY_ID, checkShuffled, checkQuestActive, applyStartingItems, configQuest, CHECKLISTS, ITEM_BY_KEY, itemLevels, SOH, L, sohWarned, TRIALS, configTrials, entranceLinks, computeEff, EXIT_BY_ENTR, SOH_ENTRANCE, BOSS_DOORS };', ctx);
+  vm.runInContext('globalThis.__T = { store, defaults, computeSoh, SETTING_BY_SOH, TRICKS, DUNGEONS, CHECK_BY_SOH, CHECK_BY_ID, checkShuffled, checkQuestActive, applyStartingItems, configQuest, CHECKLISTS, ITEM_BY_KEY, itemLevels, SOH, L, sohWarned, TRIALS, configTrials, routeGraph, blueWarpTargets, exitRegions, ALL_EXITS, EXIT, SPAWN_AREA, sohStartingAge, entranceLinks, computeEff, EXIT_BY_ENTR, SOH_ENTRANCE, BOSS_DOORS };', ctx);
   return ctx.__T;
 }
 const T = loadApp();
@@ -179,6 +180,31 @@ function checkLinks(data, links){
   return diffs;
 }
 
+// Routeur avec l'inventaire courant et les destinations notées par checkLinks : régions traversées à pied depuis les nœuds
+// atteints à partir de l'apparition de l'âge de départ, comparées aux régions que la logique déclare accessibles. Les
+// sauvegardes dans un donjon (retour à son entrée, Entrance_SetSavewarpEntrance), que la logique SoH ne modélise pas, sont
+// ignorées ; celles qui ramènent à l'apparition de l'âge correspondent à RR_ROOT.
+function checkRouter(){
+  const st = T.store, eff = T.computeEff(st);
+  Object.assign(eff, T.blueWarpTargets(eff, st.settings));
+  const links = T.entranceLinks(eff, st.settings), g = T.routeGraph(st.settings, st.game, links, eff, T.defaults().costs);
+  const age0 = T.sohStartingAge(st.settings) === 'Adult' ? 'adult' : 'child', start = eff['spawns::spawn_' + age0];
+  const seen = new Set(), routed = new Set(), q = start ? [[start, age0, 'in']] : [];
+  while (q.length){
+    const [k, a, m] = q.shift(), id = k + '|' + a + '|' + m;
+    if (seen.has(id)) continue;
+    seen.add(id);
+    for (const r of g.regions(k, a, m).keys()) routed.add(r);
+    for (const e of g.edges(k, a, m)) if (e.kind !== 'reset' || e.to === eff['spawns::spawn_' + e.age]) q.push([e.to, e.age, e.mode]);
+  }
+  const res = T.computeSoh(st.settings, st.game, links);
+  // régions de passage que le Routeur saute (apparitions, plateformes des chants, sorties de salle de boss)
+  const transit = r => /^RR_ROOT|^RR_(CHILD|ADULT)_SPAWN$|_OF_[A-Z]+_WARP$|_BOSS_EXIT$/.test(r);
+  const logic = new Set(Object.keys(res.access).filter(r => res.access[r] && !transit(r)));
+  return [...[...logic].filter(r => !routed.has(r)).map(r => 'logique seule : ' + r),
+    ...[...routed].filter(r => !transit(r) && !logic.has(r)).map(r => 'routeur seul : ' + r)];
+}
+
 function replay(file){
   const data = JSON.parse(fs.readFileSync(file, 'utf8'));
   const st = T.store, def = T.defaults();
@@ -206,13 +232,15 @@ function replay(file){
     if (!a || !b){ console.log(`  entrée inconnue : ${e.index} -> ${e.override}`); continue; }
     links[a.from + '>' + a.to] = b.to;
   }
-  const linkDiffs = checkLinks(data, links);
+  const linkDiffs = checkLinks(data, links), routeDiffs = new Set();
 
   const locItem = {};
   for (const [loc, v] of Object.entries(data.locations)) locItem[loc] = typeof v === 'string' ? v : v.item;
   const collected = new Set(), sphereOf = {};
   let sphere = 0, res;
   for (;;){
+    // Routeur comparé à la logique avec l'inventaire de cette sphère
+    for (const d of checkRouter()) routeDiffs.add(`sphère ${sphere} : ${d}`);
     res = T.computeSoh(st.settings, st.game, links);
     const fresh = [];
     for (const [rc, bits] of Object.entries(res.checks)){
@@ -238,7 +266,7 @@ function replay(file){
   // lieux du spoiler jamais atteints (tous doivent l'être si « All Locations Reachable »)
   const unreached = Object.keys(locItem).filter(l => !(l in sphereOf) && T.CHECK_BY_SOH[l]);
   return { file:path.basename(file), version:data.version, spheres:sphere, reached:Object.keys(sphereOf).length, total:Object.keys(locItem).length,
-    late, never, unreached, linkDiffs };
+    late, never, unreached, linkDiffs, routeDiffs:[...routeDiffs] };
 }
 
 const args = process.argv.slice(2);
@@ -255,6 +283,8 @@ for (const f of files){
   r.never.slice(0, 8).forEach(x => console.log('   JAMAIS  ', x));
   if (r.linkDiffs.length) console.log(`   ${r.linkDiffs.length} liaison(s) déduite(s) des entrées notées différente(s) du spoiler  <-- ÉCART`);
   r.linkDiffs.slice(0, 8).forEach(x => console.log('   LIAISON ', x));
+  if (r.routeDiffs.length) console.log(`   ${r.routeDiffs.length} région(s) atteinte(s) différemment par le Routeur et la logique  <-- ÉCART`);
+  r.routeDiffs.slice(0, +(process.env.N || 8)).forEach(x => console.log('   ROUTEUR ', x));
   if (process.env.V) r.late.slice(0, 5).forEach(x => console.log('   RETARD  ', x));
   if (process.env.V) r.unreached.slice(0, 40).forEach(x => console.log('   non atteint', x));
 }
