@@ -1,6 +1,6 @@
-/* Reste de l'ancienne logique (OoT Randomizer) : règles de la page Entrées (sorties randomisées, pools, cibles effectives)
-   et plus court chemin du Routeur. L'accessibilité vient désormais de js/logic.js (logique SoH) ; ce fichier disparaît
-   à l'étape 5 de la migration (Routeur sur le graphe SoH). */
+/* Règles de la page Entrées : sorties randomisées selon la configuration, pools de destinations (entrance.cpp de SoH),
+   déblocage des sens uniques, cibles effectives ; et plus court chemin du Routeur (Dijkstra). Pur (sans Vue).
+   L'accessibilité et le graphe de déplacement viennent de js/logic.js (logique SoH). */
 /* ---------- Validation des données ---------- */
 const DATA_ERRORS = (() => {
   const errs = [];

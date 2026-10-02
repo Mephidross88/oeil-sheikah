@@ -22,7 +22,7 @@ function loadApp(){
     createApp:() => ({ component(){ return this; }, mount(){} }), defineComponent:x => x, nextTick(){}, onMounted(){}, onBeforeUnmount(){},
     toRaw:x => x, h(){} };
   vm.createContext(ctx);
-  for (const f of ['areas-data.js', 'checks-data.js', 'logic-data.js', 'js/icons.js', 'js/data.js', 'js/config.js', 'js/ootr-logic.js',
+  for (const f of ['areas-data.js', 'checks-data.js', 'logic-data.js', 'js/icons.js', 'js/data.js', 'js/config.js', 'js/entrances.js',
     'js/items.js', 'js/checks.js', 'js/logic.js', 'js/state.js'])
     vm.runInContext(fs.readFileSync(path.join(APP, f), 'utf8'), ctx, { filename:f });
   vm.runInContext('globalThis.__T = { store, defaults, computeSoh, SETTING_BY_SOH, TRICKS, DUNGEONS, CHECK_BY_SOH, CHECK_BY_ID, checkShuffled, checkQuestActive, applyStartingItems, configQuest, CHECKLISTS, ITEM_BY_KEY, itemLevels, SOH, L, sohWarned, TRIALS, configTrials, entranceLinks, computeEff, EXIT_BY_ENTR, SOH_ENTRANCE, BOSS_DOORS };', ctx);

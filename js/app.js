@@ -127,7 +127,27 @@ const App = {
       });
     }
     // En pause pendant la migration vers la logique SoH : le graphe de déplacement est reconstruit à l'étape 5.
-    const route = computed(() => ({ state:'migrating' }));
+    const route = computed(() => {
+      const r = ui.router;
+      if (!r.fromExit || !r.toExit || !EXIT[r.fromExit] || !EXIT[r.toExit]) return { state:'idle' };
+      const res = shortest(routeC.value.edges, r.fromExit, r.fromAge, r.toExit, r.toAge);
+      if (!res) return { state:'none' };
+      const items = [{ t:'node', key:r.fromExit, age:r.fromAge, role:'start' }];
+      for (const e of res.edges){
+        const prev = items[items.length - 2];
+        if (e.kind === 'age') items.push({ t:'age', from:e.fromAge, to:e.age });
+        // marches consécutives fusionnées en un seul tronçon (le chemin passe parfois par d'autres sorties de la zone)
+        else if (e.kind === 'walk' && prev?.t === 'edge' && prev.e.kind === 'walk'){
+          prev.e = { ...prev.e, to:e.to, cost:prev.e.cost + e.cost };
+          items[items.length - 1] = { t:'node', key:e.to, age:e.age };
+        }
+        else { items.push({ t:'edge', e }); items.push({ t:'node', key:e.to, age:e.age }); }
+      }
+      const last = [...items].reverse().find(i => i.t === 'node'); last.role = last.role ? 'both' : 'end';
+      const count = k => res.edges.filter(e => e.kind === k).length;
+      return { state:'ok', items, cost:Math.round(res.cost), steps:res.edges.length,
+        transitions:count('transition') + count('bluewarp') + count('owl'), ages:count('age'), warps:count('warp'), resets:count('reset') };
+    });
     const edgeLabel = e => ({ walk:'À pied', transition:'Transition', bluewarp:'Téléporteur bleu', owl:'Vol du hibou',
       warp:'Chant : ' + (EXIT[e.warp]?.label || ''), reset:'Sauvegarder et recharger' }[e.kind]);
     const ageLabel = a => a === 'child' ? 'Enfant' : 'Adulte';
@@ -652,11 +672,7 @@ const App = {
         </div>
       </div>
 
-      <div v-if="route.state==='migrating'" class="warn-box" style="margin-top:20px">
-        <span class="warn-box-ic" v-html="ICONS.warn"></span>
-        <div><b>Routeur indisponible pour l'instant.</b>
-        Il est en cours de passage à la logique de Ship of Harkinian et reviendra à la prochaine étape.</div></div>
-      <div v-else-if="route.state==='idle'" class="empty" style="margin-top:20px">Choisissez une sortie de départ et une sortie d'arrivée : l'itinéraire se calcule tout seul.</div>
+      <div v-if="route.state==='idle'" class="empty" style="margin-top:20px">Choisissez une sortie de départ et une sortie d'arrivée : l'itinéraire se calcule tout seul.</div>
       <div v-else-if="route.state==='none'" class="warn-box" style="margin-top:20px">
         <span class="warn-box-ic" v-html="ICONS.warn"></span>
         <div><b>Aucun itinéraire connu.</b>
@@ -756,6 +772,7 @@ const App = {
             <div class="field"><label for="c2">Chant de téléportation</label><input id="c2" type="number" min="0" v-model.number="store.costs.warp"></div>
             <div class="field"><label for="c3">Sauvegarder et recharger</label><input id="c3" type="number" min="0" v-model.number="store.costs.reset"></div>
             <div class="field"><label for="c4">Changement d'âge</label><input id="c4" type="number" min="0" v-model.number="store.costs.age"></div>
+            <div class="field" title="Coût estimé par région de la logique SoH traversée, quand les données n'ont pas de coût de marche (intérieur des donjons, certaines portes)"><label for="c5">Marche estimée (par région)</label><input id="c5" type="number" min="0" v-model.number="store.costs.walk"></div>
           </div>
         </section>
       </div>
@@ -976,4 +993,4 @@ const App = {
 const app = createApp(App);
 app.mount('#app');
 document.addEventListener('click', ev => { /* ferme l'infobulle en tactile */ if (!ev.target.closest('.globe')) { const t = document.querySelector('.tip'); if (t) window.dispatchEvent(new Event('scroll')); } });
-window.__PF = { store, effC, linksC, reachC, agesC, shortest, candidatesFor, setMapping, EXIT, sohC, sohFullC, computeSoh, entranceLinks, L, SOH };
+window.__PF = { store, effC, linksC, reachC, agesC, routeC, shortest, candidatesFor, setMapping, EXIT, sohC, sohFullC, computeSoh, entranceLinks, L, SOH };

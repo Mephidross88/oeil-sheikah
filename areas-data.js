@@ -121,12 +121,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "kf_to_stormsgrotto",
-            "cost": 1,
-            "requirements": [
-              [
-                "SongOfStorms"
-              ]
-            ]
+            "cost": 1
           },
           {
             "targetExitId": "kf_to_dekutree",
@@ -173,12 +168,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "kf_to_stormsgrotto",
-            "cost": 9,
-            "requirements": [
-              [
-                "SongOfStorms"
-              ]
-            ]
+            "cost": 9
           },
           {
             "targetExitId": "kf_to_dekutree",
@@ -225,12 +215,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "kf_to_stormsgrotto",
-            "cost": 12,
-            "requirements": [
-              [
-                "SongOfStorms"
-              ]
-            ]
+            "cost": 12
           },
           {
             "targetExitId": "kf_to_dekutree",
@@ -286,12 +271,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "kf_to_stormsgrotto",
-            "cost": 10,
-            "requirements": [
-              [
-                "SongOfStorms"
-              ]
-            ]
+            "cost": 10
           },
           {
             "targetExitId": "kf_to_dekutree",
@@ -347,12 +327,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "kf_to_stormsgrotto",
-            "cost": 11,
-            "requirements": [
-              [
-                "SongOfStorms"
-              ]
-            ]
+            "cost": 11
           },
           {
             "targetExitId": "kf_to_dekutree",
@@ -408,12 +383,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "kf_to_stormsgrotto",
-            "cost": 11,
-            "requirements": [
-              [
-                "SongOfStorms"
-              ]
-            ]
+            "cost": 11
           },
           {
             "targetExitId": "kf_to_dekutree",
@@ -469,12 +439,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "kf_to_stormsgrotto",
-            "cost": 9,
-            "requirements": [
-              [
-                "SongOfStorms"
-              ]
-            ]
+            "cost": 9
           },
           {
             "targetExitId": "kf_to_dekutree",
@@ -530,12 +495,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "kf_to_stormsgrotto",
-            "cost": 12,
-            "requirements": [
-              [
-                "SongOfStorms"
-              ]
-            ]
+            "cost": 12
           },
           {
             "targetExitId": "kf_to_dekutree",
@@ -651,12 +611,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "kf_to_stormsgrotto",
-            "cost": 23,
-            "requirements": [
-              [
-                "SongOfStorms"
-              ]
-            ]
+            "cost": 23
           }
         ]
       }
@@ -707,36 +662,15 @@ window.AREAS_DATA = [
         "connections": [
           {
             "targetExitId": "lwbridge_to_kf",
-            "cost": 11,
-            "requirements": [
-              [
-                "CanUseBeans"
-              ]
-            ]
+            "cost": 11
           },
           {
             "targetExitId": "lwbridge_to_hf",
-            "cost": 11,
-            "requirements": [
-              [
-                "CanUseBeans"
-              ]
-            ]
+            "cost": 11
           },
           {
             "targetExitId": "lw_to_gc",
-            "cost": 7,
-            "requirements": [
-              [
-                "LostWoodToGoronVillageUnlocked"
-              ],
-              [
-                "Explosive"
-              ],
-              [
-                "DinsFire"
-              ]
-            ]
+            "cost": 7
           },
           {
             "targetExitId": "lw_to_river",
@@ -748,16 +682,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "lw_to_gorongrotto",
-            "cost": 7,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 7
           },
           {
             "targetExitId": "lw_to_theatre",
@@ -765,16 +690,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "lw_to_meadowgrotto",
-            "cost": 18,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 18
           }
         ]
       },
@@ -789,21 +705,11 @@ window.AREAS_DATA = [
         "connections": [
           {
             "targetExitId": "lwbridge_to_kf",
-            "cost": 17,
-            "requirements": [
-              [
-                "CanUseBeans"
-              ]
-            ]
+            "cost": 17
           },
           {
             "targetExitId": "lwbridge_to_hf",
-            "cost": 17,
-            "requirements": [
-              [
-                "CanUseBeans"
-              ]
-            ]
+            "cost": 17
           },
           {
             "targetExitId": "lw_to_kf",
@@ -819,16 +725,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "lw_to_gorongrotto",
-            "cost": 1,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 1
           },
           {
             "targetExitId": "lw_to_theatre",
@@ -836,16 +733,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "lw_to_meadowgrotto",
-            "cost": 13,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 13
           }
         ]
       },
@@ -860,21 +748,11 @@ window.AREAS_DATA = [
         "connections": [
           {
             "targetExitId": "lwbridge_to_kf",
-            "cost": 20,
-            "requirements": [
-              [
-                "CanUseBeans"
-              ]
-            ]
+            "cost": 20
           },
           {
             "targetExitId": "lwbridge_to_hf",
-            "cost": 20,
-            "requirements": [
-              [
-                "CanUseBeans"
-              ]
-            ]
+            "cost": 20
           },
           {
             "targetExitId": "lw_to_kf",
@@ -882,18 +760,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "lw_to_gc",
-            "cost": 6,
-            "requirements": [
-              [
-                "LostWoodToGoronVillageUnlocked"
-              ],
-              [
-                "Explosive"
-              ],
-              [
-                "DinsFire"
-              ]
-            ]
+            "cost": 6
           },
           {
             "targetExitId": "lw_to_meadow",
@@ -901,16 +768,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "lw_to_gorongrotto",
-            "cost": 6,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 6
           },
           {
             "targetExitId": "lw_to_theatre",
@@ -918,16 +776,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "lw_to_meadowgrotto",
-            "cost": 11,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 11
           }
         ]
       },
@@ -942,21 +791,11 @@ window.AREAS_DATA = [
         "connections": [
           {
             "targetExitId": "lwbridge_to_kf",
-            "cost": 27,
-            "requirements": [
-              [
-                "CanUseBeans"
-              ]
-            ]
+            "cost": 27
           },
           {
             "targetExitId": "lwbridge_to_hf",
-            "cost": 27,
-            "requirements": [
-              [
-                "CanUseBeans"
-              ]
-            ]
+            "cost": 27
           },
           {
             "targetExitId": "lw_to_kf",
@@ -964,18 +803,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "lw_to_gc",
-            "cost": 13,
-            "requirements": [
-              [
-                "LostWoodToGoronVillageUnlocked"
-              ],
-              [
-                "Explosive"
-              ],
-              [
-                "DinsFire"
-              ]
-            ]
+            "cost": 13
           },
           {
             "targetExitId": "lw_to_river",
@@ -983,16 +811,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "lw_to_gorongrotto",
-            "cost": 13,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 13
           },
           {
             "targetExitId": "lw_to_theatre",
@@ -1000,16 +819,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "lw_to_meadowgrotto",
-            "cost": 1,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 1
           }
         ]
       },
@@ -1024,21 +834,11 @@ window.AREAS_DATA = [
         "connections": [
           {
             "targetExitId": "lwbridge_to_kf",
-            "cost": 17,
-            "requirements": [
-              [
-                "CanUseBeans"
-              ]
-            ]
+            "cost": 17
           },
           {
             "targetExitId": "lwbridge_to_hf",
-            "cost": 17,
-            "requirements": [
-              [
-                "CanUseBeans"
-              ]
-            ]
+            "cost": 17
           },
           {
             "targetExitId": "lw_to_kf",
@@ -1046,18 +846,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "lw_to_gc",
-            "cost": 1,
-            "requirements": [
-              [
-                "LostWoodToGoronVillageUnlocked"
-              ],
-              [
-                "Explosive"
-              ],
-              [
-                "DinsFire"
-              ]
-            ]
+            "cost": 1
           },
           {
             "targetExitId": "lw_to_river",
@@ -1073,16 +862,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "lw_to_meadowgrotto",
-            "cost": 13,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 13
           }
         ]
       },
@@ -1106,21 +886,11 @@ window.AREAS_DATA = [
         "connections": [
           {
             "targetExitId": "lwbridge_to_kf",
-            "cost": 26,
-            "requirements": [
-              [
-                "CanUseBeans"
-              ]
-            ]
+            "cost": 26
           },
           {
             "targetExitId": "lwbridge_to_hf",
-            "cost": 26,
-            "requirements": [
-              [
-                "CanUseBeans"
-              ]
-            ]
+            "cost": 26
           },
           {
             "targetExitId": "lw_to_kf",
@@ -1128,18 +898,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "lw_to_gc",
-            "cost": 11,
-            "requirements": [
-              [
-                "LostWoodToGoronVillageUnlocked"
-              ],
-              [
-                "Explosive"
-              ],
-              [
-                "DinsFire"
-              ]
-            ]
+            "cost": 11
           },
           {
             "targetExitId": "lw_to_river",
@@ -1151,29 +910,11 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "lw_to_gorongrotto",
-            "cost": 11,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 11
           },
           {
             "targetExitId": "lw_to_meadowgrotto",
-            "cost": 11,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 11
           }
         ]
       },
@@ -1197,21 +938,11 @@ window.AREAS_DATA = [
         "connections": [
           {
             "targetExitId": "lwbridge_to_kf",
-            "cost": 27,
-            "requirements": [
-              [
-                "CanUseBeans"
-              ]
-            ]
+            "cost": 27
           },
           {
             "targetExitId": "lwbridge_to_hf",
-            "cost": 27,
-            "requirements": [
-              [
-                "CanUseBeans"
-              ]
-            ]
+            "cost": 27
           },
           {
             "targetExitId": "lw_to_kf",
@@ -1219,18 +950,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "lw_to_gc",
-            "cost": 13,
-            "requirements": [
-              [
-                "LostWoodToGoronVillageUnlocked"
-              ],
-              [
-                "Explosive"
-              ],
-              [
-                "DinsFire"
-              ]
-            ]
+            "cost": 13
           },
           {
             "targetExitId": "lw_to_river",
@@ -1242,16 +962,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "lw_to_gorongrotto",
-            "cost": 13,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 13
           },
           {
             "targetExitId": "lw_to_theatre",
@@ -1293,22 +1004,11 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "meadow_to_stormsgrotto",
-            "cost": 25,
-            "requirements": [
-              [
-                "SongOfStorms"
-              ]
-            ]
+            "cost": 25
           },
           {
             "targetExitId": "meadow_to_foresttemple",
-            "cost": 27,
-            "requirements": [
-              [
-                "Hookshot",
-                "Adult"
-              ]
-            ]
+            "cost": 27
           }
         ]
       },
@@ -1331,22 +1031,11 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "meadow_to_stormsgrotto",
-            "cost": 24,
-            "requirements": [
-              [
-                "SongOfStorms"
-              ]
-            ]
+            "cost": 24
           },
           {
             "targetExitId": "meadow_to_foresttemple",
-            "cost": 26,
-            "requirements": [
-              [
-                "Hookshot",
-                "Adult"
-              ]
-            ]
+            "cost": 26
           }
         ]
       },
@@ -1378,22 +1067,11 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "meadow_to_stormsgrotto",
-            "cost": 9,
-            "requirements": [
-              [
-                "SongOfStorms"
-              ]
-            ]
+            "cost": 9
           },
           {
             "targetExitId": "meadow_to_foresttemple",
-            "cost": 11,
-            "requirements": [
-              [
-                "Hookshot",
-                "Adult"
-              ]
-            ]
+            "cost": 11
           }
         ]
       },
@@ -1429,13 +1107,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "meadow_to_foresttemple",
-            "cost": 3,
-            "requirements": [
-              [
-                "Hookshot",
-                "Adult"
-              ]
-            ]
+            "cost": 3
           }
         ]
       },
@@ -1471,12 +1143,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "meadow_to_stormsgrotto",
-            "cost": 3,
-            "requirements": [
-              [
-                "SongOfStorms"
-              ]
-            ]
+            "cost": 3
           }
         ]
       },
@@ -1503,12 +1170,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "meadow_to_stormsgrotto",
-            "cost": 2,
-            "requirements": [
-              [
-                "SongOfStorms"
-              ]
-            ]
+            "cost": 2
           },
           {
             "targetExitId": "meadow_to_foresttemple",
@@ -1557,81 +1219,27 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "hf_to_kakarikogrotto",
-            "cost": 30,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 30
           },
           {
             "targetExitId": "hf_to_marketgrotto",
-            "cost": 34,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 34
           },
           {
             "targetExitId": "hf_to_divinggrotto",
-            "cost": 42,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 42
           },
           {
             "targetExitId": "hf_to_fairygrotto",
-            "cost": 47,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 47
           },
           {
             "targetExitId": "hf_to_cowgrotto",
-            "cost": 48,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 48
           },
           {
             "targetExitId": "hf_to_fencegrotto",
-            "cost": 42,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 42
           },
           {
             "targetExitId": "hf_to_opengrotto",
@@ -1639,16 +1247,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "hf_to_forestgrotto",
-            "cost": 26,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 26
           }
         ]
       },
@@ -1687,81 +1286,27 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "hf_to_kakarikogrotto",
-            "cost": 16,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 16
           },
           {
             "targetExitId": "hf_to_marketgrotto",
-            "cost": 25,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 25
           },
           {
             "targetExitId": "hf_to_divinggrotto",
-            "cost": 35,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 35
           },
           {
             "targetExitId": "hf_to_fairygrotto",
-            "cost": 40,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 40
           },
           {
             "targetExitId": "hf_to_cowgrotto",
-            "cost": 55,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 55
           },
           {
             "targetExitId": "hf_to_fencegrotto",
-            "cost": 50,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 50
           },
           {
             "targetExitId": "hf_to_opengrotto",
@@ -1769,16 +1314,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "hf_to_forestgrotto",
-            "cost": 37,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 37
           }
         ]
       },
@@ -1817,81 +1353,27 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "hf_to_kakarikogrotto",
-            "cost": 7,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 7
           },
           {
             "targetExitId": "hf_to_marketgrotto",
-            "cost": 19,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 19
           },
           {
             "targetExitId": "hf_to_divinggrotto",
-            "cost": 31,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 31
           },
           {
             "targetExitId": "hf_to_fairygrotto",
-            "cost": 35,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 35
           },
           {
             "targetExitId": "hf_to_cowgrotto",
-            "cost": 55,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 55
           },
           {
             "targetExitId": "hf_to_fencegrotto",
-            "cost": 61,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 61
           },
           {
             "targetExitId": "hf_to_opengrotto",
@@ -1899,16 +1381,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "hf_to_forestgrotto",
-            "cost": 45,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 45
           }
         ]
       },
@@ -1947,81 +1420,27 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "hf_to_kakarikogrotto",
-            "cost": 12,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 12
           },
           {
             "targetExitId": "hf_to_marketgrotto",
-            "cost": 8,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 8
           },
           {
             "targetExitId": "hf_to_divinggrotto",
-            "cost": 18,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 18
           },
           {
             "targetExitId": "hf_to_fairygrotto",
-            "cost": 24,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 24
           },
           {
             "targetExitId": "hf_to_cowgrotto",
-            "cost": 44,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 44
           },
           {
             "targetExitId": "hf_to_fencegrotto",
-            "cost": 51,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 51
           },
           {
             "targetExitId": "hf_to_opengrotto",
@@ -2029,16 +1448,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "hf_to_forestgrotto",
-            "cost": 36,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 36
           }
         ]
       },
@@ -2077,68 +1487,23 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "hf_to_kakarikogrotto",
-            "cost": 23,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 23
           },
           {
             "targetExitId": "hf_to_marketgrotto",
-            "cost": 19,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 19
           },
           {
             "targetExitId": "hf_to_divinggrotto",
-            "cost": 14,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 14
           },
           {
             "targetExitId": "hf_to_fairygrotto",
-            "cost": 22,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 22
           },
           {
             "targetExitId": "hf_to_cowgrotto",
-            "cost": 34,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 34
           },
           {
             "targetExitId": "hf_to_fencegrotto",
@@ -2146,29 +1511,11 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "hf_to_opengrotto",
-            "cost": 40,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 40
           },
           {
             "targetExitId": "hf_to_forestgrotto",
-            "cost": 22,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 22
           }
         ]
       },
@@ -2207,81 +1554,27 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "hf_to_kakarikogrotto",
-            "cost": 55,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 55
           },
           {
             "targetExitId": "hf_to_marketgrotto",
-            "cost": 51,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 51
           },
           {
             "targetExitId": "hf_to_divinggrotto",
-            "cost": 37,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 37
           },
           {
             "targetExitId": "hf_to_fairygrotto",
-            "cost": 43,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 43
           },
           {
             "targetExitId": "hf_to_cowgrotto",
-            "cost": 11,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 11
           },
           {
             "targetExitId": "hf_to_fencegrotto",
-            "cost": 32,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 32
           },
           {
             "targetExitId": "hf_to_opengrotto",
@@ -2289,16 +1582,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "hf_to_forestgrotto",
-            "cost": 39,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 39
           }
         ]
       },
@@ -2337,81 +1621,27 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "hf_to_kakarikogrotto",
-            "cost": 64,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 64
           },
           {
             "targetExitId": "hf_to_marketgrotto",
-            "cost": 61,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 61
           },
           {
             "targetExitId": "hf_to_divinggrotto",
-            "cost": 48,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 48
           },
           {
             "targetExitId": "hf_to_fairygrotto",
-            "cost": 54,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 54
           },
           {
             "targetExitId": "hf_to_cowgrotto",
-            "cost": 37,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 37
           },
           {
             "targetExitId": "hf_to_fencegrotto",
-            "cost": 10,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 10
           },
           {
             "targetExitId": "hf_to_opengrotto",
@@ -2419,16 +1649,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "hf_to_forestgrotto",
-            "cost": 26,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 26
           }
         ]
       },
@@ -2471,68 +1692,23 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "hf_to_marketgrotto",
-            "cost": 13,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 13
           },
           {
             "targetExitId": "hf_to_divinggrotto",
-            "cost": 25,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 25
           },
           {
             "targetExitId": "hf_to_fairygrotto",
-            "cost": 29,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 29
           },
           {
             "targetExitId": "hf_to_cowgrotto",
-            "cost": 49,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 49
           },
           {
             "targetExitId": "hf_to_fencegrotto",
-            "cost": 55,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 55
           },
           {
             "targetExitId": "hf_to_opengrotto",
@@ -2540,16 +1716,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "hf_to_forestgrotto",
-            "cost": 39,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 39
           }
         ]
       },
@@ -2601,68 +1768,23 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "hf_to_kakarikogrotto",
-            "cost": 13,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 13
           },
           {
             "targetExitId": "hf_to_divinggrotto",
-            "cost": 20,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 20
           },
           {
             "targetExitId": "hf_to_fairygrotto",
-            "cost": 26,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 26
           },
           {
             "targetExitId": "hf_to_cowgrotto",
-            "cost": 46,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 46
           },
           {
             "targetExitId": "hf_to_fencegrotto",
-            "cost": 53,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 53
           },
           {
             "targetExitId": "hf_to_opengrotto",
@@ -2670,16 +1792,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "hf_to_forestgrotto",
-            "cost": 38,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 38
           }
         ]
       },
@@ -2731,68 +1844,23 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "hf_to_kakarikogrotto",
-            "cost": 25,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 25
           },
           {
             "targetExitId": "hf_to_marketgrotto",
-            "cost": 20,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 20
           },
           {
             "targetExitId": "hf_to_fairygrotto",
-            "cost": 6,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 6
           },
           {
             "targetExitId": "hf_to_cowgrotto",
-            "cost": 34,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 34
           },
           {
             "targetExitId": "hf_to_fencegrotto",
-            "cost": 41,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 41
           },
           {
             "targetExitId": "hf_to_opengrotto",
@@ -2800,16 +1868,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "hf_to_forestgrotto",
-            "cost": 40,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 40
           }
         ]
       },
@@ -2861,68 +1920,23 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "hf_to_kakarikogrotto",
-            "cost": 29,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 29
           },
           {
             "targetExitId": "hf_to_marketgrotto",
-            "cost": 26,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 26
           },
           {
             "targetExitId": "hf_to_divinggrotto",
-            "cost": 6,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 6
           },
           {
             "targetExitId": "hf_to_cowgrotto",
-            "cost": 39,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 39
           },
           {
             "targetExitId": "hf_to_fencegrotto",
-            "cost": 46,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 46
           },
           {
             "targetExitId": "hf_to_opengrotto",
@@ -2930,16 +1944,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "hf_to_forestgrotto",
-            "cost": 45,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 45
           }
         ]
       },
@@ -2991,68 +1996,23 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "hf_to_kakarikogrotto",
-            "cost": 49,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 49
           },
           {
             "targetExitId": "hf_to_marketgrotto",
-            "cost": 46,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 46
           },
           {
             "targetExitId": "hf_to_divinggrotto",
-            "cost": 34,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 34
           },
           {
             "targetExitId": "hf_to_fairygrotto",
-            "cost": 39,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 39
           },
           {
             "targetExitId": "hf_to_fencegrotto",
-            "cost": 29,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 29
           },
           {
             "targetExitId": "hf_to_opengrotto",
@@ -3060,16 +2020,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "hf_to_forestgrotto",
-            "cost": 36,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 36
           }
         ]
       },
@@ -3121,68 +2072,23 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "hf_to_kakarikogrotto",
-            "cost": 55,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 55
           },
           {
             "targetExitId": "hf_to_marketgrotto",
-            "cost": 53,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 53
           },
           {
             "targetExitId": "hf_to_divinggrotto",
-            "cost": 41,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 41
           },
           {
             "targetExitId": "hf_to_fairygrotto",
-            "cost": 46,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 46
           },
           {
             "targetExitId": "hf_to_cowgrotto",
-            "cost": 29,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 29
           },
           {
             "targetExitId": "hf_to_opengrotto",
@@ -3190,16 +2096,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "hf_to_forestgrotto",
-            "cost": 16,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 16
           }
         ]
       },
@@ -3251,94 +2148,31 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "hf_to_kakarikogrotto",
-            "cost": 57,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 57
           },
           {
             "targetExitId": "hf_to_marketgrotto",
-            "cost": 46,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 46
           },
           {
             "targetExitId": "hf_to_divinggrotto",
-            "cost": 40,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 40
           },
           {
             "targetExitId": "hf_to_fairygrotto",
-            "cost": 45,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 45
           },
           {
             "targetExitId": "hf_to_cowgrotto",
-            "cost": 29,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 29
           },
           {
             "targetExitId": "hf_to_fencegrotto",
-            "cost": 3,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 3
           },
           {
             "targetExitId": "hf_to_forestgrotto",
-            "cost": 13,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 13
           }
         ]
       },
@@ -3390,81 +2224,27 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "hf_to_kakarikogrotto",
-            "cost": 39,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 39
           },
           {
             "targetExitId": "hf_to_marketgrotto",
-            "cost": 38,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 38
           },
           {
             "targetExitId": "hf_to_divinggrotto",
-            "cost": 40,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 40
           },
           {
             "targetExitId": "hf_to_fairygrotto",
-            "cost": 45,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 45
           },
           {
             "targetExitId": "hf_to_cowgrotto",
-            "cost": 36,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 36
           },
           {
             "targetExitId": "hf_to_fencegrotto",
-            "cost": 16,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 16
           },
           {
             "targetExitId": "hf_to_opengrotto",
@@ -3498,13 +2278,7 @@ window.AREAS_DATA = [
         "connections": [
           {
             "targetExitId": "lake_to_domain",
-            "cost": 12,
-            "requirements": [
-              [
-                "SilverScale",
-                "IronBoots"
-              ]
-            ]
+            "cost": 12
           },
           {
             "targetExitId": "lake_to_lab",
@@ -3520,22 +2294,11 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "lake_to_watertemple",
-            "cost": 22,
-            "requirements": [
-              [
-                "IronBoots",
-                "Hookshot"
-              ]
-            ]
+            "cost": 22
           },
           {
             "targetExitId": "lake_owl",
-            "cost": 18,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 18
           }
         ]
       },
@@ -3566,22 +2329,11 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "lake_to_watertemple",
-            "cost": 11,
-            "requirements": [
-              [
-                "IronBoots",
-                "Hookshot"
-              ]
-            ]
+            "cost": 11
           },
           {
             "targetExitId": "lake_owl",
-            "cost": 15,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 15
           }
         ]
       },
@@ -3600,13 +2352,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "lake_to_domain",
-            "cost": 13,
-            "requirements": [
-              [
-                "SilverScale",
-                "IronBoots"
-              ]
-            ]
+            "cost": 13
           },
           {
             "targetExitId": "lake_to_lab",
@@ -3622,22 +2368,11 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "lake_to_watertemple",
-            "cost": 17,
-            "requirements": [
-              [
-                "IronBoots",
-                "Hookshot"
-              ]
-            ]
+            "cost": 17
           },
           {
             "targetExitId": "lake_owl",
-            "cost": 13,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 13
           }
         ]
       },
@@ -3656,13 +2391,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "lake_to_domain",
-            "cost": 5,
-            "requirements": [
-              [
-                "SilverScale",
-                "IronBoots"
-              ]
-            ]
+            "cost": 5
           },
           {
             "targetExitId": "lake_to_fishing",
@@ -3674,22 +2403,11 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "lake_to_watertemple",
-            "cost": 11,
-            "requirements": [
-              [
-                "IronBoots",
-                "Hookshot"
-              ]
-            ]
+            "cost": 11
           },
           {
             "targetExitId": "lake_owl",
-            "cost": 11,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 11
           }
         ]
       },
@@ -3717,13 +2435,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "lake_to_domain",
-            "cost": 14,
-            "requirements": [
-              [
-                "SilverScale",
-                "IronBoots"
-              ]
-            ]
+            "cost": 14
           },
           {
             "targetExitId": "lake_to_lab",
@@ -3735,22 +2447,11 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "lake_to_watertemple",
-            "cost": 12,
-            "requirements": [
-              [
-                "IronBoots",
-                "Hookshot"
-              ]
-            ]
+            "cost": 12
           },
           {
             "targetExitId": "lake_owl",
-            "cost": 23,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 23
           }
         ]
       },
@@ -3778,13 +2479,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "lake_to_domain",
-            "cost": 16,
-            "requirements": [
-              [
-                "SilverScale",
-                "IronBoots"
-              ]
-            ]
+            "cost": 16
           },
           {
             "targetExitId": "lake_to_lab",
@@ -3796,22 +2491,11 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "lake_to_watertemple",
-            "cost": 22,
-            "requirements": [
-              [
-                "IronBoots",
-                "Hookshot"
-              ]
-            ]
+            "cost": 22
           },
           {
             "targetExitId": "lake_owl",
-            "cost": 1,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 1
           }
         ]
       },
@@ -3839,13 +2523,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "lake_to_domain",
-            "cost": 11,
-            "requirements": [
-              [
-                "SilverScale",
-                "IronBoots"
-              ]
-            ]
+            "cost": 11
           },
           {
             "targetExitId": "lake_to_lab",
@@ -3861,12 +2539,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "lake_owl",
-            "cost": 24,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 24
           }
         ]
       },
@@ -3885,13 +2558,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "lake_to_domain",
-            "cost": 13,
-            "requirements": [
-              [
-                "SilverScale",
-                "IronBoots"
-              ]
-            ]
+            "cost": 13
           },
           {
             "targetExitId": "lake_to_lab",
@@ -3907,22 +2574,11 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "lake_to_watertemple",
-            "cost": 3,
-            "requirements": [
-              [
-                "IronBoots",
-                "Hookshot"
-              ]
-            ]
+            "cost": 3
           },
           {
             "targetExitId": "lake_owl",
-            "cost": 8,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 8
           }
         ]
       },
@@ -3952,21 +2608,7 @@ window.AREAS_DATA = [
         "connections": [
           {
             "targetExitId": "gv_to_gf",
-            "cost": 24,
-            "requirements": [
-              [
-                "Adult",
-                "GerudoBridgeFixed"
-              ],
-              [
-                "Longshot",
-                "Adult"
-              ],
-              [
-                "Epona",
-                "Adult"
-              ]
-            ]
+            "cost": 24
           },
           {
             "targetExitId": "gv_to_lake",
@@ -3974,52 +2616,15 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "gv_to_tent",
-            "cost": 16,
-            "requirements": [
-              [
-                "Adult",
-                "GerudoBridgeFixed"
-              ],
-              [
-                "Longshot",
-                "Adult"
-              ],
-              [
-                "Epona",
-                "Adult"
-              ]
-            ]
+            "cost": 16
           },
           {
             "targetExitId": "gv_to_octorokgrotto",
-            "cost": 13,
-            "requirements": [
-              [
-                "SilverGauntlets",
-                "Adult"
-              ]
-            ]
+            "cost": 13
           },
           {
             "targetExitId": "gv_to_stormgrotto",
-            "cost": 17,
-            "requirements": [
-              [
-                "Adult",
-                "GerudoBridgeFixed",
-                "SongOfStorms"
-              ],
-              [
-                "Longshot",
-                "SongOfStorms",
-                "Adult"
-              ],
-              [
-                "Epona",
-                "SongOfStorms",
-                "Adult"
-              ]
-            ]
+            "cost": 17
           }
         ]
       },
@@ -4034,21 +2639,7 @@ window.AREAS_DATA = [
         "connections": [
           {
             "targetExitId": "gv_to_hf",
-            "cost": 24,
-            "requirements": [
-              [
-                "Adult",
-                "GerudoBridgeFixed"
-              ],
-              [
-                "Longshot",
-                "Adult"
-              ],
-              [
-                "Epona",
-                "Adult"
-              ]
-            ]
+            "cost": 24
           },
           {
             "targetExitId": "gv_to_lake",
@@ -4056,43 +2647,15 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "gv_to_tent",
-            "cost": 9,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 9
           },
           {
             "targetExitId": "gv_to_octorokgrotto",
-            "cost": 19,
-            "requirements": [
-              [
-                "Adult",
-                "GerudoBridgeFixed",
-                "SilverGauntlets"
-              ],
-              [
-                "Adult",
-                "Longshot",
-                "SilverGauntlets"
-              ],
-              [
-                "Adult",
-                "Epona",
-                "SilverGauntlets"
-              ]
-            ]
+            "cost": 19
           },
           {
             "targetExitId": "gv_to_stormgrotto",
-            "cost": 9,
-            "requirements": [
-              [
-                "Adult",
-                "SongOfStorms"
-              ]
-            ]
+            "cost": 9
           }
         ]
       },
@@ -4116,21 +2679,7 @@ window.AREAS_DATA = [
         "connections": [
           {
             "targetExitId": "gv_to_hf",
-            "cost": 16,
-            "requirements": [
-              [
-                "Adult",
-                "GerudoBridgeFixed"
-              ],
-              [
-                "Longshot",
-                "Adult"
-              ],
-              [
-                "Epona",
-                "Adult"
-              ]
-            ]
+            "cost": 16
           },
           {
             "targetExitId": "gv_to_gf",
@@ -4142,34 +2691,11 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "gv_to_octorokgrotto",
-            "cost": 11,
-            "requirements": [
-              [
-                "Adult",
-                "GerudoBridgeFixed",
-                "SilverGauntlets"
-              ],
-              [
-                "Adult",
-                "Longshot",
-                "SilverGauntlets"
-              ],
-              [
-                "Adult",
-                "Epona",
-                "SilverGauntlets"
-              ]
-            ]
+            "cost": 11
           },
           {
             "targetExitId": "gv_to_stormgrotto",
-            "cost": 2,
-            "requirements": [
-              [
-                "Adult",
-                "SongOfStorms"
-              ]
-            ]
+            "cost": 2
           }
         ]
       },
@@ -4217,21 +2743,7 @@ window.AREAS_DATA = [
         "connections": [
           {
             "targetExitId": "gv_to_hf",
-            "cost": 17,
-            "requirements": [
-              [
-                "Adult",
-                "GerudoBridgeFixed"
-              ],
-              [
-                "Longshot",
-                "Adult"
-              ],
-              [
-                "Epona",
-                "Adult"
-              ]
-            ]
+            "cost": 17
           },
           {
             "targetExitId": "gv_to_gf",
@@ -4247,24 +2759,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "gv_to_octorokgrotto",
-            "cost": 12,
-            "requirements": [
-              [
-                "Adult",
-                "GerudoBridgeFixed",
-                "SilverGauntlets"
-              ],
-              [
-                "Adult",
-                "Longshot",
-                "SilverGauntlets"
-              ],
-              [
-                "Adult",
-                "Epona",
-                "SilverGauntlets"
-              ]
-            ]
+            "cost": 12
           }
         ]
       },
@@ -4298,22 +2793,11 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "gf_to_grotto",
-            "cost": 12,
-            "requirements": [
-              [
-                "Adult",
-                "SongOfStorms"
-              ]
-            ]
+            "cost": 12
           },
           {
             "targetExitId": "gf_to_gtg",
-            "cost": 8,
-            "requirements": [
-              [
-                "GerudoPass"
-              ]
-            ]
+            "cost": 8
           },
           {
             "targetExitId": "hideout_a_gf",
@@ -4368,22 +2852,11 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "gf_to_grotto",
-            "cost": 12,
-            "requirements": [
-              [
-                "Adult",
-                "SongOfStorms"
-              ]
-            ]
+            "cost": 12
           },
           {
             "targetExitId": "gf_to_gtg",
-            "cost": 14,
-            "requirements": [
-              [
-                "GerudoPass"
-              ]
-            ]
+            "cost": 14
           },
           {
             "targetExitId": "hideout_a_gf",
@@ -4442,12 +2915,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "gf_to_gtg",
-            "cost": 3,
-            "requirements": [
-              [
-                "GerudoPass"
-              ]
-            ]
+            "cost": 3
           },
           {
             "targetExitId": "hideout_a_gf",
@@ -4515,13 +2983,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "gf_to_grotto",
-            "cost": 3,
-            "requirements": [
-              [
-                "Adult",
-                "SongOfStorms"
-              ]
-            ]
+            "cost": 3
           },
           {
             "targetExitId": "hideout_a_gf",
@@ -4785,31 +3247,15 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "gf_to_hw",
-            "cost": 15,
-            "requirements": [
-              [
-                "GerudoPass"
-              ]
-            ]
+            "cost": 15
           },
           {
             "targetExitId": "gf_to_grotto",
-            "cost": 15,
-            "requirements": [
-              [
-                "Adult",
-                "SongOfStorms"
-              ]
-            ]
+            "cost": 15
           },
           {
             "targetExitId": "gf_to_gtg",
-            "cost": 15,
-            "requirements": [
-              [
-                "GerudoPass"
-              ]
-            ]
+            "cost": 15
           },
           {
             "targetExitId": "hideout_b_gf",
@@ -4860,31 +3306,15 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "gf_to_hw",
-            "cost": 15,
-            "requirements": [
-              [
-                "GerudoPass"
-              ]
-            ]
+            "cost": 15
           },
           {
             "targetExitId": "gf_to_grotto",
-            "cost": 15,
-            "requirements": [
-              [
-                "Adult",
-                "SongOfStorms"
-              ]
-            ]
+            "cost": 15
           },
           {
             "targetExitId": "gf_to_gtg",
-            "cost": 15,
-            "requirements": [
-              [
-                "GerudoPass"
-              ]
-            ]
+            "cost": 15
           },
           {
             "targetExitId": "hideout_a_gf",
@@ -4935,31 +3365,15 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "gf_to_hw",
-            "cost": 15,
-            "requirements": [
-              [
-                "GerudoPass"
-              ]
-            ]
+            "cost": 15
           },
           {
             "targetExitId": "gf_to_grotto",
-            "cost": 15,
-            "requirements": [
-              [
-                "Adult",
-                "SongOfStorms"
-              ]
-            ]
+            "cost": 15
           },
           {
             "targetExitId": "gf_to_gtg",
-            "cost": 15,
-            "requirements": [
-              [
-                "GerudoPass"
-              ]
-            ]
+            "cost": 15
           },
           {
             "targetExitId": "hideout_a_gf",
@@ -5010,31 +3424,15 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "gf_to_hw",
-            "cost": 15,
-            "requirements": [
-              [
-                "GerudoPass"
-              ]
-            ]
+            "cost": 15
           },
           {
             "targetExitId": "gf_to_grotto",
-            "cost": 15,
-            "requirements": [
-              [
-                "Adult",
-                "SongOfStorms"
-              ]
-            ]
+            "cost": 15
           },
           {
             "targetExitId": "gf_to_gtg",
-            "cost": 15,
-            "requirements": [
-              [
-                "GerudoPass"
-              ]
-            ]
+            "cost": 15
           },
           {
             "targetExitId": "hideout_a_gf",
@@ -5085,31 +3483,15 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "gf_to_hw",
-            "cost": 15,
-            "requirements": [
-              [
-                "GerudoPass"
-              ]
-            ]
+            "cost": 15
           },
           {
             "targetExitId": "gf_to_grotto",
-            "cost": 15,
-            "requirements": [
-              [
-                "Adult",
-                "SongOfStorms"
-              ]
-            ]
+            "cost": 15
           },
           {
             "targetExitId": "gf_to_gtg",
-            "cost": 15,
-            "requirements": [
-              [
-                "GerudoPass"
-              ]
-            ]
+            "cost": 15
           },
           {
             "targetExitId": "hideout_a_gf",
@@ -5160,31 +3542,15 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "gf_to_hw",
-            "cost": 15,
-            "requirements": [
-              [
-                "GerudoPass"
-              ]
-            ]
+            "cost": 15
           },
           {
             "targetExitId": "gf_to_grotto",
-            "cost": 15,
-            "requirements": [
-              [
-                "Adult",
-                "SongOfStorms"
-              ]
-            ]
+            "cost": 15
           },
           {
             "targetExitId": "gf_to_gtg",
-            "cost": 15,
-            "requirements": [
-              [
-                "GerudoPass"
-              ]
-            ]
+            "cost": 15
           },
           {
             "targetExitId": "hideout_a_gf",
@@ -5243,31 +3609,15 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "gf_to_hw",
-            "cost": 15,
-            "requirements": [
-              [
-                "GerudoPass"
-              ]
-            ]
+            "cost": 15
           },
           {
             "targetExitId": "gf_to_grotto",
-            "cost": 15,
-            "requirements": [
-              [
-                "Adult",
-                "SongOfStorms"
-              ]
-            ]
+            "cost": 15
           },
           {
             "targetExitId": "gf_to_gtg",
-            "cost": 15,
-            "requirements": [
-              [
-                "GerudoPass"
-              ]
-            ]
+            "cost": 15
           },
           {
             "targetExitId": "hideout_a_gf",
@@ -5318,31 +3668,15 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "gf_to_hw",
-            "cost": 15,
-            "requirements": [
-              [
-                "GerudoPass"
-              ]
-            ]
+            "cost": 15
           },
           {
             "targetExitId": "gf_to_grotto",
-            "cost": 15,
-            "requirements": [
-              [
-                "Adult",
-                "SongOfStorms"
-              ]
-            ]
+            "cost": 15
           },
           {
             "targetExitId": "gf_to_gtg",
-            "cost": 15,
-            "requirements": [
-              [
-                "GerudoPass"
-              ]
-            ]
+            "cost": 15
           },
           {
             "targetExitId": "hideout_a_gf",
@@ -5393,31 +3727,15 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "gf_to_hw",
-            "cost": 15,
-            "requirements": [
-              [
-                "GerudoPass"
-              ]
-            ]
+            "cost": 15
           },
           {
             "targetExitId": "gf_to_grotto",
-            "cost": 15,
-            "requirements": [
-              [
-                "Adult",
-                "SongOfStorms"
-              ]
-            ]
+            "cost": 15
           },
           {
             "targetExitId": "gf_to_gtg",
-            "cost": 15,
-            "requirements": [
-              [
-                "GerudoPass"
-              ]
-            ]
+            "cost": 15
           },
           {
             "targetExitId": "hideout_a_gf",
@@ -5468,31 +3786,15 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "gf_to_hw",
-            "cost": 15,
-            "requirements": [
-              [
-                "GerudoPass"
-              ]
-            ]
+            "cost": 15
           },
           {
             "targetExitId": "gf_to_grotto",
-            "cost": 15,
-            "requirements": [
-              [
-                "Adult",
-                "SongOfStorms"
-              ]
-            ]
+            "cost": 15
           },
           {
             "targetExitId": "gf_to_gtg",
-            "cost": 15,
-            "requirements": [
-              [
-                "GerudoPass"
-              ]
-            ]
+            "cost": 15
           },
           {
             "targetExitId": "hideout_a_gf",
@@ -5543,31 +3845,15 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "gf_to_hw",
-            "cost": 15,
-            "requirements": [
-              [
-                "GerudoPass"
-              ]
-            ]
+            "cost": 15
           },
           {
             "targetExitId": "gf_to_grotto",
-            "cost": 15,
-            "requirements": [
-              [
-                "Adult",
-                "SongOfStorms"
-              ]
-            ]
+            "cost": 15
           },
           {
             "targetExitId": "gf_to_gtg",
-            "cost": 15,
-            "requirements": [
-              [
-                "GerudoPass"
-              ]
-            ]
+            "cost": 15
           },
           {
             "targetExitId": "hideout_a_gf",
@@ -5622,31 +3908,15 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "gf_to_hw",
-            "cost": 15,
-            "requirements": [
-              [
-                "GerudoPass"
-              ]
-            ]
+            "cost": 15
           },
           {
             "targetExitId": "gf_to_grotto",
-            "cost": 15,
-            "requirements": [
-              [
-                "Adult",
-                "SongOfStorms"
-              ]
-            ]
+            "cost": 15
           },
           {
             "targetExitId": "gf_to_gtg",
-            "cost": 15,
-            "requirements": [
-              [
-                "GerudoPass"
-              ]
-            ]
+            "cost": 15
           },
           {
             "targetExitId": "hideout_a_gf",
@@ -5701,31 +3971,15 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "gf_to_hw",
-            "cost": 15,
-            "requirements": [
-              [
-                "GerudoPass"
-              ]
-            ]
+            "cost": 15
           },
           {
             "targetExitId": "gf_to_grotto",
-            "cost": 15,
-            "requirements": [
-              [
-                "Adult",
-                "SongOfStorms"
-              ]
-            ]
+            "cost": 15
           },
           {
             "targetExitId": "gf_to_gtg",
-            "cost": 15,
-            "requirements": [
-              [
-                "GerudoPass"
-              ]
-            ]
+            "cost": 15
           },
           {
             "targetExitId": "hideout_a_gf",
@@ -5782,12 +4036,7 @@ window.AREAS_DATA = [
         "connections": [
           {
             "targetExitId": "hw_to_colossus",
-            "cost": 80,
-            "requirements": [
-              [
-                "TruthLens"
-              ]
-            ]
+            "cost": 80
           }
         ]
       },
@@ -5817,22 +4066,11 @@ window.AREAS_DATA = [
         "connections": [
           {
             "targetExitId": "colossus_to_greatfairy",
-            "cost": 10,
-            "requirements": [
-              [
-                "Explosive"
-              ]
-            ]
+            "cost": 10
           },
           {
             "targetExitId": "colossus_to_grotto",
-            "cost": 20,
-            "requirements": [
-              [
-                "SilverGauntlets",
-                "Adult"
-              ]
-            ]
+            "cost": 20
           },
           {
             "targetExitId": "colossus_to_spirittemple",
@@ -5855,13 +4093,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "colossus_to_grotto",
-            "cost": 10,
-            "requirements": [
-              [
-                "SilverGauntlets",
-                "Adult"
-              ]
-            ]
+            "cost": 10
           },
           {
             "targetExitId": "colossus_to_spirittemple",
@@ -5893,12 +4125,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "colossus_to_greatfairy",
-            "cost": 10,
-            "requirements": [
-              [
-                "Explosive"
-              ]
-            ]
+            "cost": 10
           },
           {
             "targetExitId": "colossus_to_spirittemple",
@@ -5930,22 +4157,11 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "colossus_to_greatfairy",
-            "cost": 20,
-            "requirements": [
-              [
-                "Explosive"
-              ]
-            ]
+            "cost": 20
           },
           {
             "targetExitId": "colossus_to_grotto",
-            "cost": 9,
-            "requirements": [
-              [
-                "SilverGauntlets",
-                "Adult"
-              ]
-            ]
+            "cost": 9
           }
         ]
       },
@@ -5964,22 +4180,11 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "colossus_to_greatfairy",
-            "cost": 15,
-            "requirements": [
-              [
-                "Explosive"
-              ]
-            ]
+            "cost": 15
           },
           {
             "targetExitId": "colossus_to_grotto",
-            "cost": 5,
-            "requirements": [
-              [
-                "SilverGauntlets",
-                "Adult"
-              ]
-            ]
+            "cost": 5
           },
           {
             "targetExitId": "colossus_to_spirittemple",
@@ -6050,75 +4255,35 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "market_to_chestgame",
-            "cost": 2,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 2
           },
           {
             "targetExitId": "market_to_bowling",
-            "cost": 2,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 2
           },
           {
             "targetExitId": "market_to_bazaar",
-            "cost": 2,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 2
           },
           {
             "targetExitId": "market_to_potions",
-            "cost": 3,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 3
           },
           {
             "targetExitId": "market_to_shooting",
-            "cost": 2,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 2
           },
           {
             "targetExitId": "market_to_masks",
-            "cost": 4,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 4
           },
           {
             "targetExitId": "market_to_bombchushop",
-            "cost": 6,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 6
           },
           {
             "targetExitId": "market_to_backhouse",
-            "cost": 12,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 12
           }
         ]
       },
@@ -6141,75 +4306,35 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "market_to_chestgame",
-            "cost": 4,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 4
           },
           {
             "targetExitId": "market_to_bowling",
-            "cost": 4,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 4
           },
           {
             "targetExitId": "market_to_bazaar",
-            "cost": 2,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 2
           },
           {
             "targetExitId": "market_to_potions",
-            "cost": 1,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 1
           },
           {
             "targetExitId": "market_to_shooting",
-            "cost": 3,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 3
           },
           {
             "targetExitId": "market_to_masks",
-            "cost": 1,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 1
           },
           {
             "targetExitId": "market_to_bombchushop",
-            "cost": 13,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 13
           },
           {
             "targetExitId": "market_to_backhouse",
-            "cost": 7,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 7
           }
         ]
       },
@@ -6247,75 +4372,35 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "market_to_chestgame",
-            "cost": 4,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 4
           },
           {
             "targetExitId": "market_to_bowling",
-            "cost": 3,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 3
           },
           {
             "targetExitId": "market_to_bazaar",
-            "cost": 3,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 3
           },
           {
             "targetExitId": "market_to_potions",
-            "cost": 2,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 2
           },
           {
             "targetExitId": "market_to_shooting",
-            "cost": 4,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 4
           },
           {
             "targetExitId": "market_to_masks",
-            "cost": 1,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 1
           },
           {
             "targetExitId": "market_to_bombchushop",
-            "cost": 12,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 12
           },
           {
             "targetExitId": "market_to_backhouse",
-            "cost": 6,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 6
           }
         ]
       },
@@ -6370,66 +4455,31 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "market_to_bowling",
-            "cost": 2,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 2
           },
           {
             "targetExitId": "market_to_bazaar",
-            "cost": 3,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 3
           },
           {
             "targetExitId": "market_to_potions",
-            "cost": 3,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 3
           },
           {
             "targetExitId": "market_to_shooting",
-            "cost": 2,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 2
           },
           {
             "targetExitId": "market_to_masks",
-            "cost": 4,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 4
           },
           {
             "targetExitId": "market_to_bombchushop",
-            "cost": 4,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 4
           },
           {
             "targetExitId": "market_to_backhouse",
-            "cost": 10,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 10
           }
         ]
       },
@@ -6465,66 +4515,31 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "market_to_chestgame",
-            "cost": 2,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 2
           },
           {
             "targetExitId": "market_to_bazaar",
-            "cost": 3,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 3
           },
           {
             "targetExitId": "market_to_potions",
-            "cost": 3,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 3
           },
           {
             "targetExitId": "market_to_shooting",
-            "cost": 3,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 3
           },
           {
             "targetExitId": "market_to_masks",
-            "cost": 3,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 3
           },
           {
             "targetExitId": "market_to_bombchushop",
-            "cost": 4,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 4
           },
           {
             "targetExitId": "market_to_backhouse",
-            "cost": 10,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 10
           }
         ]
       },
@@ -6560,66 +4575,31 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "market_to_chestgame",
-            "cost": 3,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 3
           },
           {
             "targetExitId": "market_to_bowling",
-            "cost": 3,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 3
           },
           {
             "targetExitId": "market_to_potions",
-            "cost": 1,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 1
           },
           {
             "targetExitId": "market_to_shooting",
-            "cost": 2,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 2
           },
           {
             "targetExitId": "market_to_masks",
-            "cost": 2,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 2
           },
           {
             "targetExitId": "market_to_bombchushop",
-            "cost": 4,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 4
           },
           {
             "targetExitId": "market_to_backhouse",
-            "cost": 4,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 4
           }
         ]
       },
@@ -6655,66 +4635,31 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "market_to_chestgame",
-            "cost": 3,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 3
           },
           {
             "targetExitId": "market_to_bowling",
-            "cost": 3,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 3
           },
           {
             "targetExitId": "market_to_bazaar",
-            "cost": 1,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 1
           },
           {
             "targetExitId": "market_to_shooting",
-            "cost": 3,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 3
           },
           {
             "targetExitId": "market_to_masks",
-            "cost": 2,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 2
           },
           {
             "targetExitId": "market_to_bombchushop",
-            "cost": 5,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 5
           },
           {
             "targetExitId": "market_to_backhouse",
-            "cost": 3,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 3
           }
         ]
       },
@@ -6750,66 +4695,31 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "market_to_chestgame",
-            "cost": 2,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 2
           },
           {
             "targetExitId": "market_to_bowling",
-            "cost": 3,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 3
           },
           {
             "targetExitId": "market_to_bazaar",
-            "cost": 2,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 2
           },
           {
             "targetExitId": "market_to_potions",
-            "cost": 3,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 3
           },
           {
             "targetExitId": "market_to_masks",
-            "cost": 4,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 4
           },
           {
             "targetExitId": "market_to_bombchushop",
-            "cost": 6,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 6
           },
           {
             "targetExitId": "market_to_backhouse",
-            "cost": 12,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 12
           }
         ]
       },
@@ -6845,66 +4755,31 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "market_to_chestgame",
-            "cost": 4,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 4
           },
           {
             "targetExitId": "market_to_bowling",
-            "cost": 3,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 3
           },
           {
             "targetExitId": "market_to_bazaar",
-            "cost": 2,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 2
           },
           {
             "targetExitId": "market_to_potions",
-            "cost": 2,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 2
           },
           {
             "targetExitId": "market_to_shooting",
-            "cost": 4,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 4
           },
           {
             "targetExitId": "market_to_bombchushop",
-            "cost": 12,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 12
           },
           {
             "targetExitId": "market_to_backhouse",
-            "cost": 7,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 7
           }
         ]
       },
@@ -6940,66 +4815,31 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "market_to_chestgame",
-            "cost": 4,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 4
           },
           {
             "targetExitId": "market_to_bowling",
-            "cost": 4,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 4
           },
           {
             "targetExitId": "market_to_bazaar",
-            "cost": 4,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 4
           },
           {
             "targetExitId": "market_to_potions",
-            "cost": 5,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 5
           },
           {
             "targetExitId": "market_to_shooting",
-            "cost": 6,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 6
           },
           {
             "targetExitId": "market_to_masks",
-            "cost": 12,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 12
           },
           {
             "targetExitId": "market_to_backhouse",
-            "cost": 6,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 6
           }
         ]
       },
@@ -7035,66 +4875,31 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "market_to_chestgame",
-            "cost": 10,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 10
           },
           {
             "targetExitId": "market_to_bowling",
-            "cost": 10,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 10
           },
           {
             "targetExitId": "market_to_bazaar",
-            "cost": 4,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 4
           },
           {
             "targetExitId": "market_to_potions",
-            "cost": 3,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 3
           },
           {
             "targetExitId": "market_to_shooting",
-            "cost": 12,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 12
           },
           {
             "targetExitId": "market_to_masks",
-            "cost": 7,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 7
           },
           {
             "targetExitId": "market_to_bombchushop",
-            "cost": 6,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 6
           }
         ]
       },
@@ -7163,40 +4968,19 @@ window.AREAS_DATA = [
         "connections": [
           {
             "targetExitId": "castle_to_adultgreatfairy",
-            "cost": 15,
-            "requirements": [
-              [
-                "Adult",
-                "GoldGauntlets"
-              ]
-            ]
+            "cost": 15
           },
           {
             "targetExitId": "castle_to_childgreatfairy",
-            "cost": 15,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 15
           },
           {
             "targetExitId": "castle_to_grotto",
-            "cost": 35,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 35
           },
           {
             "targetExitId": "castle_to_ganon",
-            "cost": 10,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 10
           }
         ]
       },
@@ -7215,12 +4999,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "castle_to_ganon",
-            "cost": 10,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 10
           }
         ]
       },
@@ -7248,12 +5027,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "castle_to_grotto",
-            "cost": 25,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 25
           }
         ]
       },
@@ -7281,12 +5055,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "castle_to_childgreatfairy",
-            "cost": 25,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 25
           }
         ]
       },
@@ -7343,30 +5112,15 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "kak_to_bazaar",
-            "cost": 13,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 13
           },
           {
             "targetExitId": "kak_to_shooting",
-            "cost": 16,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 16
           },
           {
             "targetExitId": "kak_to_odd",
-            "cost": 21,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 21
           },
           {
             "targetExitId": "kak_to_impas",
@@ -7386,12 +5140,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "potions_to_kak_back",
-            "cost": 23,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 23
           },
           {
             "targetExitId": "kak_to_windmill",
@@ -7399,16 +5148,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "kak_to_redeadgrotto",
-            "cost": 7,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 7
           },
           {
             "targetExitId": "kak_to_opengrotto",
@@ -7443,30 +5183,15 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "kak_to_bazaar",
-            "cost": 3,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 3
           },
           {
             "targetExitId": "kak_to_shooting",
-            "cost": 16,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 16
           },
           {
             "targetExitId": "kak_to_odd",
-            "cost": 9,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 9
           },
           {
             "targetExitId": "kak_to_impas",
@@ -7486,12 +5211,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "potions_to_kak_back",
-            "cost": 11,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 11
           },
           {
             "targetExitId": "kak_to_windmill",
@@ -7499,16 +5219,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "kak_to_redeadgrotto",
-            "cost": 7,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 7
           },
           {
             "targetExitId": "kak_to_opengrotto",
@@ -7543,30 +5254,15 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "kak_to_bazaar",
-            "cost": 12,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 12
           },
           {
             "targetExitId": "kak_to_shooting",
-            "cost": 6,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 6
           },
           {
             "targetExitId": "kak_to_odd",
-            "cost": 8,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 8
           },
           {
             "targetExitId": "kak_to_impas",
@@ -7586,12 +5282,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "potions_to_kak_back",
-            "cost": 9,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 9
           },
           {
             "targetExitId": "kak_to_windmill",
@@ -7599,16 +5290,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "kak_to_redeadgrotto",
-            "cost": 7,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 7
           },
           {
             "targetExitId": "kak_to_opengrotto",
@@ -7643,30 +5325,15 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "kak_to_bazaar",
-            "cost": 8,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 8
           },
           {
             "targetExitId": "kak_to_shooting",
-            "cost": 10,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 10
           },
           {
             "targetExitId": "kak_to_odd",
-            "cost": 16,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 16
           },
           {
             "targetExitId": "kak_to_impas",
@@ -7686,12 +5353,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "potions_to_kak_back",
-            "cost": 18,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 18
           },
           {
             "targetExitId": "kak_to_windmill",
@@ -7699,16 +5361,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "kak_to_redeadgrotto",
-            "cost": 1,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 1
           },
           {
             "targetExitId": "kak_to_opengrotto",
@@ -7756,21 +5409,11 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "kak_to_shooting",
-            "cost": 14,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 14
           },
           {
             "targetExitId": "kak_to_odd",
-            "cost": 6,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 6
           },
           {
             "targetExitId": "kak_to_impas",
@@ -7790,12 +5433,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "potions_to_kak_back",
-            "cost": 8,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 8
           },
           {
             "targetExitId": "kak_to_windmill",
@@ -7803,16 +5441,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "kak_to_redeadgrotto",
-            "cost": 4,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 4
           },
           {
             "targetExitId": "kak_to_opengrotto",
@@ -7860,21 +5489,11 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "kak_to_bazaar",
-            "cost": 9,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 9
           },
           {
             "targetExitId": "kak_to_odd",
-            "cost": 17,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 17
           },
           {
             "targetExitId": "kak_to_impas",
@@ -7894,12 +5513,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "potions_to_kak_back",
-            "cost": 19,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 19
           },
           {
             "targetExitId": "kak_to_windmill",
@@ -7907,16 +5521,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "kak_to_redeadgrotto",
-            "cost": 3,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 3
           },
           {
             "targetExitId": "kak_to_opengrotto",
@@ -7964,21 +5569,11 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "kak_to_bazaar",
-            "cost": 12,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 12
           },
           {
             "targetExitId": "kak_to_shooting",
-            "cost": 3,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 3
           },
           {
             "targetExitId": "kak_to_impas",
@@ -7998,12 +5593,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "potions_to_kak_back",
-            "cost": 4,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 4
           },
           {
             "targetExitId": "kak_to_windmill",
@@ -8011,16 +5601,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "kak_to_redeadgrotto",
-            "cost": 6,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 6
           },
           {
             "targetExitId": "kak_to_opengrotto",
@@ -8068,30 +5649,15 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "kak_to_bazaar",
-            "cost": 11,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 11
           },
           {
             "targetExitId": "kak_to_shooting",
-            "cost": 9,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 9
           },
           {
             "targetExitId": "kak_to_odd",
-            "cost": 19,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 19
           },
           {
             "targetExitId": "kak_to_impas_back",
@@ -8107,12 +5673,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "potions_to_kak_back",
-            "cost": 21,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 21
           },
           {
             "targetExitId": "kak_to_windmill",
@@ -8120,16 +5681,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "kak_to_redeadgrotto",
-            "cost": 4,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 4
           },
           {
             "targetExitId": "kak_to_opengrotto",
@@ -8177,30 +5729,15 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "kak_to_bazaar",
-            "cost": 12,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 12
           },
           {
             "targetExitId": "kak_to_shooting",
-            "cost": 6,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 6
           },
           {
             "targetExitId": "kak_to_odd",
-            "cost": 20,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 20
           },
           {
             "targetExitId": "kak_to_impas",
@@ -8216,12 +5753,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "potions_to_kak_back",
-            "cost": 22,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 22
           },
           {
             "targetExitId": "kak_to_windmill",
@@ -8229,16 +5761,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "kak_to_redeadgrotto",
-            "cost": 6,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 6
           },
           {
             "targetExitId": "kak_to_opengrotto",
@@ -8290,30 +5813,15 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "kak_to_bazaar",
-            "cost": 12,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 12
           },
           {
             "targetExitId": "kak_to_shooting",
-            "cost": 6,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 6
           },
           {
             "targetExitId": "kak_to_odd",
-            "cost": 20,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 20
           },
           {
             "targetExitId": "kak_to_impas",
@@ -8329,12 +5837,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "potions_to_kak_back",
-            "cost": 22,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 22
           },
           {
             "targetExitId": "kak_to_windmill",
@@ -8342,16 +5845,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "kak_to_redeadgrotto",
-            "cost": 6,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 6
           },
           {
             "targetExitId": "kak_to_opengrotto",
@@ -8390,30 +5884,15 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "kak_to_bazaar",
-            "cost": 9,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 9
           },
           {
             "targetExitId": "kak_to_shooting",
-            "cost": 7,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 7
           },
           {
             "targetExitId": "kak_to_odd",
-            "cost": 17,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 17
           },
           {
             "targetExitId": "kak_to_impas",
@@ -8429,12 +5908,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "potions_to_kak_back",
-            "cost": 19,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 19
           },
           {
             "targetExitId": "kak_to_windmill",
@@ -8442,16 +5916,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "kak_to_redeadgrotto",
-            "cost": 2,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 2
           },
           {
             "targetExitId": "kak_to_opengrotto",
@@ -8499,30 +5964,15 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "kak_to_bazaar",
-            "cost": 1,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 1
           },
           {
             "targetExitId": "kak_to_shooting",
-            "cost": 14,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 14
           },
           {
             "targetExitId": "kak_to_odd",
-            "cost": 6,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 6
           },
           {
             "targetExitId": "kak_to_impas",
@@ -8538,12 +5988,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "potions_to_kak_back",
-            "cost": 8,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 8
           },
           {
             "targetExitId": "kak_to_windmill",
@@ -8551,16 +5996,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "kak_to_redeadgrotto",
-            "cost": 4,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 4
           },
           {
             "targetExitId": "kak_to_opengrotto",
@@ -8583,12 +6019,7 @@ window.AREAS_DATA = [
         "connections": [
           {
             "targetExitId": "kak_to_potions_back",
-            "cost": 1,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 1
           }
         ]
       },
@@ -8634,30 +6065,15 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "kak_to_bazaar",
-            "cost": 14,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 14
           },
           {
             "targetExitId": "kak_to_shooting",
-            "cost": 3,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 3
           },
           {
             "targetExitId": "kak_to_odd",
-            "cost": 2,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 2
           },
           {
             "targetExitId": "kak_to_impas",
@@ -8681,16 +6097,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "kak_to_redeadgrotto",
-            "cost": 8,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 8
           },
           {
             "targetExitId": "kak_to_opengrotto",
@@ -8729,30 +6136,15 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "kak_to_bazaar",
-            "cost": 13,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 13
           },
           {
             "targetExitId": "kak_to_shooting",
-            "cost": 3,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 3
           },
           {
             "targetExitId": "kak_to_odd",
-            "cost": 21,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 21
           },
           {
             "targetExitId": "kak_to_impas",
@@ -8772,25 +6164,11 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "potions_to_kak_back",
-            "cost": 23,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 23
           },
           {
             "targetExitId": "kak_to_redeadgrotto",
-            "cost": 6,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 6
           },
           {
             "targetExitId": "kak_to_opengrotto",
@@ -8838,30 +6216,15 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "kak_to_bazaar",
-            "cost": 7,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 7
           },
           {
             "targetExitId": "kak_to_shooting",
-            "cost": 9,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 9
           },
           {
             "targetExitId": "kak_to_odd",
-            "cost": 15,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 15
           },
           {
             "targetExitId": "kak_to_impas",
@@ -8881,12 +6244,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "potions_to_kak_back",
-            "cost": 17,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 17
           },
           {
             "targetExitId": "kak_to_windmill",
@@ -8938,30 +6296,15 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "kak_to_bazaar",
-            "cost": 13,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 13
           },
           {
             "targetExitId": "kak_to_shooting",
-            "cost": 4,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 4
           },
           {
             "targetExitId": "kak_to_odd",
-            "cost": 1,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 1
           },
           {
             "targetExitId": "kak_to_impas",
@@ -8981,12 +6324,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "potions_to_kak_back",
-            "cost": 3,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 3
           },
           {
             "targetExitId": "kak_to_windmill",
@@ -8994,16 +6332,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "kak_to_redeadgrotto",
-            "cost": 7,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 7
           },
           {
             "targetExitId": "kak_to_well",
@@ -9047,30 +6376,15 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "kak_to_bazaar",
-            "cost": 11,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 11
           },
           {
             "targetExitId": "kak_to_shooting",
-            "cost": 2,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 2
           },
           {
             "targetExitId": "kak_to_odd",
-            "cost": 19,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 19
           },
           {
             "targetExitId": "kak_to_impas",
@@ -9090,12 +6404,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "potions_to_kak_back",
-            "cost": 21,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 21
           },
           {
             "targetExitId": "kak_to_windmill",
@@ -9103,16 +6412,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "kak_to_redeadgrotto",
-            "cost": 4,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 4
           },
           {
             "targetExitId": "kak_to_opengrotto",
@@ -9145,12 +6445,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "graveyard_to_dampesgrave",
-            "cost": 5,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 5
           },
           {
             "targetExitId": "graveyard_to_redeadgrave",
@@ -9181,12 +6476,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "graveyard_to_dampesgrave",
-            "cost": 7,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 7
           },
           {
             "targetExitId": "graveyard_to_redeadgrave",
@@ -9226,12 +6516,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "graveyard_to_dampesgrave",
-            "cost": 5,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 5
           },
           {
             "targetExitId": "graveyard_to_redeadgrave",
@@ -9315,12 +6600,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "graveyard_to_dampesgrave",
-            "cost": 4,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 4
           },
           {
             "targetExitId": "graveyard_to_royaltomb",
@@ -9360,12 +6640,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "graveyard_to_dampesgrave",
-            "cost": 4,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 4
           },
           {
             "targetExitId": "graveyard_to_redeadgrave",
@@ -9405,12 +6680,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "graveyard_to_dampesgrave",
-            "cost": 17,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 17
           },
           {
             "targetExitId": "graveyard_to_redeadgrave",
@@ -9441,12 +6711,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "graveyard_to_dampesgrave",
-            "cost": 8,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 8
           },
           {
             "targetExitId": "graveyard_to_redeadgrave",
@@ -9483,73 +6748,27 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "dmt_to_dmc",
-            "cost": 39,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 39
           },
           {
             "targetExitId": "dmt_to_greatfairy",
-            "cost": 38,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 38
           },
           {
             "targetExitId": "dmt_to_stormgrotto",
-            "cost": 23,
-            "requirements": [
-              [
-                "SongOfStorms"
-              ]
-            ]
+            "cost": 23
           },
           {
             "targetExitId": "dmt_to_cowgrotto",
-            "cost": 22,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 22
           },
           {
             "targetExitId": "dmt_to_dc",
-            "cost": 11,
-            "requirements": [
-              [
-                "Adult"
-              ],
-              [
-                "Explosive"
-              ]
-            ]
+            "cost": 11
           },
           {
             "targetExitId": "dmt_owl",
-            "cost": 37,
-            "requirements": [
-              [
-                "Explosive",
-                "Child"
-              ]
-            ]
+            "cost": 37
           }
         ]
       },
@@ -9568,73 +6787,27 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "dmt_to_dmc",
-            "cost": 27,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 27
           },
           {
             "targetExitId": "dmt_to_greatfairy",
-            "cost": 26,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 26
           },
           {
             "targetExitId": "dmt_to_stormgrotto",
-            "cost": 2,
-            "requirements": [
-              [
-                "SongOfStorms"
-              ]
-            ]
+            "cost": 2
           },
           {
             "targetExitId": "dmt_to_cowgrotto",
-            "cost": 10,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 10
           },
           {
             "targetExitId": "dmt_to_dc",
-            "cost": 16,
-            "requirements": [
-              [
-                "Adult"
-              ],
-              [
-                "Explosive"
-              ]
-            ]
+            "cost": 16
           },
           {
             "targetExitId": "dmt_owl",
-            "cost": 25,
-            "requirements": [
-              [
-                "Explosive",
-                "Child"
-              ]
-            ]
+            "cost": 25
           }
         ]
       },
@@ -9657,60 +6830,23 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "dmt_to_greatfairy",
-            "cost": 29,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 29
           },
           {
             "targetExitId": "dmt_to_stormgrotto",
-            "cost": 13,
-            "requirements": [
-              [
-                "SongOfStorms"
-              ]
-            ]
+            "cost": 13
           },
           {
             "targetExitId": "dmt_to_cowgrotto",
-            "cost": 13,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 13
           },
           {
             "targetExitId": "dmt_to_dc",
-            "cost": 25,
-            "requirements": [
-              [
-                "Adult"
-              ],
-              [
-                "Explosive"
-              ]
-            ]
+            "cost": 25
           },
           {
             "targetExitId": "dmt_owl",
-            "cost": 28,
-            "requirements": [
-              [
-                "Explosive",
-                "Child"
-              ]
-            ]
+            "cost": 28
           }
         ]
       },
@@ -9737,47 +6873,19 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "dmt_to_stormgrotto",
-            "cost": 12,
-            "requirements": [
-              [
-                "SongOfStorms"
-              ]
-            ]
+            "cost": 12
           },
           {
             "targetExitId": "dmt_to_cowgrotto",
-            "cost": 12,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 12
           },
           {
             "targetExitId": "dmt_to_dc",
-            "cost": 24,
-            "requirements": [
-              [
-                "Adult"
-              ],
-              [
-                "Explosive"
-              ]
-            ]
+            "cost": 24
           },
           {
             "targetExitId": "dmt_owl",
-            "cost": 27,
-            "requirements": [
-              [
-                "Explosive",
-                "Child"
-              ]
-            ]
+            "cost": 27
           }
         ]
       },
@@ -9809,64 +6917,23 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "dmt_to_dmc",
-            "cost": 25,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 25
           },
           {
             "targetExitId": "dmt_to_greatfairy",
-            "cost": 24,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 24
           },
           {
             "targetExitId": "dmt_to_cowgrotto",
-            "cost": 8,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 8
           },
           {
             "targetExitId": "dmt_to_dc",
-            "cost": 14,
-            "requirements": [
-              [
-                "Adult"
-              ],
-              [
-                "Explosive"
-              ]
-            ]
+            "cost": 14
           },
           {
             "targetExitId": "dmt_owl",
-            "cost": 23,
-            "requirements": [
-              [
-                "Explosive",
-                "Child"
-              ]
-            ]
+            "cost": 23
           }
         ]
       },
@@ -9902,47 +6969,19 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "dmt_to_greatfairy",
-            "cost": 16,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 16
           },
           {
             "targetExitId": "dmt_to_stormgrotto",
-            "cost": 6,
-            "requirements": [
-              [
-                "SongOfStorms"
-              ]
-            ]
+            "cost": 6
           },
           {
             "targetExitId": "dmt_to_dc",
-            "cost": 13,
-            "requirements": [
-              [
-                "Adult"
-              ],
-              [
-                "Explosive"
-              ]
-            ]
+            "cost": 13
           },
           {
             "targetExitId": "dmt_owl",
-            "cost": 15,
-            "requirements": [
-              [
-                "Explosive",
-                "Child"
-              ]
-            ]
+            "cost": 15
           }
         ]
       },
@@ -9974,61 +7013,23 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "dmt_to_dmc",
-            "cost": 30,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 30
           },
           {
             "targetExitId": "dmt_to_greatfairy",
-            "cost": 29,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 29
           },
           {
             "targetExitId": "dmt_to_stormgrotto",
-            "cost": 12,
-            "requirements": [
-              [
-                "SongOfStorms"
-              ]
-            ]
+            "cost": 12
           },
           {
             "targetExitId": "dmt_to_cowgrotto",
-            "cost": 13,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 13
           },
           {
             "targetExitId": "dmt_owl",
-            "cost": 28,
-            "requirements": [
-              [
-                "Explosive",
-                "Child"
-              ]
-            ]
+            "cost": 28
           }
         ]
       },
@@ -10058,65 +7059,19 @@ window.AREAS_DATA = [
         "connections": [
           {
             "targetExitId": "gc_to_lw",
-            "cost": 11,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "DinsFire"
-              ],
-              [
-                "Bow"
-              ],
-              [
-                "GoronBracelet"
-              ]
-            ]
+            "cost": 11
           },
           {
             "targetExitId": "gc_to_dmc",
-            "cost": 14,
-            "requirements": [
-              [
-                "Bow",
-                "Explosive"
-              ]
-            ]
+            "cost": 14
           },
           {
             "targetExitId": "gc_to_shop",
-            "cost": 8,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "DinsFire"
-              ],
-              [
-                "Sticks",
-                "ZeldaLullaby"
-              ]
-            ]
+            "cost": 8
           },
           {
             "targetExitId": "gc_to_grotto",
-            "cost": 16,
-            "requirements": [
-              [
-                "GoronTunic",
-                "Hookshot"
-              ],
-              [
-                "SongOfTime",
-                "Adult"
-              ],
-              [
-                "NayrusLove",
-                "Hookshot"
-              ]
-            ]
+            "cost": 16
           }
         ]
       },
@@ -10135,47 +7090,15 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "gc_to_dmc",
-            "cost": 12,
-            "requirements": [
-              [
-                "Bow",
-                "Explosive"
-              ]
-            ]
+            "cost": 12
           },
           {
             "targetExitId": "gc_to_shop",
-            "cost": 6,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "DinsFire"
-              ],
-              [
-                "Sticks",
-                "ZeldaLullaby"
-              ]
-            ]
+            "cost": 6
           },
           {
             "targetExitId": "gc_to_grotto",
-            "cost": 13,
-            "requirements": [
-              [
-                "GoronTunic",
-                "Hookshot"
-              ],
-              [
-                "SongOfTime",
-                "Adult"
-              ],
-              [
-                "NayrusLove",
-                "Hookshot"
-              ]
-            ]
+            "cost": 13
           }
         ]
       },
@@ -10194,55 +7117,15 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "gc_to_lw",
-            "cost": 14,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "DinsFire"
-              ],
-              [
-                "Bow"
-              ],
-              [
-                "GoronBracelet"
-              ]
-            ]
+            "cost": 14
           },
           {
             "targetExitId": "gc_to_shop",
-            "cost": 8,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "DinsFire"
-              ],
-              [
-                "Sticks",
-                "ZeldaLullaby"
-              ]
-            ]
+            "cost": 8
           },
           {
             "targetExitId": "gc_to_grotto",
-            "cost": 20,
-            "requirements": [
-              [
-                "GoronTunic",
-                "Hookshot"
-              ],
-              [
-                "SongOfTime",
-                "Adult"
-              ],
-              [
-                "NayrusLove",
-                "Hookshot"
-              ]
-            ]
+            "cost": 20
           }
         ]
       },
@@ -10261,49 +7144,15 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "gc_to_lw",
-            "cost": 6,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "DinsFire"
-              ],
-              [
-                "Bow"
-              ],
-              [
-                "GoronBracelet"
-              ]
-            ]
+            "cost": 6
           },
           {
             "targetExitId": "gc_to_dmc",
-            "cost": 8,
-            "requirements": [
-              [
-                "Bow",
-                "Explosive"
-              ]
-            ]
+            "cost": 8
           },
           {
             "targetExitId": "gc_to_grotto",
-            "cost": 12,
-            "requirements": [
-              [
-                "GoronTunic",
-                "Hookshot"
-              ],
-              [
-                "SongOfTime",
-                "Adult"
-              ],
-              [
-                "NayrusLove",
-                "Hookshot"
-              ]
-            ]
+            "cost": 12
           }
         ]
       },
@@ -10331,47 +7180,15 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "gc_to_lw",
-            "cost": 15,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "DinsFire"
-              ],
-              [
-                "Bow"
-              ],
-              [
-                "GoronBracelet"
-              ]
-            ]
+            "cost": 15
           },
           {
             "targetExitId": "gc_to_dmc",
-            "cost": 12,
-            "requirements": [
-              [
-                "Bow",
-                "Explosive"
-              ]
-            ]
+            "cost": 12
           },
           {
             "targetExitId": "gc_to_shop",
-            "cost": 6,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "DinsFire"
-              ],
-              [
-                "Sticks",
-                "ZeldaLullaby"
-              ]
-            ]
+            "cost": 6
           }
         ]
       },
@@ -10401,69 +7218,23 @@ window.AREAS_DATA = [
         "connections": [
           {
             "targetExitId": "dmc_to_gc",
-            "cost": 14,
-            "requirements": [
-              [
-                "CraterShortcutOpened"
-              ],
-              [
-                "HoverBoots"
-              ]
-            ]
+            "cost": 14
           },
           {
             "targetExitId": "dmc_to_greatfairy",
-            "cost": 9,
-            "requirements": [
-              [
-                "CraterShortcutOpened",
-                "TitanMass"
-              ],
-              [
-                "HoverBoots",
-                "TitanMass"
-              ]
-            ]
+            "cost": 9
           },
           {
             "targetExitId": "dmc_to_bombgrotto",
-            "cost": 4,
-            "requirements": [
-              [
-                "Explosive"
-              ],
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 4
           },
           {
             "targetExitId": "dmc_to_hammergrotto",
-            "cost": 13,
-            "requirements": [
-              [
-                "CraterShortcutOpened",
-                "TitanMass"
-              ],
-              [
-                "HoverBoots",
-                "TitanMass"
-              ]
-            ]
+            "cost": 13
           },
           {
             "targetExitId": "dmc_to_firetemple",
-            "cost": 22,
-            "requirements": [
-              [
-                "CraterShortcutOpened",
-                "Hookshot"
-              ],
-              [
-                "HoverBoots"
-              ]
-            ]
+            "cost": 22
           }
         ]
       },
@@ -10478,56 +7249,23 @@ window.AREAS_DATA = [
         "connections": [
           {
             "targetExitId": "dmc_to_dmt",
-            "cost": 14,
-            "requirements": [
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 14
           },
           {
             "targetExitId": "dmc_to_greatfairy",
-            "cost": 5,
-            "requirements": [
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 5
           },
           {
             "targetExitId": "dmc_to_bombgrotto",
-            "cost": 10,
-            "requirements": [
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 10
           },
           {
             "targetExitId": "dmc_to_hammergrotto",
-            "cost": 2,
-            "requirements": [
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 2
           },
           {
             "targetExitId": "dmc_to_firetemple",
-            "cost": 12,
-            "requirements": [
-              [
-                "CraterShortcutOpened",
-                "Hookshot"
-              ],
-              [
-                "HoverBoots"
-              ]
-            ]
+            "cost": 12
           }
         ]
       },
@@ -10542,13 +7280,7 @@ window.AREAS_DATA = [
         "connections": [
           {
             "targetExitId": "dmc_to_dmt",
-            "cost": 11,
-            "requirements": [
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 11
           },
           {
             "targetExitId": "dmc_to_gc",
@@ -10556,36 +7288,15 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "dmc_to_bombgrotto",
-            "cost": 7,
-            "requirements": [
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 7
           },
           {
             "targetExitId": "dmc_to_hammergrotto",
-            "cost": 6,
-            "requirements": [
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 6
           },
           {
             "targetExitId": "dmc_to_firetemple",
-            "cost": 16,
-            "requirements": [
-              [
-                "HoverBoots"
-              ],
-              [
-                "Hookshot",
-                "Adult"
-              ]
-            ]
+            "cost": 16
           }
         ]
       },
@@ -10613,52 +7324,19 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "dmc_to_gc",
-            "cost": 13,
-            "requirements": [
-              [
-                "CraterShortcutOpened"
-              ],
-              [
-                "HoverBoots"
-              ]
-            ]
+            "cost": 13
           },
           {
             "targetExitId": "dmc_to_greatfairy",
-            "cost": 8,
-            "requirements": [
-              [
-                "CraterShortcutOpened"
-              ],
-              [
-                "HoverBoots"
-              ]
-            ]
+            "cost": 8
           },
           {
             "targetExitId": "dmc_to_hammergrotto",
-            "cost": 12,
-            "requirements": [
-              [
-                "CraterShortcutOpened",
-                "TitanMass",
-                "HoverBoots",
-                "TitanMass"
-              ]
-            ]
+            "cost": 12
           },
           {
             "targetExitId": "dmc_to_firetemple",
-            "cost": 21,
-            "requirements": [
-              [
-                "CraterShortcutOpened",
-                "Hookshot"
-              ],
-              [
-                "HoverBoots"
-              ]
-            ]
+            "cost": 21
           }
         ]
       },
@@ -10682,13 +7360,7 @@ window.AREAS_DATA = [
         "connections": [
           {
             "targetExitId": "dmc_to_dmt",
-            "cost": 15,
-            "requirements": [
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 15
           },
           {
             "targetExitId": "dmc_to_gc",
@@ -10696,36 +7368,15 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "dmc_to_greatfairy",
-            "cost": 6,
-            "requirements": [
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 6
           },
           {
             "targetExitId": "dmc_to_bombgrotto",
-            "cost": 11,
-            "requirements": [
-              [
-                "TitanMass",
-                "Adult"
-              ]
-            ]
+            "cost": 11
           },
           {
             "targetExitId": "dmc_to_firetemple",
-            "cost": 11,
-            "requirements": [
-              [
-                "CraterShortcutOpened",
-                "Hookshot"
-              ],
-              [
-                "HoverBoots"
-              ]
-            ]
+            "cost": 11
           }
         ]
       },
@@ -10749,53 +7400,23 @@ window.AREAS_DATA = [
         "connections": [
           {
             "targetExitId": "dmc_to_dmt",
-            "cost": 22,
-            "requirements": [
-              [
-                "TitanMass",
-                "Hookshot"
-              ]
-            ]
+            "cost": 22
           },
           {
             "targetExitId": "dmc_to_gc",
-            "cost": 12,
-            "requirements": [
-              [
-                "Hookshot",
-                "Adult"
-              ]
-            ]
+            "cost": 12
           },
           {
             "targetExitId": "dmc_to_greatfairy",
-            "cost": 15,
-            "requirements": [
-              [
-                "TitanMass",
-                "Hookshot"
-              ]
-            ]
+            "cost": 15
           },
           {
             "targetExitId": "dmc_to_bombgrotto",
-            "cost": 21,
-            "requirements": [
-              [
-                "TitanMass",
-                "Hookshot"
-              ]
-            ]
+            "cost": 21
           },
           {
             "targetExitId": "dmc_to_hammergrotto",
-            "cost": 11,
-            "requirements": [
-              [
-                "TitanMass",
-                "Hookshot"
-              ]
-            ]
+            "cost": 11
           }
         ]
       },
@@ -10810,53 +7431,23 @@ window.AREAS_DATA = [
         "connections": [
           {
             "targetExitId": "dmc_to_dmt",
-            "cost": 18,
-            "requirements": [
-              [
-                "TitanMass",
-                "Hookshot"
-              ]
-            ]
+            "cost": 18
           },
           {
             "targetExitId": "dmc_to_gc",
-            "cost": 8,
-            "requirements": [
-              [
-                "Hookshot",
-                "Adult"
-              ]
-            ]
+            "cost": 8
           },
           {
             "targetExitId": "dmc_to_greatfairy",
-            "cost": 11,
-            "requirements": [
-              [
-                "TitanMass",
-                "Hookshot"
-              ]
-            ]
+            "cost": 11
           },
           {
             "targetExitId": "dmc_to_bombgrotto",
-            "cost": 17,
-            "requirements": [
-              [
-                "TitanMass",
-                "Hookshot"
-              ]
-            ]
+            "cost": 17
           },
           {
             "targetExitId": "dmc_to_hammergrotto",
-            "cost": 7,
-            "requirements": [
-              [
-                "TitanMass",
-                "Hookshot"
-              ]
-            ]
+            "cost": 7
           },
           {
             "targetExitId": "dmc_to_firetemple",
@@ -10881,55 +7472,23 @@ window.AREAS_DATA = [
         "connections": [
           {
             "targetExitId": "river_to_lw",
-            "cost": 38,
-            "requirements": [
-              [
-                "Explosive",
-                "SilverScale"
-              ],
-              [
-                "Explosive",
-                "IronBoots"
-              ]
-            ]
+            "cost": 38
           },
           {
             "targetExitId": "river_to_domain",
-            "cost": 38,
-            "requirements": [
-              [
-                "Explosive",
-                "ZeldaLullaby"
-              ]
-            ]
+            "cost": 38
           },
           {
             "targetExitId": "river_to_stormsgrotto",
-            "cost": 5,
-            "requirements": [
-              [
-                "Explosive",
-                "SongOfStorms"
-              ]
-            ]
+            "cost": 5
           },
           {
             "targetExitId": "river_to_opengrotto",
-            "cost": 31,
-            "requirements": [
-              [
-                "Explosive"
-              ]
-            ]
+            "cost": 31
           },
           {
             "targetExitId": "river_to_fairygrotto",
-            "cost": 31,
-            "requirements": [
-              [
-                "Explosive"
-              ]
-            ]
+            "cost": 31
           }
         ]
       },
@@ -10948,21 +7507,11 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "river_to_domain",
-            "cost": 3,
-            "requirements": [
-              [
-                "ZeldaLullaby"
-              ]
-            ]
+            "cost": 3
           },
           {
             "targetExitId": "river_to_stormsgrotto",
-            "cost": 34,
-            "requirements": [
-              [
-                "SongOfStorms"
-              ]
-            ]
+            "cost": 34
           },
           {
             "targetExitId": "river_to_opengrotto",
@@ -10970,12 +7519,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "river_to_fairygrotto",
-            "cost": 17,
-            "requirements": [
-              [
-                "Explosive"
-              ]
-            ]
+            "cost": 17
           }
         ]
       },
@@ -10994,24 +7538,11 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "river_to_lw",
-            "cost": 3,
-            "requirements": [
-              [
-                "SilverScale"
-              ],
-              [
-                "IronBoots"
-              ]
-            ]
+            "cost": 3
           },
           {
             "targetExitId": "river_to_stormsgrotto",
-            "cost": 34,
-            "requirements": [
-              [
-                "SongOfStorms"
-              ]
-            ]
+            "cost": 34
           },
           {
             "targetExitId": "river_to_opengrotto",
@@ -11019,12 +7550,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "river_to_fairygrotto",
-            "cost": 17,
-            "requirements": [
-              [
-                "Explosive"
-              ]
-            ]
+            "cost": 17
           }
         ]
       },
@@ -11043,24 +7569,11 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "river_to_lw",
-            "cost": 34,
-            "requirements": [
-              [
-                "SilverScale"
-              ],
-              [
-                "IronBoots"
-              ]
-            ]
+            "cost": 34
           },
           {
             "targetExitId": "river_to_domain",
-            "cost": 34,
-            "requirements": [
-              [
-                "ZeldaLullaby"
-              ]
-            ]
+            "cost": 34
           },
           {
             "targetExitId": "river_to_opengrotto",
@@ -11068,12 +7581,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "river_to_fairygrotto",
-            "cost": 27,
-            "requirements": [
-              [
-                "Explosive"
-              ]
-            ]
+            "cost": 27
           }
         ]
       },
@@ -11101,42 +7609,19 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "river_to_lw",
-            "cost": 15,
-            "requirements": [
-              [
-                "SilverScale"
-              ],
-              [
-                "IronBoots"
-              ]
-            ]
+            "cost": 15
           },
           {
             "targetExitId": "river_to_domain",
-            "cost": 15,
-            "requirements": [
-              [
-                "ZeldaLullaby"
-              ]
-            ]
+            "cost": 15
           },
           {
             "targetExitId": "river_to_stormsgrotto",
-            "cost": 9,
-            "requirements": [
-              [
-                "SongOfStorms"
-              ]
-            ]
+            "cost": 9
           },
           {
             "targetExitId": "river_to_fairygrotto",
-            "cost": 2,
-            "requirements": [
-              [
-                "Explosive"
-              ]
-            ]
+            "cost": 2
           }
         ]
       },
@@ -11164,33 +7649,15 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "river_to_lw",
-            "cost": 15,
-            "requirements": [
-              [
-                "SilverScale"
-              ],
-              [
-                "IronBoots"
-              ]
-            ]
+            "cost": 15
           },
           {
             "targetExitId": "river_to_domain",
-            "cost": 15,
-            "requirements": [
-              [
-                "ZeldaLullaby"
-              ]
-            ]
+            "cost": 15
           },
           {
             "targetExitId": "river_to_stormsgrotto",
-            "cost": 9,
-            "requirements": [
-              [
-                "SongOfStorms"
-              ]
-            ]
+            "cost": 9
           },
           {
             "targetExitId": "river_to_opengrotto",
@@ -11228,33 +7695,15 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "domain_to_fountain",
-            "cost": 25,
-            "requirements": [
-              [
-                "AccessToFountain"
-              ]
-            ]
+            "cost": 25
           },
           {
             "targetExitId": "domain_to_shop",
-            "cost": 15,
-            "requirements": [
-              [
-                "Child"
-              ],
-              [
-                "BlueFire"
-              ]
-            ]
+            "cost": 15
           },
           {
             "targetExitId": "domain_to_grotto",
-            "cost": 15,
-            "requirements": [
-              [
-                "SongOfStorms"
-              ]
-            ]
+            "cost": 15
           }
         ]
       },
@@ -11273,33 +7722,15 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "domain_to_fountain",
-            "cost": 25,
-            "requirements": [
-              [
-                "AccessToFountain"
-              ]
-            ]
+            "cost": 25
           },
           {
             "targetExitId": "domain_to_shop",
-            "cost": 10,
-            "requirements": [
-              [
-                "Child"
-              ],
-              [
-                "BlueFire"
-              ]
-            ]
+            "cost": 10
           },
           {
             "targetExitId": "domain_to_grotto",
-            "cost": 5,
-            "requirements": [
-              [
-                "SongOfStorms"
-              ]
-            ]
+            "cost": 5
           }
         ]
       },
@@ -11314,45 +7745,19 @@ window.AREAS_DATA = [
         "connections": [
           {
             "targetExitId": "domain_to_river",
-            "cost": 20,
-            "requirements": [
-              [
-                "AccessToFountain"
-              ]
-            ]
+            "cost": 20
           },
           {
             "targetExitId": "domain_to_lake",
-            "cost": 10,
-            "requirements": [
-              [
-                "AccessToFountain"
-              ]
-            ]
+            "cost": 10
           },
           {
             "targetExitId": "domain_to_shop",
-            "cost": 15,
-            "requirements": [
-              [
-                "AccessToFountain",
-                "Child"
-              ],
-              [
-                "AccessToFountain",
-                "BlueFire"
-              ]
-            ]
+            "cost": 15
           },
           {
             "targetExitId": "domain_to_grotto",
-            "cost": 10,
-            "requirements": [
-              [
-                "SongOfStorms",
-                "AccessToFountain"
-              ]
-            ]
+            "cost": 10
           }
         ]
       },
@@ -11375,21 +7780,11 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "domain_to_fountain",
-            "cost": 20,
-            "requirements": [
-              [
-                "AccessToFountain"
-              ]
-            ]
+            "cost": 20
           },
           {
             "targetExitId": "domain_to_grotto",
-            "cost": 15,
-            "requirements": [
-              [
-                "SongOfStorms"
-              ]
-            ]
+            "cost": 15
           }
         ]
       },
@@ -11421,12 +7816,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "domain_to_fountain",
-            "cost": 25,
-            "requirements": [
-              [
-                "AccessToFountain"
-              ]
-            ]
+            "cost": 25
           },
           {
             "targetExitId": "domain_to_shop",
@@ -11460,30 +7850,15 @@ window.AREAS_DATA = [
         "connections": [
           {
             "targetExitId": "fountain_to_greatfairy",
-            "cost": 12,
-            "requirements": [
-              [
-                "Explosive"
-              ]
-            ]
+            "cost": 12
           },
           {
             "targetExitId": "fountain_to_jbjb",
-            "cost": 5,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 5
           },
           {
             "targetExitId": "fountain_to_ic",
-            "cost": 16,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 16
           }
         ]
       },
@@ -11502,21 +7877,11 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "fountain_to_jbjb",
-            "cost": 11,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 11
           },
           {
             "targetExitId": "fountain_to_ic",
-            "cost": 15,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 15
           }
         ]
       },
@@ -11544,21 +7909,11 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "fountain_to_greatfairy",
-            "cost": 12,
-            "requirements": [
-              [
-                "Explosive"
-              ]
-            ]
+            "cost": 12
           },
           {
             "targetExitId": "fountain_to_ic",
-            "cost": 12,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 12
           }
         ]
       },
@@ -11577,21 +7932,11 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "fountain_to_greatfairy",
-            "cost": 15,
-            "requirements": [
-              [
-                "Explosive"
-              ]
-            ]
+            "cost": 15
           },
           {
             "targetExitId": "fountain_to_jbjb",
-            "cost": 12,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 12
           }
         ]
       }
@@ -11624,12 +7969,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "ranch_to_grotto",
-            "cost": 30,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 30
           }
         ]
       },
@@ -11656,12 +7996,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "ranch_to_grotto",
-            "cost": 25,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 25
           }
         ]
       },
@@ -11697,12 +8032,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "ranch_to_grotto",
-            "cost": 23,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 23
           }
         ]
       },
@@ -11738,12 +8068,7 @@ window.AREAS_DATA = [
           },
           {
             "targetExitId": "ranch_to_grotto",
-            "cost": 20,
-            "requirements": [
-              [
-                "Child"
-              ]
-            ]
+            "cost": 20
           }
         ]
       },
@@ -12174,12 +8499,7 @@ window.AREAS_DATA = [
         "connections": [
           {
             "targetExitId": "castle_to_tower",
-            "cost": 10,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 10
           }
         ]
       },
@@ -12194,12 +8514,7 @@ window.AREAS_DATA = [
         "connections": [
           {
             "targetExitId": "ganon_to_castle",
-            "cost": 10,
-            "requirements": [
-              [
-                "Adult"
-              ]
-            ]
+            "cost": 10
           }
         ]
       },

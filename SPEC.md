@@ -8,9 +8,9 @@ Référence du rando : https://wiki.ootrandomizer.com/index.php?title=Entrance_R
 > **Transition en cours vers Ship of Harkinian.** L'application migre progressivement de OoT Randomizer
 > vers le randomizer de Ship of Harkinian (SoH) 9.2.3. Déjà alignés sur SoH : le panneau Objets, la
 > Configuration (réglages et astuces de SoH), la liste des Checks et la page Entrées, dont les destinations notées
-> alimentent la logique de SoH (voir « Logique Ship of Harkinian »). Reste d'OoT Randomizer : les connexions à pied
-> de `areas-data.js` (coûts et conditions), reprises par le Routeur, en pause jusqu'à son passage à la logique SoH
-> (étape 5).
+> alimentent la logique de SoH (voir « Logique Ship of Harkinian »), et le Routeur, qui suit la logique de SoH. Reste
+> d'OoT Randomizer : les coûts de marche de `areas-data.js` (connexions à pied entre sorties d'une zone), utilisés
+> par le Routeur pour estimer les trajets.
 
 ## Principes
 - Application légère, 100 % navigateur, simple à installer, maintenir et déployer (hébergement statique).
@@ -58,7 +58,8 @@ l'utilisateur ; ne pas se fier à la branche `develop`, qui a d'autres options).
 - **Onglets** (calqués sur le menu SoH) : Logique & accès (logique, âge de départ, accès aux zones, pont
   arc-en-ciel et Ganon, raccourcis), Entrées, Donjons (objets de donjon, récompenses, trousseaux, Master
   Quest), Mélanges (lieux, objets, capacités et langues, objets additionnels), Astuces, Routeur
-  (coûts propres à l'appli : transition 3, chant 15, sauvegarder-recharger 25, changement d'âge 12).
+  (coûts propres à l'appli : transition 3, chant 15, sauvegarder-recharger 25, changement d'âge 12, marche estimée
+  par région SoH traversée 4).
   Onglet mémorisé (`ui.configTab`). Deux choix ou trois → boutons, au-delà → liste, compteurs → champ
   numérique.
 - **Visibilité conditionnelle** (`show(s)`, reprise des `Hide()/Unhide()` de SoH) : ex. compteur du pont
@@ -159,7 +160,7 @@ notées…). Ils servent à débloquer les spawns dans Entrées et au rappel des
 ## Logique Ship of Harkinian
 Portage fidèle de la logique du randomizer de SoH 9.2.3 (commit `cb71e22`), en cours de branchement (étapes :
 1. extraction, 2. moteur, 3. âges et accessibilité des checks dans la page Checks, 4. entrées notées reliées aux
-passages SoH — **faits** ; 5. Routeur sur le graphe SoH).
+passages SoH, 5. Routeur sur le graphe SoH — **faits**).
 - **Données** (`logic-data.js`, généré par `tools/soh-logic/extract_logic.mjs` depuis `location_access/**`,
   `location_access.cpp`, `settings.cpp`, `location_list.cpp`) : 1 026 régions, avec leurs événements (`LOGIC_…`),
   checks et sorties, conditions C++ converties en fonctions JavaScript ; options lues par la logique ; prix et
@@ -454,7 +455,6 @@ check) ; règles dans `js/checks.js`.
   suivis », « Terminée » quand tout est fait. Checks sur 2 colonnes (1 sur mobile) : icône de catégorie, libellé,
   ☾ / ☀, pastille d'âge, coche ; un clic (gauche) bascule fait / à faire (`game.checks`, stockage creux `{ id: true }`) ; nom SoH
   au survol ; ⊘ au survol pour exclure.
-- **À venir (branche logique)** : le Routeur (étape 5).
 
 ## Entrées
 Cadre « Entrées » de la bande de progression (voir plus haut), dès qu'au moins une sortie est randomisée :
@@ -468,8 +468,8 @@ téléportation, qui ne sont pas des lieux. Identifiants en minuscules des zones
 `zoras_river`…), regroupement fait par `tools/soh-entrances/regroup_areas.mjs`.
 Une carte dépliable par zone, avec progression (sorties renseignées / randomisées). Une ligne par sortie :
 1. Icône du type (extérieur, intérieur, grotte, donjon, boss, hibou, téléportation, spawn).
-2. Globe : au survol, liste des sorties de la même zone reliées à pied, avec leur coût (données du Routeur ; les
-   conditions de passage sont celles de la logique SoH, par région). Grisé si aucune connexion.
+2. Globe : au survol, liste des sorties de la même zone reliées à pied, avec leur coût (coûts de marche du
+   Routeur ; c'est la logique SoH qui dit si le passage est possible). Grisé si aucune connexion.
 3. Nom de la sortie : nom du tracker d'entrées de SoH (`randomizer_entrance_tracker.cpp`, commit `cb71e22`),
    traduit en français sans le préfixe de zone (déjà affiché), nom SoH exact au survol (champ `soh`) — y compris
    dans les listes de destinations (recherche aussi sur le nom SoH) et le Routeur. Convention SoH : côté
@@ -522,17 +522,29 @@ Règles :
   (la porte) ; la prendre mène à « Sortie de la maison de Mido », à l'intérieur.
 
 ## Routeur
-**En pause** pendant le passage à la logique SoH (étape 5) : la page garde ses sélecteurs et affiche un
-avertissement. Comportement attendu :
+Plus court chemin (Dijkstra, `shortest`) sur un graphe dont les nœuds sont (sortie, âge), construit sur la logique
+SoH avec l'inventaire, les événements et les entrées notés (`routeGraph` dans `js/logic.js`, `routeC`) :
+- **Marche** : d'une sortie, on rejoint toute sortie dont une région SoH est atteignable par les sorties internes des
+  régions (tout passage qui n'est pas une entrée mélangeable), conditions évaluées à l'âge du trajet, de jour ou de
+  nuit. Coût : celui d'`areas-data.js` (plus court chemin dans la zone, dans le sens des données, sinon dans les deux
+  sens), à défaut nombre de régions traversées × « marche estimée » (intérieur des donjons, certaines portes).
+  Les marches consécutives sont fusionnées à l'affichage.
+- **Transition** par une sortie dont la destination est connue, si la condition SoH de son entrée est remplie (portes
+  verrouillées, hibou enfant…) ; salle de boss : téléporteur bleu (boss vaincu).
+- **Chant de téléportation** depuis n'importe où (condition SoH : chant jouable) vers la destination notée du chant.
+- **Sauvegarder-recharger** : entrée du donjon dans un donjon, sinon apparition de l'âge.
+- **Changement d'âge** au Temple du Temps, si la zone derrière la Porte du Temps est atteignable (même règle que le
+  voyage dans le temps de SoH).
+Règles d'interface :
 - Départ : zone, sortie, âge (Enfant / Adulte ; jamais « peu importe »).
 - Arrivée : zone, sortie, âge (Enfant / Adulte / Peu importe). Bouton pour inverser départ et arrivée.
 - Calcul automatique dès que départ et arrivée sont choisis (pas de bouton).
-- Le chemin peut combiner : marche dans une zone (selon conditions et âge courant), transitions,
+- Le chemin peut combiner : marche (selon la logique SoH et l'âge courant), transitions,
   chants de téléportation (ocarina + chant connus), vol du hibou (enfant), téléporteurs bleus,
   sauvegarder-recharger (retour au spawn de l'âge ; à l'entrée du donjon si on est dans un donjon),
   changement d'âge au Temple du Temps.
 - Un changement d'âge peut être choisi même s'il n'est pas imposé, s'il raccourcit le trajet
   (ex. pour profiter du spawn de l'autre âge).
-- Affichage vertical : cartes de sorties reliées par des étiquettes (type de déplacement, coût, objets utilisés),
+- Affichage vertical : cartes de sorties reliées par des étiquettes (type de déplacement, coût),
   bandeau dédié pour chaque changement d'âge, résumé (coût total, transitions, chants, rechargements, changements d'âge).
 - Si aucun chemin : expliquer les causes possibles (sorties non découvertes, objet ou âge manquant).

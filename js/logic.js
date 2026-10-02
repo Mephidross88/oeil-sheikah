@@ -992,3 +992,112 @@ function blueWarpTargets(eff, settings){
   }
   return out;
 }
+
+/* ---------- Routeur : graphe de déplacement sur la logique SoH ----------
+   Nœud = (sortie, âge). Arêtes : marche (sorties internes des régions SoH, c.-à-d. tout passage qui n'est pas une
+   entrée mélangeable), transition (destination notée, condition SoH de l'entrée), téléporteur bleu, chant de
+   téléportation (RR_ROOT_EXITS), sauvegarder-recharger (entrée du donjon dans un donjon, sinon apparition de l'âge),
+   changement d'âge au Temple du Temps (derrière la Porte du Temps atteignable, comme le voyage dans le temps de
+   fill.cpp). Les conditions sont évaluées sur l'état noté (inventaire, événements) ; jour ou nuit indifférents. */
+const ENTRANCE_EDGES = new Set(SOH.entrances.map(([, , from, to]) => from + '>' + to));
+const TIME_DOOR = 'RR_TOT_BEYOND_DOOR_OF_TIME';
+// Coûts de marche d'areas-data.js : plus court chemin entre deux sorties d'une zone (conditions ignorées, c'est la logique
+// SoH qui décide si le passage est possible). WALK_COST suit le sens des données ; WALK_COST_ANY les prend dans les deux
+// sens (les données n'ont parfois qu'un sens, ex. depuis une plateforme) et sert d'estimation quand le premier manque.
+function walkCosts(both){
+  const out = {};
+  for (const a of AREAS){
+    const ex = a.exits, n = ex.length, idx = new Map(ex.map((e, i) => [e.key, i])), D = ex.map(() => Array(n).fill(Infinity));
+    ex.forEach((e, i) => {
+      D[i][i] = 0;
+      for (const c of e.connections){
+        const j = idx.get(c.to);
+        if (j === undefined) continue;
+        D[i][j] = Math.min(D[i][j], c.cost);
+        if (both) D[j][i] = Math.min(D[j][i], c.cost);
+      }
+    });
+    for (let k = 0; k < n; k++) for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) if (D[i][k] + D[k][j] < D[i][j]) D[i][j] = D[i][k] + D[k][j];
+    ex.forEach((e, i) => ex.forEach((f, j) => { if (i !== j && D[i][j] < Infinity) out[e.key + '>' + f.key] = D[i][j]; }));
+  }
+  return out;
+}
+const WALK_COST = walkCosts(false), WALK_COST_ANY = walkCosts(true);
+// Régions où se trouve une sortie (départ de son entrée, arrivée) ; sorties joignables depuis chaque région.
+const EXITS_AT_REGION = {};
+for (const e of ALL_EXITS) for (const r of exitRegions(e)) (EXITS_AT_REGION[r] ||= new Set()).add(e.key);
+
+/** Graphe du Routeur pour l'état noté : { edges(key, age) } à passer à shortest(). costs = store.costs. */
+function routeGraph(settings, game, links, eff, costs){
+  computeSoh(settings, game, links);   // état logique (événements, accès, options) de la partie notée
+  const ok = {};
+  for (const [rr, r] of Object.entries(SOH.regions)){
+    L.cur = rr;
+    for (const [to, fn] of r.exits)
+      ok[rr + '>' + to] = { child:sohAt(fn, true, true) || sohAt(fn, true, false), adult:sohAt(fn, false, true) || sohAt(fn, false, false) };
+  }
+  L.cur = null;
+  const pass = (from, to, age) => !!ok[from + '>' + to]?.[age];
+  const spawnOf = { child:eff['spawns::spawn_child'], adult:eff['spawns::spawn_adult'] };
+  const warps = Object.keys(WARP_SONGS).filter(k => eff[k] && EXIT[k].entr != null).map(k => ({ key:k, to:eff[k], region:SOH_ENTRANCE[EXIT[k].entr].from }));
+
+  // Régions joignables à pied depuis une sortie, avec le nombre de régions traversées.
+  const walkMemo = {};
+  function walk(key, age){
+    const id = key + '|' + age;
+    if (walkMemo[id]) return walkMemo[id];
+    const depth = new Map(exitRegions(EXIT[key]).map(r => [r, 0])), q = [...depth.keys()];
+    while (q.length){
+      const rr = q.shift();
+      for (const [to] of SOH.regions[rr]?.exits || []){
+        if (depth.has(to) || ENTRANCE_EDGES.has(rr + '>' + to) || !pass(rr, to, age)) continue;
+        depth.set(to, depth.get(rr) + 1); q.push(to);
+      }
+    }
+    return (walkMemo[id] = depth);
+  }
+  function resetTarget(key, age){
+    const e = EXIT[key];
+    if (INSIDE_NODES.has(key)) return null;
+    if (DUNGEON_AREAS.has(e.areaId)){
+      let area = e.areaId;
+      if (e.specialTag){ const d = BOSS_DOORS.find(d => eff[d.key] === key); if (!d) return null; area = d.areaId; }
+      const x = dungeonExitOf(area);
+      return x && x.key !== key ? x.key : null;
+    }
+    return spawnOf[age] || null;
+  }
+
+  const memo = {};
+  function edges(key, age){
+    const id = key + '|' + age;
+    if (memo[id]) return memo[id];
+    const e = EXIT[key], out = [];
+    if (!e) return out;
+    // marche : sorties dont une région est joignable ; coût d'areas-data.js (dans le sens des données, sinon dans les deux
+    // sens), à défaut estimation par région traversée
+    const depth = walk(key, age), seen = new Set();
+    for (const [rr, d] of depth) for (const to of EXITS_AT_REGION[rr] || []){
+      if (to === key || seen.has(to) || EXIT[to].areaId === SPAWN_AREA) continue;
+      seen.add(to);
+      out.push({ from:key, fromAge:age, to, age, cost:WALK_COST[key + '>' + to] ?? WALK_COST_ANY[key + '>' + to] ?? Math.max(1, d) * costs.walk, kind:'walk' });
+    }
+    // transition par la sortie (condition de son entrée SoH ; téléporteur bleu pour une salle de boss)
+    if (!e.destOnly && eff[key] && e.entr != null){
+      const p = e.specialTag && BOSS_ROOM_PAIRS.find(p => p.back.n === e.entr), s = p ? p.blueWarp : SOH_ENTRANCE[e.entr];
+      if (s && pass(s.from, s.to, age))
+        out.push({ from:key, fromAge:age, to:eff[key], age, cost:costs.transition, kind:p ? 'bluewarp' : e.type === 'owl' ? 'owl' : 'transition' });
+    }
+    // changement d'âge au Temple du Temps
+    if (key === TOT && depth.has(TIME_DOOR)){
+      const other = age === 'child' ? 'adult' : 'child';
+      out.push({ from:key, fromAge:age, to:key, age:other, cost:costs.age, kind:'age' });
+    }
+    for (const w of warps) if (w.to !== key && pass('RR_ROOT_EXITS', w.region, age))
+      out.push({ from:key, fromAge:age, to:w.to, age, cost:costs.warp, kind:'warp', warp:w.key });
+    const rt = resetTarget(key, age);
+    if (rt && rt !== key) out.push({ from:key, fromAge:age, to:rt, age, cost:costs.reset, kind:'reset' });
+    return (memo[id] = out);
+  }
+  return { edges };
+}
