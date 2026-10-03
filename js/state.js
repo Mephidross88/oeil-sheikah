@@ -48,9 +48,39 @@ function load(){
 
 const store = reactive(load());
 const lastSaved = ref(null);
-watch(store, () => {
+// Fenêtre de stream (index.html?stream) : la partie vient de la fenêtre principale (événement « storage » à chaque
+// sauvegarde de celle-ci) ; elle ne sauvegarde rien elle-même.
+const STREAM_MODE = /[?&]stream(&|=|$)/.test(location.search);
+if (STREAM_MODE) window.addEventListener('storage', ev => {
+  if (ev.key !== STORE_KEY || !ev.newValue) return;
+  try { const fresh = merge(defaults(), JSON.parse(ev.newValue)); for (const k of Object.keys(fresh)) store[k] = fresh[k]; } catch (e) {}
+});
+else watch(store, () => {
   try { localStorage.setItem(STORE_KEY, JSON.stringify(store)); lastSaved.value = new Date(); } catch (e) {}
 }, { deep:true });
+
+/* Disposition de la fenêtre de stream, gardée à part (STREAM_KEY) : fond et blocs { id, type, x, y, w, h?, … } (px).
+   base : largeur naturelle du contenu (agrandi ou réduit à la largeur du bloc) ; free : bloc à la taille choisie. */
+const STREAM_KEY = 'oeil-sheikah-stream';
+const STREAM_TYPES = {
+  items:{ label:'Objets', base:426, base2:870, init:{ cols:2 } }, progress:{ label:'Progression', base:560 }, next:{ label:'Prochaine étape', base:420 },
+  where:{ label:'Où aller maintenant ?', base:420 }, loot:{ label:'Trouvailles', base:426 }, map:{ label:'Carte', base:1000 },
+  game:{ label:'Espace vide (jeu)', free:true, w:960, h:540, init:{ frame:true } },
+  image:{ label:'Image', free:true, w:300, h:200, init:{ src:'', fit:'contain' } },
+  text:{ label:'Texte', free:true, w:500, h:60, init:{ text:'L’Œil Sheikah', size:32 } },
+};
+const streamDefaults = () => ({ bg:'#00b140', color:'#00b140', widgets:[   // pour un écran 1920 × 1080
+  { id:1, type:'items', x:20, y:20, w:580, cols:2 },
+  { id:2, type:'game', x:620, y:20, w:1280, h:720, frame:true },
+  { id:3, type:'progress', x:620, y:760, w:420 },
+  { id:4, type:'next', x:1060, y:760, w:420 },
+  { id:5, type:'where', x:1500, y:760, w:400 },
+  { id:6, type:'loot', x:20, y:760, w:580 },
+] });
+function loadStream(){
+  try { const raw = localStorage.getItem(STREAM_KEY); if (raw){ const v = JSON.parse(raw); if (Array.isArray(v.widgets)) return { ...streamDefaults(), ...v }; } } catch (e) {}
+  return streamDefaults();
+}
 
 // Objets à paliers sous leur premier palier atteignable (ex. Bourse à 0 sans « Bourse enfant » mélangée) :
 // remontés à ce palier, au chargement puis à chaque changement (configuration, remise à zéro…).

@@ -1,4 +1,214 @@
 /* ---------- Application ---------- */
+/* Fragments du gabarit partagés par la page et la fenêtre de stream (insérés dans le gabarit d'App). */
+// Panneau Objets (cartes du panneau de droite)
+const ITEMS_TPL = `
+      <section class="panel-card">
+      <div class="quest-row">
+        <div class="quest-hex">
+          <div v-for="(k,i) in ITEMS_PAGE.quest.hex" :key="k" :class="'hex-node hex-'+(i+1)"><item-tile :k="k"></item-tile></div>
+          <div v-if="itemVisible(ITEM_BY_KEY[ITEMS_PAGE.quest.center])" class="hex-center"><item-tile :k="ITEMS_PAGE.quest.center"></item-tile></div>
+        </div>
+        <div class="stones-col"><item-tile v-for="k in ITEMS_PAGE.quest.stones" :key="k" :k="k"></item-tile></div>
+        <div class="stat-cols">
+          <div v-for="(col,ci) in ITEMS_PAGE.stats" :key="ci" class="stat-col">
+            <item-tile v-for="k in visibleKeys(col)" :key="k" :k="k"></item-tile>
+          </div>
+        </div>
+      </div>
+      </section>
+
+      <section class="panel-card">
+      <div class="equip-row">
+        <div v-for="c in ITEMS_PAGE.equipment.chains" :key="c.title" class="chain-stack">
+          <template v-for="(k,i) in c.items" :key="k">
+            <span v-if="i" class="chain-link"></span>
+            <item-tile :k="k"></item-tile>
+          </template>
+        </div>
+        <span class="equip-divider"></span>
+        <div class="equip-side">
+          <item-tile v-for="k in ITEMS_PAGE.equipment.progressive" :key="k" :k="k" :badge="tierLabel(ITEM_BY_KEY[k])"></item-tile>
+        </div>
+      </div>
+      </section>
+
+      <section class="panel-card">
+      <template v-for="row in ITEMS_PAGE.boxRows" :key="row[0].title">
+        <div class="box-row">
+          <div v-for="box in row" :key="box.title" v-show="visibleKeys(box.items).length" class="item-box">
+            <div class="icon-grid" :class="{cols2:box.cols===2}">
+              <item-tile v-for="k in visibleKeys(box.items)" :key="k" :k="k"></item-tile>
+            </div>
+            <template v-if="box.sub">
+              <div class="sub-link"></div>
+              <div class="icon-grid sub">
+                <item-tile v-for="k in box.sub" :key="k" :k="k"></item-tile>
+              </div>
+            </template>
+          </div>
+        </div>
+      </template>
+      </section>
+
+      <section class="panel-card">
+      <div class="song-row"><item-tile v-for="k in ITEMS_PAGE.songs.learned" :key="k" :k="k"></item-tile></div>
+      <div class="song-row"><item-tile v-for="k in ITEMS_PAGE.songs.warp" :key="k" :k="k"></item-tile></div>
+
+      <div class="ocarina-frame">
+        <div class="ocarina-pad">
+          <div class="pad-main"><item-tile :k="ITEMS_PAGE.songs.ocarina"></item-tile></div>
+          <div v-if="visibleKeys(ITEMS_PAGE.songs.notes).length" class="pad-notes">
+            <div v-for="n in visibleKeys(ITEMS_PAGE.songs.notes)" :key="n" :class="{'pad-a':n==='noteA'}"><item-tile :k="n"></item-tile></div>
+          </div>
+        </div>
+      </div>
+      </section>
+
+      <section class="panel-card">
+      <div class="checklist-tiles">
+        <button v-for="b in ITEMS_PAGE.tradeButtons" :key="b.id" type="button" class="check-tile trade-tile" :title="b.title" @click="openTrade(b.id)"
+          :class="counterClass(tradeStats(b.id).got, tradeStats(b.id).total)">
+          <img :src="iconSrc('items', ITEM_BY_KEY[b.icon])" alt=""><b>{{tradeStats(b.id).got}}/{{tradeStats(b.id).total}}</b></button>
+      </div>
+      </section>
+
+      <div v-if="panelSkills.length || panelChecklists.length" class="card-row">
+        <section v-if="panelSkills.length" class="panel-card skills-card">
+          <div v-for="r in panelSkills" :key="r.title" class="item-box skill-box" :title="r.title">
+            <div class="icon-grid"><item-tile v-for="k in r.items" :key="k" :k="k"></item-tile></div>
+          </div>
+        </section>
+        <section v-if="panelChecklists.length" class="panel-card checklists-card" :class="{wide:!panelSkills.length}">
+          <button v-for="c in panelChecklists" :key="c.id" type="button" class="check-tile check-square" :title="CHECKLISTS[c.id].title"
+            @click="openChecklist(c.id)" :class="counterClass(checklistStats(c.id).got, checklistStats(c.id).total)">
+            <img v-if="!brokenIcons[c.icon]" :src="c.icon" alt="" @error="brokenIcons[c.icon]=true">
+            <span v-else class="icon-fallback" v-html="ICONS.bag"></span><b>{{checklistStats(c.id).got}}/{{checklistStats(c.id).total}}</b></button>
+        </section>
+      </div>
+
+      <section v-if="dungeonRows.length || skeletonShown" class="panel-card">
+      <div class="dungeon-grid">
+        <div v-for="row in dungeonRows" :key="row[0]" class="dg-row" :class="{final:row.length===1}">
+          <div v-if="row.length===1" class="dg-side"></div>
+          <div v-for="id in row" :key="id" class="dungeon-block" :class="{'quest-edit':cells(id).quest}" :style="{'--dg':DUNGEON_BY_ID[id].color}"
+            :role="cells(id).quest ? 'button' : null" :tabindex="cells(id).quest ? 0 : null" :title="questTitle(id)"
+            @click="cycleDungeonQuest(id)" @contextmenu.prevent="cycleDungeonQuest(id,true)" @keydown.enter.self="cycleDungeonQuest(id)">
+            <span v-if="DUNGEON_BY_ID[id].quest" class="dg-badge" :class="questClass(id)">{{questLabel(id)}}</span>
+            <div class="dg-name">{{DUNGEON_BY_ID[id].title}}</div>
+            <div class="dg-cells">
+              <!-- 1re ligne : carte, boussole et âme du boss ; 2e ligne : toutes les clés (et la Carte Gerudo) -->
+              <div v-if="cells(id).map || cells(id).compass || cells(id).soul" class="dg-line">
+                <button v-if="cells(id).map" type="button" class="dg-flag" :title="atStart(id).maps ? 'Carte (dès le départ)' : 'Carte'" :class="{on:atStart(id).maps || store.game.dungeons[id].map, fixed:atStart(id).maps}" :disabled="atStart(id).maps" @click.stop="setDungeonFlag(id,'map',true)" @contextmenu.stop.prevent="setDungeonFlag(id,'map',false)"><img src="icons/dungeons/map.png" alt=""></button>
+                <button v-if="cells(id).compass" type="button" class="dg-flag" :title="atStart(id).maps ? 'Boussole (dès le départ)' : 'Boussole'" :class="{on:atStart(id).maps || store.game.dungeons[id].compass, fixed:atStart(id).maps}" :disabled="atStart(id).maps" @click.stop="setDungeonFlag(id,'compass',true)" @contextmenu.stop.prevent="setDungeonFlag(id,'compass',false)"><img src="icons/dungeons/compass.png" alt=""></button>
+                <button v-if="cells(id).soul" type="button" class="dg-flag" :title="'Âme de ' + DUNGEON_BY_ID[id].boss" :class="{on:store.game.dungeons[id].soul}"
+                  @click.stop="setDungeonFlag(id,'soul',true)" @contextmenu.stop.prevent="setDungeonFlag(id,'soul',false)"><img src="icons/dungeons/boss_soul.png" alt=""></button>
+              </div>
+              <div v-if="cells(id).keys || cells(id).bossKey || cells(id).card" class="dg-line">
+                <button v-if="cells(id).keys && dungeonKeyRing(id)!==true" type="button" class="dg-keys" :title="keysTitle(id)" @click.stop="addDungeonKeys(id,1)" @contextmenu.stop.prevent="addDungeonKeys(id,-1)"
+                  :class="{none:!store.game.dungeons[id].keys && !dungeonKeysDone(id), done:dungeonKeysDone(id), fixed:atStart(id).keys}" :disabled="atStart(id).keys">
+                  <img src="icons/dungeons/key.png" alt="">{{keysLabel(id)}}</button>
+                <button v-if="cells(id).keys && dungeonKeyRing(id)!==false" type="button" class="dg-flag" :class="{on:store.game.dungeons[id].ringGot || store.game.items.skeletonKey}"
+                  :title="dungeonKeyRing(id) ? 'Trousseau de clés' : 'Trousseau de clés (peut-être) — le noter indique que ce donjon en a un'"
+                  @click.stop="setKeyRing(id,true)" @contextmenu.stop.prevent="setKeyRing(id,false)">
+                  <img v-if="!brokenIcons['icons/dungeons/keyring.png']" src="icons/dungeons/keyring.png" alt="" @error="brokenIcons['icons/dungeons/keyring.png']=true">
+                  <span v-else class="dg-ring-fallback"><img src="icons/dungeons/key.png" alt=""><img src="icons/dungeons/key.png" alt=""></span></button>
+                <button v-if="cells(id).bossKey" type="button" class="dg-flag" :title="atStart(id).bossKey ? 'Clé de boss (dès le départ)' : 'Clé de boss'" :class="{on:atStart(id).bossKey || store.game.dungeons[id].bossKey, fixed:atStart(id).bossKey}" :disabled="atStart(id).bossKey" @click.stop="setDungeonFlag(id,'bossKey',true)" @contextmenu.stop.prevent="setDungeonFlag(id,'bossKey',false)"><img src="icons/dungeons/boss.png" alt=""></button>
+                <button v-if="cells(id).card" type="button" class="dg-flag" :class="{on:store.game.items[DUNGEON_BY_ID[id].card]}"
+                  :title="ITEM_BY_KEY[DUNGEON_BY_ID[id].card].label" @click.stop="store.game.items[DUNGEON_BY_ID[id].card]=true" @contextmenu.stop.prevent="store.game.items[DUNGEON_BY_ID[id].card]=false">
+                  <img :src="iconSrc('items', ITEM_BY_KEY[DUNGEON_BY_ID[id].card])" alt=""></button>
+              </div>
+              <!-- épreuves de Ganon tirées au sort : inconnue (?) / requise / dissipée (✓) -->
+              <div v-if="cells(id).trials" class="dg-line dg-trials">
+                <button v-for="t in TRIALS" :key="t.id" type="button" class="dg-trial" :class="trialStatus(t.id) || 'unknown'" :style="{'--tr':t.color}"
+                  :title="'Épreuve ' + t.label + ' — ' + ({required:'requise', skipped:'dissipée'}[trialStatus(t.id)] || 'inconnue (comptée comme requise)') + ' — clic : suivant, clic droit : précédent'"
+                  @click.stop="cycleTrial(t.id)" @contextmenu.stop.prevent="cycleTrial(t.id,true)">{{trialStatus(t.id)==='skipped' ? '✓' : trialStatus(t.id) ? t.label[0] : '?'}}</button>
+              </div>
+            </div>
+          </div>
+          <div v-if="row.length===1" class="dg-side"><ItemTile v-if="skeletonShown && row[0]==='ganonsCastle'" k="skeletonKey"/></div>
+        </div>
+        <div v-if="skeletonShown && !dungeonRows.some(r => r.includes('ganonsCastle'))" class="dg-row final">
+          <div class="dg-side"></div><div class="dg-side"><ItemTile k="skeletonKey"/></div><div class="dg-side"></div>
+        </div>
+      </div>
+      </section>
+
+      <!-- Trouvailles comptées par l'auto-tracking (option) -->
+`;
+// Trouvailles de l'auto-tracking
+const LOOT_TPL = `
+      <section v-if="ui.link.loot" class="panel-card loot-card" title="Comptées par l'auto-tracking : objets reçus pendant qu'il tourne (pas ceux ramassés par terre sans fenêtre « objet obtenu »)">
+        <div class="loot ice"><span class="loot-ic"><img v-if="!brokenIcons['icons/loots/ice_trap.png']" src="icons/loots/ice_trap.png" alt="" @error="brokenIcons['icons/loots/ice_trap.png']=true"><span v-else v-html="ICONS.snow"></span></span>
+          <b>{{store.game.loot.iceTraps}}</b><span>Piège{{store.game.loot.iceTraps>1?'s':''}} de glace</span></div>
+        <div class="loot rupee"><span class="loot-ic"><img v-if="!brokenIcons['icons/loots/rupee.png']" src="icons/loots/rupee.png" alt="" @error="brokenIcons['icons/loots/rupee.png']=true"><span v-else v-html="ICONS.rupee"></span></span>
+          <b>{{store.game.loot.rupees}}</b><span>Rubis · {{store.game.loot.rupeeValue}} ₹</span></div>
+        <div class="loot junk"><span class="loot-ic"><img v-if="!brokenIcons['icons/loots/junk.png']" src="icons/loots/junk.png" alt="" @error="brokenIcons['icons/loots/junk.png']=true"><span v-else v-html="ICONS.bag"></span></span>
+          <b>{{store.game.loot.junk}}</b><span>Munitions et cœurs</span></div>
+      </section>
+`;
+// Fenêtre de stream
+const STREAM_TPL = `
+<!-- ================= FENÊTRE DE STREAM (index.html?stream) : blocs disposés librement, à capturer dans OBS ================= -->
+<div v-if="STREAM" class="stream" :class="{editing:swEdit}" :style="{background:streamBg}" @pointermove="swMove" @pointerup="swUp" @pointercancel="swUp">
+  <div v-for="w in sl.widgets" :key="w.id" class="sw" :class="['sw-' + w.type, {sel:swEdit && swSel===w.id, framed:w.frame}]"
+    :style="{left:w.x + 'px', top:w.y + 'px', width:w.w + 'px', height:STREAM_TYPES[w.type].free ? w.h + 'px' : null}">
+    <div class="sw-body" :style="swBodyStyle(w)">
+      <div v-if="w.type==='items'" class="sw-items" :class="{cols2:w.cols===2}">${ITEMS_TPL}</div>
+      <div v-else-if="w.type==='loot'" class="sw-items">${LOOT_TPL}</div>
+      <div v-else-if="w.type==='progress'" class="global-progress sw-progress">
+        <progress-card :stats="checkStats" unit="checks" title="Checks"></progress-card>
+        <progress-card v-if="stats.editable" :stats="stats" unit="sorties" title="Entrées"></progress-card></div>
+      <div v-else-if="w.type==='next'" class="sw-card">
+        <div class="sw-title">Prochaine étape</div>
+        <template v-if="nextStep">
+          <div class="sw-next-mode"><img v-if="nextStep.icon" :src="nextStep.icon" alt=""><span v-else v-html="ICONS.uturn"></span>{{nextStep.mode}}</div>
+          <div class="sw-next-dest"><b>{{nextStep.zone}}</b> · {{nextStep.exit}}</div>
+          <div v-if="nextStep.goal" class="sw-muted">Arrivée : {{nextStep.goal}}</div>
+        </template>
+        <div v-else class="sw-muted">Aucun trajet en cours</div></div>
+      <div v-else-if="w.type==='where'" class="sw-card">
+        <div class="sw-title">Où aller maintenant ?</div>
+        <ul v-if="nextC && nextC.list.length" class="sw-where">
+          <li v-for="x in nextC.list.slice(0, 5)" :key="x.c.id"><img :src="CHECK_CAT[x.c.cat].icon" alt=""><span><b>{{x.c.label}}</b><small>{{CHECK_AREA[x.c.area].label}} · {{stepsLabel(x.steps)}}</small></span></li></ul>
+        <div v-else class="sw-muted">Aucun check faisable à portée</div></div>
+      <entrance-map v-else-if="w.type==='map'"></entrance-map>
+      <img v-else-if="w.type==='image' && w.src" class="sw-img" :src="w.src" alt="" :style="{objectFit:w.fit || 'contain'}">
+      <div v-else-if="w.type==='text'" class="sw-text" :style="{fontSize:(w.size || 32) + 'px'}">{{w.text}}</div>
+    </div>
+    <template v-if="swEdit">
+      <div class="sw-hit" @pointerdown.prevent="swDown($event, w, 'move')"><span class="sw-name">{{STREAM_TYPES[w.type].label}}</span></div>
+      <div class="sw-grip" title="Redimensionner" @pointerdown.prevent.stop="swDown($event, w, 'size')"></div>
+      <button type="button" class="sw-del" title="Retirer ce bloc" @pointerdown.stop @click.stop="swDelete(w)">×</button>
+    </template>
+  </div>
+  <div v-if="swEdit" class="sw-tools">
+    <b>Disposition du stream</b>
+    <span class="sw-group"><select v-model="swAdd" class="sel" aria-label="Bloc à ajouter"><option v-for="(t,k) in STREAM_TYPES" :key="k" :value="k">{{t.label}}</option></select>
+      <button type="button" class="btn" @click="swNew">Ajouter</button></span>
+    <label class="sw-group">Fond <select v-model="sl.bg" class="sel"><option value="transparent">Transparent</option><option value="#00b140">Vert d’incrustation</option>
+      <option value="#ff00ff">Magenta</option><option value="theme">Fond de l’appli</option><option value="custom">Autre couleur</option></select>
+      <input v-if="sl.bg==='custom'" type="color" v-model="sl.color" aria-label="Couleur du fond"></label>
+    <span v-if="swSelW" class="sw-group sw-opts">
+      <b>{{STREAM_TYPES[swSelW.type].label}}</b>
+      <template v-if="swSelW.type==='image'">
+        <input type="text" class="sw-in" v-model="swSelW.src" placeholder="Chemin ou adresse de l’image">
+        <label class="btn">Fichier…<input type="file" accept="image/*" hidden @change="swImage($event, swSelW)"></label>
+        <select v-model="swSelW.fit" class="sel"><option value="contain">Entière</option><option value="cover">Remplir</option></select></template>
+      <template v-else-if="swSelW.type==='text'">
+        <input type="text" class="sw-in" v-model="swSelW.text" placeholder="Texte">
+        <input type="number" class="sw-num" v-model.number="swSelW.size" min="10" max="200" aria-label="Taille du texte"></template>
+      <label v-else-if="swSelW.type==='game'" class="check"><input type="checkbox" v-model="swSelW.frame">Cadre doré</label>
+      <label v-else-if="swSelW.type==='items'" class="check"><input type="checkbox" :checked="swSelW.cols===2" @change="swSelW.cols = $event.target.checked ? 2 : 1">2 colonnes</label>
+      <span class="sw-pos">{{swSelW.x}}, {{swSelW.y}} · {{swSelW.w}}{{STREAM_TYPES[swSelW.type].free ? ' × ' + swSelW.h : ''}} px</span>
+    </span>
+    <span class="sw-group sw-end"><button type="button" class="btn" @click="swReset">Disposition par défaut</button>
+      <button type="button" class="btn primary" @click="swEdit=false">Terminer</button></span>
+    <span class="sw-tip">Glisser un bloc pour le déplacer, son coin bas-droit pour le redimensionner. Touche E : modifier ou terminer.</span>
+  </div>
+  <div v-else-if="swHint" class="sw-hint">Touche E (ou double-clic) : modifier la disposition</div>
+</div>
+`;
+
 const App = {
   components:{ TypeIcon, Seg, DestPicker, ItemTile, ProgressCard, EntranceMap },
   setup(){
@@ -670,6 +880,61 @@ const App = {
     const exitName = k => k && EXIT[k] ? areaName(k) + ' · ' + EXIT[k].label : '?';
     const askFrom = q => exitName(EXIT_BY_ENTR[q.d]?.key);
     const askLabel = a => exitName(EXIT_BY_ARRIVAL[a]);
+    /* Fenêtre de stream (index.html?stream, STREAM_MODE) : blocs disposés librement (ui de stream gardée à part,
+       localStorage STREAM_KEY), fond uni ou transparent ; la partie vient de la fenêtre principale (state.js). */
+    const STREAM = STREAM_MODE;
+    const sl = reactive(loadStream());
+    watch(sl, () => { try { localStorage.setItem(STREAM_KEY, JSON.stringify(sl)); } catch (e) {} }, { deep:true });
+    const swEdit = ref(false), swSel = ref(null), swAdd = ref('items'), swHint = ref(true);
+    setTimeout(() => { swHint.value = false; }, 6000);
+    const swSelW = computed(() => sl.widgets.find(w => w.id === swSel.value) || null);
+    const streamBg = computed(() => sl.bg === 'theme' ? 'var(--bg)' : sl.bg === 'custom' ? sl.color : sl.bg);
+    // contenu à sa largeur naturelle, agrandi ou réduit (zoom) à la largeur du bloc ; image, texte, espace : à la taille du bloc
+    const swBase = w => w.cols === 2 && STREAM_TYPES[w.type].base2 || STREAM_TYPES[w.type].base;
+    const swBodyStyle = w => STREAM_TYPES[w.type].free ? null : { width:swBase(w) + 'px', zoom:w.w / swBase(w) };
+    let swDrag = null;
+    function swDown(ev, w, mode){ swSel.value = w.id; swDrag = { w, mode, x0:ev.clientX, y0:ev.clientY, a:mode === 'move' ? [w.x, w.y] : [w.w, w.h] }; }
+    function swMove(ev){
+      if (!swDrag) return;
+      const d = swDrag, snap = v => Math.round(v / 10) * 10, dx = ev.clientX - d.x0, dy = ev.clientY - d.y0;
+      if (d.mode === 'move'){ d.w.x = Math.max(0, snap(d.a[0] + dx)); d.w.y = Math.max(0, snap(d.a[1] + dy)); }
+      else { d.w.w = Math.max(80, snap(d.a[0] + dx)); if (STREAM_TYPES[d.w.type].free) d.w.h = Math.max(40, snap(d.a[1] + dy)); }
+    }
+    const swUp = () => { swDrag = null; };
+    function swNew(){
+      const t = STREAM_TYPES[swAdd.value], id = Math.max(0, ...sl.widgets.map(w => w.id)) + 1;
+      sl.widgets.push({ id, type:swAdd.value, x:40, y:40, w:t.w || t.base, h:t.h || 200, ...(t.init || {}) });
+      swSel.value = id;
+    }
+    const swDelete = w => { sl.widgets.splice(sl.widgets.indexOf(w), 1); if (swSel.value === w.id) swSel.value = null; };
+    const swReset = () => { Object.assign(sl, streamDefaults()); swSel.value = null; };
+    function swImage(ev, w){
+      const f = ev.target.files[0];
+      if (!f) return;
+      const r = new FileReader();
+      r.onload = () => { w.src = r.result; };
+      r.readAsDataURL(f);
+    }
+    if (STREAM){
+      document.documentElement.classList.add('stream-mode');
+      window.addEventListener('keydown', ev => {
+        if (ev.key.toLowerCase() === 'e' && !/^(INPUT|SELECT|TEXTAREA)$/.test(ev.target.tagName)) swEdit.value = !swEdit.value;
+      });
+      window.addEventListener('dblclick', ev => { if (!swEdit.value && !ev.target.closest('input')) swEdit.value = true; });
+    }
+    const openStream = () => window.open('index.html?stream', 'oeil-sheikah-stream', 'width=1600,height=900');
+    // Prochaine étape du trajet du Routeur (bloc du stream) : mode de déplacement et carte suivante
+    const nextStep = computed(() => {
+      const r = route.value;
+      if (r.state !== 'ok') return null;
+      const items = r.items, i = items.findIndex((it, k) => k > 0 && (it.t === 'card' || it.t === 'retake'));
+      if (i < 0) return null;
+      const it = items[i], edge = items.slice(1, i).find(x => x.t === 'edge'), key = it.t === 'retake' ? it.key : it.key0;
+      const to = ui.router.toExit;
+      return { mode:it.t === 'retake' ? 'Reprendre cette sortie' : edge ? edgeLabel(edge.e) : 'Changement d’âge',
+        icon:it.t === 'retake' || !edge ? null : edgeIcon(edge.e), zone:areaName(key), exit:EXIT[key].label,
+        goal:it.end || !EXIT[to] ? '' : areaName(to) + ' · ' + EXIT[to].label };
+    });
     return { store, ui, s, views, link, LINK_LABEL, linkRequestState, linkAsks, linkAnswer, askFrom, askLabel, canSplit, splitOn, shown, paneOf, swapPanes, openSide, closeSide, navOpen, itemsOpen, modal, tip, tipData, backup, stats, missingSpawns, visibleAreas,
       ICONS, ITEMS_PAGE, ITEM_BY_KEY, DUNGEONS, DUNGEON_BY_ID, CHECKLISTS, AREA, EXIT, DATA_ERRORS,
       iconKey, exitIcon, areaName, toggleArea, setAll, jump, go, showTip, hideTip, toggleTip, setMapping, clearMapping,
@@ -681,10 +946,11 @@ const App = {
       itemVisible, tierLabel, iconSrc, checklistModal, openChecklist, setChecklist, checklistStats,
       tradeModal, openTrade, tradeStats, counterClass,
       TRIALS, trialStatus, cycleTrial, setDungeonFlag, addDungeonKeys, dungeonQuest, dungeonMaxKeys, cycleDungeonQuest, questLabel, questClass, questTitle, keysLabel, dungeonKeyRing, setKeyRing, dungeonKeysDone, keysTitle, brokenIcons,
-      setTheme, startHere, prevStart, backToPrev, liveStart, pickAreas, pickExits, swap, route, edgeLabel, edgeIcon, WARP_SONGS, ageLabel, openBackup, copyBackup, importBackup, resetAll, declineSpoiler, savedAt, TYPE_LABEL };
+      setTheme, startHere, prevStart, backToPrev, liveStart, pickAreas, pickExits, STREAM, STREAM_TYPES, sl, swEdit, swSel, swAdd, swHint, swSelW, streamBg, swBodyStyle, swDown, swMove, swUp, swNew, swDelete, swReset, swImage, openStream, nextStep, swap, route, edgeLabel, edgeIcon, WARP_SONGS, ageLabel, openBackup, copyBackup, importBackup, resetAll, declineSpoiler, savedAt, TYPE_LABEL };
   },
   template:`
-<div class="shell" :class="{'nav-open':navOpen, split:splitOn, 'items-folded':ui.itemsFolded, 'nav-folded':ui.navFolded}">
+${STREAM_TPL}
+<div v-if="!STREAM" class="shell" :class="{'nav-open':navOpen, split:splitOn, 'items-folded':ui.itemsFolded, 'nav-folded':ui.navFolded}">
   <header class="topbar">
     <button @click="navOpen=!navOpen" aria-label="Menu" v-html="ICONS.menu"></button>
     <span class="brand-mark" v-html="ICONS.eye"></span><span>L'Œil Sheikah</span>
@@ -754,6 +1020,7 @@ const App = {
       </div>
       <button type="button" class="link-btn" :class="link.status" @click="modal='link'" :title="'Auto-tracking : ' + LINK_LABEL[link.status]">
         <span class="link-ic" v-html="ICONS.live"></span><i></i><span class="link-label">{{LINK_LABEL[link.status]}}</span></button>
+      <button class="side-btn" @click="openStream" title="Fenêtre à part pour un stream (OBS) : objets, progression, prochaine étape… disposés librement">Fenêtre de stream ↗</button>
       <button class="side-btn" @click="openBackup">Exporter ou importer la partie</button>
       <button class="danger-btn" @click="modal='reset'">Tout remettre à zéro</button>
     </div>
@@ -1120,147 +1387,7 @@ const App = {
       <button @click="itemsOpen=false" aria-label="Fermer" v-html="ICONS.close"></button>
     </div>
     <div class="side-right-body">
-      <section class="panel-card">
-      <div class="quest-row">
-        <div class="quest-hex">
-          <div v-for="(k,i) in ITEMS_PAGE.quest.hex" :key="k" :class="'hex-node hex-'+(i+1)"><item-tile :k="k"></item-tile></div>
-          <div v-if="itemVisible(ITEM_BY_KEY[ITEMS_PAGE.quest.center])" class="hex-center"><item-tile :k="ITEMS_PAGE.quest.center"></item-tile></div>
-        </div>
-        <div class="stones-col"><item-tile v-for="k in ITEMS_PAGE.quest.stones" :key="k" :k="k"></item-tile></div>
-        <div class="stat-cols">
-          <div v-for="(col,ci) in ITEMS_PAGE.stats" :key="ci" class="stat-col">
-            <item-tile v-for="k in visibleKeys(col)" :key="k" :k="k"></item-tile>
-          </div>
-        </div>
-      </div>
-      </section>
-
-      <section class="panel-card">
-      <div class="equip-row">
-        <div v-for="c in ITEMS_PAGE.equipment.chains" :key="c.title" class="chain-stack">
-          <template v-for="(k,i) in c.items" :key="k">
-            <span v-if="i" class="chain-link"></span>
-            <item-tile :k="k"></item-tile>
-          </template>
-        </div>
-        <span class="equip-divider"></span>
-        <div class="equip-side">
-          <item-tile v-for="k in ITEMS_PAGE.equipment.progressive" :key="k" :k="k" :badge="tierLabel(ITEM_BY_KEY[k])"></item-tile>
-        </div>
-      </div>
-      </section>
-
-      <section class="panel-card">
-      <template v-for="row in ITEMS_PAGE.boxRows" :key="row[0].title">
-        <div class="box-row">
-          <div v-for="box in row" :key="box.title" v-show="visibleKeys(box.items).length" class="item-box">
-            <div class="icon-grid" :class="{cols2:box.cols===2}">
-              <item-tile v-for="k in visibleKeys(box.items)" :key="k" :k="k"></item-tile>
-            </div>
-            <template v-if="box.sub">
-              <div class="sub-link"></div>
-              <div class="icon-grid sub">
-                <item-tile v-for="k in box.sub" :key="k" :k="k"></item-tile>
-              </div>
-            </template>
-          </div>
-        </div>
-      </template>
-      </section>
-
-      <section class="panel-card">
-      <div class="song-row"><item-tile v-for="k in ITEMS_PAGE.songs.learned" :key="k" :k="k"></item-tile></div>
-      <div class="song-row"><item-tile v-for="k in ITEMS_PAGE.songs.warp" :key="k" :k="k"></item-tile></div>
-
-      <div class="ocarina-frame">
-        <div class="ocarina-pad">
-          <div class="pad-main"><item-tile :k="ITEMS_PAGE.songs.ocarina"></item-tile></div>
-          <div v-if="visibleKeys(ITEMS_PAGE.songs.notes).length" class="pad-notes">
-            <div v-for="n in visibleKeys(ITEMS_PAGE.songs.notes)" :key="n" :class="{'pad-a':n==='noteA'}"><item-tile :k="n"></item-tile></div>
-          </div>
-        </div>
-      </div>
-      </section>
-
-      <section class="panel-card">
-      <div class="checklist-tiles">
-        <button v-for="b in ITEMS_PAGE.tradeButtons" :key="b.id" type="button" class="check-tile trade-tile" :title="b.title" @click="openTrade(b.id)"
-          :class="counterClass(tradeStats(b.id).got, tradeStats(b.id).total)">
-          <img :src="iconSrc('items', ITEM_BY_KEY[b.icon])" alt=""><b>{{tradeStats(b.id).got}}/{{tradeStats(b.id).total}}</b></button>
-      </div>
-      </section>
-
-      <div v-if="panelSkills.length || panelChecklists.length" class="card-row">
-        <section v-if="panelSkills.length" class="panel-card skills-card">
-          <div v-for="r in panelSkills" :key="r.title" class="item-box skill-box" :title="r.title">
-            <div class="icon-grid"><item-tile v-for="k in r.items" :key="k" :k="k"></item-tile></div>
-          </div>
-        </section>
-        <section v-if="panelChecklists.length" class="panel-card checklists-card" :class="{wide:!panelSkills.length}">
-          <button v-for="c in panelChecklists" :key="c.id" type="button" class="check-tile check-square" :title="CHECKLISTS[c.id].title"
-            @click="openChecklist(c.id)" :class="counterClass(checklistStats(c.id).got, checklistStats(c.id).total)">
-            <img v-if="!brokenIcons[c.icon]" :src="c.icon" alt="" @error="brokenIcons[c.icon]=true">
-            <span v-else class="icon-fallback" v-html="ICONS.bag"></span><b>{{checklistStats(c.id).got}}/{{checklistStats(c.id).total}}</b></button>
-        </section>
-      </div>
-
-      <section v-if="dungeonRows.length || skeletonShown" class="panel-card">
-      <div class="dungeon-grid">
-        <div v-for="row in dungeonRows" :key="row[0]" class="dg-row" :class="{final:row.length===1}">
-          <div v-if="row.length===1" class="dg-side"></div>
-          <div v-for="id in row" :key="id" class="dungeon-block" :class="{'quest-edit':cells(id).quest}" :style="{'--dg':DUNGEON_BY_ID[id].color}"
-            :role="cells(id).quest ? 'button' : null" :tabindex="cells(id).quest ? 0 : null" :title="questTitle(id)"
-            @click="cycleDungeonQuest(id)" @contextmenu.prevent="cycleDungeonQuest(id,true)" @keydown.enter.self="cycleDungeonQuest(id)">
-            <span v-if="DUNGEON_BY_ID[id].quest" class="dg-badge" :class="questClass(id)">{{questLabel(id)}}</span>
-            <div class="dg-name">{{DUNGEON_BY_ID[id].title}}</div>
-            <div class="dg-cells">
-              <!-- 1re ligne : carte, boussole et âme du boss ; 2e ligne : toutes les clés (et la Carte Gerudo) -->
-              <div v-if="cells(id).map || cells(id).compass || cells(id).soul" class="dg-line">
-                <button v-if="cells(id).map" type="button" class="dg-flag" :title="atStart(id).maps ? 'Carte (dès le départ)' : 'Carte'" :class="{on:atStart(id).maps || store.game.dungeons[id].map, fixed:atStart(id).maps}" :disabled="atStart(id).maps" @click.stop="setDungeonFlag(id,'map',true)" @contextmenu.stop.prevent="setDungeonFlag(id,'map',false)"><img src="icons/dungeons/map.png" alt=""></button>
-                <button v-if="cells(id).compass" type="button" class="dg-flag" :title="atStart(id).maps ? 'Boussole (dès le départ)' : 'Boussole'" :class="{on:atStart(id).maps || store.game.dungeons[id].compass, fixed:atStart(id).maps}" :disabled="atStart(id).maps" @click.stop="setDungeonFlag(id,'compass',true)" @contextmenu.stop.prevent="setDungeonFlag(id,'compass',false)"><img src="icons/dungeons/compass.png" alt=""></button>
-                <button v-if="cells(id).soul" type="button" class="dg-flag" :title="'Âme de ' + DUNGEON_BY_ID[id].boss" :class="{on:store.game.dungeons[id].soul}"
-                  @click.stop="setDungeonFlag(id,'soul',true)" @contextmenu.stop.prevent="setDungeonFlag(id,'soul',false)"><img src="icons/dungeons/boss_soul.png" alt=""></button>
-              </div>
-              <div v-if="cells(id).keys || cells(id).bossKey || cells(id).card" class="dg-line">
-                <button v-if="cells(id).keys && dungeonKeyRing(id)!==true" type="button" class="dg-keys" :title="keysTitle(id)" @click.stop="addDungeonKeys(id,1)" @contextmenu.stop.prevent="addDungeonKeys(id,-1)"
-                  :class="{none:!store.game.dungeons[id].keys && !dungeonKeysDone(id), done:dungeonKeysDone(id), fixed:atStart(id).keys}" :disabled="atStart(id).keys">
-                  <img src="icons/dungeons/key.png" alt="">{{keysLabel(id)}}</button>
-                <button v-if="cells(id).keys && dungeonKeyRing(id)!==false" type="button" class="dg-flag" :class="{on:store.game.dungeons[id].ringGot || store.game.items.skeletonKey}"
-                  :title="dungeonKeyRing(id) ? 'Trousseau de clés' : 'Trousseau de clés (peut-être) — le noter indique que ce donjon en a un'"
-                  @click.stop="setKeyRing(id,true)" @contextmenu.stop.prevent="setKeyRing(id,false)">
-                  <img v-if="!brokenIcons['icons/dungeons/keyring.png']" src="icons/dungeons/keyring.png" alt="" @error="brokenIcons['icons/dungeons/keyring.png']=true">
-                  <span v-else class="dg-ring-fallback"><img src="icons/dungeons/key.png" alt=""><img src="icons/dungeons/key.png" alt=""></span></button>
-                <button v-if="cells(id).bossKey" type="button" class="dg-flag" :title="atStart(id).bossKey ? 'Clé de boss (dès le départ)' : 'Clé de boss'" :class="{on:atStart(id).bossKey || store.game.dungeons[id].bossKey, fixed:atStart(id).bossKey}" :disabled="atStart(id).bossKey" @click.stop="setDungeonFlag(id,'bossKey',true)" @contextmenu.stop.prevent="setDungeonFlag(id,'bossKey',false)"><img src="icons/dungeons/boss.png" alt=""></button>
-                <button v-if="cells(id).card" type="button" class="dg-flag" :class="{on:store.game.items[DUNGEON_BY_ID[id].card]}"
-                  :title="ITEM_BY_KEY[DUNGEON_BY_ID[id].card].label" @click.stop="store.game.items[DUNGEON_BY_ID[id].card]=true" @contextmenu.stop.prevent="store.game.items[DUNGEON_BY_ID[id].card]=false">
-                  <img :src="iconSrc('items', ITEM_BY_KEY[DUNGEON_BY_ID[id].card])" alt=""></button>
-              </div>
-              <!-- épreuves de Ganon tirées au sort : inconnue (?) / requise / dissipée (✓) -->
-              <div v-if="cells(id).trials" class="dg-line dg-trials">
-                <button v-for="t in TRIALS" :key="t.id" type="button" class="dg-trial" :class="trialStatus(t.id) || 'unknown'" :style="{'--tr':t.color}"
-                  :title="'Épreuve ' + t.label + ' — ' + ({required:'requise', skipped:'dissipée'}[trialStatus(t.id)] || 'inconnue (comptée comme requise)') + ' — clic : suivant, clic droit : précédent'"
-                  @click.stop="cycleTrial(t.id)" @contextmenu.stop.prevent="cycleTrial(t.id,true)">{{trialStatus(t.id)==='skipped' ? '✓' : trialStatus(t.id) ? t.label[0] : '?'}}</button>
-              </div>
-            </div>
-          </div>
-          <div v-if="row.length===1" class="dg-side"><ItemTile v-if="skeletonShown && row[0]==='ganonsCastle'" k="skeletonKey"/></div>
-        </div>
-        <div v-if="skeletonShown && !dungeonRows.some(r => r.includes('ganonsCastle'))" class="dg-row final">
-          <div class="dg-side"></div><div class="dg-side"><ItemTile k="skeletonKey"/></div><div class="dg-side"></div>
-        </div>
-      </div>
-      </section>
-
-      <!-- Trouvailles comptées par l'auto-tracking (option) -->
-      <section v-if="ui.link.loot" class="panel-card loot-card" title="Comptées par l'auto-tracking : objets reçus pendant qu'il tourne (pas ceux ramassés par terre sans fenêtre « objet obtenu »)">
-        <div class="loot ice"><span class="loot-ic"><img v-if="!brokenIcons['icons/loots/ice_trap.png']" src="icons/loots/ice_trap.png" alt="" @error="brokenIcons['icons/loots/ice_trap.png']=true"><span v-else v-html="ICONS.snow"></span></span>
-          <b>{{store.game.loot.iceTraps}}</b><span>Piège{{store.game.loot.iceTraps>1?'s':''}} de glace</span></div>
-        <div class="loot rupee"><span class="loot-ic"><img v-if="!brokenIcons['icons/loots/rupee.png']" src="icons/loots/rupee.png" alt="" @error="brokenIcons['icons/loots/rupee.png']=true"><span v-else v-html="ICONS.rupee"></span></span>
-          <b>{{store.game.loot.rupees}}</b><span>Rubis · {{store.game.loot.rupeeValue}} ₹</span></div>
-        <div class="loot junk"><span class="loot-ic"><img v-if="!brokenIcons['icons/loots/junk.png']" src="icons/loots/junk.png" alt="" @error="brokenIcons['icons/loots/junk.png']=true"><span v-else v-html="ICONS.bag"></span></span>
-          <b>{{store.game.loot.junk}}</b><span>Munitions et cœurs</span></div>
-      </section>
-    </div>
+${ITEMS_TPL}${LOOT_TPL}    </div>
   </aside>
 
   <div class="scrim" @click="navOpen=false; itemsOpen=false"></div>

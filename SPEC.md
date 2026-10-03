@@ -640,6 +640,23 @@ Règles d'interface :
   choisies restent toujours proposées.
 - Si aucun chemin : expliquer les causes possibles (sorties non découvertes, objet ou âge manquant).
 
+## Fenêtre de stream
+Bouton « Fenêtre de stream ↗ » (barre de gauche) : ouvre `index.html?stream` dans une fenêtre à part (`STREAM_MODE`), à
+capturer dans OBS (« Capture de fenêtre » + filtre d'incrustation sur le fond vert ; une source « Navigateur » d'OBS
+a son propre stockage et ne verrait pas la partie).
+- Blocs disposés librement sur un fond uni (vert d'incrustation par défaut, magenta, transparent, fond de l'appli ou
+  couleur au choix) : Objets (le panneau Objets, sur 1 ou 2 colonnes), Progression (cadres Checks et Entrées), Prochaine
+  étape (du trajet du Routeur : mode de déplacement, destination, arrivée visée), Où aller maintenant ? (5 plus
+  proches), Trouvailles, Carte, Espace vide (emplacement du jeu, cadre doré en option), Image (chemin, adresse ou
+  fichier choisi, gardé en data URL), Texte. Contenus à leur largeur naturelle, mis à l'échelle de la largeur du bloc
+  (`zoom`) ; Espace vide, Image et Texte à la taille du bloc.
+- Édition : touche E (ou double-clic) : grille, glisser un bloc pour le déplacer, coin bas-droit pour le redimensionner
+  (pas de 10 px), × pour le retirer ; barre d'outils : ajouter un bloc, fond, options du bloc choisi, disposition par
+  défaut (pensée pour 1920 × 1080). Disposition gardée à part (localStorage `oeil-sheikah-stream`).
+- La partie vient de la fenêtre principale : la fenêtre de stream relit le `store` à chaque sauvegarde de celle-ci
+  (événement `storage`, même navigateur), ne sauvegarde rien et ne se connecte pas au relais (trouvailles comptées
+  une seule fois). Blocs non cliquables (affichage seul).
+
 ## Carte
 Page « Carte » (`ui.view` = `map`, composant `EntranceMap` de `components.js`) : schéma des entrées connues.
 - Zones placées à peu près comme sur la carte d'Hyrule (`MAP_POS`), donjons en plus petit à côté de leur zone ; nœud

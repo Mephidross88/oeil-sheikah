@@ -549,4 +549,5 @@ function linkCheckDone(rc){
 
 linkLoadSpoiler();
 // (Re)connexion selon l'option, au chargement et quand elle change.
-watch(() => [store.ui.link.enabled, store.ui.link.url], ([on]) => { if (on) linkStart(); else linkStop(); }, { immediate:true });
+// (pas dans la fenêtre de stream : la fenêtre principale suit le jeu, sinon les trouvailles seraient comptées deux fois)
+if (!STREAM_MODE) watch(() => [store.ui.link.enabled, store.ui.link.url], ([on]) => { if (on) linkStart(); else linkStop(); }, { immediate:true });

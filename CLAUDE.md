@@ -71,7 +71,10 @@ et le mettre à jour quand une règle change.
      `ProgressCard` — cadre de progression des pages Checks et Entrées, `EntranceMap` — page Carte : schéma des entrées
      connues, positions des zones `MAP_POS`).
   10. `js/app.js` : le composant racine `App` (template complet, dont le panneau Objets et ses modales de
-     pointage) + `createApp(...).mount('#app')`.
+     pointage) + `createApp(...).mount('#app')`. Fragments de gabarit partagés en constantes (`ITEMS_TPL`, `LOOT_TPL`,
+     `STREAM_TPL`) insérés par `${…}` dans le gabarit d'App (évalués par JS, pas par Vue) : la fenêtre de stream
+     (`index.html?stream`, `STREAM_MODE` de `state.js` : relit le store via l'événement `storage`, ne sauvegarde pas, pas
+     de relais ; disposition `STREAM_TYPES`/`streamDefaults`, clé `oeil-sheikah-stream`) réutilise le panneau Objets.
 - `style.css` : styles, variables de thème dans `:root` (clair + sombre).
 - `data/areas-data.js` : données (`window.AREAS_DATA`). Gros fichier : ne le lire que si la tâche porte sur les données.
 - `data/checks-data.js` : checks SoH (`window.CHECKS_DATA`), **fichier généré** (voir son en-tête et SPEC.md > Checks) ;
