@@ -446,7 +446,7 @@ html.stream-mode,html.stream-mode body{background:transparent;overflow:hidden}
 .zmap-tabs button{border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:999px;padding:4px 12px;font-size:13.5px;cursor:pointer}
 .zmap-tabs button.on{background:var(--gold);border-color:var(--gold);color:#1c1a12;font-weight:700}
 .zmap-frame{position:relative}
-.zmap-svg{display:block;width:100%;height:auto;max-height:calc(100vh - 260px);background:var(--map-bg);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow)}
+.zmap-svg{display:block;width:100%;height:auto;max-height:max(260px, calc(100vh - 450px));background:var(--map-bg);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow)}
 .zmap-svg{touch-action:none;cursor:grab}
 .zmap-svg.dragging{cursor:grabbing}
 .zmap-zoom{position:absolute;left:12px;top:12px;display:flex;flex-direction:column;gap:4px}

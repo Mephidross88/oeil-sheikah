@@ -303,7 +303,7 @@ function mapScene(name){
 const ZoneMap = {
   props:['area', 'focus'],   // focus : sortie à mettre en évidence (« Voir sur la carte »)
   emits:['start', 'goal'],
-  data:() => ({ scene:null, sel:null, hover:null, view:null, drag:null }),
+  data:() => ({ scene:null, sel:null, hover:null, view:null, drag:null, maxH:null }),
   computed:{
     scenes(){ return MAP_SCENES[this.area] || []; },
     cur(){ return this.scenes.includes(this.scene) ? this.scene : this.scenes[0]; },
@@ -368,12 +368,20 @@ const ZoneMap = {
       if (Math.abs(dx) + Math.abs(dy) > 3) d.moved = true;
       if (d.moved) this.view = [d.v[0] - dx * d.k, d.v[1] - dy * d.k, d.v[2], d.v[3]]; },
     up(){ const d = this.drag; this.drag = null; if (d && !d.moved) this.sel = null; },
+    // hauteur de la carte : ce qui reste à l'écran sous son haut de page, moins la légende et le bandeau du bas
+    fitHeight(){
+      const svg = this.$refs.svg;
+      if (!svg) return;
+      const top = svg.getBoundingClientRect().top + window.scrollY, legend = [...this.$el.querySelectorAll('.zmap-legend')].reduce((h, l) => h + l.offsetHeight + 6, 0);
+      const dock = document.querySelector('.next-dock')?.offsetHeight || 0;
+      this.maxH = Math.max(260, window.innerHeight - top - legend - dock - 24);
+    },
   },
   template:`<div class="zmap">
     <div v-if="scenes.length > 1" class="zmap-tabs"><button v-for="s in scenes" :key="s" type="button" :class="{on:s===cur}" @click="scene=s; sel=null">{{MAP_SCENE_LABEL[s] || s}}</button></div>
     <div v-if="!geo" class="zmap-empty">Pas de carte pour cette zone (donjon ou intérieur).</div>
     <div v-else class="zmap-frame">
-      <svg ref="svg" :viewBox="vb.join(' ')" class="zmap-svg" :class="{dragging:drag && drag.moved}" @wheel.prevent="wheel"
+      <svg ref="svg" :viewBox="vb.join(' ')" :style="maxH ? { maxHeight:maxH + 'px' } : null" class="zmap-svg" :class="{dragging:drag && drag.moved}" @wheel.prevent="wheel"
         @pointerdown="down" @pointermove="move" @pointerup="up" @pointerleave="drag=null">
         <path v-for="(d,i) in geo.bands" :key="i" :d="d" :fill="bandColor(i)" :stroke="bandColor(i)" :stroke-width="unit * 0.12"></path>
         <path :d="geo.walls" class="zmap-walls" :stroke-width="unit * 0.35"></path>
@@ -400,5 +408,8 @@ const ZoneMap = {
     <div class="zmap-legend"><b>Repères</b><span><i class="lg-here"></i>vous êtes ici</span><span><i class="lg-next"></i>prochaine sortie</span><span><i class="lg-goal"></i>arrivée du Routeur</span>
       <span><i class="lg-ground"></i>terrain : du plus bas (foncé) au plus haut (clair)</span><span>Clic sur un repère : partir d’ici ou y aller.</span></div>
   </div>`,
+  mounted(){ this.$nextTick(this.fitHeight); this.onResize = () => this.fitHeight(); window.addEventListener('resize', this.onResize); },
+  updated(){ if (!this.maxH) this.$nextTick(this.fitHeight); },
+  unmounted(){ window.removeEventListener('resize', this.onResize); },
   setup(){ return { EXIT, MAP_SCENE_LABEL }; },
 };

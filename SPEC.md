@@ -688,7 +688,8 @@ du jeu vu de dessus (nord en haut).
 - Affichage : zone choisie (`ui.map.area`, sinon celle de la position), onglets si elle a plusieurs scènes ; sol en
   10 teintes par tranches de hauteur réparties selon le terrain présent (quantiles), murs en traits sombres ; un repère
   par position (une porte et l'intérieur derrière partagent un repère), couleur par type ; cadrage sur les repères,
-  zoom à la molette et boutons, déplacement en glissant, « tout le terrain ». Mis en évidence : position (auto-tracking,
+  zoom à la molette et boutons, déplacement en glissant, « tout le terrain ». Hauteur : ce qui reste à l'écran sous la
+  carte, moins la légende et le bandeau du bas (260 px au moins), recalculée au redimensionnement. Mis en évidence : position (auto-tracking,
   sinon départ du Routeur), prochaine sortie à prendre (première transition du trajet), arrivée du Routeur. Clic sur un
   repère : ses sorties, leur destination notée, « Partir d'ici » (départ du Routeur) et « Y aller » (arrivée).
 - Légende sous la carte : couleur des repères par type (passage doré, intérieur bleu canard, grotte brune, donjon
