@@ -834,13 +834,17 @@ const App = {
           });
         }
         ui.spoilerPrompt = false;
+        // le même fichier sert aussi de spoiler caché à l'auto-tracking (ne révèle que ce que le jeu a déjà montré)
+        const linked = ui.importLinkSpoiler && data.locations && typeof data.locations === 'object';
+        if (linked) linkSetSpoiler(data, file.name);
         importReport.value = { ok:true, notes,
           title:`Configuration importée : ${count} option${count>1?'s':''}, ${tricks} astuce${tricks>1?'s':''} activée${tricks>1?'s':''}`
             + (started ? `, ${started} objet${started>1?'s':''} de départ coché${started>1?'s':''}` : '')
             + (quests ? `, version de ${quests} donjon${quests>1?'s':''} renseignée` : '')
             + (rings ? `, trousseaux de ${rings} donjon${rings>1?'s':''} renseignés` : '')
             + (ui.importQuests && configTrials(s) === null && Array.isArray(data.requiredTrials) ? `, ${trials} épreuve${trials>1?'s':''} de Ganon requise${trials>1?'s':''}` : '')
-            + (excl ? `, ${excl} check${excl>1?'s':''} exclu${excl>1?'s':''}` : '') + '.' };
+            + (excl ? `, ${excl} check${excl>1?'s':''} exclu${excl>1?'s':''}` : '')
+            + (linked ? ', spoiler gardé pour l’auto-tracking' : '') + '.' };
       };
       reader.readAsText(file);
     }
@@ -1354,7 +1358,8 @@ ${STREAM_TPL}
           <label class="btn primary import-btn">Importer depuis un spoiler SoH
             <input type="file" accept=".json,application/json" @change="importSpoiler" hidden></label>
           <label class="check import-opt" title="Révèle ce que le seed a tiré au sort : quels donjons sont en Master Quest (liste « masterQuestDungeons »), lesquels ont un trousseau de clés et quelles épreuves de Ganon sont requises.">
-            <input type="checkbox" v-model="ui.importQuests">Importer aussi les tirages du seed : donjons MQ, trousseaux et épreuves de Ganon (peut spoiler)</label></div></div>
+            <input type="checkbox" v-model="ui.importQuests">Importer aussi les tirages du seed : donjons MQ, trousseaux et épreuves de Ganon (peut spoiler)</label>
+            <label class="check import-opt" title="Spoiler caché : il ne sert qu'à révéler ce que le jeu a déjà montré (objet de chaque check ramassé, boutiques vues, entrées prises)"><input type="checkbox" v-model="ui.importLinkSpoiler">Le garder aussi pour l'auto-tracking (spoiler caché, ne révèle que ce que le jeu a montré)</label></div></div>
       <div v-if="importReport" class="import-report" :class="importReport.ok ? 'ok' : 'ko'">
         <b>{{importReport.title}}</b>
         <ul v-if="importReport.notes.length"><li v-for="(n,i) in importReport.notes" :key="i">{{n}}</li></ul>
@@ -1572,6 +1577,7 @@ ${ITEMS_TPL}${LOOT_TPL}    </div>
             <p style="margin-top:0">Importez le spoiler log (.json) généré par Ship of Harkinian pour régler la Configuration automatiquement.
               Seuls les réglages et les astuces sont lus, jamais l'emplacement des objets.</p>
             <label class="check import-opt"><input type="checkbox" v-model="ui.importQuests">Importer aussi les tirages du seed : donjons MQ, trousseaux et épreuves de Ganon (peut spoiler)</label>
+            <label class="check import-opt" title="Spoiler caché : il ne sert qu'à révéler ce que le jeu a déjà montré (objet de chaque check ramassé, boutiques vues, entrées prises)"><input type="checkbox" v-model="ui.importLinkSpoiler">Le garder aussi pour l'auto-tracking (spoiler caché, ne révèle que ce que le jeu a montré)</label>
             <div v-if="importReport" class="msg ko">{{importReport.title}}</div>
             <div class="mactions"><button class="btn" @click="declineSpoiler">Non, merci</button>
               <label class="btn primary import-btn">Importer un spoiler…

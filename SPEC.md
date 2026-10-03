@@ -771,7 +771,8 @@ Suivi en direct d'une partie de Ship of Harkinian, sans modifier le jeu.
   (400 ms) et l'objet est noté (`game.found`, numéro RandomizerGet). Affiché à la suite du libellé du check : icône et
   nom du panneau Objets, sinon nom français de SoH (`rgFr`, `item_list.cpp`). Seulement pour les checks faits pendant
   que l'auto-tracking tourne (le jeu ne dit pas ce que contenaient les checks faits avant).
-- **Spoiler caché** (facultatif, fenêtre Auto-tracking : « Charger le spoiler… ») : le fichier spoiler de la seed est
+- **Spoiler caché** (facultatif, fenêtre Auto-tracking : « Charger le spoiler… », ou en même temps que l'import de la
+  Configuration : case « Le garder aussi pour l'auto-tracking », `ui.importLinkSpoiler`, cochée par défaut) : le fichier spoiler de la seed est
   gardé à part (localStorage `oeil-sheikah-spoiler`, jamais affiché tel quel) et ne sert qu'à révéler ce que le jeu a
   déjà montré, seulement si son `finalSeed` est le seed envoyé par le jeu : objet de chaque check ramassé (statut SoH 4+,
   y compris ceux faits avant de lancer le relais, d'après la sauvegarde complète) ; objets et prix des boutiques, pestes
