@@ -1,8 +1,8 @@
 # L'Œil Sheikah
 
 Tracker d'objets, de checks et d'entrées, et routeur, pour le randomizer de Ship of Harkinian 9.2.3 (migré depuis
-OoT Randomizer, voir SPEC.md). Modules : Entrées (id `entrances`), Routeur, Checks, Carte (id `map`), Configuration, plus le panneau
-Objets.
+OoT Randomizer, voir SPEC.md). Modules : Entrées (id `entrances`), Routeur, Checks, Carte (id `map`), Statistiques (id `stats`), Configuration, plus
+le panneau Objets.
 Application 100 % client, sans build : ouvrir `index.html` dans un navigateur suffit.
 Interface et textes en français.
 Le comportement attendu est décrit dans `SPEC.md` : le lire avant toute évolution fonctionnelle,
@@ -58,7 +58,8 @@ et le mettre à jour quand une règle change.
      mutations des check-lists/donjons (`setChecklist`, `checklistStats`, `setDungeonFlag`,
      `addDungeonKeys`, `dungeonQuest`/`dungeonMaxKeys`/`cycleDungeonQuest` — version Vanilla/MQ, `dungeonKeyRing`/`setKeyRing`/`dungeonKeysDone` — trousseaux et clé squelette, `trialStatus`/`cycleTrial` — épreuves de Ganon tirées au sort), et `applyStartingItems` (objets de départ de la configuration → panneau Objets), et pour la page Checks `areaQuest`,
      `checkListed`, `setCheck`, `setExcluded`, `whyLocked` (ce qui manque pour un check : objets au plus juste, entrée à
-     découvrir ou jamais).
+     découvrir ou jamais), et la chronologie de la partie (`game.timeline`, `game.runStart`, observateur synchrone,
+     `timelineQuiet` / `timelineSkip`, `itemIconAt` / `itemLabelAt`).
   8b. `js/link.js` : auto-tracking — connexion (EventSource) au relais local `tools/soh-link/relay.mjs`, état `link`
      (statut, journal), `linkApply` (paquets du jeu → partie : checks, `linkSaveToGame` sauvegarde SoH → panneau
      Objets, position → départ du Routeur, objet trouvé par check, trouvailles, entrées notées via `setMapping` — question au joueur si l'arrivée est ambiguë, `link.ask` —, spoiler

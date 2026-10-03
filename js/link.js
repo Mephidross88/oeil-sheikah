@@ -58,18 +58,25 @@ function linkDescribe(p){
     default: return p.type;
   }
 }
+let linkCatchup = false;   // la prochaine sauvegarde complète est un rattrapage (connexion du relais ou du jeu)
 function linkHandle(m){
   link.lastAt = Date.now();
   if (m.type === 'hello'){
     linkLog('Relais connecté');
+    linkCatchup = true;
     link.status = m.game ? 'game' : 'relay';
     link.client = m.clientState || null; link.player = m.player || null;
-    if (m.teamState) linkApply({ type:'UPDATE_TEAM_STATE', state:m.teamState });
+    if (m.teamState){   // sauvegarde déjà connue du relais : rattrapage
+      timelineQuiet = true;
+      try { linkApply({ type:'UPDATE_TEAM_STATE', state:m.teamState }); } finally { timelineQuiet = false; }
+      linkCatchup = false;
+    }
     linkPositionFrom(m.player || m.clientState, false);
     return;
   }
   if (m.type === 'game'){
     link.status = m.connected ? 'game' : 'relay';
+    if (m.connected) linkCatchup = true;
     link.client = m.connected ? m.clientState : null;
     linkRevealAll();
     linkLog(m.connected ? 'Jeu connecté' : 'Jeu déconnecté');
@@ -79,7 +86,11 @@ function linkHandle(m){
   if (m.type === 'player'){ link.player = m.player; linkEntranceArrival(m.player); linkPositionFrom(m.player, true); return; }
   if (m.type === 'packet'){
     if (m.packet.type !== 'SET_FLAG' && m.packet.type !== 'UNSET_FLAG') linkLog(linkDescribe(m.packet));
-    linkApply(m.packet);
+    // première sauvegarde complète après la connexion : rattrapage, sans heure dans la chronologie
+    const catchup = m.packet.type === 'UPDATE_TEAM_STATE' && linkCatchup;
+    timelineQuiet = catchup;
+    try { linkApply(m.packet); } finally { timelineQuiet = false; }
+    if (catchup) linkCatchup = false;
   }
 }
 // Statuts d'un check dans SoH (RandomizerCheckStatus, RandomizerMiscEnums.h) ; ramassé (4) et sauvegardé (5) = fait.
@@ -91,6 +102,8 @@ const CHECK_DONE = 4;
 function linkApply(p){
   if (p.type === 'SET_CHECK_STATUS'){ linkStatuses[p.rc] = Math.max(linkStatuses[p.rc] || 0, p.status); linkReveal(p.rc); }
   if (p.type === 'UPDATE_TEAM_STATE'){
+    const fi = p.state?.ship?.stats?.firstInput;
+    if (fi > 0 && store.game.runStart !== fi) store.game.runStart = fi;   // début de la partie (chronologie)
     (p.state?.rando?.itemLocations || []).forEach((x, rc) => { if (x && x[0]) linkStatuses[rc] = Math.max(linkStatuses[rc] || 0, x[0]); });
     linkRevealAll();
   }

@@ -640,6 +640,20 @@ Règles d'interface :
   choisies restent toujours proposées.
 - Si aucun chemin : expliquer les causes possibles (sorties non découvertes, objet ou âge manquant).
 
+## Statistiques
+Page « Statistiques » (`ui.view` = `stats`) : chronologie de la partie.
+- `game.timeline` (sauvegardé, remis à zéro avec la partie) : chaque hausse d'un objet ou d'un chant du panneau Objets
+  (`{ k:'items'|'songs', id, v }`, v = palier ou nombre atteint) et chaque check coché (`{ k:'checks', id }`), avec
+  l'heure (`t`, ms). Une baisse ou un check décoché retire ses entrées. Observateur synchrone (`state.js`) ; pas
+  d'entrée pour les ajustements automatiques (premier palier, objets de départ : `timelineSkip`). Ce que la sauvegarde
+  du jeu contenait déjà à la connexion de l'auto-tracking (première sauvegarde complète reçue) est noté sans heure
+  (« avant le suivi », `timelineQuiet`).
+- Début de la partie : `game.runStart` = `ship.stats.firstInput` de la sauvegarde du jeu (auto-tracking), sinon le
+  premier événement daté. Temps affichés depuis ce début (temps réel, pauses comprises).
+- Contenu : temps écoulé, checks faits, sorties notées, objets et chants obtenus, pièges de glace ; courbe en escalier
+  des checks faits au fil du temps ; chronologie (plus récent d'abord) filtrable « Objets et chants » / « Checks » /
+  « Tout », avec l'objet trouvé dans le check quand il est connu.
+
 ## Fenêtre de stream
 Bouton « Fenêtre de stream ↗ » (barre de gauche) : ouvre `index.html?stream` dans une fenêtre à part (`STREAM_MODE`), à
 capturer dans OBS (« Capture de fenêtre » + filtre d'incrustation sur le fond vert ; une source « Navigateur » d'OBS

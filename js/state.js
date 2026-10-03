@@ -6,7 +6,9 @@ function defaults(){
   const game = { items:{}, songs:{}, dungeons:{}, checklists:{}, checks:{}, trials:Object.fromEntries(TRIALS.map(t => [t.id, ''])),
     loot:{ iceTraps:0, rupees:0, rupeeValue:0, junk:0 },
     found:{},     // found : objet trouvé dans chaque check { id: numéro RandomizerGet, ou nom du spoiler } (auto-tracking)
-    seen:{} };    // seen : objets vus en boutique / chez les pestes et marchands { id: [nom affiché, prix] } (spoiler caché)
+    seen:{},      // seen : objets vus en boutique / chez les pestes et marchands { id: [nom affiché, prix] } (spoiler caché)
+    timeline:[],  // timeline : objets, chants et checks obtenus { t: heure (ms) ou null (avant le suivi), k: items | songs | checks, id, v }
+    runStart:0 }; // runStart : début de la partie dans le jeu (ship.stats.firstInput de la sauvegarde, ms), 0 si inconnu
   ITEM_GROUPS.forEach(g => g.items.forEach(it => { game[g.path][it.key] = it.locked ? true : it.kind === 'bool' ? false : 0; }));
   DUNGEONS.forEach(d => { game.dungeons[d.id] = { map:false, compass:false, keys:0, bossKey:false, soul:false, quest:'', keyRing:'', ringGot:false }; });
   Object.entries(CHECKLISTS).forEach(([name, c]) => {
@@ -82,14 +84,48 @@ function loadStream(){
   return streamDefaults();
 }
 
+/* Chronologie (page Statistiques) : chaque hausse d'un objet ou d'un chant et chaque check coché est daté (game.timeline) ;
+   une baisse ou un check décoché retire ses entrées. Observateur synchrone : `timelineQuiet` (rattrapage à la connexion
+   de l'auto-tracking : ce que la sauvegarde contenait déjà) donne des entrées sans heure. Pas dans la fenêtre de stream. */
+let timelineQuiet = false, timelineSkip = false;   // skip : ajustements (premier palier, objets de départ), pas datés
+const num01 = v => typeof v === 'boolean' ? +v : v || 0;
+function timelineSnap(g){ return { game:g, items:{ ...g.items }, songs:{ ...g.songs }, checks:{ ...g.checks } }; }
+if (!STREAM_MODE){
+  let snap = timelineSnap(store.game);
+  // (la partie elle-même n'est pas observée en profondeur : la chronologie en fait partie)
+  watch(() => [store.game.items, store.game.songs, store.game.checks], () => {
+    const g = store.game;
+    if (snap.game !== g || timelineSkip){ snap = timelineSnap(g); return; }   // partie remplacée (remise à zéro, import), ajustement
+    if (!Array.isArray(g.timeline)) g.timeline = [];
+    const t = timelineQuiet ? null : Date.now(), tl = g.timeline;
+    for (const path of ['items', 'songs']) for (const [k, v] of Object.entries(g[path])){
+      const a = num01(snap[path][k]), b = num01(v);
+      if (b > a) tl.push({ t, k:path, id:k, v:b });
+      else if (b < a) g.timeline = tl.filter(e => !(e.k === path && e.id === k && e.v > b));
+    }
+    for (const id of Object.keys(g.checks)) if (!snap.checks[id]) tl.push({ t, k:'checks', id });
+    for (const id of Object.keys(snap.checks)) if (!g.checks[id]) g.timeline = g.timeline.filter(e => !(e.k === 'checks' && e.id === id));
+    snap = timelineSnap(g);
+  }, { deep:true, flush:'sync' });
+}
+// Icône et libellé d'un objet du panneau à un palier ou un nombre donné (chronologie, « Pourquoi pas encore ? »).
+function itemIconAt(it, v){
+  if (it.kind === 'level' && !it.sizes) return it.icons ? 'icons/' + it.icons[Math.max(1, v) - 1] : 'icons/items/' + it.key + '_' + Math.max(1, v) + '.png';
+  return 'icons/' + (it.icon || 'items/' + it.key + '.png');
+}
+const itemLabelAt = (it, v) => it.kind === 'level' && it.stages ? it.stages[v] : it.kind === 'count' ? it.label + ' : ' + v : it.label;
+
 // Objets à paliers sous leur premier palier atteignable (ex. Bourse à 0 sans « Bourse enfant » mélangée) :
 // remontés à ce palier, au chargement puis à chaque changement (configuration, remise à zéro…).
 function raiseToFirstLevel(){
-  ITEM_GROUPS.forEach(g => g.items.forEach(it => {
-    if (it.kind !== 'level' || !it.levels) return;
-    const min = Math.min(...itemLevels(it));
-    if (store.game[g.path][it.key] < min) store.game[g.path][it.key] = min;
-  }));
+  timelineSkip = true;
+  try {
+    ITEM_GROUPS.forEach(g => g.items.forEach(it => {
+      if (it.kind !== 'level' || !it.levels) return;
+      const min = Math.min(...itemLevels(it));
+      if (store.game[g.path][it.key] < min) store.game[g.path][it.key] = min;
+    }));
+  } finally { timelineSkip = false; }
 }
 watch(() => [store.settings, store.game], raiseToFirstLevel, { deep:true, immediate:true });
 
@@ -146,9 +182,7 @@ function whyLocked(checkId){
   ITEM_GROUPS.forEach((gr, bi) => gr.items.forEach(it => {
     const lo = num(cur[gr.path][it.key]), hi = num(g[gr.path][it.key]);
     if (hi > lo) dims.push({ block:'g' + bi, obj:g[gr.path], key:it.key, bool:it.kind === 'bool', lo, hi,
-      label:v => it.kind === 'level' && it.stages ? it.stages[v] : it.kind === 'count' ? it.label + ' : ' + v : it.label,
-      src:v => it.kind === 'level' && !it.sizes ? (it.icons ? 'icons/' + it.icons[Math.max(1, v) - 1] : 'icons/items/' + it.key + '_' + Math.max(1, v) + '.png')
-        : 'icons/' + (it.icon || 'items/' + it.key + '.png') });
+      label:v => itemLabelAt(it, v), src:v => itemIconAt(it, v) });
   }));
   DUNGEONS.forEach(d => DUNGEON_FLAGS.forEach(([k, name]) => {
     const lo = num(cur.dungeons[d.id][k]), hi = num(g.dungeons[d.id][k]);
@@ -288,6 +322,10 @@ const STARTING_ITEMS = [
 // Coche les objets de départ de la configuration ; ne retire jamais rien de ce que le joueur a déjà noté.
 // Renvoie le nombre d'objets modifiés.
 function applyStartingItems(s){
+  timelineSkip = true;
+  try { return applyStartingItemsNow(s); } finally { timelineSkip = false; }
+}
+function applyStartingItemsNow(s){
   let n = 0;
   for (const [setting, key, level = v => (v === 'On' || v === 'Yes') ? 1 : 0] of STARTING_ITEMS){
     const it = ITEM_BY_KEY[key], want = level(s[setting], s);

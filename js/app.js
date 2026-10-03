@@ -225,6 +225,7 @@ const App = {
       { id:'entrances', label:'Entrées', icon:ICONS.entrances },
       { id:'router', label:'Routeur', icon:ICONS.router },
       { id:'map', label:'Carte', icon:ICONS.map },
+      { id:'stats', label:'Statistiques', icon:ICONS.stats },
       { id:'config', label:'Configuration', icon:ICONS.config },
     ];
     // Mise en page côte à côte : second panneau (ui.split), seulement sur un écran assez large (sinon page principale
@@ -935,6 +936,36 @@ const App = {
         icon:it.t === 'retake' || !edge ? null : edgeIcon(edge.e), zone:areaName(key), exit:EXIT[key].label,
         goal:it.end || !EXIT[to] ? '' : areaName(to) + ' · ' + EXIT[to].label };
     });
+    /* Statistiques : chronologie de la partie (game.timeline, js/state.js) et compteurs */
+    const nowTick = ref(Date.now());
+    setInterval(() => { nowTick.value = Date.now(); }, 30000);
+    const fmtDur = ms => { const t = Math.max(0, Math.round(ms / 1000)); return Math.floor(t / 3600) + ':' + String(Math.floor(t % 3600 / 60)).padStart(2, '0') + ':' + String(t % 60).padStart(2, '0'); };
+    const stFilter = ref('items');
+    const statsC = computed(() => {
+      const g = store.game, tl = Array.isArray(g.timeline) ? g.timeline : [], timed = tl.filter(e => e.t);
+      const origin = g.runStart || (timed.length ? Math.min(...timed.map(e => e.t)) : 0);
+      const rows = tl.map((e, i) => {
+        if (e.k === 'checks'){
+          const c = CHECK_BY_ID[e.id];
+          return { i, k:e.k, at:e.t && origin ? fmtDur(e.t - origin) : null, label:c ? c.label + ' · ' + CHECK_AREA[c.area].label : e.id,
+            icon:c && CHECK_CAT[c.cat].icon, found:g.found[e.id] !== undefined ? foundInfo(g.found[e.id]).title : '' };
+        }
+        const it = ITEM_BY_KEY[e.id];
+        return { i, k:e.k, at:e.t && origin ? fmtDur(e.t - origin) : null, label:it ? itemLabelAt(it, e.v) : e.id, icon:it ? itemIconAt(it, e.v) : null, found:'' };
+      }).reverse();
+      // courbe en escalier : checks faits depuis l'origine (ceux d'avant le suivi au départ)
+      const ck = timed.filter(e => e.k === 'checks').map(e => e.t).sort((a, b) => a - b);
+      let curve = null;
+      if (origin && ck.length){
+        const end = Math.max(nowTick.value, ck[ck.length - 1]), span = Math.max(1, end - origin), start = tl.filter(e => e.k === 'checks' && !e.t).length;
+        const max = Math.max(1, start + ck.length), W = 600, H = 150, x = t => (t - origin) / span * W, y = n => H - n / max * H;
+        let d = 'M0,' + y(start).toFixed(1), n = start;
+        for (const t of ck){ d += ' H' + x(t).toFixed(1) + ' V' + y(++n).toFixed(1); }
+        curve = { d:d + ' H' + W, area:d + ' H' + W + ' V' + H + ' H0 Z', end:fmtDur(end - origin), max };
+      }
+      return { origin, elapsed:origin ? nowTick.value - origin : null, rows, curve, nItems:tl.filter(e => e.k !== 'checks').length };
+    });
+    const statsRows = computed(() => statsC.value.rows.filter(r => stFilter.value === 'all' || (stFilter.value === 'checks' ? r.k === 'checks' : r.k !== 'checks')));
     return { store, ui, s, views, link, LINK_LABEL, linkRequestState, linkAsks, linkAnswer, askFrom, askLabel, canSplit, splitOn, shown, paneOf, swapPanes, openSide, closeSide, navOpen, itemsOpen, modal, tip, tipData, backup, stats, missingSpawns, visibleAreas,
       ICONS, ITEMS_PAGE, ITEM_BY_KEY, DUNGEONS, DUNGEON_BY_ID, CHECKLISTS, AREA, EXIT, DATA_ERRORS,
       iconKey, exitIcon, areaName, toggleArea, setAll, jump, go, showTip, hideTip, toggleTip, setMapping, clearMapping,
@@ -946,7 +977,7 @@ const App = {
       itemVisible, tierLabel, iconSrc, checklistModal, openChecklist, setChecklist, checklistStats,
       tradeModal, openTrade, tradeStats, counterClass,
       TRIALS, trialStatus, cycleTrial, setDungeonFlag, addDungeonKeys, dungeonQuest, dungeonMaxKeys, cycleDungeonQuest, questLabel, questClass, questTitle, keysLabel, dungeonKeyRing, setKeyRing, dungeonKeysDone, keysTitle, brokenIcons,
-      setTheme, startHere, prevStart, backToPrev, liveStart, pickAreas, pickExits, STREAM, STREAM_TYPES, sl, swEdit, swSel, swAdd, swHint, swSelW, streamBg, swBodyStyle, swDown, swMove, swUp, swNew, swDelete, swReset, swImage, openStream, nextStep, swap, route, edgeLabel, edgeIcon, WARP_SONGS, ageLabel, openBackup, copyBackup, importBackup, resetAll, declineSpoiler, savedAt, TYPE_LABEL };
+      setTheme, startHere, prevStart, backToPrev, liveStart, pickAreas, pickExits, fmtDur, stFilter, statsC, statsRows, STREAM, STREAM_TYPES, sl, swEdit, swSel, swAdd, swHint, swSelW, streamBg, swBodyStyle, swDown, swMove, swUp, swNew, swDelete, swReset, swImage, openStream, nextStep, swap, route, edgeLabel, edgeIcon, WARP_SONGS, ageLabel, openBackup, copyBackup, importBackup, resetAll, declineSpoiler, savedAt, TYPE_LABEL };
   },
   template:`
 ${STREAM_TPL}
@@ -1285,6 +1316,32 @@ ${STREAM_TPL}
       <p class="note emap-legend"><span><i class="k-ow"></i>passage</span><span><i class="k-in"></i>intérieur</span><span><i class="k-gr"></i>grotte</span>
         <span><i class="k-dg"></i>donjon</span><span><i class="k-bs"></i>boss</span><span><i class="k-owl"></i>hibou</span><span><i class="k-wp"></i>apparition, chant</span>
         <span>flèche : un seul sens connu</span><span>point : intérieur ou grotte qui mène ailleurs</span></p>
+    </section>
+
+    <section v-if="shown('stats')" class="pane" :class="'pane-' + paneOf('stats')">
+      <div v-if="paneOf('stats')==='side'" class="pane-bar">
+        <button type="button" title="Échanger les deux panneaux" v-html="ICONS.swapH" @click="swapPanes"></button>
+        <button type="button" title="Fermer ce panneau" v-html="ICONS.close" @click="closeSide"></button></div>
+      <div class="page-head"><h1>Statistiques</h1><p class="lede">Chronologie de la partie : objets, chants et checks, à l'heure où ils ont été notés (en direct avec l'auto-tracking).</p></div>
+      <div class="rsum st-tiles">
+        <div class="rstat"><div><b>{{statsC.elapsed != null ? fmtDur(statsC.elapsed) : '—'}}</b><span>{{store.game.runStart ? 'depuis le début de la partie' : 'depuis le premier objet noté'}}</span></div></div>
+        <div class="rstat"><div><b>{{checkStats.got}} / {{checkStats.total}}</b><span>checks faits</span></div></div>
+        <div class="rstat" v-if="stats.editable"><div><b>{{stats.mapped}} / {{stats.editable}}</b><span>sorties notées</span></div></div>
+        <div class="rstat"><div><b>{{statsC.nItems}}</b><span>objets et chants obtenus</span></div></div>
+        <div class="rstat" v-if="ui.link.loot"><div><b>{{store.game.loot.iceTraps}}</b><span>piège{{store.game.loot.iceTraps>1?'s':''}} de glace</span></div></div>
+      </div>
+      <div v-if="statsC.curve" class="st-chart">
+        <div class="st-chart-title">Checks faits au fil du temps <small>(jusqu'à {{statsC.curve.max}})</small></div>
+        <svg viewBox="0 0 600 150" preserveAspectRatio="none"><path class="st-area" :d="statsC.curve.area"></path><path class="st-line" :d="statsC.curve.d"></path></svg>
+        <div class="st-axis"><span>0:00:00</span><span>{{statsC.curve.end}}</span></div>
+      </div>
+      <div class="st-filter"><seg v-model="stFilter" :options="[['items','Objets et chants'],['checks','Checks'],['all','Tout']]"></seg></div>
+      <ul v-if="statsRows.length" class="st-list">
+        <li v-for="r in statsRows" :key="r.i"><span class="st-at">{{r.at || 'avant le suivi'}}</span>
+          <img v-if="r.icon" :src="r.icon" alt=""><span v-else class="st-noic"></span>
+          <span class="st-lab">{{r.label}}<small v-if="r.found"> · {{r.found}}</small></span></li>
+      </ul>
+      <p v-else class="empty">Rien de noté pour l'instant.</p>
     </section>
 
     <section v-if="shown('config')" class="pane" :class="'pane-' + paneOf('config')">
