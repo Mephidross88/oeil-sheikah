@@ -645,6 +645,11 @@ Suivi en direct d'une partie de Ship of Harkinian, sans modifier le jeu.
   **Lecture seule** : il n'envoie au jeu que `ALL_CLIENT_STATE`, `UPDATE_ROOM_STATE` et `REQUEST_TEAM_STATE`, jamais
   d'objet, de drapeau ni d'état d'équipe (qu'un vrai serveur Anchor peut appliquer à la sauvegarde). Mouvements du
   joueur résumés (scène, entrée d'arrivée, âge, seulement quand ils changent) ; `--dump` enregistre les paquets reçus.
+- **Test** `tools/soh-link/replay_packets.mjs` : rejoue un enregistrement de référence (`fixtures/session.json`,
+  fabriqué par `--make-fixture` depuis un `--dump` et le spoiler de la seed) dans l'appli (fichiers `js/` dans Node, Vue
+  simulé) ; écart = erreur : sans spoiler, entrées notées et objets trouvés conformes au spoiler, bonne arrivée parmi les
+  choix de chaque question ; avec le spoiler caché, position après chaque entrée découverte = destination du spoiler.
+  Affiche aussi les arrivées où la position diffère sans spoiler (arrivées ambiguës).
 - **Appli** (`js/link.js`) : voyant dans le pied de la barre de gauche (gris : désactivé, orange : relais introuvable,
   doré : relais prêt, vert : jeu connecté), fenêtre « Auto-tracking » (mode d'emploi, activation et adresse du relais
   dans `ui.link`, état, « Relire la sauvegarde », journal des événements). Reconnexion automatique.

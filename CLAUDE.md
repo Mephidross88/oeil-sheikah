@@ -85,6 +85,10 @@ et le mettre à jour quand une règle change.
   notées et, à chaque sphère, les régions atteintes par le Routeur à celles de la logique, voir SPEC.md > Logique Ship of
   Harkinian ; à relancer après toute modification de `js/logic.js`, de la
   conversion, des règles d'entrées ou de `areas-data.js`).
+- `tools/soh-link/replay_packets.mjs` : test de l'auto-tracking — rejoue une partie enregistrée par le relais
+  (`tools/soh-link/fixtures/session.json` : paquets allégés et spoiler de la seed ; `--make-fixture` le refabrique depuis
+  un `relay.mjs --dump`) et vérifie entrées notées, questions, objets trouvés et positions ; à relancer après toute
+  modification de `js/link.js` (ou de ce qu'il utilise : entrées, `link-data.js`).
 - `tools/soh-entrances/apply_names.mjs` : table sortie ↔ entrée du tracker d'entrées de SoH et traductions ; réécrit les
   champs `label` / `soh` / `entr` de `areas-data.js` et aligne `shuffleTag` sur le type d'entrée SoH (relancer après
   toute modification de la table).
