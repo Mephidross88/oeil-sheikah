@@ -137,6 +137,11 @@ const App = {
     /* Routeur */
     const routerAreas = AREAS.filter(a => a.id !== SPAWN_AREA);
     const exitsOf = id => (AREA[id]?.exits || []);
+    // Listes du formulaire : seulement les sorties accessibles (logique SoH, entrées notées ou d'origine, reachC) si
+    // l'option est cochée ; la valeur choisie reste toujours proposée.
+    const pickAreas = sel => !ui.router.onlyReachable ? routerAreas
+      : routerAreas.filter(a => a.id === sel || a.exits.some(e => reachC.value.has(e.key)));
+    const pickExits = (id, sel) => exitsOf(id).filter(e => !ui.router.onlyReachable || e.key === sel || reachC.value.has(e.key));
     watch(() => ui.router.fromArea, id => { if (!exitsOf(id).some(e => e.key === ui.router.fromExit)) ui.router.fromExit = ''; });
     watch(() => ui.router.toArea, id => { if (!exitsOf(id).some(e => e.key === ui.router.toExit)) ui.router.toExit = ''; });
     // Clic sur une sortie du trajet : elle devient le départ (avec l'âge qu'on y a), le trajet repart de là.
@@ -635,7 +640,7 @@ const App = {
       itemVisible, tierLabel, iconSrc, checklistModal, openChecklist, setChecklist, checklistStats,
       tradeModal, openTrade, tradeStats, counterClass,
       TRIALS, trialStatus, cycleTrial, setDungeonFlag, addDungeonKeys, dungeonQuest, dungeonMaxKeys, cycleDungeonQuest, questLabel, questClass, questTitle, keysLabel, dungeonKeyRing, setKeyRing, dungeonKeysDone, keysTitle, brokenIcons,
-      setTheme, startHere, prevStart, backToPrev, liveStart, routerAreas, exitsOf, swap, route, edgeLabel, edgeIcon, WARP_SONGS, ageLabel, openBackup, copyBackup, importBackup, resetAll, declineSpoiler, savedAt, TYPE_LABEL };
+      setTheme, startHere, prevStart, backToPrev, liveStart, pickAreas, pickExits, swap, route, edgeLabel, edgeIcon, WARP_SONGS, ageLabel, openBackup, copyBackup, importBackup, resetAll, declineSpoiler, savedAt, TYPE_LABEL };
   },
   template:`
 <div class="shell" :class="{'nav-open':navOpen, split:splitOn, 'items-folded':ui.itemsFolded, 'nav-folded':ui.navFolded}">
@@ -675,6 +680,7 @@ const App = {
     <section v-if="shown('router')" class="side-sec compact" :style="{order:paneOf('router')==='side' ? 2 : 1}">
       <div v-if="splitOn" class="side-title side-page">Routeur</div>
       <label class="check" title="Coût total dans le résumé et coût de chaque étape (réglables dans Configuration)"><input type="checkbox" v-model="ui.router.showCost">Afficher les coûts</label>
+      <label class="check" title="Départ et arrivée : ne proposer que les sorties accessibles d'après la logique (entrées notées ou d'origine, objets notés)"><input type="checkbox" v-model="ui.router.onlyReachable">Seulement les lieux accessibles</label>
     </section>
 
     <section v-if="shown('checks')" class="side-sec" :style="{order:paneOf('checks')==='side' ? 2 : 1}">
@@ -869,10 +875,10 @@ const App = {
           <div class="rtag">Départ</div>
           <div class="field"><label for="fa">Zone</label>
             <select id="fa" class="sel" v-model="ui.router.fromArea"><option value="" disabled>Choisir une zone</option>
-              <option v-for="a in routerAreas" :key="a.id" :value="a.id">{{a.name}}</option></select></div>
+              <option v-for="a in pickAreas(ui.router.fromArea)" :key="a.id" :value="a.id">{{a.name}}</option></select></div>
           <div class="field"><label for="fe">Sortie</label>
             <select id="fe" class="sel" v-model="ui.router.fromExit" :disabled="!ui.router.fromArea"><option value="" disabled>Choisir une sortie</option>
-              <option v-for="e in exitsOf(ui.router.fromArea)" :key="e.key" :value="e.key" :title="e.soh">{{e.label}}</option></select></div>
+              <option v-for="e in pickExits(ui.router.fromArea, ui.router.fromExit)" :key="e.key" :value="e.key" :title="e.soh">{{e.label}}</option></select></div>
           <div class="field agebox"><span class="lbl">Âge</span><seg v-model="ui.router.fromAge" :options="[['child','Enfant'],['adult','Adulte']]"></seg></div>
         </div>
         <div class="rswap"><button type="button" @click="swap"><span v-html="ICONS.swap"></span>Inverser</button></div>
@@ -880,10 +886,10 @@ const App = {
           <div class="rtag">Arrivée</div>
           <div class="field"><label for="ta">Zone</label>
             <select id="ta" class="sel" v-model="ui.router.toArea"><option value="" disabled>Choisir une zone</option>
-              <option v-for="a in routerAreas" :key="a.id" :value="a.id">{{a.name}}</option></select></div>
+              <option v-for="a in pickAreas(ui.router.toArea)" :key="a.id" :value="a.id">{{a.name}}</option></select></div>
           <div class="field"><label for="te">Sortie</label>
             <select id="te" class="sel" v-model="ui.router.toExit" :disabled="!ui.router.toArea"><option value="" disabled>Choisir une sortie</option>
-              <option v-for="e in exitsOf(ui.router.toArea)" :key="e.key" :value="e.key" :title="e.soh">{{e.label}}</option></select></div>
+              <option v-for="e in pickExits(ui.router.toArea, ui.router.toExit)" :key="e.key" :value="e.key" :title="e.soh">{{e.label}}</option></select></div>
           <div class="field agebox"><span class="lbl">Âge</span><seg v-model="ui.router.toAge" :options="[['child','Enfant'],['adult','Adulte'],['any','Peu importe']]"></seg></div>
         </div>
       </div>

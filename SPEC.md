@@ -627,6 +627,11 @@ Règles d'interface :
   Les objets cachés derrière un événement de logique ne sont pas montrés.
 - Coûts masqués par défaut ; case « Afficher les coûts » dans la barre de gauche (`ui.router.showCost`, sauvegardée) : coût total dans le
   résumé et « Coût : X » en petit sous le libellé de chaque pastille.
+- Case « Seulement les lieux accessibles » dans la barre de gauche (`ui.router.onlyReachable`, cochée par défaut) : les
+  listes de zones et de sorties du départ et de l'arrivée ne proposent que les sorties accessibles d'après la logique
+  (`reachC` : une de leurs régions SoH est accessible, avec les objets notés et les entrées notées ou d'origine — une
+  entrée mélangée pas encore notée est une impasse), et les zones qui en ont au moins une. La zone et la sortie déjà
+  choisies restent toujours proposées.
 - Si aucun chemin : expliquer les causes possibles (sorties non découvertes, objet ou âge manquant).
 
 ## Auto-tracking (en cours)
