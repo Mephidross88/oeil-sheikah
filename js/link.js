@@ -57,7 +57,7 @@ function linkHandle(m){
     link.status = m.game ? 'game' : 'relay';
     link.client = m.clientState || null; link.player = m.player || null;
     if (m.teamState) linkApply({ type:'UPDATE_TEAM_STATE', state:m.teamState });
-    linkPositionFrom(m.player || m.clientState);
+    linkPositionFrom(m.player || m.clientState, false);
     return;
   }
   if (m.type === 'game'){
@@ -67,8 +67,8 @@ function linkHandle(m){
     linkLog(m.connected ? 'Jeu connecté' : 'Jeu déconnecté');
     return;
   }
-  if (m.type === 'client'){ link.client = m.clientState; linkEntranceArrival(m.clientState); linkPositionFrom(m.clientState); linkRevealAll(); return; }
-  if (m.type === 'player'){ link.player = m.player; linkEntranceArrival(m.player); linkPositionFrom(m.player); return; }
+  if (m.type === 'client'){ link.client = m.clientState; linkEntranceArrival(m.clientState); linkPositionFrom(m.clientState, true); linkRevealAll(); return; }
+  if (m.type === 'player'){ link.player = m.player; linkEntranceArrival(m.player); linkPositionFrom(m.player, true); return; }
   if (m.type === 'packet'){
     if (m.packet.type !== 'SET_FLAG' && m.packet.type !== 'UNSET_FLAG') linkLog(linkDescribe(m.packet));
     linkApply(m.packet);
@@ -297,16 +297,35 @@ function linkLoot(p){
    et âge (linkAge : 0 adulte, 1 enfant, seulement dans les mises à jour du joueur). Option : le départ du Routeur la
    suit (ui.link.position). Entrée inconnue (grotte non reconnue, scènes non mélangées, écran titre) : position inchangée.
    Le relais ne reçoit en pratique que l'état du client (UPDATE_CLIENT_STATE, à chaque changement de scène) : le jeu
-   n'envoie les mises à jour du joueur, avec la position de Link, qu'aux autres joueurs présents dans la scène. */
-function linkPositionFrom(x){
-  if (!x || (x.isSaveLoaded === false)) return;
-  const a = linkArrival(x, false, link.position?.key), key = typeof a === 'number' ? EXIT_BY_ARRIVAL[a] ?? linkSpawnArrival(a) : null;
+   n'envoie les mises à jour du joueur, avec la position et l'âge de Link, qu'aux autres joueurs présents dans la scène,
+   et l'âge n'est pas dans la sauvegarde complète. L'âge se déduit donc : au chargement d'une partie, du point
+   d'apparition (celui de l'enfant ou de l'adulte, s'ils mènent à des endroits différents) ; au voyage dans le temps
+   (épée de légende, entrée ENTR_TEMPLE_OF_TIME_2 dans les deux sens), en inversant l'âge connu (à défaut, celui du
+   départ du Routeur). `fresh` : nouvel état du jeu (pas la répétition de l'état courant à la connexion de l'appli). */
+const ENTR_TOT_AGE_CHANGE = 0x2CA;
+let linkLoaded = null;   // partie chargée au dernier état reçu (null : inconnu)
+function linkPositionFrom(x, fresh){
+  if (!x) return;
+  if (x.isSaveLoaded === false){ linkLoaded = false; return; }
+  const justLoaded = fresh && linkLoaded === false;
+  linkLoaded = true;
+  const a = linkArrival(x, false, link.position?.key);
+  let key = typeof a === 'number' ? EXIT_BY_ARRIVAL[a] ?? linkSpawnArrival(a) : null;
+  // âge connu : celui du départ du Routeur s'il suit la position (corrigé à la main au besoin), sinon le dernier déduit
+  const known = (store.ui.link.position && store.ui.router.fromAge) || link.position?.age || null;
+  let age = x.linkAge === 0 ? 'adult' : x.linkAge === 1 ? 'child' : null;
+  if (x.entranceIndex === ENTR_TOT_AGE_CHANGE){
+    key = TOT;
+    if (!age && fresh && known) age = known === 'adult' ? 'child' : 'adult';
+  }
+  if (!age && justLoaded && key) age = linkSpawnAge(key);
+  if (!age) age = known;
   // grotte(s) où l'on peut être, pour reconnaître la sortie de grotte à l'arrivée suivante
   const gs = GROTTO_LOAD[x.entranceIndex];
   linkGrottoIn = !gs ? null : a >= GROTTO_LOAD_START && a < GROTTO_EXIT_START ? [a - GROTTO_LOAD_START] : gs;
-  const age = x.linkAge === 0 ? 'adult' : x.linkAge === 1 ? 'child' : link.position?.age || null;
-  if (!key || !EXIT[key]) return;
-  if (link.position && link.position.key === key && link.position.age === age) return;
+  const cur = link.position;
+  if (!key || !EXIT[key]){ if (!cur || !age || cur.age === age) return; key = cur.key; }   // endroit inconnu : âge seul
+  else if (cur && cur.key === key && cur.age === age) return;
   link.position = { key, age };
   if (!store.ui.link.position) return;
   const r = store.ui.router;
@@ -321,6 +340,11 @@ ALL_EXITS.forEach(e => { if (e.areaId === SPAWN_AREA && e.entr != null) SPAWN_BY
 function linkSpawnArrival(n){
   const k = SPAWN_BY_ENTR[n];
   return k ? effC.value[k] || EXIT[k].vanilla || null : null;
+}
+// Âge d'après l'endroit où l'on apparaît au chargement d'une partie : celui du point d'apparition qui y mène, s'il est seul.
+function linkSpawnAge(key){
+  const dest = k => effC.value[k] || EXIT[k]?.vanilla, c = dest('spawns::spawn_child') === key, ad = dest('spawns::spawn_adult') === key;
+  return c && !ad ? 'child' : ad && !c ? 'adult' : null;
 }
 
 /* ---------- Entrées (option ui.link.entrances) ----------

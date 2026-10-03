@@ -659,8 +659,15 @@ Suivi en direct d'une partie de Ship of Harkinian, sans modifier le jeu.
   Numéros des drapeaux : `data/link-data.js`, **généré** par `tools/soh-link/gen_link_data.mjs`.
 - **Position** (option « la position », `ui.link.position`) : sortie où l'on vient d'apparaître, d'après l'entrée
   d'arrivée du jeu (`entranceIndex` de l'état du client, `UPDATE_CLIENT_STATE`, envoyé à chaque changement de scène,
-  via `EXIT_BY_ARRIVAL`), et âge (`linkAge` des mises à jour du joueur, `PLAYER_UPDATE`, si elles arrivent : le jeu ne
-  les envoie qu'aux autres joueurs présents dans la scène, donc en pratique pas au relais) ; affichée dans la fenêtre Auto-tracking, et le départ du Routeur la suit (mention « Départ suivi en direct »).
+  via `EXIT_BY_ARRIVAL`), et âge. Le jeu n'envoie l'âge (`linkAge`) que dans les mises à jour du joueur (`PLAYER_UPDATE`),
+  réservées aux autres joueurs présents dans la scène (donc en pratique pas au relais), et ne le met pas dans la
+  sauvegarde complète : il se déduit au chargement d'une partie (on apparaît au point d'apparition de son âge : âge du
+  seul point d'apparition, noté ou d'origine, qui mène là) et au voyage dans le temps (épée de légende : le Temple du
+  Temps est rechargé par l'entrée `ENTR_TEMPLE_OF_TIME_2`, 0x2CA, dans les deux sens ; l'âge connu est inversé et la
+  position devient le Temple du Temps). Âge connu = celui du départ du Routeur quand il suit la position (une correction
+  à la main est donc reprise), sinon le dernier déduit. L'état répété à la connexion de l'appli ne compte pas comme un
+  nouveau voyage dans le temps. Position affichée dans la fenêtre Auto-tracking, et le départ du Routeur la suit
+  (mention « Départ suivi en direct »).
   Tant que le départ est suivi en direct (jeu connecté), la prochaine étape du trajet est mise en lumière : trait doré
   depuis le départ, déplacement et éventuel changement d'âge, et carte suivante marquée « Prochaine destination » (ou
   « Arrivée »), entourée d'un anneau doré qui respire (fixe si l'utilisateur réduit les animations). Si la prochaine
