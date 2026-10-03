@@ -60,8 +60,11 @@ et le mettre à jour quand une règle change.
      `checkListed`, `setCheck`, `setExcluded`.
   8b. `js/link.js` : auto-tracking — connexion (EventSource) au relais local `tools/soh-link/relay.mjs`, état `link`
      (statut, journal), `linkApply` (paquets du jeu → partie : checks, `linkSaveToGame` sauvegarde SoH → panneau
-     Objets). Option persistante `store.ui.link`. Données `data/link-data.js` (drapeaux RandomizerInf, noms RandomizerGet),
-     **fichier généré** par `tools/soh-link/gen_link_data.mjs`.
+     Objets, position → départ du Routeur, objet trouvé par check, trouvailles, entrées notées via `setMapping`, spoiler
+     caché gardé à part dans localStorage `oeil-sheikah-spoiler`). Options persistantes `store.ui.link`. Données
+     `data/link-data.js` (drapeaux RandomizerInf, noms RandomizerGet et leurs noms français, numéros GetItemID, entrées
+     et positions de retour des grottes), **fichier généré** par `tools/soh-link/gen_link_data.mjs`. Relais :
+     `tools/soh-link/relay.mjs` (faux serveur Anchor en lecture seule ; tests sur d'autres ports, `--game=… --web=…`).
   9. `js/components.js` : composants Vue réutilisables (`TypeIcon`, `Seg`, `DestPicker`, `ItemTile`,
      `ProgressCard` — cadre de progression des pages Checks et Entrées).
   10. `js/app.js` : le composant racine `App` (template complet, dont le panneau Objets et ses modales de

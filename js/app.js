@@ -153,6 +153,8 @@ const App = {
       return p && EXIT[p.exit] && !(p.exit === ui.router.fromExit && p.age === ui.router.fromAge) ? p : null;
     });
     const backToPrev = () => setStart(prevStart.value.exit, prevStart.value.age);
+    // départ suivi en direct (auto-tracking de la position)
+    const liveStart = computed(() => ui.link.enabled && ui.link.position && link.status === 'game');
     function swap(){
       const r = ui.router;
       [r.fromArea, r.toArea] = [r.toArea, r.fromArea];
@@ -192,6 +194,27 @@ const App = {
         newCard(e.to, e.age);
       }
       [...items].reverse().find(i => i.t === 'card').end = true;
+      // départ et arrivée à part : la carte de départ ne garde que la sortie de départ, celle d'arrivée que la sortie
+      // visée ; la marche qui les sépare du reste de leur zone devient une pastille « à pied » entre deux cartes
+      const splitAt = (card, j) => {   // coupe avant rows[j] : la marche walks[j-1] passe entre les deux cartes
+        const tail = { t:'card', key0:card.rows[j].key, rows:card.rows.slice(j), walks:card.walks.slice(j), end:card.end };
+        const w = card.walks[j - 1];
+        card.rows = card.rows.slice(0, j); card.walks = card.walks.slice(0, j - 1); card.end = false;
+        items.splice(items.indexOf(card) + 1, 0, { t:'edge', e:w.e, reqs:w.reqs }, tail);
+        return tail;
+      };
+      const first = items.find(i => i.t === 'card');
+      if (first.rows.length > 1) splitAt(first, 1);
+      const last = [...items].reverse().find(i => i.t === 'card');
+      if (last.rows.length > 1) splitAt(last, last.rows.length - 1);
+      // départ suivi d'une transition par la sortie de départ elle-même : on la reprend (entrées découplées) — à dire,
+      // dans un bloc à part (la carte seule se lirait « on est ici » ; pas sur les étapes suivantes, pour la lisibilité)
+      const at = items.indexOf(first), nx = items[at + 1];
+      if (nx?.t === 'edge' && nx.e.kind === 'transition' && nx.e.from === first.rows[0].key) items.splice(at + 1, 0, { t:'retake', key:first.rows[0].key });
+      // prochaine étape (mise en lumière quand le départ suit le jeu) : du départ jusqu'à la carte suivante (ou au bloc
+      // « Reprendre cette sortie ») comprise
+      const nextAt = items.findIndex((it, i) => i > at && (it.t === 'card' || it.t === 'retake'));
+      for (let i = at + 1; i <= nextAt; i++) items[i].next = true;
       const count = k => res.edges.filter(e => e.kind === k).length;
       return { state:'ok', items, cost:Math.round(res.cost), steps:res.edges.length,
         transitions:count('transition') + count('bluewarp') + count('owl'), ages:count('age'), warps:count('warp'), resets:count('reset') };
@@ -612,7 +635,7 @@ const App = {
       itemVisible, tierLabel, iconSrc, checklistModal, openChecklist, setChecklist, checklistStats,
       tradeModal, openTrade, tradeStats, counterClass,
       TRIALS, trialStatus, cycleTrial, setDungeonFlag, addDungeonKeys, dungeonQuest, dungeonMaxKeys, cycleDungeonQuest, questLabel, questClass, questTitle, keysLabel, dungeonKeyRing, setKeyRing, dungeonKeysDone, keysTitle, brokenIcons,
-      setTheme, startHere, prevStart, backToPrev, routerAreas, exitsOf, swap, route, edgeLabel, edgeIcon, WARP_SONGS, ageLabel, openBackup, copyBackup, importBackup, resetAll, declineSpoiler, savedAt, TYPE_LABEL };
+      setTheme, startHere, prevStart, backToPrev, liveStart, routerAreas, exitsOf, swap, route, edgeLabel, edgeIcon, WARP_SONGS, ageLabel, openBackup, copyBackup, importBackup, resetAll, declineSpoiler, savedAt, TYPE_LABEL };
   },
   template:`
 <div class="shell" :class="{'nav-open':navOpen, split:splitOn, 'items-folded':ui.itemsFolded, 'nav-folded':ui.navFolded}">
@@ -884,16 +907,16 @@ const App = {
           <div class="rstat cost" v-if="ui.router.showCost"><span class="rstat-ic" v-html="ICONS.router"></span>
             <div><b>{{route.cost}}</b><span>coût total</span></div></div>
         </div>
-        <p class="path-hint"><template v-if="ui.link.enabled && ui.link.position && link.status==='game'"><span class="live-start"><span v-html="ICONS.live"></span>Départ suivi en direct</span></template>
+        <p class="path-hint"><template v-if="liveStart"><span class="live-start"><span v-html="ICONS.live"></span>Départ suivi en direct</span></template>
           Cliquez sur une sortie du trajet pour repartir de là.
           <button v-if="prevStart" type="button" class="prev-start" @click="backToPrev"
             :title="'Départ précédent : ' + areaName(prevStart.exit) + ' · ' + EXIT[prevStart.exit].label + ' (' + ageLabel(prevStart.age) + ')'">
             <span v-html="ICONS.undo"></span>Revenir à {{areaName(prevStart.exit)}} · {{EXIT[prevStart.exit].label}}</button></p>
         <div class="path">
           <template v-for="(it,i) in route.items" :key="i">
-            <div v-if="it.t==='card'" class="node" :class="{start:it.start && !it.end, end:it.end}">
+            <div v-if="it.t==='card'" class="node" :class="{start:it.start && !it.end, end:it.end, next:liveStart && it.next}">
               <type-icon :type="iconKey(EXIT[it.key0])" :src="exitIcon(EXIT[it.key0])"></type-icon>
-              <div class="role" v-if="it.start || it.end">{{it.start && it.end ? 'Départ et arrivée' : it.start ? 'Départ' : 'Arrivée'}}</div>
+              <div class="role" v-if="it.start || it.end || liveStart && it.next">{{it.start && it.end ? 'Départ et arrivée' : it.start ? 'Départ' : it.end ? 'Arrivée' : 'Prochaine destination'}}</div>
               <b>{{areaName(it.key0)}}</b>
               <template v-for="(row, j) in it.rows" :key="j">
                 <div v-if="j" class="node-walk">
@@ -907,7 +930,16 @@ const App = {
                   <type-icon v-if="j" class="mini" :type="iconKey(EXIT[row.key])" :src="exitIcon(EXIT[row.key])"></type-icon>{{EXIT[row.key].label}}</div>
               </template>
             </div>
-            <div v-else-if="it.t==='edge'" class="conn">
+            <template v-else-if="it.t==='retake'">
+              <div class="conn" :class="{next:liveStart && it.next}"><span class="ln"></span><span class="ln"></span><span class="arrow" v-html="ICONS.caret"></span></div>
+              <div class="node retake" :class="{next:liveStart && it.next}" :title="EXIT[it.key].soh">
+                <span class="ticon" v-html="ICONS.uturn"></span>
+                <div class="role" v-if="liveStart">Prochaine étape</div>
+                <b>{{liveStart ? 'Reprendre' : 'Prendre'}} cette sortie</b>
+                <div class="sub">{{areaName(it.key)}} · {{EXIT[it.key].label}}</div>
+              </div>
+            </template>
+            <div v-else-if="it.t==='edge'" class="conn" :class="{next:liveStart && it.next}">
               <span class="ln"></span>
               <!-- transition simple : pas de pastille, le trait suffit (objets et coût éventuels seulement) -->
               <div class="lab" v-if="it.e.kind !== 'transition' || it.reqs.icons.length || ui.router.showCost"><span v-if="it.e.kind !== 'transition'" class="mv" :class="[it.e.kind, it.e.kind === 'warp' ? 'song-' + WARP_SONGS[it.e.warp] : '']"><img class="mv-ic" :src="edgeIcon(it.e)" alt="">
@@ -919,8 +951,8 @@ const App = {
                   <span v-if="it.reqs.alts.length" class="alt-mark" :title="it.reqs.altTitle">ou…</span></span></div>
               <span class="ln"></span><span class="arrow" v-html="ICONS.caret"></span>
             </div>
-            <div v-if="it.t==='age'" class="conn"><span class="ln"></span><span class="ln"></span><span class="arrow" v-html="ICONS.caret"></span></div>
-            <div v-if="it.t==='age'" class="ageband" :title="ageLabel(it.from) + ' vers ' + ageLabel(it.to) + ', au Temple du Temps'">
+            <div v-if="it.t==='age'" class="conn" :class="{next:liveStart && it.next}"><span class="ln"></span><span class="ln"></span><span class="arrow" v-html="ICONS.caret"></span></div>
+            <div v-if="it.t==='age'" class="ageband" :class="{next:liveStart && it.next}" :title="ageLabel(it.from) + ' vers ' + ageLabel(it.to) + ', au Temple du Temps'">
               <img class="age-art" :src="'icons/route/age_' + it.from + '_to_' + it.to + '.png'" alt=""><b>Changement d'âge</b></div>
           </template>
         </div>
@@ -1211,6 +1243,7 @@ const App = {
             <label class="check"><input type="checkbox" v-model="ui.link.checks">les checks faits</label>
             <label class="check"><input type="checkbox" v-model="ui.link.items">les objets</label>
             <label class="check" title="Le départ du Routeur suit l'endroit où vous apparaissez dans le jeu"><input type="checkbox" v-model="ui.link.position">la position (départ du Routeur)</label>
+            <label class="check" title="Destination de chaque entrée prise, notée dans Entrées"><input type="checkbox" v-model="ui.link.entrances">les entrées</label>
             <label class="check" title="Pièges de glace, rubis et munitions reçus, affichés en bas du panneau Objets"><input type="checkbox" v-model="ui.link.loot">les trouvailles (pour le fun)</label></div>
           <label class="link-url">Adresse du relais <input class="sel" v-model.lazy="ui.link.url" spellcheck="false"></label>
           <div class="link-status" :class="link.status"><i></i><b>{{LINK_LABEL[link.status]}}</b>

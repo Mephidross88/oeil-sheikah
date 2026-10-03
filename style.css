@@ -672,6 +672,9 @@ select.sel:hover{border-color:var(--gold)}
 .nw-line::before,.nw-line::after{content:"";width:22px;height:1px;background:color-mix(in srgb,var(--green) 40%,transparent)}
 .nw-line img{width:20px;height:20px;object-fit:contain}
 .nw-line small{font-weight:400;opacity:.75}
+/* bloc « Reprendre cette sortie » : transition par la sortie de départ elle-même (entrées découplées) */
+.node.retake .ticon{display:grid;place-items:center;color:var(--gold-deep)}
+.node.retake .ticon svg{width:30px;height:30px}
 .node .node-exit.goal{color:var(--green);font-weight:700}
 /* clic sur une sortie du trajet : elle devient le départ */
 .node-exit{display:inline-block;border-radius:8px;padding:1px 8px;cursor:pointer;transition:background .12s}
@@ -681,6 +684,14 @@ select.sel:hover{border-color:var(--gold)}
 .node.start{border-color:var(--ocarina);background:var(--ocarina-soft)}
 .node.end{border-color:var(--green);background:var(--green-soft)}
 .node .role{font-size:13px;color:var(--muted)}
+/* départ suivi en direct : prochaine étape mise en lumière (anneau doré qui respire, trait doré jusqu'à elle) */
+.node.next,.ageband.next{--ring:color-mix(in srgb,var(--gold) 55%,transparent);box-shadow:0 0 0 3px var(--ring),var(--shadow);animation:next-glow 2.4s ease-in-out infinite}
+.node.next:not(.end){border-color:var(--gold)}
+.node.next .role{color:var(--gold-deep);font-weight:700}
+.conn.next .ln{width:2px;background:var(--gold)}
+.conn.next .arrow{color:var(--gold)}
+@keyframes next-glow{50%{box-shadow:0 0 0 7px color-mix(in srgb,var(--gold) 18%,transparent),var(--shadow)}}
+@media (prefers-reduced-motion:reduce){.node.next,.ageband.next{animation:none}}
 .node b{font-family:var(--serif);font-size:17.5px;font-weight:700;display:block;line-height:1.2}
 .node .sub{color:var(--muted);font-size:15px}
 .conn{display:flex;flex-direction:column;align-items:center;padding:4px 0}

@@ -593,8 +593,13 @@ Règles d'interface :
 - Affichage vertical, sur un axe central :
   - une carte par passage dans une zone : nom de la zone une seule fois, sorties successives empruntées dans la zone
     (la première, par laquelle on arrive, en médaillon sur le bord haut ; les suivantes avec une petite icône), reliées
-    par « à pied » et les objets utilisés pour cette marche ; marches consécutives fusionnées ; dans la
-    carte d'arrivée, la sortie visée (dernière) est mise en évidence ;
+    par « à pied » et les objets utilisés pour cette marche ; marches consécutives fusionnées. Le départ et l'arrivée
+    restent toujours seuls sur leur carte : une marche qui part du départ ou mène à la sortie visée est affichée
+    comme une pastille « À pied » entre deux cartes ; la carte d'arrivée (sortie visée) est mise en évidence. Départ
+    suivi d'une transition par la sortie de départ elle-même (on reprend la sortie par laquelle on vient d'apparaître,
+    en entrées découplées) : bloc dédié « Reprendre cette sortie » (« Prendre cette sortie » pour un départ choisi à la
+    main ; icône de demi-tour, zone et sortie en dessous) entre la carte de départ et la transition — seulement au
+    départ, pour la lisibilité ;
   - entre deux cartes, un simple trait pour une transition (avec ses objets éventuels, et son coût si affiché), et une
     pastille pour les déplacements « actifs » (téléporteur bleu, vol du hibou, chant, sauvegarder-recharger, et marche
     vers une autre zone : course d'Igor, mains du Temple de l'Esprit) : libellé centré entre deux fois l'icône du mode, couleur propre au mode. Chant de
@@ -653,9 +658,20 @@ Suivi en direct d'une partie de Ship of Harkinian, sans modifier le jeu.
   l'Épouvantail. Le relais redemande la sauvegarde complète après chaque objet reçu (`GIVE_ITEM`, objets de donjon).
   Numéros des drapeaux : `data/link-data.js`, **généré** par `tools/soh-link/gen_link_data.mjs`.
 - **Position** (option « la position », `ui.link.position`) : sortie où l'on vient d'apparaître, d'après l'entrée
-  d'arrivée du jeu (`entranceIndex` des états du joueur, via `EXIT_BY_ARRIVAL`), et âge (`linkAge` des mises à jour du
-  joueur) ; affichée dans la fenêtre Auto-tracking, et le départ du Routeur la suit (mention « Départ suivi en direct »).
-  Entrée d'arrivée inconnue (grottes, zones non mélangées, écran titre) : position inchangée.
+  d'arrivée du jeu (`entranceIndex` de l'état du client, `UPDATE_CLIENT_STATE`, envoyé à chaque changement de scène,
+  via `EXIT_BY_ARRIVAL`), et âge (`linkAge` des mises à jour du joueur, `PLAYER_UPDATE`, si elles arrivent : le jeu ne
+  les envoie qu'aux autres joueurs présents dans la scène, donc en pratique pas au relais) ; affichée dans la fenêtre Auto-tracking, et le départ du Routeur la suit (mention « Départ suivi en direct »).
+  Tant que le départ est suivi en direct (jeu connecté), la prochaine étape du trajet est mise en lumière : trait doré
+  depuis le départ, déplacement et éventuel changement d'âge, et carte suivante marquée « Prochaine destination » (ou
+  « Arrivée »), entourée d'un anneau doré qui respire (fixe si l'utilisateur réduit les animations). Si la prochaine
+  étape est de reprendre la sortie par laquelle on vient d'apparaître, c'est le bloc « Reprendre cette sortie » qui est
+  mis en lumière (« Prochaine étape »), et la carte suivante reste normale.
+  Entrée d'arrivée inconnue (grotte non reconnue, zones non mélangées, écran titre) : position inchangée. Entrée
+  d'arrivée partagée par plusieurs grottes (voir Entrées) : la position retient la seule de ces grottes où mène une
+  sortie (notée ou d'origine) de la zone d'où l'on vient, s'il n'y en a qu'une. Sortie de grotte : voir Entrées. Entrée
+  générique qui sert aussi aux retours de grotte (porte principale de Cocorico…), quand on ne sort pas d'une grotte
+  reconnue : en pools mélangés, n'importe quelle sortie peut mener à un retour de grotte ; la position retient la seule
+  de ces arrivées où mène une sortie (notée ou d'origine) de la zone d'où l'on vient, à défaut l'arrivée normale.
 - **Trouvailles** (option « les trouvailles », `ui.link.loot`, pour le fun) : objets reçus (`GIVE_ITEM`) comptés dans
   `game.loot` et affichés en bas du panneau Objets : pièges de glace, rubis (nombre et valeur), munitions et cœurs
   (bombes, noix, missiles, bâtons, graines, flèches, magie, cœur). Seulement pendant que l'auto-tracking tourne (le jeu
@@ -672,4 +688,21 @@ Suivi en direct d'une partie de Ship of Harkinian, sans modifier le jeu.
   y compris ceux faits avant de lancer le relais, d'après la sauvegarde complète) ; objets et prix des boutiques, pestes
   et marchands vus (statut 1+ : `game.seen`, l'apparence de l'objet, comme en jeu, pour ne pas trahir un piège de glace
   déguisé ; affichés en pointillés avec le prix). « Oublier » efface le spoiler gardé.
-- Étape suivante : entrées découvertes (le spoiler caché servira au rattrapage des entrées déjà découvertes).
+- **Entrées** (option « les entrées », `ui.link.entrances`) : le jeu signale l'entrée prise la première fois
+  (`ENTRANCE_DISCOVERED`, même numéro que nos sorties), puis l'entrée par laquelle on apparaît (~1 s après, état du
+  client) ; la destination est notée dans Entrées (`setMapping`, sens inverse compris en entrées couplées ; en
+  couplées, le second signalement, celui du sens inverse, est ignoré). Grottes : on arrive dans la grotte `i` par une
+  entrée de la scène des grottes (`grottoLoad[i]`), propre à cette grotte (Grotte aux Effrois, grottes à la vache,
+  Théâtre Mojo…) : la grotte est reconnue aussitôt ; ou partagée par plusieurs (grottes génériques, grottes des fées,
+  grottes des pestes Mojo) : la grotte n'est connue qu'en en sortant (sa sortie `0x800 + i` est alors signalée,
+  l'entrée menait à `0x700 + i`) ;
+  on en sort par une entrée générique de la zone (`grottoReturn`), qui sert aussi d'arrivée normale (ex. Village
+  Cocorico, porte principale ; Village Goron, sortie haute). L'appli retient la grotte où l'on est (reconnue à l'arrivée,
+  ou par le signalement de sa sortie) : en sortant, l'arrivée est le retour où mène sa sortie (notée ou d'origine). Pour
+  noter l'entrée prise, à défaut, la seule arrivée encore possible pour elle (`candidatesFor` : pools, destinations
+  déjà prises), sinon rien n'est noté — en pools mélangés, n'importe quelle sortie peut mener à un retour de grotte. Si
+  la position de Link est connue (mises à jour du joueur, résumées par le relais), le retour de grotte se reconnaît
+  aussi à la position au point d'apparition (120 unités au plus en 3D). Avec le spoiler
+  caché valable, la destination vient du spoiler (`entrances` : `index` → `override`), et les entrées déjà découvertes
+  (sauvegarde : `ship.stats.entrancesDiscovered`, bit = numéro d'entrée) sont rattrapées. Entrées hors randomizer
+  (passages non mélangés) ignorées.

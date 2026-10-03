@@ -42,7 +42,7 @@ const GI_NAMES = { 0x3E:'quart de cœur', 0x48:'cœur', 0x4C:'rubis vert', 0x4D:
 function linkDescribe(p){
   switch (p.type){
     case 'SET_CHECK_STATUS': { const c = CHECK_BY_NUM[p.rc]; return `${c ? c.label + ' (' + CHECK_AREA[c.area].label + ')' : 'Check ' + p.rc} : ${CHECK_STATUS_FR[p.status] || p.status}${p.skipped ? ' (ignoré)' : ''}`; }
-    case 'ENTRANCE_DISCOVERED': return `Entrée découverte : ${p.entranceIndex}`;
+    case 'ENTRANCE_DISCOVERED': { const x = EXIT_BY_ENTR[p.entranceIndex]; return `Entrée découverte : ${x ? AREA[x.areaId].name + ' · ' + x.label : p.entranceIndex}`; }
     case 'UPDATE_TEAM_STATE': return 'Sauvegarde complète reçue';
     case 'GIVE_ITEM': return `Objet reçu : ${p.modId ? (LINK_DATA.rg[p.getItemId] || p.getItemId).toLowerCase().replace(/_/g, ' ') : GI_NAMES[p.getItemId] || 'objet du jeu ' + p.getItemId}`;
     case 'UPDATE_DUNGEON_ITEMS': return 'Objets de donjon mis à jour';
@@ -67,8 +67,8 @@ function linkHandle(m){
     linkLog(m.connected ? 'Jeu connecté' : 'Jeu déconnecté');
     return;
   }
-  if (m.type === 'client'){ link.client = m.clientState; linkPositionFrom(m.clientState); linkRevealAll(); return; }
-  if (m.type === 'player'){ link.player = m.player; linkPositionFrom(m.player); return; }
+  if (m.type === 'client'){ link.client = m.clientState; linkEntranceArrival(m.clientState); linkPositionFrom(m.clientState); linkRevealAll(); return; }
+  if (m.type === 'player'){ link.player = m.player; linkEntranceArrival(m.player); linkPositionFrom(m.player); return; }
   if (m.type === 'packet'){
     if (m.packet.type !== 'SET_FLAG' && m.packet.type !== 'UNSET_FLAG') linkLog(linkDescribe(m.packet));
     linkApply(m.packet);
@@ -98,6 +98,8 @@ function linkApply(p){
     }
   }
   if (p.type === 'GIVE_ITEM') linkLoot(p);
+  if (p.type === 'ENTRANCE_DISCOVERED') linkEntranceDiscovered(p.entranceIndex);
+  if (p.type === 'UPDATE_TEAM_STATE') linkSpoilerEntrances(p.state?.ship?.stats?.entrancesDiscovered);
   if (store.ui.link.items){
     if (p.type === 'UPDATE_TEAM_STATE' && p.state?.inventory) linkApplyItems(p.state);
     // petite clé ramassée en direct : le jeu n'envoie que les clés en poche, on ajoute ce qui arrive
@@ -293,10 +295,15 @@ function linkLoot(p){
 
 /* ---------- Position : sortie où l'on vient d'apparaître (entrée d'arrivée du jeu, gSaveContext.entranceIndex) ----------
    et âge (linkAge : 0 adulte, 1 enfant, seulement dans les mises à jour du joueur). Option : le départ du Routeur la
-   suit (ui.link.position). Entrée inconnue (grottes, scènes non mélangées, écran titre) : position inchangée. */
+   suit (ui.link.position). Entrée inconnue (grotte non reconnue, scènes non mélangées, écran titre) : position inchangée.
+   Le relais ne reçoit en pratique que l'état du client (UPDATE_CLIENT_STATE, à chaque changement de scène) : le jeu
+   n'envoie les mises à jour du joueur, avec la position de Link, qu'aux autres joueurs présents dans la scène. */
 function linkPositionFrom(x){
   if (!x || (x.isSaveLoaded === false)) return;
-  const key = EXIT_BY_ARRIVAL[x.entranceIndex];
+  const a = linkArrival(x, false, link.position?.key), key = typeof a === 'number' ? EXIT_BY_ARRIVAL[a] ?? linkSpawnArrival(a) : null;
+  // grotte(s) où l'on peut être, pour reconnaître la sortie de grotte à l'arrivée suivante
+  const gs = GROTTO_LOAD[x.entranceIndex];
+  linkGrottoIn = !gs ? null : a >= GROTTO_LOAD_START && a < GROTTO_EXIT_START ? [a - GROTTO_LOAD_START] : gs;
   const age = x.linkAge === 0 ? 'adult' : x.linkAge === 1 ? 'child' : link.position?.age || null;
   if (!key || !EXIT[key]) return;
   if (link.position && link.position.key === key && link.position.age === age) return;
@@ -305,6 +312,137 @@ function linkPositionFrom(x){
   const r = store.ui.router;
   if (r.fromExit !== key){ r.fromArea = EXIT[key].areaId; r.fromExit = key; }
   if (age) r.fromAge = age;
+}
+
+// Chargement d'une partie au point d'apparition (apparition enfant / adulte non mélangée : le jeu envoie l'entrée de
+// l'apparition elle-même) : on est à la destination de l'apparition (notée dans Entrées, sinon d'origine).
+const SPAWN_BY_ENTR = {};
+ALL_EXITS.forEach(e => { if (e.areaId === SPAWN_AREA && e.entr != null) SPAWN_BY_ENTR[e.entr] = e.key; });
+function linkSpawnArrival(n){
+  const k = SPAWN_BY_ENTR[n];
+  return k ? effC.value[k] || EXIT[k].vanilla || null : null;
+}
+
+/* ---------- Entrées (option ui.link.entrances) ----------
+   Le jeu signale l'entrée prise la première fois (ENTRANCE_DISCOVERED, numéro de l'entrée = celui de nos sorties),
+   puis l'entrée par laquelle on apparaît (entranceIndex des mises à jour du joueur, ~1 s après) : la destination est
+   notée dans Entrées (setMapping, sens inverse compris en entrées couplées). Grottes : on arrive dans la grotte i par
+   une entrée de la scène des grottes (LINK_DATA.grottoLoad[i]), propre à la grotte (Grotte aux Effrois…) ou partagée
+   par plusieurs (grottes génériques, fontaines des fées) — une grotte partagée n'est connue qu'en en sortant (sa sortie
+   0x800 + i est alors signalée : entrée 0x700 + i) ; on en sort par une entrée générique de la zone (LINK_DATA.grottoReturn)
+   — la sortie de grotte se reconnaît à la grotte d'où l'on vient (linkGrottoIn) et à la destination connue de sa sortie,
+   à défaut aux destinations encore possibles pour la sortie prise (candidatesFor), ou à la position de Link si elle est
+   connue. Avec le spoiler caché, la destination vient directement du spoiler, et les entrées déjà
+   découvertes (sauvegarde : ship.stats.entrancesDiscovered) sont rattrapées. */
+const GROTTO_LOAD = {};   // entrée d'arrivée → numéros des grottes où elle mène
+(LINK_DATA.grottoLoad || []).forEach((n, i) => (GROTTO_LOAD[n] ||= []).push(i));
+const GROTTO_RETURN = LINK_DATA.grottoReturn || [];
+const GROTTO_RETURN_ENTR = new Set(GROTTO_RETURN.map(r => r[0]));
+const GROTTO_LOAD_START = 0x700, GROTTO_EXIT_START = 0x800, GROTTO_POS_MAX = 120;
+let linkGrottoIn = null;   // numéros des grottes où l'on peut être (null : pas dans une grotte)
+// Arrivées possibles par l'entrée générique n en sortant d'une grotte : l'arrivée normale et les retours de grotte.
+const linkReturnOptions = n => [n, ...GROTTO_RETURN.flatMap(([e], j) => e === n ? [GROTTO_EXIT_START + j] : [])];
+// Arrivée en sortant de la grotte où l'on était, d'après la destination (notée ou d'origine) de sa sortie ; null si
+// inconnue ou ambiguë.
+function linkGrottoReturn(n){
+  const eff = effC.value, opts = new Set(linkReturnOptions(n)), out = new Set();
+  for (const i of linkGrottoIn){
+    const t = eff[EXIT_BY_ARRIVAL[GROTTO_LOAD_START + i]];
+    if (!t) return null;
+    if (opts.has(ARRIVAL_ENTR[t])) out.add(ARRIVAL_ENTR[t]);
+  }
+  return out.size === 1 ? [...out][0] : null;
+}
+/** Entrée d'arrivée « logique » (numéro de nos sorties) d'après l'état du joueur : numéro, 'grotto' (dans une grotte
+    inconnue) ou null. Entrée générique aussi utilisée par une sortie de grotte : si l'on était dans une grotte, le retour
+    de cette grotte (linkGrottoReturn) ; à défaut null si `strict` (noter une entrée : en pools mélangés, une sortie
+    quelconque peut mener à un retour de grotte), sinon (position du Routeur) la seule de ces arrivées où mène une
+    sortie (notée ou d'origine) de la zone d'où l'on vient (`from`), et en dernier recours l'arrivée normale. Entrée partagée par
+    plusieurs grottes, hors `strict` : la seule de ces grottes où mène une sortie (notée ou d'origine) de la zone d'où
+    l'on vient (`from`, clé de sortie), s'il n'y en a qu'une. */
+function linkArrival(x, strict, from){
+  const n = x.entranceIndex;
+  if (GROTTO_LOAD[n]){
+    let gs = GROTTO_LOAD[n];
+    if (gs.length > 1 && !strict && from && EXIT[from]){
+      const eff = effC.value, area = EXIT[from].areaId;
+      gs = gs.filter(i => { const k = EXIT_BY_ARRIVAL[GROTTO_LOAD_START + i]; return k && AREA[area].exits.some(e => eff[e.key] === k); });
+    }
+    return gs.length === 1 ? GROTTO_LOAD_START + gs[0] : 'grotto';
+  }
+  if (GROTTO_RETURN_ENTR.has(n)){
+    if (x.pos){
+      // distance en 3D : un point d'arrivée normal peut être proche d'un retour de grotte vu de dessus (Village Goron)
+      let best = -1, bestD = GROTTO_POS_MAX;
+      GROTTO_RETURN.forEach(([e, gx, gy, gz], i) => { if (e !== n) return; const d = Math.hypot(x.pos.x - gx, x.pos.y - gy, x.pos.z - gz); if (d < bestD){ bestD = d; best = i; } });
+      return best >= 0 ? GROTTO_EXIT_START + best : n;
+    }
+    const g = linkGrottoIn && linkGrottoReturn(n);
+    if (g != null) return g;
+    if (strict) return null;
+    // position : la seule de ces arrivées où mène une sortie (notée ou d'origine) de la zone d'où l'on vient
+    if (from && EXIT[from]){
+      const eff = effC.value, opts = new Set(linkReturnOptions(n)), out = new Set();
+      for (const e of AREA[EXIT[from].areaId].exits){ const a = ARRIVAL_ENTR[eff[e.key]]; if (opts.has(a)) out.add(a); }
+      if (out.size === 1) return [...out][0];
+    }
+    return n;
+  }
+  return n;
+}
+let linkPendingEntr = null, linkGrottoEntr = null;   // entrée découverte en attente d'arrivée ; entrée qui mène dans une grotte inconnue
+function linkEntranceDiscovered(d){
+  if (!store.ui.link.entrances) return;
+  const now = Date.now();
+  // une sortie de grotte (0x800 + i) dit dans quelle grotte menait l'entrée précédente
+  if (d >= GROTTO_EXIT_START && d < GROTTO_EXIT_START + GROTTO_RETURN.length){
+    linkGrottoIn = [d - GROTTO_EXIT_START];
+    if (linkGrottoEntr !== null) linkNoteEntrance(linkGrottoEntr, GROTTO_LOAD_START + (d - GROTTO_EXIT_START));
+    linkGrottoEntr = null;
+  }
+  // en entrées couplées, le jeu signale aussi le sens inverse aussitôt : on garde la première
+  if (linkPendingEntr && now - linkPendingEntr.t < 300) return;
+  const target = linkSpoilerOverride(d);
+  if (target !== undefined){ linkNoteEntrance(d, target); linkPendingEntr = null; return; }
+  linkPendingEntr = { d, t:now };
+}
+function linkEntranceArrival(x){
+  if (!x || x.isSaveLoaded === false || !store.ui.link.entrances || !linkPendingEntr || Date.now() - linkPendingEntr.t > 15000) return;
+  let a = linkArrival(x, true);
+  const d = linkPendingEntr.d, src = EXIT_BY_ENTR[d];
+  linkPendingEntr = null;
+  // sortie de grotte ambiguë : la seule arrivée encore possible pour la sortie prise (pools, destinations déjà prises)
+  if (a === null && src){
+    const cands = new Set(candidatesFor(src.key).map(e => e.key)), ok = linkReturnOptions(x.entranceIndex).filter(o => cands.has(EXIT_BY_ARRIVAL[o]));
+    if (ok.length === 1) a = ok[0];
+  }
+  if (a === 'grotto') linkGrottoEntr = d;
+  else if (typeof a === 'number') linkNoteEntrance(d, a);
+}
+// Note dans Entrées : la sortie prise (entrée d) mène là où l'on apparaît par l'entrée a.
+function linkNoteEntrance(d, a){
+  const x = EXIT_BY_ENTR[d], target = EXIT_BY_ARRIVAL[a];
+  if (!x || !target || !EXIT[target] || !isRandomized(x, store.settings) && !x.specialTag) return false;
+  if (store.mappings[x.key] === target) return false;
+  setMapping(x.key, target);
+  linkLog(`Entrée notée : ${AREA[x.areaId].name} · ${x.label} → ${AREA[EXIT[target].areaId].name} · ${EXIT[target].label}`);
+  return true;
+}
+// Spoiler caché : destination réelle de l'entrée d (undefined si pas de spoiler valable ou entrée absente).
+function linkSpoilerOverride(d){
+  if (!linkSpoilerOk()) return undefined;
+  const e = linkSpoiler.entrances.find(e => e.index === d);
+  return e ? e.override : undefined;
+}
+// Rattrapage des entrées découvertes avant de lancer le relais (sauvegarde complète + spoiler caché).
+function linkSpoilerEntrances(bits){
+  if (!store.ui.link.entrances || !linkSpoilerOk() || !Array.isArray(bits)) return;
+  let n = 0;
+  for (const e of linkSpoiler.entrances){
+    const i = e.index >> 5;
+    if (i < bits.length && (bits[i] >>> (e.index & 31)) & 1 && linkNoteEntrance(e.index, e.override)) n++;
+  }
+  if (n) linkLog(`${n} entrée${n > 1 ? 's' : ''} notée${n > 1 ? 's' : ''} d'après la sauvegarde et le spoiler`);
 }
 
 // Petites clés en poche vues pour la dernière fois, par index de donjon (ajout de celles ramassées en direct).

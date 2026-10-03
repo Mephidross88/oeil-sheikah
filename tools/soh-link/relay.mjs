@@ -79,8 +79,10 @@ function onGamePacket(p){
     return;
   }
   if (type === 'PLAYER_UPDATE'){
-    // résumé : scène, entrée d'arrivée et âge, seulement quand ils changent
-    const next = { sceneNum:p.sceneNum, entranceIndex:p.entranceIndex, linkAge:p.linkAge };
+    // résumé : scène, entrée d'arrivée et âge, seulement quand ils changent, avec la position de Link à ce moment-là
+    // (point d'apparition : distingue les sorties de grotte, qui réutilisent une entrée générique de la zone)
+    const pos = p.posRot?.pos, round = v => Math.round(v ?? 0);
+    const next = { sceneNum:p.sceneNum, entranceIndex:p.entranceIndex, linkAge:p.linkAge, pos:pos ? { x:round(pos.x), y:round(pos.y), z:round(pos.z) } : null };
     if (!player || next.sceneNum !== player.sceneNum || next.entranceIndex !== player.entranceIndex || next.linkAge !== player.linkAge){
       player = next;
       broadcast({ type:'player', player });

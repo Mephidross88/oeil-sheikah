@@ -40,15 +40,33 @@ for (const line of itemList.split('\n')){
   if (line.includes('MOD_NONE') && gi !== undefined && !(gi in giRg) && !/^RG_(BUY_|NONE$)/.test(m[1])) giRg[gi] = n;
 }
 
+// Grottes (randomizer_grotto.c) : on y entre par une entrée de la scène des grottes (grottoLoadTable : propre à la
+// grotte ou partagée par plusieurs, le contenu de la grotte n'est pas envoyé) et on en sort par une entrée générique
+// de la zone, Link étant placé à une position propre à chaque grotte (grottoReturnTable). Numéros des entrées : position dans entrance_table.h.
+const ENTR = {};
+for (const m of fs.readFileSync(new URL('../soh-checks/src/entrance_table.h', import.meta.url), 'utf8')
+  .matchAll(/\/\*\s*0x([0-9A-Fa-f]+)\s*\*\/\s*DEFINE_ENTRANCE\((ENTR_\w+)/g)) ENTR[m[2]] = parseInt(m[1], 16);
+const grottoSrc = fs.readFileSync(new URL('../soh-checks/src/randomizer_grotto.c', import.meta.url), 'utf8');
+const table = name => grottoSrc.slice(grottoSrc.indexOf(name), grottoSrc.indexOf('};', grottoSrc.indexOf(name)));
+// grottoLoad[i] = entrée par laquelle on arrive dans la grotte i
+const grottoLoad = [...table('grottoLoadTable').matchAll(/\.entranceIndex\s*=\s*(ENTR_\w+)/g)].map(m => ENTR[m[1]]);
+// grottoReturn[i] = [entrée générique de retour, x, y, z] ; la grotte i a pour entrée 0x700 + i et pour sortie 0x800 + i
+const grottoReturn = [...table('grottoReturnTable').matchAll(/\.entranceIndex\s*=\s*(ENTR_\w+)[^}]*?\.pos\s*=\s*\{\s*\.x\s*=\s*(-?[\d.]+)f,\s*\.y\s*=\s*(-?[\d.]+)f,\s*\.z\s*=\s*(-?[\d.]+)f/g)]
+  .map(m => [ENTR[m[1]], +m[2], +m[3], +m[4]]);
+if (grottoLoad.some(x => x === undefined) || grottoReturn.some(r => r[0] === undefined)) throw new Error('entrée de grotte inconnue');
+
 const out = `/* Auto-tracking (js/link.js) — FICHIER GÉNÉRÉ par tools/soh-link/gen_link_data.mjs depuis les sources de
    Ship of Harkinian 9.2.3 (commit cb71e22). randInf : { NOM: numéro de drapeau RandomizerInf } ; rg : noms des objets
    RandomizerGet, par numéro ; rgFr : leur nom français (item_list.cpp) ; giRg : { numéro GetItemID: numéro RG } des
-   objets du jeu de base (reçus avec modId 0). */
+   objets du jeu de base (reçus avec modId 0) ; grottoLoad[i] : entrée (de la scène des grottes, parfois partagée)
+   par laquelle on arrive dans la grotte i ; grottoReturn[i] : [entrée générique, x, y, z] de la sortie de la grotte i (entrée 0x700 + i, sortie 0x800 + i). */
 window.LINK_DATA = {
   randInf:${JSON.stringify(randInf)},
   rg:${JSON.stringify(rg)},
   rgFr:${JSON.stringify(rgFr)},
   giRg:${JSON.stringify(giRg)},
+  grottoLoad:${JSON.stringify(grottoLoad)},
+  grottoReturn:${JSON.stringify(grottoReturn)},
 };
 `;
 fs.writeFileSync(OUT, out);
