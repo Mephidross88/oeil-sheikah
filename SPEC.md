@@ -640,6 +640,20 @@ Règles d'interface :
   choisies restent toujours proposées.
 - Si aucun chemin : expliquer les causes possibles (sorties non découvertes, objet ou âge manquant).
 
+## Où aller maintenant ?
+Bandeau collé en bas de la zone principale, sur toutes les pages (ne prend la place d'aucune), repliable
+(`ui.next.open`, replié par défaut). Replié : le check faisable le plus proche (zone, nombre d'étapes) et le nombre de
+checks faisables. Déplié : les 12 plus proches, en cartes (icône de catégorie, libellé, zone, « à pied » ou « N étapes »,
+« adulte » si on s'y rend en adulte) ; un clic = « Y aller » (Routeur).
+- Proximité depuis le départ du Routeur (donc la position en direct si l'auto-tracking la suit) et son âge :
+  exploration complète du graphe du Routeur (`reachAll` dans `entrances.js`, même Dijkstra que `shortest`, coûts du
+  Routeur) ; chaque région SoH joignable à pied depuis un état reçoit le coût de l'état plus la marche estimée par
+  région traversée (`costs.walk`) ; un check prend le coût de la meilleure de ses régions (`CHECK_REGIONS`), à un âge
+  où il est faisable maintenant (`sohC`). Étapes = déplacements hors marche.
+- Checks proposés : comme la page Checks (mélangés, version active, non exclus, catégories affichées), pas faits,
+  faisables maintenant.
+- Sans départ dans le Routeur : invitation à en choisir un (ou à activer la position en direct).
+
 ## Auto-tracking (en cours)
 Suivi en direct d'une partie de Ship of Harkinian, sans modifier le jeu.
 - **Relais** `tools/soh-link/relay.mjs` (Node, sans dépendance), lancé à la main pendant qu'on joue (sous Windows :

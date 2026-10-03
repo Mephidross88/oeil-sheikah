@@ -25,7 +25,7 @@ et le mettre à jour quand une règle change.
   4. `js/entrances.js` : règles de la page Entrées, pures (sans Vue) — sorties randomisées et pools (`isRandomized`,
      `poolOf`, `isMixed`, pool des salles de boss), déblocage des sens uniques (`isUnlocked`), cibles effectives
      (`computeEff`), validation des données (`DATA_ERRORS`) — et `shortest` (Dijkstra, pour le Routeur ; but = sortie ou
-     prédicat, pour « Y aller » de Checks).
+     prédicat, pour « Y aller » de Checks), `reachAll` (même exploration sans but : bandeau « Où aller maintenant ? »).
   5. `js/items.js` : `ITEM_GROUPS` (catalogue du panneau Objets, source de vérité des métadonnées et des
      clés de sauvegarde) et ses helpers (`itemMax`, `itemVisible`, `visibleKeys`, `dungeonCells`, `configQuest`, `configKeyRing`, `TRIALS`/`configTrials` (épreuves de Ganon) — visibilité
      pilotée par `store.settings`) ; `ITEM_BY_KEY` (lookup clé → objet) et
@@ -146,7 +146,7 @@ et le mettre à jour quand une règle change.
 - Coûts du Routeur réglables dans `store.costs` (dont `walk` : coût estimé par région SoH traversée sans coût connu).
 - Thème : `store.ui.theme` (`auto` suit le système, `light`/`dark` posent `data-theme` sur `<html>`).
 - Mise en page : `ui.view` (panneau principal), `ui.split` (page du second panneau, côte à côte si l'écran fait au moins
-  1500 px ; `shown(v)` / `paneOf(v)` dans `App`), `ui.itemsFolded` (panneau Objets replié), `ui.navFolded` (barre de gauche réduite à des icônes). Chaque page du template est
+  1500 px ; `shown(v)` / `paneOf(v)` dans `App`), `ui.itemsFolded` (panneau Objets replié), `ui.navFolded` (barre de gauche réduite à des icônes), `ui.next.open` (bandeau « Où aller maintenant ? » déplié). Chaque page du template est
   une `<section class="pane">` ; ne pas réutiliser la classe `side` (barre latérale) ailleurs.
 
 ## Débogage

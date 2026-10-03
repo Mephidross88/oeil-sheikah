@@ -477,6 +477,36 @@ const App = {
       const age = (now & CHILD) && !(now & ADULT) ? 'child' : (now & ADULT) && !(now & CHILD) ? 'adult' : null;
       routeTo((k, a, m) => (!age || a === age) && [...routeC.value.regions(k, a, m).keys()].some(rr => regs.has(rr)), age);
     }
+    /* « Où aller maintenant ? » : checks faisables les plus proches du départ du Routeur (position en direct comprise).
+       Exploration complète du graphe du Routeur depuis le départ (reachAll) ; chaque région SoH joignable à pied
+       depuis un état y reçoit le coût de l'état (plus la marche estimée par région traversée) ; un check prend le coût
+       de la meilleure de ses régions, à un âge où il est faisable. Checks suivis : comme la page Checks (mélangés,
+       version active, non exclus, catégories affichées). */
+    const nextC = computed(() => {
+      const r = ui.router;
+      if (!r.fromExit || !EXIT[r.fromExit]) return null;
+      const rg = routeC.value, best = new Map(), walk = store.costs.walk || 0;
+      for (const n of reachAll(rg.edges, r.fromExit, r.fromAge))
+        for (const [rr, depth] of rg.regions(n.key, n.age, n.mode)){
+          const k = rr + '|' + n.age, cost = n.cost + depth * walk, b = best.get(k);
+          if (!b || cost < b.cost) best.set(k, { cost, n });
+        }
+      const now = sohC.value.checks, out = [];
+      for (const c of CHECKS){
+        if (store.game.checks[c.id] || s.excluded[c.id] || !catOn(c) || !checkListed(c)) continue;
+        const bits = now['RC_' + c.id] || 0;
+        if (!bits) continue;
+        let bb = null;
+        for (const rr of CHECK_REGIONS['RC_' + c.id] || []) for (const [a, m] of [['child', CHILD], ['adult', ADULT]]){
+          const x = (bits & m) && best.get(rr + '|' + a);
+          if (x && (!bb || x.cost < bb.cost)) bb = { cost:x.cost, steps:x.n.steps, age:a };
+        }
+        if (bb) out.push({ c, ...bb });
+      }
+      out.sort((x, y) => x.cost - y.cost);
+      return { list:out.slice(0, 12), total:out.length };
+    });
+    const stepsLabel = n => n ? n + ' étape' + (n > 1 ? 's' : '') : 'à pied';
     // « Pourquoi ? » : ce qui manque pour un check pas encore faisable (whyLocked, calcul de ~1 s, lancé après affichage)
     const why = reactive({ check:null, res:null });
     function openWhy(c){
@@ -642,7 +672,7 @@ const App = {
     return { store, ui, s, views, link, LINK_LABEL, linkRequestState, linkAsks, linkAnswer, askFrom, askLabel, canSplit, splitOn, shown, paneOf, swapPanes, openSide, closeSide, navOpen, itemsOpen, modal, tip, tipData, backup, stats, missingSpawns, visibleAreas,
       ICONS, ITEMS_PAGE, ITEM_BY_KEY, DUNGEONS, DUNGEON_BY_ID, CHECKLISTS, AREA, EXIT, DATA_ERRORS,
       iconKey, exitIcon, areaName, toggleArea, setAll, jump, go, showTip, hideTip, toggleTip, setMapping, clearMapping,
-      checkAreasC, checkStats, toggleCheckArea, lastCheck, toggleCheck, toggleExcluded, undoCheck, foundInfo, seenInfo, loadSpoilerFile, linkClearSpoiler, linkSpoilerOk, goToCheck, goToZone, why, openWhy, goMsg, setAllChecks, jumpCheck, setCheck, setExcluded, CHECK_AREA,
+      checkAreasC, checkStats, toggleCheckArea, lastCheck, toggleCheck, toggleExcluded, undoCheck, foundInfo, seenInfo, loadSpoilerFile, linkClearSpoiler, linkSpoilerOk, goToCheck, goToZone, why, openWhy, nextC, stepsLabel, goMsg, setAllChecks, jumpCheck, setCheck, setExcluded, CHECK_AREA,
       CHECK_CATS, CHECK_CAT, catCounts, toggleCat, zoneTitle, soloCat, allCats, CHECK_AGES, ageLabelShort, ageKnown, checkGroups,
       lg, canNow, timeOf, checkLogicTitle, CHILD, ADULT,
       panelSkills, panelChecklists, cells, dungeonRows, skeletonShown, atStart, visibleKeys,
@@ -1049,6 +1079,24 @@ const App = {
         </section>
       </div>
     </section>
+    </div>
+
+    <!-- « Où aller maintenant ? » : checks faisables les plus proches du départ du Routeur -->
+    <div class="next-dock" :class="{open:ui.next.open}">
+      <button type="button" class="nd-bar" @click="ui.next.open = !ui.next.open" :aria-expanded="ui.next.open">
+        <span class="nd-ic" v-html="ICONS.compass"></span><b>Où aller maintenant ?</b>
+        <span v-if="!nextC" class="nd-sum">Choisissez un départ dans le Routeur (ou activez la position en direct).</span>
+        <span v-else-if="!nextC.list.length" class="nd-sum">Aucun check faisable à portée.</span>
+        <span v-else class="nd-sum">Le plus proche : <b>{{nextC.list[0].c.label}}</b> · {{CHECK_AREA[nextC.list[0].c.area].label}} ({{stepsLabel(nextC.list[0].steps)}})
+          <span class="nd-count">{{nextC.total}} faisable{{nextC.total > 1 ? 's' : ''}}</span></span>
+        <span class="nd-chev" v-html="ICONS.caret"></span>
+      </button>
+      <div v-if="ui.next.open && nextC && nextC.list.length" class="nd-list">
+        <button v-for="x in nextC.list" :key="x.c.id" type="button" class="nd-card" :title="'Y aller (Routeur) — ' + x.c.soh" @click="goToCheck(x.c)">
+          <img :src="CHECK_CAT[x.c.cat].icon" alt="">
+          <span class="nd-txt"><b>{{x.c.label}}</b><small>{{CHECK_AREA[x.c.area].label}} · {{stepsLabel(x.steps)}}{{x.age === 'adult' ? ' · adulte' : ''}}</small></span>
+        </button>
+      </div>
     </div>
   </main>
 

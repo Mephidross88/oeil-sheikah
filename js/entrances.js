@@ -128,3 +128,22 @@ function shortest(edges, start, startAge, goal, goalAge){
   }
   return null;
 }
+/** Même exploration, sans but : tous les états joignables depuis le départ, par distance croissante,
+    [{ key, age, mode, cost, steps }] (steps : étapes hors marche). « Où aller maintenant ? ». */
+function reachAll(edges, start, startAge){
+  const id = (k, a, m) => k + '|' + a + '|' + m;
+  const dist = new Map([[id(start, startAge, 'start'), 0]]), steps = new Map([[id(start, startAge, 'start'), 0]]);
+  const heap = [[0, start, startAge, 'start']], done = new Set(), out = [];
+  while (heap.length){
+    let bi = 0; for (let i = 1; i < heap.length; i++) if (heap[i][0] < heap[bi][0]) bi = i;
+    const [d, k, a, m] = heap.splice(bi, 1)[0], cur = id(k, a, m);
+    if (done.has(cur) || d > dist.get(cur)) continue;
+    done.add(cur);
+    out.push({ key:k, age:a, mode:m, cost:d, steps:steps.get(cur) });
+    for (const e of edges(k, a, m)){
+      const nd = d + e.cost + 0.001, nid = id(e.to, e.age, e.mode);
+      if (nd < (dist.get(nid) ?? Infinity)){ dist.set(nid, nd); steps.set(nid, steps.get(cur) + (e.kind === 'walk' ? 0 : 1)); heap.push([nd, e.to, e.age, e.mode]); }
+    }
+  }
+  return out;
+}
