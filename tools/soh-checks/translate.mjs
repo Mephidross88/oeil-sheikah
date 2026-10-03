@@ -18,6 +18,7 @@ export const FULL = {
   'Song from Malon': 'Chant de Malon', 'Child Fishing': 'Pêche (enfant)', 'Adult Fishing': 'Pêche (adulte)',
   'Hyrule Loach Reward': 'Récompense de la Loche d\'Hyrule', 'Lab Dive': 'Plongée du Laboratoire du Lac',
   'Lab Trade Eyeball Frog': 'Échange au Laboratoire du Lac : Œil de Grenouille', 'Underwater Item': 'Objet sous l\'eau',
+  'In Front of King Zora Beehive Left': 'Ruche gauche devant le Roi Zora', 'In Front of King Zora Beehive Right': 'Ruche droite devant le Roi Zora',
   'Sun': 'Tirer sur le soleil', 'Freestanding PoH': 'Quart de cœur', 'GS Skull on Fire': 'Skulltula du crâne en feu',
   'Boomerang Room Small Chest': 'Petit coffre de la salle du boomerang', 'First Stalfos Chest': 'Coffre du 1er Stalfos',
   'First Iron Knuckle Chest': 'Coffre du 1er Hache-Viande', 'Second Iron Knuckle Chest': 'Coffre du 2e Hache-Viande',
