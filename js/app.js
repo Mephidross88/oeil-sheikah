@@ -606,13 +606,14 @@ const App = {
         // faisables : checks suivis restants, faisables avec l'inventaire actuel
         const accessible = tracked.filter(c => !done[c.id] && canNow(c)).length;
         // état de la zone (couleurs) : terminée, tout le reste accessible, en partie, rien d'accessible (ou rien à faire)
-        const state = complete ? 'done' : !accessible ? 'none' : accessible === tracked.length - got ? 'all' : 'part';
-        return { area:a, quest, checks:shown, total:tracked.length, got, byCat, hiddenQuest, complete, accessible, state };
+        const state = complete ? 'done' : !tracked.length && listed.some(c => ex[c.id]) ? 'ignored' : !accessible ? 'none' : accessible === tracked.length - got ? 'all' : 'part';
+        const excluded = listed.filter(c => ex[c.id]).length;   // zone ignorée : reste listée pour pouvoir la réintégrer
+        return { area:a, quest, checks:shown, total:tracked.length, got, byCat, hiddenQuest, complete, accessible, state, excluded };
       });
     });
     const checkAreasC = computed(() => { const q = cf.q.trim();
       return allCheckAreasC.value.filter(x => q || cf.onlyAvailable ? x.checks.length
-        : ((x.total || x.hiddenQuest) && !(cf.hideDoneZones && x.complete))); });
+        : ((x.total || x.hiddenQuest || x.excluded) && !(cf.hideDoneZones && x.complete))); });
     // Progression globale des checks suivis (catégories et âge choisis, hors exclus), et par groupe de zones.
     // Progression globale des checks : selon la configuration seulement (checks mélangés, version active, hors exclus),
     // indépendamment des filtres d'affichage (catégories, âge, Skulltulas non mélangées, recherche).
@@ -640,7 +641,7 @@ const App = {
     const toggleCat = id => { cf.hiddenCats[id] = !cf.hiddenCats[id]; };
     const plural = (n, w) => n + ' ' + w + (n > 1 ? 's' : '');
     const zoneTitle = x => ({ done:'Zone terminée', all:'Tout le reste est accessible', part:'Une partie du reste est accessible',
-      none:x.total ? 'Rien d’accessible pour l’instant' : 'Rien à faire' })[x.state]
+      none:x.total ? 'Rien d’accessible pour l’instant' : 'Rien à faire', ignored:'Zone ignorée (checks exclus)' })[x.state]
       + ` — ${plural(x.got, 'fait')}, ${plural(x.accessible, 'accessible')}, ${x.total} au total`;
     // clic droit sur une pastille : n'afficher que cette catégorie (ou tout réafficher si c'était déjà le cas)
     function soloCat(id){
@@ -669,8 +670,24 @@ const App = {
     const toggleExcluded = c => toggleCheckState(c, 'excluded');
     function undoCheck(){
       const l = lastCheck.value;
-      if (l) CHECK_ACTIONS[l.kind].set(l.id, l.was);
+      if (l && l.ids) l.ids.forEach(id => setExcluded(id, l.was));   // zone entière (zoneExclude)
+      else if (l) CHECK_ACTIONS[l.kind].set(l.id, l.was);
       lastCheck.value = null; clearTimeout(lastCheckTimer);
+    }
+    /* Ignorer une zone d'un coup (zones futiles…) : exclut ses checks listés pas encore faits ; si tous le sont déjà,
+       les réintègre. → 'exclude' | 'include' | null (rien à faire) */
+    function zoneExcludeMode(id){
+      const list = (CHECKS_BY_AREA[id] || []).filter(c => checkListed(c) && !store.game.checks[c.id]);
+      return list.some(c => !s.excluded[c.id]) ? 'exclude' : list.some(c => s.excluded[c.id]) ? 'include' : null;
+    }
+    function zoneExclude(x){
+      const mode = zoneExcludeMode(x.area.id);
+      if (!mode) return;
+      const ids = (CHECKS_BY_AREA[x.area.id] || []).filter(c => checkListed(c) && !store.game.checks[c.id] && !!s.excluded[c.id] === (mode === 'include')).map(c => c.id);
+      ids.forEach(id => setExcluded(id, mode === 'exclude'));
+      lastCheck.value = { ids, was:mode === 'include', text:`${x.area.label} : ${ids.length} check${ids.length > 1 ? 's' : ''} ${mode === 'exclude' ? 'exclu' : 'réintégré'}${ids.length > 1 ? 's' : ''}` };
+      clearTimeout(lastCheckTimer);
+      lastCheckTimer = setTimeout(() => { lastCheck.value = null; }, 8000);
     }
     // « Y aller » : le Routeur part du départ actuel (ui.router) et vise la sortie la plus proche d'où l'on rejoint à pied
     // le check (une de ses régions SoH, à l'âge où il est faisable) ou la zone ; sans départ, une sortie qui y mène.
@@ -1006,7 +1023,7 @@ const App = {
       itemVisible, tierLabel, iconSrc, checklistModal, openChecklist, setChecklist, checklistStats,
       tradeModal, openTrade, tradeStats, counterClass,
       TRIALS, trialStatus, cycleTrial, setDungeonFlag, addDungeonKeys, dungeonQuest, dungeonMaxKeys, cycleDungeonQuest, questLabel, questClass, questTitle, keysLabel, dungeonKeyRing, setKeyRing, dungeonKeysDone, keysTitle, brokenIcons,
-      setTheme, startHere, prevStart, backToPrev, liveStart, pickAreas, pickExits, hintGroups, hintEdit, hintsC, setHintRead, GOSSIP_STONES, HINT_TYPES, CHECK_AREAS, MAP_SCENES, MAPS_OK, mapAreas, mapFocus, mapArea, openMap, mapHere, mapStart, mapGoal, fmtDur, stFilter, statsC, statsRows, STREAM, STREAM_TYPES, sl, swEdit, swSel, swAdd, swHint, swSelW, streamBg, swBodyStyle, swDown, swMove, swUp, swNew, swDelete, swReset, swImage, openStream, nextStep, swap, route, edgeLabel, edgeIcon, WARP_SONGS, ageLabel, openBackup, copyBackup, importBackup, resetAll, declineSpoiler, savedAt, TYPE_LABEL };
+      setTheme, startHere, prevStart, backToPrev, liveStart, pickAreas, pickExits, zoneExcludeMode, zoneExclude, hintGroups, hintEdit, hintsC, setHintRead, GOSSIP_STONES, HINT_TYPES, CHECK_AREAS, MAP_SCENES, MAPS_OK, mapAreas, mapFocus, mapArea, openMap, mapHere, mapStart, mapGoal, fmtDur, stFilter, statsC, statsRows, STREAM, STREAM_TYPES, sl, swEdit, swSel, swAdd, swHint, swSelW, streamBg, swBodyStyle, swDown, swMove, swUp, swNew, swDelete, swReset, swImage, openStream, nextStep, swap, route, edgeLabel, edgeIcon, WARP_SONGS, ageLabel, openBackup, copyBackup, importBackup, resetAll, declineSpoiler, savedAt, TYPE_LABEL };
   },
   template:`
 ${STREAM_TPL}
@@ -1201,6 +1218,9 @@ ${STREAM_TPL}
             <span v-for="b in x.byCat" v-show="b.left" :key="b.cat.id" class="zc" :title="b.cat.label + ' : ' + b.left + ' à faire'">
               <img v-if="!brokenIcons[b.cat.icon]" :src="b.cat.icon" alt=""><span v-else class="cat-fallback" :style="{'--cc':b.cat.color}">{{b.cat.label[0]}}</span>{{b.left}}</span>
           </span>
+          <span v-if="zoneExcludeMode(x.area.id)" class="go-btn zone-ex" role="button" tabindex="0"
+            :title="zoneExcludeMode(x.area.id) === 'exclude' ? 'Ignorer la zone : exclure tous ses checks restants (zone futile…)' : 'Réintégrer la zone : ses checks exclus comptent de nouveau'"
+            @click.stop="zoneExclude(x)" @keydown.enter.stop="zoneExclude(x)">{{zoneExcludeMode(x.area.id) === 'exclude' ? '⊘' : '↺'}}</span>
           <span class="go-btn zone-go" role="button" tabindex="0" title="Y aller (Routeur, depuis le départ actuel)" v-html="ICONS.router"
             @click.stop="goToZone(x.area.id)" @keydown.enter.stop="goToZone(x.area.id)"></span>
           <span class="zone-prog" :title="zoneTitle(x)">
@@ -1232,7 +1252,7 @@ ${STREAM_TPL}
                 @click="toggleExcluded(c)">{{s.excluded[c.id] ? '↺' : '⊘'}}</button>
             </li>
           </ul>
-          <p v-else class="quest-note">{{x.total ? 'Tous les checks affichés de cette zone sont faits.' : 'Aucun check avec les filtres actuels.'}}</p>
+          <p v-else class="quest-note">{{x.total ? 'Tous les checks affichés de cette zone sont faits.' : x.state === 'ignored' ? 'Zone ignorée : ' + x.excluded + ' check' + (x.excluded > 1 ? 's' : '') + ' exclu' + (x.excluded > 1 ? 's' : '') + ' (↺ pour la réintégrer).' : 'Aucun check avec les filtres actuels.'}}</p>
         </div>
       </article>
       <div v-if="lastCheck || goMsg" class="toast" role="status">

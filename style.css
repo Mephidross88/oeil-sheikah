@@ -734,6 +734,9 @@ html.stream-mode,html.stream-mode body{background:transparent;overflow:hidden}
 .check-area{border-left-width:4px}
 .check-area.st-all{border-left-color:var(--green)}
 .check-area.st-none{border-left-color:var(--red)}
+.check-area.st-ignored{border-left-color:var(--line);opacity:.7}
+.check-area.st-ignored .zone-prog{opacity:.5}
+.check-nav button.st-ignored{opacity:.45}
 .zone-prog{--zp:var(--muted);margin-left:auto;display:flex;align-items:center;gap:2px;flex:none;padding:3px 4px 3px 10px;border-radius:12px;
   border:1px solid var(--line);background:var(--surface);font-variant-numeric:tabular-nums}
 .zone-prog .zn{display:flex;flex-direction:column;align-items:center;min-width:52px;padding:0 4px;line-height:1.1}
@@ -856,6 +859,10 @@ html.stream-mode,html.stream-mode body{background:transparent;overflow:hidden}
 .go-btn svg{width:18px;height:18px}
 .go-btn:hover,.go-btn:focus-visible{background:var(--ocarina-soft);outline:0}
 .zone-go{margin-left:auto}
+/* ignorer / réintégrer la zone */
+.zone-ex{margin-left:auto;color:var(--muted);font-size:17px;line-height:1}
+.zone-ex:hover,.zone-ex:focus-visible{color:var(--text);background:var(--surface-2)}
+.zone-ex + .zone-go{margin-left:0}
 .zone-go + .zone-prog{margin-left:0}
 /* bandeau en bas d'écran : annuler le dernier coché, message */
 /* auto-tracking : question sur une entrée à destination ambiguë */
