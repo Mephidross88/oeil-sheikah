@@ -7,6 +7,7 @@ function defaults(){
     loot:{ iceTraps:0, rupees:0, rupeeValue:0, junk:0 },
     found:{},     // found : objet trouvé dans chaque check { id: numéro RandomizerGet, ou nom du spoiler } (auto-tracking)
     seen:{},      // seen : objets vus en boutique / chez les pestes et marchands { id: [nom affiché, prix] } (spoiler caché)
+    hints:{},     // hints : indices des pierres lues { id de la pierre: { t: type (HINT_TYPES), text, area: zone, check } }
     timeline:[],  // timeline : objets, chants et checks obtenus { t: heure (ms) ou null (avant le suivi), k: items | songs | checks, id, v }
     runStart:0 }; // runStart : début de la partie dans le jeu (ship.stats.firstInput de la sauvegarde, ms), 0 si inconnu
   ITEM_GROUPS.forEach(g => g.items.forEach(it => { game[g.path][it.key] = it.locked ? true : it.kind === 'bool' ? false : 0; }));
@@ -113,6 +114,26 @@ if (!STREAM_MODE){
     snap = timelineSnap(g);
   }, { deep:true, flush:'sync' });
 }
+/* Indices des pierres à potins (page Indices). Marquer une pierre lue : avec le spoiler caché, l'indice est rempli
+   d'après lui ; sinon il est à saisir (type, zone, texte). */
+function setHintRead(id, on){
+  if (!on){ delete store.game.hints[id]; return; }
+  const h = linkSpoilerHint(id);
+  store.game.hints[id] = h || { t:'', text:'', area:'', check:'' };
+}
+// Synthèse : zones sur la voie du héros, zones futiles, checks visés par un indice d'objet, indices d'objet par zone
+const hintsC = computed(() => {
+  const woth = {}, foolish = {}, checks = {}, areaItems = {};
+  for (const [id, h] of Object.entries(store.game.hints)){
+    const stone = GOSSIP_STONE[id], from = stone ? stone.label + ' (' + (CHECK_AREA[stone.area]?.label || '') + ')' : id;
+    if (h.t === 'woth' && h.area) (woth[h.area] = woth[h.area] || []).push(from);
+    if (h.t === 'foolish' && h.area) (foolish[h.area] = foolish[h.area] || []).push(from);
+    if (h.t === 'item' && h.check) (checks[h.check] = checks[h.check] || []).push(h.text || from);
+    if ((h.t === 'itemArea' || h.t === 'item') && h.area) (areaItems[h.area] = areaItems[h.area] || []).push(h.text || from);
+  }
+  return { woth, foolish, checks, areaItems };
+});
+
 // Icône et libellé d'un objet du panneau à un palier ou un nombre donné (chronologie, « Pourquoi pas encore ? »).
 function itemIconAt(it, v){
   if (it.kind === 'level' && !it.sizes) return it.icons ? 'icons/' + it.icons[Math.max(1, v) - 1] : 'icons/items/' + it.key + '_' + Math.max(1, v) + '.png';

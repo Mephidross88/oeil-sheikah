@@ -441,6 +441,50 @@ html.stream-mode,html.stream-mode body{background:transparent;overflow:hidden}
 .st-list img,.st-noic{width:28px;height:28px;object-fit:contain;flex:none}
 .st-lab small{color:var(--muted)}
 
+/* Indices (pierres à potins) */
+.hint-sum{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 16px;max-width:1240px}
+.hs-card{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;padding:10px 14px;border-radius:12px;background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow);min-width:220px}
+.hs-card > b{font-family:var(--serif);margin-right:4px}
+.hs-card.woth{border-color:var(--gold)}
+.hs-card.woth > b{color:var(--gold-deep)}
+.hs-card.foolish > b{color:var(--muted)}
+.hs-card.count{min-width:0;flex-direction:column;align-items:flex-start;gap:0}
+.hs-card.count b{font-size:22px;line-height:1}
+.hs-card.count span{font-size:13px;color:var(--muted)}
+.hs-chip{font-size:13.5px;padding:2px 10px;border-radius:999px;background:var(--surface-2);border:1px solid var(--line)}
+.hs-card.woth .hs-chip{background:var(--gold-soft);border-color:var(--gold);color:var(--gold-deep);font-weight:600}
+.hs-none{color:var(--muted)}
+.hint-zone{max-width:1240px;margin-bottom:14px;background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);overflow:hidden}
+.hint-zone h2{margin:0;padding:10px 16px;font-family:var(--serif);font-size:17px;border-bottom:1px solid var(--line)}
+.hint-row{display:flex;align-items:flex-start;gap:12px;padding:10px 16px}
+.hint-row + .hint-row{border-top:1px solid var(--line)}
+.hr-mark{flex:none;width:28px;height:28px;display:grid;place-items:center;border:0;background:none;color:var(--muted);cursor:pointer;padding:0}
+.hr-mark svg{width:22px;height:22px}
+.hint-row.read .hr-mark{color:var(--green)}
+.hr-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.hr-name{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.hr-name small{color:var(--muted);font-size:12px}
+.hint-row:not(.read) .hr-name b{font-weight:600;color:var(--muted)}
+.hr-text{margin:0;font-size:15px;line-height:1.4;padding:6px 10px;border-left:3px solid var(--gold);background:var(--surface-2);border-radius:0 8px 8px 0}
+.hr-edit{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.hr-edit .sel{width:auto;max-width:260px;padding:3px 28px 3px 8px;font-size:13.5px}
+.hr-area{display:inline-block;margin-left:8px;font-size:12px;font-weight:700;padding:1px 8px;border-radius:999px;background:var(--surface);border:1px solid var(--line);color:var(--muted)}
+.hr-edit-btn{align-self:flex-start}
+.hr-input{flex:1;min-width:200px;padding:4px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);color:var(--text);font-size:13.5px}
+.hr-edit-btn{font-size:12.5px}
+.hr-type{flex:none;font-size:12px;font-weight:700;padding:2px 9px;border-radius:999px;background:var(--surface-2);border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.hr-type.ht-woth{background:var(--gold-soft);border-color:var(--gold);color:var(--gold-deep)}
+.hr-type.ht-item,.hr-type.ht-itemArea{border-color:var(--ocarina);color:var(--ocarina)}
+.hr-type.ht-trial{border-color:var(--purple);color:var(--purple)}
+/* badges dans Checks */
+.hint-badge{display:inline-flex;align-items:center;gap:3px;font-size:11.5px;font-weight:700;padding:1px 8px;border-radius:999px;white-space:nowrap;cursor:help}
+.hint-badge.woth{background:var(--gold-soft);border:1px solid var(--gold);color:var(--gold-deep)}
+.hint-badge.foolish{background:var(--surface-2);border:1px dashed var(--muted);color:var(--muted)}
+.hint-badge.items{border:1px solid var(--ocarina);color:var(--ocarina)}
+.hint-badge svg{width:13px;height:13px}
+.ci-hint{display:inline-grid;place-items:center;margin-left:6px;color:var(--ocarina);vertical-align:-2px;cursor:help}
+.ci-hint svg{width:15px;height:15px}
+
 /* Carte (page Carte, ZoneMap) : sol vu de dessus, une teinte par tranche de hauteur (du plus bas au plus haut) */
 :root{--map-0:#4f6b3a;--map-1:#5a7a40;--map-2:#668946;--map-3:#73974d;--map-4:#81a455;--map-5:#90b05f;--map-6:#a0bb6b;--map-7:#b1c67a;--map-8:#c2d18c;--map-9:#d4dca1;--map-wall:#1d2414;--map-bg:#efe7d2}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--map-0:#2c4129;--map-1:#344b2f;--map-2:#3d5636;--map-3:#47613d;--map-4:#526d45;--map-5:#5e794e;--map-6:#6b8657;--map-7:#799361;--map-8:#88a06c;--map-9:#98ae79;--map-wall:#0d120a;--map-bg:#15120d}}

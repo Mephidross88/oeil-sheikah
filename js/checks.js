@@ -89,3 +89,66 @@ function checkQuestActive(c, quest){
   if (c.quest === 'B') return true;
   return quest === (c.quest === 'M' ? 'MQ' : 'Vanilla');
 }
+
+/* ---------- Pierres à potins (page Indices) ----------
+   Id = nom de la pierre dans le spoiler de SoH (« Gossip Stone Hints ») ; zone de la page Checks où elle se trouve ;
+   libellé français. Le jeu ne signale pas la lecture d'une pierre : le joueur la marque lue. */
+const GOSSIP_STONES = [
+  ['KF Left Near Deku Gossip Stone', 'KOKIRI_FOREST', 'Près de l’Arbre Mojo, à gauche'],
+  ['KF Right Near Deku Gossip Stone', 'KOKIRI_FOREST', 'Près de l’Arbre Mojo, à droite'],
+  ['KF Gossip Stone', 'KOKIRI_FOREST', 'Pierre de la forêt'],
+  ['KF Storms Grotto Gossip Stone', 'KOKIRI_FOREST', 'Grotte des tempêtes'],
+  ['LW Gossip Stone', 'LOST_WOODS', 'Pierre des bois'],
+  ['LW Near Shortcuts Grotto Gossip Stone', 'LOST_WOODS', 'Grotte près des raccourcis'],
+  ['SFM Near LW Gossip Stone', 'SACRED_FOREST_MEADOW', 'Près des Bois Perdus'],
+  ['SFM Center Gossip Stone', 'SACRED_FOREST_MEADOW', 'Au centre'],
+  ['SFM Near Saria Gossip Stone', 'SACRED_FOREST_MEADOW', 'Près de Saria'],
+  ['HF Cow Grotto Gossip Stone', 'HYRULE_FIELD', 'Grotte à la vache'],
+  ['HF Near Market Grotto Gossip Stone', 'HYRULE_FIELD', 'Grotte près du bourg'],
+  ['HF Open Grotto Gossip Stone', 'HYRULE_FIELD', 'Grotte ouverte'],
+  ['HF Southeast Grotto Gossip Stone', 'HYRULE_FIELD', 'Grotte sud-est'],
+  ['Market Leftmost Center Gossip Stone', 'MARKET', 'Temple du Temps, tout à gauche'],
+  ['Market Left Center Gossip Stone', 'MARKET', 'Temple du Temps, centre gauche'],
+  ['Market Right Center Gossip Stone', 'MARKET', 'Temple du Temps, centre droit'],
+  ['Market Rightmost Gossip Stone', 'MARKET', 'Temple du Temps, tout à droite'],
+  ['HC Near Malon Gossip Stone', 'HYRULE_CASTLE', 'Près de Malon'],
+  ['HC Rock Wall Gossip Stone', 'HYRULE_CASTLE', 'Mur de rochers'],
+  ['HC Storm Grotto Gossip Stone', 'HYRULE_CASTLE', 'Grotte des tempêtes'],
+  ['Kak Open Grotto Gossip Stone', 'KAKARIKO_VILLAGE', 'Grotte ouverte'],
+  ['Graveyard Gossip Stone', 'GRAVEYARD', 'Pierre du cimetière'],
+  ['DMT Gossip Stone', 'DEATH_MOUNTAIN_TRAIL', 'Pierre du chemin'],
+  ['DMT Storms Grotto Gossip Stone', 'DEATH_MOUNTAIN_TRAIL', 'Grotte des tempêtes'],
+  ['GC Maze Gossip Stone', 'GORON_CITY', 'Labyrinthe'],
+  ['GC Medigoron Gossip Stone', 'GORON_CITY', 'Près de Medigoron'],
+  ['DMC Gossip Stone', 'DEATH_MOUNTAIN_CRATER', 'Pierre du cratère'],
+  ['DMC Upper Grotto Gossip Stone', 'DEATH_MOUNTAIN_CRATER', 'Grotte du haut'],
+  ['ZR Near Domain Gossip Stone', 'ZORAS_RIVER', 'Près du domaine'],
+  ['ZR Near Grottos Gossip Stone', 'ZORAS_RIVER', 'Près des grottes'],
+  ['ZR Open Grotto Gossip Stone', 'ZORAS_RIVER', 'Grotte ouverte'],
+  ['ZD Gossip Stone', 'ZORAS_DOMAIN', 'Pierre du domaine'],
+  ['ZF Near Jabu Gossip Stone', 'ZORAS_FOUNTAIN', 'Près de Jabu-Jabu'],
+  ['ZF Near Fairy Gossip Stone', 'ZORAS_FOUNTAIN', 'Près de la fontaine des fées'],
+  ['LH Near Lab Gossip Stone', 'LAKE_HYLIA', 'Près du laboratoire'],
+  ['LH Southeast Gossip Stone', 'LAKE_HYLIA', 'Sud-est'],
+  ['LH Southwest Gossip Stone', 'LAKE_HYLIA', 'Sud-ouest'],
+  ['Gerudo Valley Gossip Stone', 'GERUDO_VALLEY', 'Pierre de la vallée'],
+  ['Desert Colossus Gossip Stone', 'DESERT_COLOSSUS', 'Pierre du colosse'],
+  ["Dodongo's Cavern Gossip Stone", 'DODONGOS_CAVERN', 'Pierre de la caverne'],
+].map(([id, area, label]) => ({ id, area, label }));
+const GOSSIP_STONE = Object.fromEntries(GOSSIP_STONES.map(s => [s.id, s]));
+// Types d'indice : type SoH du spoiler -> type de l'appli (libellé, ordre d'affichage)
+const HINT_TYPES = { woth:'Voie du héros', foolish:'Futile', item:'Objet', itemArea:'Objet dans une zone', trial:'Épreuve',
+  junk:'Sans indice', other:'Autre' };
+const HINT_TYPE_SOH = { 'Way of the Hero':'woth', Foolish:'foolish', Item:'item', 'Item Area':'itemArea', Trial:'trial', Message:'junk' };
+// Zone citée par un indice (texte du jeu, français ou anglais) -> zone de la page Checks ; '' si inconnue (poches de Link…)
+const HINT_AREA_ALIAS = { 'temple du temps':'MARKET', 'temple of time':'MARKET', 'place du marche':'MARKET', 'market':'MARKET',
+  'repaire des voleurs':'GERUDO_FORTRESS', 'thieves hideout':'GERUDO_FORTRESS', "thieves' hideout":'GERUDO_FORTRESS', 'fonds du puits':'BOTTOM_OF_THE_WELL',
+  'cimetiere':'GRAVEYARD', 'caverne de glace':'ICE_CAVERN', 'interieur du chateau de ganon':'GANONS_CASTLE', "inside ganon's castle":'GANONS_CASTLE',
+  'alentours du chateau de ganon':'HYRULE_CASTLE', "outside ganon's castle":'HYRULE_CASTLE' };
+function hintArea(text){
+  const n = String(text || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/^(l'|la |le |les |the )/, '').trim();
+  if (HINT_AREA_ALIAS[n]) return HINT_AREA_ALIAS[n];
+  const plain = s => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  const a = CHECK_AREAS.find(a => plain(a.label) === n || plain(a.soh) === n);
+  return a ? a.id : '';
+}

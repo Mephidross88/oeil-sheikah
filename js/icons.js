@@ -38,6 +38,7 @@ const ICONS = {
   swap:      S('<path d="M7 4v16M7 20l-3-3M7 20l3-3M17 20V4M17 4l-3 3M17 4l3 3"/>'),
   entrances: S('<path d="M4 5h16M4 12h16M4 19h10"/><circle cx="19" cy="19" r="2"/>'),
   router:    S('<circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.5 6H15a3 3 0 010 6H9a3 3 0 000 6h6.5"/>'),
+  hint:      S('<path d="M12 3c-4 0-7 3-7 7.5 0 4.5 3 8.5 7 10.5 4-2 7-6 7-10.5C19 6 16 3 12 3z"/><path d="M9.5 9.5c1.5-1 3.5-1 5 0M9.5 13h5"/>'),
   stats:     S('<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'),
   map:       S('<path d="M9 4L3 6.5v13.5l6-2.5 6 2.5 6-2.5V4l-6 2.5z"/><path d="M9 4v13.5M15 6.5V20"/>'),
   graph:     S('<circle cx="5" cy="6" r="2.5"/><circle cx="19" cy="7" r="2.5"/><circle cx="12" cy="18" r="2.5"/><path d="M7.4 6.3l9.1.6M6.3 8.2l4.5 7.6M17.8 9.2l-4.6 6.9"/>'),

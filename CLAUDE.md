@@ -1,7 +1,7 @@
 # L'Œil Sheikah
 
 Tracker d'objets, de checks et d'entrées, et routeur, pour le randomizer de Ship of Harkinian 9.2.3 (migré depuis
-OoT Randomizer, voir SPEC.md). Modules (menu, par groupe) : Progression — Checks, Routeur, Entrées (id `entrances`) ; Aperçus — Carte (id `map`),
+OoT Randomizer, voir SPEC.md). Modules (menu, par groupe) : Progression — Checks, Routeur, Entrées (id `entrances`), Indices (id `hints`) ; Aperçus — Carte (id `map`),
 Connexions (id `graph`), Statistiques (id `stats`) ; Configuration ; plus le panneau Objets.
 Application 100 % client, sans build : ouvrir `index.html` dans un navigateur suffit.
 Interface et textes en français.
@@ -34,7 +34,8 @@ et le mettre à jour quand une règle change.
      `CHECKLISTS` (lieux à cocher — clés hors donjon, trous à haricots), lus par la logique SoH.
   6. `js/checks.js` : checks de SoH (`CHECK_AREAS`, `CHECKS`, `CHECK_BY_ID`, `CHECK_BY_SOH`, `CHECKS_BY_AREA`)
      construits depuis `window.CHECKS_DATA`, et règles pures d'affichage : `checkShuffled` (check mélangé selon la
-     configuration, reprise d'`IsCheckShuffled` du tracker de SoH) et `checkQuestActive` (version V/MQ).
+     configuration, reprise d'`IsCheckShuffled` du tracker de SoH) et `checkQuestActive` (version V/MQ) ; pierres à potins
+     (`GOSSIP_STONES`, `HINT_TYPES`, `hintArea` : zone citée par un indice → zone de la page Checks).
   7. `js/logic.js` : moteur de logique de l'appli (notre portage de la logique SoH : `logic.cpp`, `location_access.cpp`, `fill.cpp`).
      Contexte global `L` lu par les conditions de `logic-data.js` (âge/moment courants, `HasItem`/`CanUse`
      sur l'inventaire du panneau Objets, options via `L.opt(RSK)`, astuces, événements, fonctions de logique),
@@ -58,7 +59,8 @@ et le mettre à jour quand une règle change.
      mutations des check-lists/donjons (`setChecklist`, `checklistStats`, `setDungeonFlag`,
      `addDungeonKeys`, `dungeonQuest`/`dungeonMaxKeys`/`cycleDungeonQuest` — version Vanilla/MQ, `dungeonKeyRing`/`setKeyRing`/`dungeonKeysDone` — trousseaux et clé squelette, `trialStatus`/`cycleTrial` — épreuves de Ganon tirées au sort), et `applyStartingItems` (objets de départ de la configuration → panneau Objets), et pour la page Checks `areaQuest`,
      `checkListed`, `setCheck`, `setExcluded`, `whyLocked` (ce qui manque pour un check : objets au plus juste, entrée à
-     découvrir ou jamais), et la chronologie de la partie (`game.timeline`, `game.runStart`, observateur synchrone,
+     découvrir ou jamais), les indices des pierres (`game.hints`, `setHintRead`, synthèse `hintsC`),
+     et la chronologie de la partie (`game.timeline`, `game.runStart`, observateur synchrone,
      `timelineQuiet` / `timelineSkip`, `itemIconAt` / `itemLabelAt`).
   8b. `js/link.js` : auto-tracking — connexion (EventSource) au relais local `tools/soh-link/relay.mjs`, état `link`
      (statut, journal), `linkApply` (paquets du jeu → partie : checks, `linkSaveToGame` sauvegarde SoH → panneau

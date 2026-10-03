@@ -225,6 +225,7 @@ const App = {
       { id:'checks', label:'Checks', icon:ICONS.checks, group:'Progression' },
       { id:'router', label:'Routeur', icon:ICONS.router, group:'Progression' },
       { id:'entrances', label:'Entrées', icon:ICONS.entrances, group:'Progression' },
+      { id:'hints', label:'Indices', icon:ICONS.hint, group:'Progression' },
       { id:'map', label:'Carte', icon:ICONS.map, group:'Aperçus' },
       { id:'graph', label:'Connexions', icon:ICONS.graph, group:'Aperçus' },
       { id:'stats', label:'Statistiques', icon:ICONS.stats, group:'Aperçus' },
@@ -991,6 +992,9 @@ const App = {
     const mapHere = () => { ui.map.area = ''; mapFocus.value = null; };
     const mapStart = key => setStart(key, ui.router.fromAge);
     function mapGoal(key){ const r = ui.router; r.toArea = EXIT[key].areaId; nextTick(() => { r.toExit = key; }); }
+    /* Indices (pierres à potins) : pierres groupées par zone, édition du texte à la demande */
+    const hintGroups = CHECK_AREAS.map(a => ({ area:a.id, stones:GOSSIP_STONES.filter(s => s.area === a.id) })).filter(g => g.stones.length);
+    const hintEdit = reactive({});
     return { store, ui, s, views, navGroups, link, LINK_LABEL, linkRequestState, linkAsks, linkAnswer, askFrom, askLabel, canSplit, splitOn, shown, paneOf, swapPanes, openSide, closeSide, navOpen, itemsOpen, modal, tip, tipData, backup, stats, missingSpawns, visibleAreas,
       ICONS, ITEMS_PAGE, ITEM_BY_KEY, DUNGEONS, DUNGEON_BY_ID, CHECKLISTS, AREA, EXIT, DATA_ERRORS,
       iconKey, exitIcon, areaName, toggleArea, setAll, jump, go, showTip, hideTip, toggleTip, setMapping, clearMapping,
@@ -1002,7 +1006,7 @@ const App = {
       itemVisible, tierLabel, iconSrc, checklistModal, openChecklist, setChecklist, checklistStats,
       tradeModal, openTrade, tradeStats, counterClass,
       TRIALS, trialStatus, cycleTrial, setDungeonFlag, addDungeonKeys, dungeonQuest, dungeonMaxKeys, cycleDungeonQuest, questLabel, questClass, questTitle, keysLabel, dungeonKeyRing, setKeyRing, dungeonKeysDone, keysTitle, brokenIcons,
-      setTheme, startHere, prevStart, backToPrev, liveStart, pickAreas, pickExits, MAP_SCENES, MAPS_OK, mapAreas, mapFocus, mapArea, openMap, mapHere, mapStart, mapGoal, fmtDur, stFilter, statsC, statsRows, STREAM, STREAM_TYPES, sl, swEdit, swSel, swAdd, swHint, swSelW, streamBg, swBodyStyle, swDown, swMove, swUp, swNew, swDelete, swReset, swImage, openStream, nextStep, swap, route, edgeLabel, edgeIcon, WARP_SONGS, ageLabel, openBackup, copyBackup, importBackup, resetAll, declineSpoiler, savedAt, TYPE_LABEL };
+      setTheme, startHere, prevStart, backToPrev, liveStart, pickAreas, pickExits, hintGroups, hintEdit, hintsC, setHintRead, GOSSIP_STONES, HINT_TYPES, CHECK_AREAS, MAP_SCENES, MAPS_OK, mapAreas, mapFocus, mapArea, openMap, mapHere, mapStart, mapGoal, fmtDur, stFilter, statsC, statsRows, STREAM, STREAM_TYPES, sl, swEdit, swSel, swAdd, swHint, swSelW, streamBg, swBodyStyle, swDown, swMove, swUp, swNew, swDelete, swReset, swImage, openStream, nextStep, swap, route, edgeLabel, edgeIcon, WARP_SONGS, ageLabel, openBackup, copyBackup, importBackup, resetAll, declineSpoiler, savedAt, TYPE_LABEL };
   },
   template:`
 ${STREAM_TPL}
@@ -1187,6 +1191,9 @@ ${STREAM_TPL}
         <button class="area-head" @click="toggleCheckArea(x.area.id)" :aria-expanded="!ui.checks.collapsed[x.area.id]">
           <span class="chev" v-html="ICONS.chevron"></span>
           <h2>{{x.area.label}}</h2>
+          <span v-if="hintsC.woth[x.area.id]" class="hint-badge woth" :title="'Sur la voie du héros — indiqué par : ' + hintsC.woth[x.area.id].join(', ')">Voie du héros</span>
+          <span v-if="hintsC.foolish[x.area.id]" class="hint-badge foolish" :title="'Zone futile — indiqué par : ' + hintsC.foolish[x.area.id].join(', ')">Futile</span>
+          <span v-if="hintsC.areaItems[x.area.id]" class="hint-badge items" :title="hintsC.areaItems[x.area.id].join(' · ')" v-html="ICONS.hint + hintsC.areaItems[x.area.id].length"></span>
           <span v-if="x.area.dungeon" class="dg-quest-pill" :class="questClass(x.area.dungeon)" :title="questTitle(x.area.dungeon)"
             @click.stop="cycleDungeonQuest(x.area.dungeon)" @contextmenu.prevent.stop="cycleDungeonQuest(x.area.dungeon,true)">{{questLabel(x.area.dungeon)}}</span>
           <span class="zone-cats">
@@ -1209,7 +1216,7 @@ ${STREAM_TPL}
               :class="{done:store.game.checks[c.id], excluded:s.excluded[c.id], avail:!store.game.checks[c.id] && canNow(c), locked:!store.game.checks[c.id] && !canNow(c)}">
               <button type="button" class="ci-main" :title="checkLogicTitle(c)" @click="toggleCheck(c)">
                 <span class="ci-cat"><img v-if="!brokenIcons[CHECK_CAT[c.cat].icon]" :src="CHECK_CAT[c.cat].icon" alt="" @error="brokenIcons[CHECK_CAT[c.cat].icon]=true"><span v-else class="cat-fallback" :style="{'--cc':CHECK_CAT[c.cat].color}">{{CHECK_CAT[c.cat].label[0]}}</span></span>
-                <span class="ci-label">{{c.label}}<span v-if="ui.checks.showFound && store.game.found[c.id] !== undefined" class="ci-found"
+                <span class="ci-label">{{c.label}}<span v-if="hintsC.checks[c.id]" class="ci-hint" :title="'Indice : ' + hintsC.checks[c.id].join(' · ')" v-html="ICONS.hint"></span><span v-if="ui.checks.showFound && store.game.found[c.id] !== undefined" class="ci-found"
                   :title="'Objet trouvé : ' + foundInfo(store.game.found[c.id]).title"><img v-if="foundInfo(store.game.found[c.id]).src" :src="foundInfo(store.game.found[c.id]).src" alt="">{{foundInfo(store.game.found[c.id]).title}}</span><span
                   v-else-if="ui.checks.showFound && store.game.seen[c.id]" class="ci-found seen" :title="'En vente : ' + seenInfo(store.game.seen[c.id]).title + (store.game.seen[c.id][1] != null ? ' — ' + store.game.seen[c.id][1] + ' rubis' : '')"><img
                   v-if="seenInfo(store.game.seen[c.id]).src" :src="seenInfo(store.game.seen[c.id]).src" alt="">{{seenInfo(store.game.seen[c.id]).title}}<b v-if="store.game.seen[c.id][1] != null">{{store.game.seen[c.id][1]}} ₹</b></span></span>
@@ -1338,6 +1345,48 @@ ${STREAM_TPL}
     </section>
 
     <!-- ================= CONFIGURATION ================= -->
+    <section v-if="shown('hints')" class="pane" :class="'pane-' + paneOf('hints')">
+      <div v-if="paneOf('hints')==='side'" class="pane-bar">
+        <button type="button" title="Échanger les deux panneaux" v-html="ICONS.swapH" @click="swapPanes"></button>
+        <button type="button" title="Fermer ce panneau" v-html="ICONS.close" @click="closeSide"></button></div>
+      <div class="page-head"><h1>Indices</h1><p class="lede">Pierres à potins : marquez celles que vous avez lues (le jeu ne le signale pas).
+        {{ linkSpoilerOk() || link.spoiler ? 'Avec le spoiler caché, l’indice s’affiche dès que la pierre est marquée lue.' : 'Sans spoiler caché, notez l’indice vous-même.' }}</p></div>
+      <div class="hint-sum">
+        <div class="hs-card woth"><b>Voie du héros</b>
+          <span v-for="(f, a) in hintsC.woth" :key="a" class="hs-chip" :title="'Indiqué par : ' + f.join(', ')">{{CHECK_AREA[a]?.label || a}}</span>
+          <span v-if="!Object.keys(hintsC.woth).length" class="hs-none">—</span></div>
+        <div class="hs-card foolish"><b>Zones futiles</b>
+          <span v-for="(f, a) in hintsC.foolish" :key="a" class="hs-chip" :title="'Indiqué par : ' + f.join(', ')">{{CHECK_AREA[a]?.label || a}}</span>
+          <span v-if="!Object.keys(hintsC.foolish).length" class="hs-none">—</span></div>
+        <div class="hs-card count"><b>{{Object.keys(store.game.hints).length}} / {{GOSSIP_STONES.length}}</b><span>pierres lues</span></div>
+      </div>
+      <article v-for="g in hintGroups" :key="g.area" class="hint-zone">
+        <h2>{{CHECK_AREA[g.area]?.label || g.area}}</h2>
+        <div v-for="s in g.stones" :key="s.id" class="hint-row" :class="{read:store.game.hints[s.id]}">
+          <button type="button" class="hr-mark" :title="store.game.hints[s.id] ? 'Marquer non lue' : 'Marquer lue'" v-html="store.game.hints[s.id] ? ICONS.check : ICONS.circleO"
+            @click="setHintRead(s.id, !store.game.hints[s.id])"></button>
+          <div class="hr-body">
+            <div class="hr-name"><b>{{s.label}}</b><small :title="s.id">{{s.id}}</small></div>
+            <template v-if="store.game.hints[s.id]">
+              <p v-if="store.game.hints[s.id].text && !hintEdit[s.id]" class="hr-text">{{store.game.hints[s.id].text}}
+                <span v-if="store.game.hints[s.id].area && ['woth','foolish','item','itemArea'].includes(store.game.hints[s.id].t)" class="hr-area">{{CHECK_AREA[store.game.hints[s.id].area]?.label}}</span></p>
+              <!-- saisie : indice à compléter (sans spoiler), ou sur demande -->
+              <div v-if="hintEdit[s.id] || !store.game.hints[s.id].t" class="hr-edit">
+                <select class="sel" v-model="store.game.hints[s.id].t" aria-label="Type d’indice"><option value="">Type d’indice…</option>
+                  <option v-for="(l, t) in HINT_TYPES" :key="t" :value="t">{{l}}</option></select>
+                <select v-if="['woth','foolish','item','itemArea'].includes(store.game.hints[s.id].t)" class="sel" v-model="store.game.hints[s.id].area" aria-label="Zone">
+                  <option value="">Zone…</option><option v-for="a in CHECK_AREAS" :key="a.id" :value="a.id">{{a.label}}</option></select>
+                <input class="hr-input" v-model="store.game.hints[s.id].text" placeholder="Texte de l’indice (facultatif)">
+                <button v-if="hintEdit[s.id]" type="button" class="link hr-edit-btn" @click="hintEdit[s.id] = false">Terminer</button>
+              </div>
+              <button v-else type="button" class="link hr-edit-btn" @click="hintEdit[s.id] = true">Modifier</button>
+            </template>
+          </div>
+          <span v-if="store.game.hints[s.id]?.t" class="hr-type" :class="'ht-' + store.game.hints[s.id].t">{{HINT_TYPES[store.game.hints[s.id].t]}}</span>
+        </div>
+      </article>
+    </section>
+
     <section v-if="shown('map')" class="pane" :class="'pane-' + paneOf('map')">
       <div v-if="paneOf('map')==='side'" class="pane-bar">
         <button type="button" title="Échanger les deux panneaux" v-html="ICONS.swapH" @click="swapPanes"></button>

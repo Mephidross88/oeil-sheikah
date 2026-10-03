@@ -262,6 +262,15 @@ function linkSpoilerOk(){
   const seed = link.client?.seed;
   return !!linkSpoiler && !!seed && (!linkSpoiler.seed || linkSpoiler.seed === seed);
 }
+/* Indice d'une pierre d'après le spoiler caché (seulement quand la pierre est marquée lue : rien n'est révélé avant).
+   Utilisable si le seed du jeu connecté est celui du spoiler, ou sans jeu connecté (non vérifiable). → indice | null */
+function linkSpoilerHint(stoneId){
+  if (!linkSpoiler || !linkSpoiler.hints || (link.client?.seed && linkSpoiler.seed && link.client.seed !== linkSpoiler.seed)) return null;
+  const h = linkSpoiler.hints[stoneId];
+  if (!h) return null;
+  const c = h.location ? CHECK_BY_SOH[h.location] : null, t = HINT_TYPE_SOH[h.type] || 'other';
+  return { t, text:h.message || '', area:(c && t !== 'trial' ? c.area : '') || hintArea(h.area), check:t === 'item' && c ? c.id : '' };
+}
 function linkSetSpoiler(data, file){
   const locations = {};
   for (const [name, v] of Object.entries(data.locations || {})){
@@ -270,7 +279,11 @@ function linkSetSpoiler(data, file){
     const o = typeof v === 'string' ? { item:v } : v || {};
     locations[c.id] = [o.item ?? null, o.price ?? null, o.model ?? null];
   }
-  linkSpoiler = { file, seed:data.finalSeed ?? null, locations, entrances:Array.isArray(data.entrances) ? data.entrances : [] };
+  // indices des pierres à potins : type, message (langue du jeu), zone, check visé
+  const hints = {};
+  for (const [name, v] of Object.entries(data['Gossip Stone Hints'] || {}))
+    if (v && typeof v === 'object') hints[name] = { type:v.type, message:v.message, area:v.area ?? null, location:v.location ?? null };
+  linkSpoiler = { file, seed:data.finalSeed ?? null, locations, entrances:Array.isArray(data.entrances) ? data.entrances : [], hints };
   try { localStorage.setItem(SPOILER_KEY, JSON.stringify(linkSpoiler)); } catch (e){ linkLog('Spoiler trop gros pour être gardé dans ce navigateur'); }
   linkSpoilerMeta();
   linkLog(`Spoiler caché chargé (${file})`);

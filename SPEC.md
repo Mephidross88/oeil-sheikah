@@ -25,7 +25,8 @@ total », restants, zones terminées, détail par groupe (voir Checks et Entrée
 la page correspondante, souligné quand on y est. Côte à côte, empilés sur mobile.
 
 ## Navigation (panneau de gauche)
-- Pages du menu, en groupes titrés : **Progression** (la partie en cours) : Checks, Routeur, Entrées (id `entrances`) ;
+- Pages du menu, en groupes titrés : **Progression** (la partie en cours) : Checks, Routeur, Entrées (id `entrances`),
+  Indices ;
   **Aperçus** (vues d'ensemble) : Carte, Connexions, Statistiques ; puis Configuration à part, sous un trait. Barre
   réduite à des icônes : les titres de groupe deviennent des traits. Page ouverte au premier lancement : Checks ;
   ensuite, la dernière page consultée.
@@ -673,6 +674,21 @@ a son propre stockage et ne verrait pas la partie).
 - La partie vient de la fenêtre principale : la fenêtre de stream relit le `store` à chaque sauvegarde de celle-ci
   (événement `storage`, même navigateur), ne sauvegarde rien et ne se connecte pas au relais (trouvailles comptées
   une seule fois). Blocs non cliquables (affichage seul).
+
+## Indices
+Page « Indices » (`ui.view` = `hints`, groupe Progression) : les 40 pierres à potins (`GOSSIP_STONES` de `checks.js`,
+id = nom de la pierre dans le spoiler de SoH, zone de la page Checks, libellé français), groupées par zone.
+- Le jeu ne signale pas la lecture d'une pierre (ni paquet au relais, ni trace dans la sauvegarde : vérifié en jeu) :
+  le joueur la marque lue d'un clic (`setHintRead`, `game.hints[id]`, sauvegardé, remis à zéro avec la partie).
+- Avec le spoiler caché (`linkSpoilerHint` : seed du jeu connecté = celui du spoiler, ou pas de jeu connecté), l'indice
+  est rempli dès qu'elle est marquée lue, jamais avant : message (langue du jeu), type (voie du héros, futile, objet,
+  objet dans une zone, épreuve, sans indice), zone (celle du check cité, sinon le nom de la zone dans l'indice,
+  `hintArea` : noms français ou anglais du jeu et alias — Temple du Temps → Bourg, Repaire des Voleurs → Forteresse,
+  poches de Link → aucune), check visé (indice d'objet seulement : un indice « objet dans une zone » ne dit pas où).
+  Sans spoiler : type, zone et texte à saisir ; « Modifier » pour corriger un indice rempli.
+- Synthèse en tête : zones sur la voie du héros, zones futiles, pierres lues. Dans Checks (`hintsC`) : badges de zone
+  « Voie du héros » (doré), « Futile » (pointillés), nombre d'indices d'objet de la zone (texte au survol) ; icône
+  d'indice à côté d'un check visé par un indice d'objet.
 
 ## Carte
 Page « Carte » (`ui.view` = `map`, composant `ZoneMap` de `components.js`) : où se trouve chaque sortie, sur le terrain
