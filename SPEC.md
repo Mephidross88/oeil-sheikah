@@ -718,6 +718,22 @@ du jeu vu de dessus (nord en haut).
   violet, hibou beige), anneaux (position, prochaine sortie, arrivée) et dégradé du terrain.
 - « Voir sur la carte » : bouton carte sur chaque carte du trajet du Routeur, et clic sur la prochaine étape du bandeau
   « Où aller ? » (sortie à prendre).
+- **Checks et pierres à potins** (barre au-dessus de la carte : « Checks » À faire / Tous / Aucun, `ui.map.checks` ;
+  « Pierres à potins », `ui.map.stones`). Checks suivis comme dans la page Checks (mélangés, version active, non exclus,
+  catégories affichées).
+  - Check d'une scène d'extérieur : point à sa position (outil : position x, z donnée par SoH pour jarres, caisses, herbes,
+    buissons, arbres ; sinon acteur des salles de même type et paramètres, toutes versions de la salle ; Skulltula : même
+    numéro de symbole, carré de terre pour celles des haricots ; fées d'une pierre ou d'un carré de terre : à la pierre ou
+    au carré). Vert : faisable maintenant ; rouge : pas encore ; gris : fait.
+  - Check d'un intérieur, d'une grotte ou d'un donjon : carré compteur (checks à faire) à côté de la porte qui mène à son
+    lieu **selon les entrées notées** (outil : lieu = sortie où l'on apparaît en y entrant, en remontant la logique de SoH ;
+    appli : sortie dont la destination est ce lieu ; porte située dans un donjon ou un autre intérieur : on remonte jusqu'à
+    l'extérieur — entrée du donjon, `areaEntry`). Entrée pas encore notée : pas de repère.
+  - Pierres à potins : losange (plein : lue ; pierre de grotte : à côté de la porte de la grotte).
+  - Clic : check — marquer fait / à faire, « Y aller » (Routeur) ; carré — liste des checks du lieu à cocher ; pierre —
+    message si lue, marquer lue / non lue.
+  - Sous la carte : checks de la zone sans repère (sans position connue : personnages, quelques fées, poissons… ; ou
+    derrière une entrée pas encore notée), dépliables et à cocher.
 
 ## Connexions
 Page « Connexions » (`ui.view` = `graph`, composant `EntranceGraph` de `components.js`) : schéma (graphe) des entrées

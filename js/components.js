@@ -302,8 +302,8 @@ function mapScene(name){
 }
 const ZoneMap = {
   props:['area', 'focus'],   // focus : sortie à mettre en évidence (« Voir sur la carte »)
-  emits:['start', 'goal'],
-  data:() => ({ scene:null, sel:null, hover:null, view:null, drag:null, maxH:null }),
+  emits:['start', 'goal', 'go-check'],
+  data:() => ({ scene:null, sel:null, hover:null, view:null, drag:null, maxH:null, csel:null, showOff:false }),
   computed:{
     scenes(){ return MAP_SCENES[this.area] || []; },
     cur(){ return this.scenes.includes(this.scene) ? this.scene : this.scenes[0]; },
@@ -330,6 +330,66 @@ const ZoneMap = {
       return e ? e.from : null;
     },
     selMark(){ return this.marks.find(m => m.id === this.sel) || null; },
+    /* Checks et pierres sur la carte. Lieu (intérieur, grotte, donjon) : à la porte qui y mène selon les entrées notées
+       (sortie dont la destination est l'arrivée du lieu ; porte située dans un donjon ou un autre intérieur : on remonte
+       jusqu'à l'extérieur) ; entrée pas encore notée : pas de position. → { arrivée du lieu: [scène, x, z] | null } */
+    doors(){
+      const inc = incC.value, out = {};
+      const resolve = (p, d) => {
+        if (d > 6) return null;
+        for (const x of inc[p] || []){
+          const at = MAPS.exits[x], e = EXIT[x];
+          if (at && !at[4]) return at;
+          const entry = e && MAPS.areaEntry[e.areaId];
+          if (entry && entry !== p){ const r = resolve(entry, d + 1); if (r) return r; }
+          if (at && at[4] && x !== p){ const r = resolve(x, d + 1); if (r) return r; }
+        }
+        return null;
+      };
+      for (const p of new Set(Object.values(MAPS.places || {}))) out[p] = resolve(p, 0);
+      return out;
+    },
+    // checks suivis (comme la page Checks : mélangés, version active, non exclus, catégories affichées)
+    checkList(){
+      const mode = store.ui.map.checks, done = store.game.checks, now = sohC.value.checks, out = [];
+      if (mode === 'off' || !MAPS.checks) return out;
+      for (const c of CHECKS){
+        if (!checkListed(c) || store.settings.excluded[c.id] || store.ui.checks.hiddenCats[c.cat]) continue;
+        if (mode === 'todo' && done[c.id]) continue;
+        out.push({ c, done:!!done[c.id], now:(now['RC_' + c.id] || 0) > 0 });
+      }
+      return out;
+    },
+    checkMarks(){
+      const out = [], groups = new Map();
+      for (const x of this.checkList){
+        const p = MAPS.checks[x.c.id];
+        if (p){ if (p[0] === this.cur) out.push({ t:'c', id:'c:' + x.c.id, x:p[1], z:p[2], ...x }); continue; }
+        const place = MAPS.places[x.c.id], door = place && this.doors[place];
+        if (!door || door[0] !== this.cur) continue;
+        const g = groups.get(place) || { t:'p', id:'p:' + place, place, x:door[1], z:door[2], list:[] };
+        g.list.push(x); groups.set(place, g);
+      }
+      return out.concat([...groups.values()].map(g => ({ ...g, todo:g.list.filter(x => !x.done).length, now:g.list.some(x => !x.done && x.now) })));
+    },
+    stoneMarks(){
+      if (!store.ui.map.stones || !MAPS.checks) return [];
+      return GOSSIP_STONES.map(s => {
+        const p = MAPS.checks[s.rc], place = !p && MAPS.places[s.rc], door = place && this.doors[place], at = p || door;
+        return at && at[0] === this.cur ? { t:'s', id:'s:' + s.id, x:at[1], z:at[2], s, inside:!p, read:!!store.game.hints[s.id] } : null;
+      }).filter(Boolean);
+    },
+    // checks de la zone sans repère : sans position connue, ou derrière une entrée pas encore notée
+    offList(){
+      const area = String(this.area).toUpperCase(), noPos = [], hidden = [];
+      for (const x of this.checkList){
+        if (x.c.area !== area || MAPS.checks[x.c.id]) continue;
+        const place = MAPS.places[x.c.id];
+        if (!place) noPos.push(x); else if (!this.doors[place]) hidden.push(x);
+      }
+      return { noPos, hidden };
+    },
+    cselMark(){ return this.csel && [...this.checkMarks, ...this.stoneMarks].find(m => m.id === this.csel) || null; },
     // cadrage par défaut : les repères de la scène (avec une marge), pas tout le terrain
     fit(){
       if (!this.geo) return null;
@@ -353,7 +413,12 @@ const ZoneMap = {
     has(m, k){ return !!k && m.keys.includes(k); },
     dest(k){ const t = effC.value[k]; return t && EXIT[t] ? AREA[EXIT[t].areaId].name + ' · ' + EXIT[t].label : null; },
     title(m){ return m.keys.map(k => EXIT[k].label + (this.dest(k) ? ' → ' + this.dest(k) : '')).join('\n'); },
-    pick(m){ this.sel = this.sel === m.id ? null : m.id; },
+    pick(m){ this.sel = this.sel === m.id ? null : m.id; this.csel = null; },
+    cpick(m){ this.csel = this.csel === m.id ? null : m.id; this.sel = null; },
+    toggleCheck(c){ setCheck(c.id, !store.game.checks[c.id]); },
+    placeName(p){ return EXIT[p] ? (EXIT[p].areaId !== this.area ? AREA[EXIT[p].areaId].name + ' · ' : '') + EXIT[p].label : p; },
+    hint(s){ return store.game.hints[s.id]; },
+    setHintRead,
     bandColor(i){ return 'var(--map-' + i + ')'; },
     // zoom à la molette (autour du curseur), déplacement en glissant le fond, boutons + / − / tout voir
     toWorld(ev){ const r = this.$refs.svg.getBoundingClientRect(), v = this.vb, k = Math.max(v[2] / r.width, v[3] / r.height);
@@ -367,7 +432,7 @@ const ZoneMap = {
     move(ev){ const d = this.drag; if (!d) return; const dx = ev.clientX - d.sx, dy = ev.clientY - d.sy;
       if (Math.abs(dx) + Math.abs(dy) > 3) d.moved = true;
       if (d.moved) this.view = [d.v[0] - dx * d.k, d.v[1] - dy * d.k, d.v[2], d.v[3]]; },
-    up(){ const d = this.drag; this.drag = null; if (d && !d.moved) this.sel = null; },
+    up(){ const d = this.drag; this.drag = null; if (d && !d.moved){ this.sel = null; this.csel = null; } },
     // hauteur de la carte : ce qui reste à l'écran sous son haut de page, moins la légende et le bandeau du bas
     fitHeight(){
       const svg = this.$refs.svg;
@@ -385,6 +450,19 @@ const ZoneMap = {
         @pointerdown="down" @pointermove="move" @pointerup="up" @pointerleave="drag=null">
         <path v-for="(d,i) in geo.bands" :key="i" :d="d" :fill="bandColor(i)" :stroke="bandColor(i)" :stroke-width="unit * 0.12"></path>
         <path :d="geo.walls" class="zmap-walls" :stroke-width="unit * 0.35"></path>
+        <g v-for="m in checkMarks" :key="m.id" class="zc" :class="[m.t === 'p' ? 'zc-place' : 'zc-check', {done:m.t === 'c' ? m.done : !m.todo, now:m.now, sel:csel===m.id}]"
+          @pointerdown.stop @click.stop="cpick(m)">
+          <template v-if="m.t === 'c'"><circle :cx="m.x" :cy="m.z" :r="unit * (csel===m.id ? 1.05 : 0.75)"></circle>
+            <title>{{m.c.label}}{{m.done ? ' (fait)' : m.now ? ' — faisable' : ' — pas encore faisable'}}</title></template>
+          <template v-else><rect :x="m.x + unit * 1.3" :y="m.z - unit * 3.3" :width="unit * 2.4" :height="unit * 2" :rx="unit * 0.4"></rect>
+            <text :x="m.x + unit * 2.5" :y="m.z - unit * 1.75" :font-size="unit * 1.4">{{m.todo}}</text>
+            <title>{{placeName(m.place)}} : {{m.todo}} check{{m.todo > 1 ? 's' : ''}} à faire sur {{m.list.length}}</title></template>
+        </g>
+        <g v-for="m in stoneMarks" :key="m.id" class="zs" :class="{read:m.read, sel:csel===m.id}" @pointerdown.stop @click.stop="cpick(m)"
+          :transform="'translate(' + (m.x + (m.inside ? -unit * 2.4 : 0)) + ' ' + (m.z + (m.inside ? -unit * 2.2 : 0)) + ') rotate(45)'">
+          <rect :x="-unit * 0.75" :y="-unit * 0.75" :width="unit * 1.5" :height="unit * 1.5"></rect>
+          <title>Pierre à potins : {{m.s.label}}{{m.read ? ' (lue)' : ''}}</title>
+        </g>
         <g v-for="m in marks" :key="m.id" class="zm" :class="['t-' + m.type, {here:has(m, here), goal:has(m, goal), next:has(m, next), sel:sel===m.id}]"
           @pointerdown.stop @click.stop="pick(m)" @mouseenter="hover=m.id" @mouseleave="hover=null">
           <circle v-if="has(m, here) || has(m, goal) || has(m, next)" class="zm-ring" :cx="m.x" :cy="m.z" :r="unit * 2.6"></circle>
@@ -395,6 +473,24 @@ const ZoneMap = {
       </svg>
       <div class="zmap-zoom"><button type="button" title="Zoomer" @click="zoom(1 / 1.5)">+</button><button type="button" title="Dézoomer" @click="zoom(1.5)">−</button>
         <button type="button" title="Cadrer sur les sorties" @click="view = null">⤢</button><button type="button" title="Tout le terrain" @click="view = [...geo.view]">▢</button></div>
+      <div v-if="cselMark" class="zmap-pop">
+        <template v-if="cselMark.t === 'c'">
+          <div class="zp-name"><b>{{cselMark.c.label}}</b><small>{{CHECK_CAT[cselMark.c.cat].label}} · {{cselMark.done ? 'fait' : cselMark.now ? 'faisable maintenant' : 'pas encore faisable'}}</small></div>
+          <div class="zp-btns"><button type="button" class="btn" @click="toggleCheck(cselMark.c)">{{cselMark.done ? 'Remettre à faire' : 'Marquer fait'}}</button>
+            <button v-if="!cselMark.done" type="button" class="btn" @click="$emit('go-check', cselMark.c)">Y aller</button></div>
+        </template>
+        <template v-else-if="cselMark.t === 'p'">
+          <div class="zp-name"><b>{{placeName(cselMark.place)}}</b><small>{{cselMark.todo}} à faire sur {{cselMark.list.length}}</small></div>
+          <ul class="zp-list"><li v-for="x in cselMark.list" :key="x.c.id" :class="{done:x.done, now:x.now}">
+            <button type="button" class="zp-tick" :title="x.done ? 'Remettre à faire' : 'Marquer fait'" v-html="x.done ? ICONS.check : ICONS.circleO" @click="toggleCheck(x.c)"></button>
+            <span>{{x.c.label}}</span></li></ul>
+        </template>
+        <template v-else>
+          <div class="zp-name"><b>Pierre à potins : {{cselMark.s.label}}</b><small>{{cselMark.read ? 'lue' : 'pas encore lue'}}</small></div>
+          <p v-if="hint(cselMark.s)?.text" class="zp-hint">{{hint(cselMark.s).text}}</p>
+          <div class="zp-btns"><button type="button" class="btn" @click="setHintRead(cselMark.s.id, !cselMark.read)">{{cselMark.read ? 'Marquer non lue' : 'Marquer lue'}}</button></div>
+        </template>
+      </div>
       <div v-if="selMark" class="zmap-pop">
         <div v-for="k in selMark.keys" :key="k" class="zp-row">
           <div class="zp-name"><b>{{EXIT[k].label}}</b><small v-if="dest(k)">→ {{dest(k)}}</small><small v-else class="zp-unk">destination inconnue</small></div>
@@ -403,6 +499,13 @@ const ZoneMap = {
         </div>
       </div>
     </div>
+    <div v-if="offList.noPos.length || offList.hidden.length" class="zmap-off">
+      <button type="button" class="link" @click="showOff = !showOff">{{offList.noPos.length ? offList.noPos.length + ' check' + (offList.noPos.length > 1 ? 's' : '') + ' sans position' : ''}}{{offList.noPos.length && offList.hidden.length ? ' · ' : ''}}{{offList.hidden.length ? offList.hidden.length + ' derrière une entrée pas encore notée' : ''}}</button>
+      <ul v-if="showOff"><li v-for="x in [...offList.noPos, ...offList.hidden]" :key="x.c.id" :class="{done:x.done, now:x.now}">
+        <button type="button" class="zp-tick" v-html="x.done ? ICONS.check : ICONS.circleO" @click="toggleCheck(x.c)"></button><span>{{x.c.label}}</span></li></ul>
+    </div>
+    <div class="zmap-legend"><b>Checks</b><span><i class="lg-c now"></i>faisable</span><span><i class="lg-c"></i>pas encore faisable</span><span><i class="lg-c done"></i>fait</span>
+      <span><i class="lg-p"></i>checks d’un intérieur, d’une grotte ou d’un donjon (à faire)</span><span><i class="lg-s"></i>pierre à potins (pleine : lue)</span></div>
     <div class="zmap-legend"><b>Sorties</b><span><i class="lg-dot t-overworld"></i>passage</span><span><i class="lg-dot t-interior"></i>intérieur (porte)</span>
       <span><i class="lg-dot t-grotto"></i>grotte</span><span><i class="lg-dot t-dungeon"></i>donjon</span><span><i class="lg-dot t-owl"></i>hibou</span></div>
     <div class="zmap-legend"><b>Repères</b><span><i class="lg-here"></i>vous êtes ici</span><span><i class="lg-next"></i>prochaine sortie</span><span><i class="lg-goal"></i>arrivée du Routeur</span>
@@ -411,5 +514,5 @@ const ZoneMap = {
   mounted(){ this.$nextTick(this.fitHeight); this.onResize = () => this.fitHeight(); window.addEventListener('resize', this.onResize); },
   updated(){ if (!this.maxH) this.$nextTick(this.fitHeight); },
   unmounted(){ window.removeEventListener('resize', this.onResize); },
-  setup(){ return { EXIT, MAP_SCENE_LABEL }; },
+  setup(){ return { EXIT, MAP_SCENE_LABEL, CHECK_CAT, ICONS }; },
 };

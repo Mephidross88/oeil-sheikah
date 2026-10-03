@@ -86,14 +86,27 @@ function readScene(name){
       if (h >= 60 && d(...pairs[0]) >= 60) walls.push([pairs[0][0][0], pairs[0][0][2], pairs[0][1][0], pairs[0][1][2]]);
     }
   }
-  // acteurs des salles (commande 0x04 : salles { début, fin } ; dans chaque salle, commande 0x01 : liste d'acteurs)
-  const actors = [];
+  // acteurs des salles, toutes versions (commande 0x04 : salles { début, fin } ; dans chaque salle, en-tête principal et
+  // en-têtes alternatifs — commande 0x18 : enfant / adulte, jour / nuit… — puis commande 0x01 : liste d'acteurs)
+  // → [id, x, y, z, paramètres], sans doublon
+  const actors = [], seen = new Set();
   if (cmds[0x04]) for (let r = 0; r < cmds[0x04].n; r++){
     const rs = u32(cmds[0x04].addr + r * 8), re = u32(cmds[0x04].addr + r * 8 + 4), rb = rom.subarray(rs, re);
+    const headers = [0];
     for (let o = 0; o < 0x200 && o + 8 <= rb.length; o += 8){
-      const c = rb.readUInt8(o);
-      if (c === 0x01){ const n = rb.readUInt8(o + 1), a = rb.readUInt32BE(o + 4) & 0xFFFFFF;
-        for (let i = 0; i < n; i++) actors.push([rb.readUInt16BE(a + i * 16), rb.readInt16BE(a + i * 16 + 2), rb.readInt16BE(a + i * 16 + 4), rb.readInt16BE(a + i * 16 + 6)]); }
+      if (rb[o] === 0x18){ const a = rb.readUInt32BE(o + 4) & 0xFFFFFF;
+        for (let i = 0; i < 20 && a + i * 4 + 4 <= rb.length; i++){ const h = rb.readUInt32BE(a + i * 4); if (h && h >>> 24 === 3 && (h & 0xFFFFFF) < rb.length) headers.push(h & 0xFFFFFF); } }
+      if (rb[o] === 0x14) break;
+    }
+    for (const h of headers) for (let o = h; o < h + 0x200 && o + 8 <= rb.length; o += 8){
+      const c = rb[o], w = rb.readUInt32BE(o + 4);
+      if (c === 0x01 && w >>> 24 === 3 && (w & 0xFFFFFF) + rb[o + 1] * 16 <= rb.length){
+        const a = w & 0xFFFFFF;
+        for (let i = 0; i < rb[o + 1]; i++){
+          const q = a + i * 16, act = [rb.readUInt16BE(q), rb.readInt16BE(q + 2), rb.readInt16BE(q + 4), rb.readInt16BE(q + 6), rb.readUInt16BE(q + 14)];
+          if (!seen.has(act.join())){ seen.add(act.join()); actors.push(act); }
+        }
+      }
       if (c === 0x14) break;
     }
   }
@@ -135,6 +148,118 @@ for (const [key, e] of Object.entries(EXITS)){
   pos[key] = [p.scene.replace('SCENE_', ''), Math.round(p.x), Math.round(p.z), Math.round(p.y)].concat(p.door ? [1] : []);
 }
 
+/* ---------- Position de chaque check ----------
+   Définitions des checks de SoH (location_list.cpp, Shuffle*.cpp, fishsanity.cpp) : genre, scène, acteur, paramètres.
+   Scène d'extérieur : position de l'acteur (position x, z donnée par SoH pour jarres, caisses, herbes, arbres… ;
+   sinon acteur des salles de même type et mêmes paramètres ; Skulltula : numéro de symbole, carré de terre pour celles
+   des haricots ; pierre à potins et fées qu'on y fait apparaître ; fées des carrés de terre).
+   Ailleurs (intérieur, grotte, donjon) : le lieu — sortie où l'on apparaît en y entrant, en remontant la logique de SoH
+   de la région du check jusqu'à l'entrée qui y mène ; l'appli place le check à la porte qui mène à ce lieu selon les
+   entrées notées. */
+const ACTORS = {};
+for (const m of fs.readFileSync(path.join(SRC, 'actor_table.h'), 'utf8').matchAll(/\/\*\s*0x([0-9A-Fa-f]+)\s*\*\/\s*DEFINE_ACTOR\w*\(\w+,\s*(ACTOR_\w+)/g)) ACTORS[m[2]] = parseInt(m[1], 16);
+const LOC = {};
+for (const f of fs.readdirSync(SRC).filter(f => /^(location_list|fishsanity|Shuffle\w+)\.cpp$/.test(f))){
+  for (const m of fs.readFileSync(path.join(SRC, f), 'utf8').matchAll(/locationTable\[(RC_\w+)\]\s*=\s*Location::(\w+)\(([^;]*?)\);/gs)){
+    const args = m[3].replace(/\s+/g, ' '), scene = (args.match(/\b(SCENE_\w+)/) || [])[1], actor = (args.match(/\b(ACTOR_\w+)/) || [])[1];
+    const after = scene ? args.slice(args.indexOf(scene) + scene.length) : '';
+    const two = after.match(/^\s*,\s*TWO_ACTOR_PARAMS\((-?\d+),\s*(-?\d+)\)/), num = after.match(/^\s*,\s*(-?(?:0x[0-9A-Fa-f]+|\d+))/);
+    LOC[m[1]] = { kind:m[2], scene, actor, two:two && [+two[1], +two[2]], params:num ? Number(num[1]) & 0xFFFF : null };
+  }
+}
+const sceneActorsOf = (scene, id) => readScene(scene).actors.filter(a => a[0] === id);
+const P = a => a && [a[1], a[3]];
+function locate(rc, depth = 0){
+  const l = LOC[rc];
+  if (!l || !OUTDOOR.has(l.scene) && !/^RC_TOT_\w+GOSSIP_STONE/.test(rc) || depth > 3) return null;
+  if (l.two) return [l.scene, ...l.two];
+  // fée qu'on fait apparaître à une pierre à potins : position de la pierre
+  if (l.kind === 'StoneFairy') return locate(rc.replace(/_FAIRY(_BIG)?$/, ''), depth + 1);
+  if (l.kind === 'HintStone'){
+    // pierres du Temple du Temps (sans paramètres dans SoH) : de gauche à droite (ouest → est)
+    if (rc.startsWith('RC_TOT_')){
+      const sc = 'SCENE_TEMPLE_OF_TIME_EXTERIOR_DAY', st = sceneActorsOf(sc, ACTORS.ACTOR_EN_GS).sort((a, b) => a[1] - b[1]);
+      const i = ['LEFTMOST', 'LEFT_CENTER', 'RIGHT_CENTER', 'RIGHTMOST'].findIndex(k => rc === `RC_TOT_${k}_GOSSIP_STONE`);
+      return st[i] ? [sc, ...P(st[i])] : null;
+    }
+    const st = sceneActorsOf(l.scene, ACTORS.ACTOR_EN_GS), hit = st.find(a => a[4] === l.params);
+    if (hit) return [l.scene, ...P(hit)];
+    // Fontaine Zora (sans paramètres ; versions enfant et adulte) : pierres dédoublonnées par position ; celle de Jabu-Jabu
+    // est la plus proche de l'entrée de Jabu-Jabu, celle de la fée la plus proche de la fontaine de la Grande Fée
+    const near = (key, list) => { const q = pos[key]; return q && [...list].sort((a, b) => Math.hypot(a[1] - q[1], a[3] - q[2]) - Math.hypot(b[1] - q[1], b[3] - q[2]))[0]; };
+    const uniq = st.filter((a, i) => st.findIndex(b => b[1] === a[1] && b[3] === a[3]) === i);
+    const hitZf = /JABU/.test(rc) ? near('zoras_fountain::fountain_to_jbjb', uniq) : /FAIRY/.test(rc) ? near('zoras_fountain::fountain_to_greatfairy', uniq) : null;
+    return hitZf ? [l.scene, ...P(hitZf)] : null;
+  }
+  if (l.kind === 'GSToken'){
+    // Skulltula : acteur Skulltula de même numéro de symbole (octet de poids faible) ; celles des carrés de terre
+    // n'apparaissent qu'avec des insectes : position du carré de terre
+    const sw = sceneActorsOf(l.scene, ACTORS.ACTOR_EN_SW).find(a => (a[4] & 0xFF) === (l.params & 0xFF));
+    if (sw) return [l.scene, ...P(sw)];
+    const soil = sceneActorsOf(l.scene, ACTORS.ACTOR_OBJ_MAKEKINSUTA);
+    const hit = soil.find(a => (a[4] & 0xFF) === (l.params & 0xFF)) || (soil.length === 1 ? soil[0] : null);
+    return hit ? [l.scene, ...P(hit)] : null;
+  }
+  if (l.kind === 'BeanFairy'){
+    // fées des carrés de terre : la Skulltula du carré de terre homonyme, sinon le seul carré de terre (haricot) de la scène
+    const gs = Object.keys(LOC).find(k => LOC[k].kind === 'GSToken' && LOC[k].scene === l.scene && /BEAN_PATCH/.test(k)
+      && rc.replace(/_BEAN_SPROUT_FAIRY_\d+$/, '').replace(/^RC_/, '').split('_').slice(1).every(w => k.includes(w)));
+    const beans = sceneActorsOf(l.scene, ACTORS.ACTOR_OBJ_BEAN);
+    return (gs && locate(gs, depth + 1)) || (beans.length === 1 ? [l.scene, ...P(beans[0])] : null);
+  }
+  const id = ACTORS[l.actor];
+  if (id == null) return null;
+  const same = sceneActorsOf(l.scene, id), hit = same.find(a => a[4] === l.params) || (same.length === 1 ? same[0] : null);
+  return hit ? [l.scene, ...P(hit)] : null;
+}
+
+// Lieu d'un check hors extérieur : région SoH du check → (en remontant les sorties des régions) région où mène une
+// entrée → sortie où l'on apparaît en prenant cette entrée
+const CHECKS_RAW = (() => { const c = { window:{} }; vm.createContext(c); vm.runInContext(fs.readFileSync(path.join(APP, 'data/checks-data.js'), 'utf8'), c); return c.window.CHECKS_DATA.checks; })();
+const LOGIC = (() => { const c = { window:{}, L:{} }; vm.createContext(c); vm.runInContext(fs.readFileSync(path.join(APP, 'data/logic-data.js'), 'utf8'), c); return c.window.SOH_LOGIC; })();
+const REV = {}, ENTR_TO = {};
+for (const [rr, r] of Object.entries(LOGIC.regions)) for (const [to] of r.exits || []) (REV[to] = REV[to] || []).push(rr);
+for (const [n, , , to] of LOGIC.entrances) (ENTR_TO[to] = ENTR_TO[to] || []).push(n);
+const EXIT_BY_ENTR = {};
+for (const [k, e] of Object.entries(EXITS)) if (e.entr != null) EXIT_BY_ENTR[e.entr] = k;
+const CHECK_REGION = {};
+for (const [rr, r] of Object.entries(LOGIC.regions)) for (const [rc] of r.checks || []) (CHECK_REGION[rc] = CHECK_REGION[rc] || rr);
+function placeOf(rc){
+  const start = CHECK_REGION[rc];
+  if (!start) return null;
+  const seenR = new Set([start]), q = [start];
+  while (q.length){
+    const rr = q.shift();
+    for (const n of ENTR_TO[rr] || []){
+      const w = EXIT_BY_ENTR[n], t = w && EXITS[w].vanillaTargetExitId;
+      if (t && EXITS[t]) return t;
+    }
+    for (const p of REV[rr] || []) if (!seenR.has(p)){ seenR.add(p); q.push(p); }
+  }
+  return null;
+}
+const checkPos = {}, checkPlace = {}, unplaced = {};
+for (const row of CHECKS_RAW){
+  const id = row[0], rc = 'RC_' + id, l = LOC[rc];
+  const at = locate(rc);
+  if (at){ checkPos[id] = [at[0].replace('SCENE_', ''), Math.round(at[1]), Math.round(at[2])]; continue; }
+  if (l && !OUTDOOR.has(l.scene)){ const p = placeOf(rc); if (p){ checkPlace[id] = p; continue; } }
+  const k = l ? l.kind + (l.actor ? ' ' + l.actor.replace('ACTOR_', '') : '') : 'inconnu';
+  (unplaced[k] = unplaced[k] || []).push(id);
+}
+// pierres à potins (pas dans la liste des checks de l'appli) : même placement, clé = nom SoH sans « RC_ »
+for (const rc of Object.keys(LOC).filter(k => LOC[k].kind === 'HintStone')){
+  const at = locate(rc), id = rc.slice(3);
+  if (at) checkPos[id] = [at[0].replace('SCENE_', ''), Math.round(at[1]), Math.round(at[2])];
+  else { const p = !OUTDOOR.has(LOC[rc].scene) && placeOf(rc); if (p) checkPlace[id] = p; else (unplaced.HintStone = unplaced.HintStone || []).push(id); }
+}
+// entrée d'un donjon : sortie où l'on apparaît en y entrant depuis l'extérieur (lieu des sorties situées dans le donjon)
+const areaEntry = {};
+for (const [k, e] of Object.entries(EXITS)){
+  const t = e.vanillaTargetExitId;
+  if (e.type === 'dungeon' && t && EXITS[t] && EXITS[t].areaId !== e.areaId && pos[k] && !(EXITS[t].areaId in areaEntry)) areaEntry[EXITS[t].areaId] = t;
+}
+
 /* ---------- Écriture ---------- */
 const scenes = {};
 for (const name of OUTDOOR){
@@ -144,8 +269,10 @@ for (const name of OUTDOOR){
 const out = `/* Cartes des zones (page Carte) — FICHIER GÉNÉRÉ par tools/soh-maps/extract_maps.mjs depuis la ROM de l'utilisateur
    (non versionné). scenes : { SCÈNE: { bounds:[x0, z0, x1, z1], y:[min, max], floors:[x1, z1, x2, z2, x3, z3, hauteur, …],
    walls:[x1, z1, x2, z2, …] } } (coordonnées du jeu, vue de dessus, z vers le sud) ; exits : { 'zone::sortie': [scène, x, z,
-   hauteur, porte?] } (porte : sortie située dans un intérieur, placée à sa porte). */
-window.MAPS_DATA = ${JSON.stringify({ scenes, exits:pos })};
+   hauteur, porte?] } (porte : sortie située dans un intérieur, placée à sa porte) ; checks : { id: [scène, x, z] } (checks
+   des scènes d'extérieur) ; places : { id: sortie où l'on apparaît en entrant dans le lieu du check } (intérieur, grotte,
+   donjon : placé à la porte qui y mène selon les entrées notées) ; areaEntry : { zone de donjon: sortie d'entrée }. */
+window.MAPS_DATA = ${JSON.stringify({ scenes, exits:pos, checks:checkPos, places:checkPlace, areaEntry })};
 `;
 const file = path.join(APP, 'data/maps-data.js');
 fs.writeFileSync(file, out);
@@ -153,4 +280,6 @@ const nTri = Object.values(scenes).reduce((n, s) => n + s.floors.length / 7, 0);
 console.log(`${Object.keys(scenes).length} scènes (${nTri} triangles de sol), ${Object.keys(pos).length} sorties placées, écrit dans ${file} (${Math.round(out.length / 1024)} Ko)`);
 const byArea = {};
 for (const k of missing) (byArea[EXITS[k].areaId] = byArea[EXITS[k].areaId] || []).push(EXITS[k].label);
+console.log(`Checks : ${Object.keys(checkPos).length} placés en extérieur, ${Object.keys(checkPlace).length} rattachés à leur lieu (intérieur, grotte, donjon), ${Object.values(unplaced).flat().length} sans position :`,
+  Object.entries(unplaced).map(([k, l]) => k + ' ' + l.length).join(', '));
 console.log('Sorties sans position (hors scènes d\'extérieur) :', Object.entries(byArea).map(([a, l]) => a + ' ' + l.length).join(', '));

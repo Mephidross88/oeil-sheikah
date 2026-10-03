@@ -550,6 +550,37 @@ html.stream-mode,html.stream-mode body{background:transparent;overflow:hidden}
 .nd-step.click{cursor:pointer}
 .nd-step.click:hover{border-color:var(--gold-deep)}
 
+/* Carte : checks (point : faisable vert, pas encore rouge, fait gris ; carré compteur : lieu), pierres (losange) */
+.zc{cursor:pointer}
+.zc-check circle{fill:var(--red);stroke:#1c1a12;stroke-width:1px;vector-effect:non-scaling-stroke;opacity:.85}
+.zc-check.now circle{fill:#7fd36b}
+.zc-check.done circle{fill:#8a8a8a;opacity:.6}
+.zc-check.sel circle{stroke:var(--text);stroke-width:2px}
+.zc-place rect{fill:#8a8a8a;stroke:#1c1a12;stroke-width:1px;vector-effect:non-scaling-stroke}
+.zc-place.now rect{fill:#7fd36b}
+.zc-place:not(.now):not(.done) rect{fill:var(--red)}
+.zc-place text{fill:#1c1a12;font-family:var(--sans);font-weight:800;text-anchor:middle;pointer-events:none}
+.zc-place.sel rect{stroke:var(--text);stroke-width:2px}
+.zs{cursor:pointer}
+.zs rect{fill:rgba(240,234,214,.25);stroke:#f0ead6;stroke-width:1.5px;vector-effect:non-scaling-stroke}
+.zs.read rect{fill:#f0ead6;stroke:#1c1a12}
+.zs.sel rect{stroke:var(--gold);stroke-width:2.5px}
+.zp-list{list-style:none;margin:0;padding:0;max-height:260px;overflow:auto;display:flex;flex-direction:column;gap:2px}
+.zp-list li,.zmap-off li{display:flex;align-items:center;gap:6px;font-size:13.5px}
+.zp-list li.done span,.zmap-off li.done span{color:var(--muted);text-decoration:line-through}
+.zp-list li.now span,.zmap-off li.now span{color:var(--green)}
+.zp-tick{flex:none;width:22px;height:22px;display:grid;place-items:center;border:0;background:none;color:var(--muted);cursor:pointer;padding:0}
+.zp-tick svg{width:17px;height:17px}
+.zp-hint{margin:0;font-size:14px;padding:6px 10px;border-left:3px solid var(--gold);background:var(--surface-2);border-radius:0 8px 8px 0}
+.zmap-off{margin-top:8px;font-size:13.5px}
+.zmap-off ul{list-style:none;margin:6px 0 0;padding:8px 12px;display:flex;flex-direction:column;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:10px;max-height:220px;overflow:auto}
+.zmap-stones{align-self:center}
+.zmap-legend .lg-c{background:var(--red);border:1px solid #1c1a12;width:10px;height:10px}
+.zmap-legend .lg-c.now{background:#7fd36b}
+.zmap-legend .lg-c.done{background:#8a8a8a}
+.zmap-legend .lg-p{border-radius:3px;width:16px;height:12px;background:var(--red);border:1px solid #1c1a12}
+.zmap-legend .lg-s{border-radius:1px;width:10px;height:10px;transform:rotate(45deg);background:#c9c3b0;border:1px solid #1c1a12}
+
 /* Carte des entrées */
 .emap{position:relative;max-width:1240px}
 .emap-svg{display:block;width:100%;height:auto;max-height:calc(100vh - 220px);background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow)}

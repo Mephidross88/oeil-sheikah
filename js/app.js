@@ -1399,8 +1399,10 @@ ${STREAM_TPL}
       <template v-else>
         <div class="zmap-bar"><label class="field"><span class="lbl">Zone</span>
           <select class="sel" v-model="mapArea"><option v-for="a in mapAreas" :key="a.id" :value="a.id">{{a.name}}</option></select></label>
-          <button v-if="ui.map.area" type="button" class="btn" @click="mapHere" title="Afficher la zone où vous êtes (position en direct, sinon départ du Routeur)">Ma position</button></div>
-        <zone-map :area="mapArea" :focus="mapFocus" @start="mapStart" @goal="mapGoal"></zone-map>
+          <button v-if="ui.map.area" type="button" class="btn" @click="mapHere" title="Afficher la zone où vous êtes (position en direct, sinon départ du Routeur)">Ma position</button>
+          <div class="field"><span class="lbl">Checks</span><seg v-model="ui.map.checks" :options="[['todo','À faire'],['all','Tous'],['off','Aucun']]"></seg></div>
+          <label class="check zmap-stones"><input type="checkbox" v-model="ui.map.stones">Pierres à potins</label></div>
+        <zone-map :area="mapArea" :focus="mapFocus" @start="mapStart" @goal="mapGoal" @go-check="goToCheck"></zone-map>
       </template>
     </section>
 

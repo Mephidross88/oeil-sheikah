@@ -96,8 +96,10 @@ et le mettre à jour quand une règle change.
   Harkinian ; à relancer après toute modification de `js/logic.js`, de la
   conversion, des règles d'entrées ou de `areas-data.js`).
 - `tools/soh-maps/extract_maps.mjs` : cartes de la page Carte depuis la ROM de l'utilisateur (NTSC 1.0 décompressée,
-  hors dépôt) — scènes d'OoT (points d'apparition, liste des entrées, collision, acteurs des salles) + table des entrées et
-  des scènes de SoH (`tools/soh-checks/src`) → `data/maps-data.js`, **généré et non versionné** (chargé par `index.html`,
+  hors dépôt) — scènes d'OoT (points d'apparition, liste des entrées, collision, acteurs des salles, toutes versions) + tables
+  des entrées, scènes et acteurs de SoH et définitions des checks (`tools/soh-checks/src`), logique (`logic-data.js`) :
+  sol, position des sorties, des checks et des pierres d'extérieur, lieu des autres (intérieur, grotte, donjon) →
+  `data/maps-data.js`, **généré et non versionné** (chargé par `index.html`,
   absent par défaut : la page Carte l'explique).
 - `tools/soh-link/replay_packets.mjs` : test de l'auto-tracking — rejoue une partie enregistrée par le relais
   (`tools/soh-link/fixtures/session.json` : paquets allégés et spoiler de la seed ; `--make-fixture` le refabrique depuis
