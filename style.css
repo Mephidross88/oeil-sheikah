@@ -574,7 +574,6 @@ html.stream-mode,html.stream-mode body{background:transparent;overflow:hidden}
 .zp-hint{margin:0;font-size:14px;padding:6px 10px;border-left:3px solid var(--gold);background:var(--surface-2);border-radius:0 8px 8px 0}
 .zmap-off{margin-top:8px;font-size:13.5px}
 .zmap-off ul{list-style:none;margin:6px 0 0;padding:8px 12px;display:flex;flex-direction:column;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:10px;max-height:220px;overflow:auto}
-.zmap-stones{align-self:center}
 .zmap-legend .lg-c{background:var(--red);border:1px solid #1c1a12;width:10px;height:10px}
 .zmap-legend .lg-c.now{background:#7fd36b}
 .zmap-legend .lg-c.done{background:#8a8a8a}

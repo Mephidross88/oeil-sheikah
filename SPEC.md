@@ -723,7 +723,7 @@ du jeu vu de dessus (nord en haut).
 - « Voir sur la carte » : bouton carte sur chaque carte du trajet du Routeur, et clic sur la prochaine étape du bandeau
   « Où aller ? » (sortie à prendre).
 - **Checks et pierres à potins** (barre au-dessus de la carte : « Checks » Comme la page Checks / Tous / Aucun,
-  `ui.map.checks` = `filters` / `all` / `off` ; case « Pierres à potins », `ui.map.stones`). Jamais affichés : checks non
+  `ui.map.checks` = `filters` / `all` / `off` ; « Pierres à potins » Affichées / Masquées, `ui.map.stones`). Jamais affichés : checks non
   mélangés selon la configuration, d'une autre version du donjon, exclus (zone ignorée…). « Comme la page Checks » :
   aussi ses filtres (catégories, âge, checks faits masqués, seulement les faisables, recherche) ; « Tous » : faits compris
   (en gris).
