@@ -262,3 +262,141 @@ const EntranceGraph = {
     </div>
   </div>`,
 };
+
+/* ---------- Carte d'une zone ----------
+   Sol vu de dessus (collision du jeu : data/maps-data.js, généré depuis la ROM de l'utilisateur par
+   tools/soh-maps/extract_maps.mjs, non versionné) et une repère par sortie (point d'apparition de l'entrée qui y fait
+   arriver ; intérieur : à sa porte ; grotte : point de retour ; hibou : position du hibou). Les sorties au même endroit
+   (une porte et l'intérieur derrière) partagent un repère. Mis en évidence : position (auto-tracking, sinon départ du
+   Routeur), arrivée du Routeur, prochaine sortie à prendre. Clic sur un repère : en faire le départ ou l'arrivée. */
+const MAPS = window.MAPS_DATA || null;
+const MAP_BANDS = 10;   // tranches de hauteur (une teinte et un tracé chacune)
+// scènes de chaque zone, de la plus fournie en sorties à la moins fournie
+const MAP_SCENES = {};
+if (MAPS) for (const [key, p] of Object.entries(MAPS.exits)){
+  const a = EXIT[key]?.areaId;
+  if (!a) continue;
+  const m = MAP_SCENES[a] = MAP_SCENES[a] || {};
+  m[p[0]] = (m[p[0]] || 0) + 1;
+}
+for (const a of Object.keys(MAP_SCENES)) MAP_SCENES[a] = Object.entries(MAP_SCENES[a]).sort((x, y) => y[1] - x[1]).map(x => x[0]);
+const MAP_SCENE_LABEL = { MARKET_ENTRANCE_DAY:'Entrée du bourg', MARKET_DAY:'Place du marché', TEMPLE_OF_TIME_EXTERIOR_DAY:'Parvis du temple',
+  BACK_ALLEY_DAY:'Ruelle', HYRULE_CASTLE:'Château (enfant)', OUTSIDE_GANONS_CASTLE:'Château de Ganon (adulte)' };
+const mapSceneCache = {};
+function mapScene(name){
+  if (mapSceneCache[name]) return mapSceneCache[name];
+  const s = MAPS.scenes[name], f = s.floors, paths = Array.from({ length:MAP_BANDS }, () => []);
+  // tranches de hauteur par quantiles (autant de sol dans chacune) : contraste là où il y a du terrain
+  const hs = []; for (let i = 6; i < f.length; i += 7) hs.push(f[i]);
+  hs.sort((a, c) => a - c);
+  const cuts = Array.from({ length:MAP_BANDS - 1 }, (_, k) => hs[Math.floor((k + 1) * hs.length / MAP_BANDS)]);
+  for (let i = 0; i < f.length; i += 7){
+    let b = 0; while (b < cuts.length && f[i + 6] > cuts[b]) b++;
+    paths[b].push(`M${f[i]} ${f[i + 1]}L${f[i + 2]} ${f[i + 3]}L${f[i + 4]} ${f[i + 5]}Z`);
+  }
+  let walls = '';
+  for (let i = 0; i < s.walls.length; i += 4) walls += `M${s.walls[i]} ${s.walls[i + 1]}L${s.walls[i + 2]} ${s.walls[i + 3]}`;
+  const [x0, z0, x1, z1] = s.bounds, pad = Math.max(x1 - x0, z1 - z0) * 0.03;
+  return (mapSceneCache[name] = { bands:paths.map(p => p.join('')), walls, view:[x0 - pad, z0 - pad, x1 - x0 + 2 * pad, z1 - z0 + 2 * pad],
+    unit:Math.max(x1 - x0, z1 - z0) / 110 });
+}
+const ZoneMap = {
+  props:['area', 'focus'],   // focus : sortie à mettre en évidence (« Voir sur la carte »)
+  emits:['start', 'goal'],
+  data:() => ({ scene:null, sel:null, hover:null, view:null, drag:null }),
+  computed:{
+    scenes(){ return MAP_SCENES[this.area] || []; },
+    cur(){ return this.scenes.includes(this.scene) ? this.scene : this.scenes[0]; },
+    geo(){ return this.cur ? mapScene(this.cur) : null; },
+    // repères : sorties de la zone dans cette scène, regroupées par position
+    marks(){
+      const groups = new Map();
+      for (const [key, p] of Object.entries(MAPS.exits)){
+        if (p[0] !== this.cur || EXIT[key]?.areaId !== this.area) continue;
+        const id = p[1] + ',' + p[2], g = groups.get(id) || { id, x:p[1], z:p[2], keys:[] };
+        g.keys.push(key); groups.set(id, g);
+      }
+      return [...groups.values()].map(g => ({ ...g, type:EXIT[g.keys.find(k => !MAPS.exits[k][4]) || g.keys[0]].type,
+        keys:g.keys.sort((a, b) => (MAPS.exits[a][4] || 0) - (MAPS.exits[b][4] || 0)) }));
+    },
+    here(){ return link.position?.key || store.ui.router.fromExit; },
+    goal(){ return store.ui.router.toExit; },
+    // prochaine sortie à prendre : celle de la première transition du trajet du Routeur
+    next(){
+      const r = store.ui.router;
+      if (!r.fromExit || !r.toExit || !EXIT[r.fromExit] || !EXIT[r.toExit]) return null;
+      const res = shortest(routeC.value.edges, r.fromExit, r.fromAge, r.toExit, r.toAge);
+      const e = res && res.edges.find(e => e.kind !== 'walk' && e.kind !== 'age');
+      return e ? e.from : null;
+    },
+    selMark(){ return this.marks.find(m => m.id === this.sel) || null; },
+    // cadrage par défaut : les repères de la scène (avec une marge), pas tout le terrain
+    fit(){
+      if (!this.geo) return null;
+      const g = this.geo.view, ms = this.marks;
+      if (ms.length < 2) return g;
+      const xs = ms.map(m => m.x), zs = ms.map(m => m.z), min = Math.max(g[2], g[3]) * 0.22;
+      let w = Math.max(...xs) - Math.min(...xs), h = Math.max(...zs) - Math.min(...zs);
+      const cx = (Math.max(...xs) + Math.min(...xs)) / 2, cz = (Math.max(...zs) + Math.min(...zs)) / 2;
+      w = Math.max(min, w * 1.3); h = Math.max(min * 0.7, h * 1.3);
+      return [cx - w / 2, cz - h / 2, w, h];
+    },
+    vb(){ return this.view || this.fit; },
+    unit(){ return this.vb ? Math.max(this.vb[2], this.vb[3]) / 110 : 1; },   // taille des repères : constante à l'écran
+  },
+  watch:{
+    focus:{ immediate:true, handler(k){ const p = k && MAPS?.exits[k]; if (p){ this.scene = p[0]; this.sel = p[1] + ',' + p[2]; } } },
+    area(){ this.scene = null; this.sel = null; this.view = null; },
+    cur(){ this.view = null; },
+  },
+  methods:{
+    has(m, k){ return !!k && m.keys.includes(k); },
+    dest(k){ const t = effC.value[k]; return t && EXIT[t] ? AREA[EXIT[t].areaId].name + ' · ' + EXIT[t].label : null; },
+    title(m){ return m.keys.map(k => EXIT[k].label + (this.dest(k) ? ' → ' + this.dest(k) : '')).join('\n'); },
+    pick(m){ this.sel = this.sel === m.id ? null : m.id; },
+    bandColor(i){ return 'var(--map-' + i + ')'; },
+    // zoom à la molette (autour du curseur), déplacement en glissant le fond, boutons + / − / tout voir
+    toWorld(ev){ const r = this.$refs.svg.getBoundingClientRect(), v = this.vb, k = Math.max(v[2] / r.width, v[3] / r.height);
+      const ox = (r.width - v[2] / k) / 2, oy = (r.height - v[3] / k) / 2;
+      return [v[0] + (ev.clientX - r.left - ox) * k, v[1] + (ev.clientY - r.top - oy) * k, k]; },
+    zoom(f, at){ const v = this.vb, c = at || [v[0] + v[2] / 2, v[1] + v[3] / 2], g = this.geo.view, max = Math.max(g[2], g[3]) * 1.2;
+      const w = Math.min(max, Math.max(200, v[2] * f)), h = v[3] * w / v[2];
+      this.view = [c[0] - (c[0] - v[0]) * w / v[2], c[1] - (c[1] - v[1]) * h / v[3], w, h]; },
+    wheel(ev){ this.zoom(ev.deltaY > 0 ? 1.2 : 1 / 1.2, this.toWorld(ev)); },
+    down(ev){ if (ev.button !== 0) return; const [x, y, k] = this.toWorld(ev); this.drag = { sx:ev.clientX, sy:ev.clientY, v:[...this.vb], k, moved:false }; },
+    move(ev){ const d = this.drag; if (!d) return; const dx = ev.clientX - d.sx, dy = ev.clientY - d.sy;
+      if (Math.abs(dx) + Math.abs(dy) > 3) d.moved = true;
+      if (d.moved) this.view = [d.v[0] - dx * d.k, d.v[1] - dy * d.k, d.v[2], d.v[3]]; },
+    up(){ const d = this.drag; this.drag = null; if (d && !d.moved) this.sel = null; },
+  },
+  template:`<div class="zmap">
+    <div v-if="scenes.length > 1" class="zmap-tabs"><button v-for="s in scenes" :key="s" type="button" :class="{on:s===cur}" @click="scene=s; sel=null">{{MAP_SCENE_LABEL[s] || s}}</button></div>
+    <div v-if="!geo" class="zmap-empty">Pas de carte pour cette zone (donjon ou intérieur).</div>
+    <div v-else class="zmap-frame">
+      <svg ref="svg" :viewBox="vb.join(' ')" class="zmap-svg" :class="{dragging:drag && drag.moved}" @wheel.prevent="wheel"
+        @pointerdown="down" @pointermove="move" @pointerup="up" @pointerleave="drag=null">
+        <path v-for="(d,i) in geo.bands" :key="i" :d="d" :fill="bandColor(i)" :stroke="bandColor(i)" :stroke-width="unit * 0.12"></path>
+        <path :d="geo.walls" class="zmap-walls" :stroke-width="unit * 0.35"></path>
+        <g v-for="m in marks" :key="m.id" class="zm" :class="['t-' + m.type, {here:has(m, here), goal:has(m, goal), next:has(m, next), sel:sel===m.id}]"
+          @pointerdown.stop @click.stop="pick(m)" @mouseenter="hover=m.id" @mouseleave="hover=null">
+          <circle v-if="has(m, here) || has(m, goal) || has(m, next)" class="zm-ring" :cx="m.x" :cy="m.z" :r="unit * 2.6"></circle>
+          <circle :cx="m.x" :cy="m.z" :r="unit * (sel===m.id || hover===m.id ? 1.7 : 1.3)"></circle>
+          <text v-if="sel===m.id || hover===m.id || has(m, here) || has(m, goal) || has(m, next)" :x="m.x" :y="m.z - unit * 2.2" :font-size="unit * 2.3">{{EXIT[m.keys[0]].label}}</text>
+          <title>{{title(m)}}</title>
+        </g>
+      </svg>
+      <div class="zmap-zoom"><button type="button" title="Zoomer" @click="zoom(1 / 1.5)">+</button><button type="button" title="Dézoomer" @click="zoom(1.5)">−</button>
+        <button type="button" title="Cadrer sur les sorties" @click="view = null">⤢</button><button type="button" title="Tout le terrain" @click="view = [...geo.view]">▢</button></div>
+      <div v-if="selMark" class="zmap-pop">
+        <div v-for="k in selMark.keys" :key="k" class="zp-row">
+          <div class="zp-name"><b>{{EXIT[k].label}}</b><small v-if="dest(k)">→ {{dest(k)}}</small><small v-else class="zp-unk">destination inconnue</small></div>
+          <div class="zp-btns"><button type="button" class="btn" @click="$emit('start', k)">Partir d’ici</button>
+            <button type="button" class="btn" @click="$emit('goal', k)">Y aller</button></div>
+        </div>
+      </div>
+    </div>
+    <div class="zmap-legend"><span><i class="lg-here"></i>vous êtes ici</span><span><i class="lg-next"></i>prochaine sortie</span><span><i class="lg-goal"></i>arrivée du Routeur</span>
+      <span>Clic sur un repère : partir d’ici ou y aller.</span></div>
+  </div>`,
+  setup(){ return { EXIT, MAP_SCENE_LABEL }; },
+};

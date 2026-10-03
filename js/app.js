@@ -210,7 +210,7 @@ const STREAM_TPL = `
 `;
 
 const App = {
-  components:{ TypeIcon, Seg, DestPicker, ItemTile, ProgressCard, EntranceGraph },
+  components:{ TypeIcon, Seg, DestPicker, ItemTile, ProgressCard, EntranceGraph, ZoneMap },
   setup(){
     const navOpen = ref(false), itemsOpen = ref(false), modal = ref(null), tip = reactive({ show:false, key:null, style:{} });
     const backup = reactive({ text:'', msg:'', ok:true });
@@ -224,6 +224,7 @@ const App = {
       { id:'checks', label:'Checks', icon:ICONS.checks },
       { id:'entrances', label:'Entrées', icon:ICONS.entrances },
       { id:'router', label:'Routeur', icon:ICONS.router },
+      { id:'map', label:'Carte', icon:ICONS.map },
       { id:'graph', label:'Connexions', icon:ICONS.graph },
       { id:'stats', label:'Statistiques', icon:ICONS.stats },
       { id:'config', label:'Configuration', icon:ICONS.config },
@@ -936,7 +937,7 @@ const App = {
       if (i < 0) return null;
       const it = items[i], edge = items.slice(1, i).find(x => x.t === 'edge'), key = it.t === 'retake' ? it.key : it.key0;
       const to = ui.router.toExit;
-      return { mode:it.t === 'retake' ? 'Reprendre cette sortie' : edge ? edgeLabel(edge.e) : 'Changement d’âge',
+      return { take:edge ? edge.e.from : key, mode:it.t === 'retake' ? 'Reprendre cette sortie' : edge ? edgeLabel(edge.e) : 'Changement d’âge',
         icon:it.t === 'retake' || !edge ? null : edgeIcon(edge.e), zone:areaName(key), exit:EXIT[key].label,
         goal:it.end || !EXIT[to] ? '' : areaName(to) + ' · ' + EXIT[to].label };
     });
@@ -970,6 +971,24 @@ const App = {
       return { origin, elapsed:origin ? nowTick.value - origin : null, rows, curve, nItems:tl.filter(e => e.k !== 'checks').length };
     });
     const statsRows = computed(() => statsC.value.rows.filter(r => stFilter.value === 'all' || (stFilter.value === 'checks' ? r.k === 'checks' : r.k !== 'checks')));
+    /* Carte (js/components.js, ZoneMap) : zone affichée (choisie, sinon celle de la position) et sortie à mettre en
+       évidence (« Voir sur la carte ») */
+    const MAPS_OK = !!window.MAPS_DATA;
+    const mapAreas = AREAS.filter(a => MAP_SCENES[a.id]);
+    const mapFocus = ref(null);
+    const mapArea = computed({
+      get(){ const k = link.position?.key || ui.router.fromExit; return ui.map.area || (k && EXIT[k] && MAP_SCENES[EXIT[k].areaId] ? EXIT[k].areaId : mapAreas[0]?.id); },
+      set(v){ ui.map.area = v; mapFocus.value = null; },
+    });
+    function openMap(key){
+      if (!key || !EXIT[key]) return;
+      ui.map.area = EXIT[key].areaId; mapFocus.value = null;
+      nextTick(() => { mapFocus.value = key; });
+      go('map');
+    }
+    const mapHere = () => { ui.map.area = ''; mapFocus.value = null; };
+    const mapStart = key => setStart(key, ui.router.fromAge);
+    function mapGoal(key){ const r = ui.router; r.toArea = EXIT[key].areaId; nextTick(() => { r.toExit = key; }); }
     return { store, ui, s, views, link, LINK_LABEL, linkRequestState, linkAsks, linkAnswer, askFrom, askLabel, canSplit, splitOn, shown, paneOf, swapPanes, openSide, closeSide, navOpen, itemsOpen, modal, tip, tipData, backup, stats, missingSpawns, visibleAreas,
       ICONS, ITEMS_PAGE, ITEM_BY_KEY, DUNGEONS, DUNGEON_BY_ID, CHECKLISTS, AREA, EXIT, DATA_ERRORS,
       iconKey, exitIcon, areaName, toggleArea, setAll, jump, go, showTip, hideTip, toggleTip, setMapping, clearMapping,
@@ -981,7 +1000,7 @@ const App = {
       itemVisible, tierLabel, iconSrc, checklistModal, openChecklist, setChecklist, checklistStats,
       tradeModal, openTrade, tradeStats, counterClass,
       TRIALS, trialStatus, cycleTrial, setDungeonFlag, addDungeonKeys, dungeonQuest, dungeonMaxKeys, cycleDungeonQuest, questLabel, questClass, questTitle, keysLabel, dungeonKeyRing, setKeyRing, dungeonKeysDone, keysTitle, brokenIcons,
-      setTheme, startHere, prevStart, backToPrev, liveStart, pickAreas, pickExits, fmtDur, stFilter, statsC, statsRows, STREAM, STREAM_TYPES, sl, swEdit, swSel, swAdd, swHint, swSelW, streamBg, swBodyStyle, swDown, swMove, swUp, swNew, swDelete, swReset, swImage, openStream, nextStep, swap, route, edgeLabel, edgeIcon, WARP_SONGS, ageLabel, openBackup, copyBackup, importBackup, resetAll, declineSpoiler, savedAt, TYPE_LABEL };
+      setTheme, startHere, prevStart, backToPrev, liveStart, pickAreas, pickExits, MAP_SCENES, MAPS_OK, mapAreas, mapFocus, mapArea, openMap, mapHere, mapStart, mapGoal, fmtDur, stFilter, statsC, statsRows, STREAM, STREAM_TYPES, sl, swEdit, swSel, swAdd, swHint, swSelW, streamBg, swBodyStyle, swDown, swMove, swUp, swNew, swDelete, swReset, swImage, openStream, nextStep, swap, route, edgeLabel, edgeIcon, WARP_SONGS, ageLabel, openBackup, copyBackup, importBackup, resetAll, declineSpoiler, savedAt, TYPE_LABEL };
   },
   template:`
 ${STREAM_TPL}
@@ -1267,6 +1286,8 @@ ${STREAM_TPL}
           <template v-for="(it,i) in route.items" :key="i">
             <div v-if="it.t==='card'" class="node" :class="{start:it.start && !it.end, end:it.end, next:liveStart && it.next}">
               <type-icon :type="iconKey(EXIT[it.key0])" :src="exitIcon(EXIT[it.key0])"></type-icon>
+              <button v-if="MAPS_OK && MAP_SCENES[EXIT[it.key0].areaId]" type="button" class="node-map" title="Voir sur la carte" v-html="ICONS.map"
+                @click.stop="openMap(it.rows[it.rows.length - 1].key)"></button>
               <div class="role" v-if="it.start || it.end || liveStart && it.next">{{it.start && it.end ? 'Départ et arrivée' : it.start ? 'Départ' : it.end ? 'Arrivée' : 'Prochaine destination'}}</div>
               <b>{{areaName(it.key0)}}</b>
               <template v-for="(row, j) in it.rows" :key="j">
@@ -1312,6 +1333,22 @@ ${STREAM_TPL}
     </section>
 
     <!-- ================= CONFIGURATION ================= -->
+    <section v-if="shown('map')" class="pane" :class="'pane-' + paneOf('map')">
+      <div v-if="paneOf('map')==='side'" class="pane-bar">
+        <button type="button" title="Échanger les deux panneaux" v-html="ICONS.swapH" @click="swapPanes"></button>
+        <button type="button" title="Fermer ce panneau" v-html="ICONS.close" @click="closeSide"></button></div>
+      <div class="page-head"><h1>Carte</h1><p class="lede">Où se trouve chaque sortie, zone par zone, sur le terrain du jeu vu de dessus (nord en haut).</p></div>
+      <div v-if="!MAPS_OK" class="warn-box"><span class="warn-box-ic" v-html="ICONS.warn"></span>
+        <div><b>Cartes non générées.</b> Elles se fabriquent depuis votre propre cartouche : <code>node tools/soh-maps/extract_maps.mjs &lt;ROM décompressée .z64&gt;</code>
+          (NTSC 1.0), qui écrit <code>data/maps-data.js</code>. Rechargez ensuite la page.</div></div>
+      <template v-else>
+        <div class="zmap-bar"><label class="field"><span class="lbl">Zone</span>
+          <select class="sel" v-model="mapArea"><option v-for="a in mapAreas" :key="a.id" :value="a.id">{{a.name}}</option></select></label>
+          <button v-if="ui.map.area" type="button" class="btn" @click="mapHere" title="Afficher la zone où vous êtes (position en direct, sinon départ du Routeur)">Ma position</button></div>
+        <zone-map :area="mapArea" :focus="mapFocus" @start="mapStart" @goal="mapGoal"></zone-map>
+      </template>
+    </section>
+
     <section v-if="shown('graph')" class="pane" :class="'pane-' + paneOf('graph')">
       <div v-if="paneOf('graph')==='side'" class="pane-bar">
         <button type="button" title="Échanger les deux panneaux" v-html="ICONS.swapH" @click="swapPanes"></button>
@@ -1428,7 +1465,8 @@ ${STREAM_TPL}
       <div class="nd-bar">
         <button type="button" class="nd-toggle" @click="ui.next.open = !ui.next.open" :aria-expanded="ui.next.open"
           :title="ui.next.open ? 'Replier' : 'Déplier : les 12 checks faisables les plus proches'"><span class="nd-ic" v-html="ICONS.compass"></span><b>Où aller ?</b></button>
-        <span v-if="nextStep" class="nd-step" :title="'Prochaine étape du trajet du Routeur' + (nextStep.goal ? ' (arrivée : ' + nextStep.goal + ')' : '')">
+        <span v-if="nextStep" class="nd-step" :class="{click:MAPS_OK}" :title="'Prochaine étape du trajet du Routeur' + (nextStep.goal ? ' (arrivée : ' + nextStep.goal + ')' : '') + (MAPS_OK ? ' — clic : voir la sortie à prendre sur la carte' : '')"
+          @click="MAPS_OK && openMap(nextStep.take)">
           <img v-if="nextStep.icon" :src="nextStep.icon" alt=""><span v-else class="nd-step-ic" v-html="ICONS.uturn"></span>{{nextStep.mode}} → <b>{{nextStep.zone}}</b> · {{nextStep.exit}}</span>
         <span v-if="!nextC" class="nd-sum">Choisissez un départ dans le Routeur (ou activez la position en direct).</span>
         <span v-else-if="!nextC.list.length" class="nd-sum">Aucun check faisable à portée.</span>

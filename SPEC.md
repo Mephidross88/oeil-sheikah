@@ -672,6 +672,28 @@ a son propre stockage et ne verrait pas la partie).
   (événement `storage`, même navigateur), ne sauvegarde rien et ne se connecte pas au relais (trouvailles comptées
   une seule fois). Blocs non cliquables (affichage seul).
 
+## Carte
+Page « Carte » (`ui.view` = `map`, composant `ZoneMap` de `components.js`) : où se trouve chaque sortie, sur le terrain
+du jeu vu de dessus (nord en haut).
+- Données : `data/maps-data.js` (`window.MAPS_DATA`), **généré** depuis la ROM de l'utilisateur (NTSC 1.0 décompressée)
+  par `tools/soh-maps/extract_maps.mjs` et **non versionné** (la géométrie vient de la cartouche). Sans ce fichier, la
+  page explique comment le produire. Scènes d'extérieur des zones (23, dont l'entrée du bourg, la place, le parvis du
+  temple, la ruelle, et le château enfant et adulte) : sols de la collision (normale vers le haut) en triangles vus de
+  dessus avec leur hauteur, et murs (arête la plus longue des polygones verticaux).
+- Position d'une sortie : point d'apparition de Link de l'entrée qui y fait arriver (table des entrées de SoH : scène et
+  numéro d'entrée dans la scène ; liste des entrées de la scène : point d'apparition) ; sortie située dans un intérieur :
+  à sa porte (sortie d'origine associée) ; grotte : point de retour de la grotte ; envol du hibou : position du hibou
+  (acteurs des salles). Sans position : sorties des donjons, rivière Gerudo, plateforme du Prélude, fontaine de la
+  Grande Fée du Château de Ganon.
+- Affichage : zone choisie (`ui.map.area`, sinon celle de la position), onglets si elle a plusieurs scènes ; sol en
+  10 teintes par tranches de hauteur réparties selon le terrain présent (quantiles), murs en traits sombres ; un repère
+  par position (une porte et l'intérieur derrière partagent un repère), couleur par type ; cadrage sur les repères,
+  zoom à la molette et boutons, déplacement en glissant, « tout le terrain ». Mis en évidence : position (auto-tracking,
+  sinon départ du Routeur), prochaine sortie à prendre (première transition du trajet), arrivée du Routeur. Clic sur un
+  repère : ses sorties, leur destination notée, « Partir d'ici » (départ du Routeur) et « Y aller » (arrivée).
+- « Voir sur la carte » : bouton carte sur chaque carte du trajet du Routeur, et clic sur la prochaine étape du bandeau
+  « Où aller ? » (sortie à prendre).
+
 ## Connexions
 Page « Connexions » (`ui.view` = `graph`, composant `EntranceGraph` de `components.js`) : schéma (graphe) des entrées
 connues. (Ancien nom « Carte », id `map` : converti au chargement.)

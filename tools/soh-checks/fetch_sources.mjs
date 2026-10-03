@@ -22,7 +22,7 @@ const wanted = tree.tree.map(e => e.path).filter(p =>
   /^soh\/soh\/Enhancements\/randomizer\/(RandomizerOptions|randomizerTypes|dungeon)\.h$/.test(p));
 wanted.push('soh/soh/util.cpp', 'soh/soh/Enhancements/randomizer/randomizerEnums/RandomizerOptions.h',
   // entrées : numéros ENTR_* (table des entrées du jeu) et décalages des grottes
-  'soh/include/tables/entrance_table.h', 'soh/soh/Enhancements/randomizer/randomizerEnums/RandomizerMiscEnums.h',
+  'soh/include/tables/entrance_table.h', 'soh/include/tables/scene_table.h', 'soh/soh/Enhancements/randomizer/randomizerEnums/RandomizerMiscEnums.h',
   // auto-tracking (tools/soh-link) : numéros des checks (RC) et des objets (RG) envoyés par le jeu
   'soh/soh/Enhancements/randomizer/randomizerEnums/RandomizerCheck.h', 'soh/soh/Enhancements/randomizer/randomizerEnums/RandomizerGet.h',
   'soh/soh/Enhancements/randomizer/randomizerEnums/RandomizerInf.h',

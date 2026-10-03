@@ -1,7 +1,7 @@
 # L'Œil Sheikah
 
 Tracker d'objets, de checks et d'entrées, et routeur, pour le randomizer de Ship of Harkinian 9.2.3 (migré depuis
-OoT Randomizer, voir SPEC.md). Modules : Entrées (id `entrances`), Routeur, Checks, Connexions (id `graph`), Statistiques (id `stats`), Configuration, plus
+OoT Randomizer, voir SPEC.md). Modules : Entrées (id `entrances`), Routeur, Checks, Carte (id `map`), Connexions (id `graph`), Statistiques (id `stats`), Configuration, plus
 le panneau Objets.
 Application 100 % client, sans build : ouvrir `index.html` dans un navigateur suffit.
 Interface et textes en français.
@@ -70,7 +70,8 @@ et le mettre à jour quand une règle change.
      lancé sous Windows par `lancer-relais.bat` (racine, fins de ligne CRLF imposées par `.gitattributes`).
   9. `js/components.js` : composants Vue réutilisables (`TypeIcon`, `Seg`, `DestPicker`, `ItemTile`,
      `ProgressCard` — cadre de progression des pages Checks et Entrées, `EntranceGraph` — page Connexions : graphe des
-     entrées connues, positions des zones `GRAPH_POS`).
+     entrées connues, positions des zones `GRAPH_POS`, `ZoneMap` — page Carte : terrain vu de dessus et repères des
+     sorties, données `window.MAPS_DATA`).
   10. `js/app.js` : le composant racine `App` (template complet, dont le panneau Objets et ses modales de
      pointage) + `createApp(...).mount('#app')`. Fragments de gabarit partagés en constantes (`ITEMS_TPL`, `LOOT_TPL`,
      `STREAM_TPL`) insérés par `${…}` dans le gabarit d'App (évalués par JS, pas par Vue) : la fenêtre de stream
@@ -92,6 +93,10 @@ et le mettre à jour quand une règle change.
   notées et, à chaque sphère, les régions atteintes par le Routeur à celles de la logique, voir SPEC.md > Logique Ship of
   Harkinian ; à relancer après toute modification de `js/logic.js`, de la
   conversion, des règles d'entrées ou de `areas-data.js`).
+- `tools/soh-maps/extract_maps.mjs` : cartes de la page Carte depuis la ROM de l'utilisateur (NTSC 1.0 décompressée,
+  hors dépôt) — scènes d'OoT (points d'apparition, liste des entrées, collision, acteurs des salles) + table des entrées et
+  des scènes de SoH (`tools/soh-checks/src`) → `data/maps-data.js`, **généré et non versionné** (chargé par `index.html`,
+  absent par défaut : la page Carte l'explique).
 - `tools/soh-link/replay_packets.mjs` : test de l'auto-tracking — rejoue une partie enregistrée par le relais
   (`tools/soh-link/fixtures/session.json` : paquets allégés et spoiler de la seed ; `--make-fixture` le refabrique depuis
   un `relay.mjs --dump`) et vérifie entrées notées, questions, objets trouvés et positions ; à relancer après toute

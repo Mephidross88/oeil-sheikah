@@ -435,6 +435,60 @@ html.stream-mode,html.stream-mode body{background:transparent;overflow:hidden}
 .st-list img,.st-noic{width:28px;height:28px;object-fit:contain;flex:none}
 .st-lab small{color:var(--muted)}
 
+/* Carte (page Carte, ZoneMap) : sol vu de dessus, une teinte par tranche de hauteur (du plus bas au plus haut) */
+:root{--map-0:#4f6b3a;--map-1:#5a7a40;--map-2:#668946;--map-3:#73974d;--map-4:#81a455;--map-5:#90b05f;--map-6:#a0bb6b;--map-7:#b1c67a;--map-8:#c2d18c;--map-9:#d4dca1;--map-wall:#1d2414;--map-bg:#efe7d2}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--map-0:#2c4129;--map-1:#344b2f;--map-2:#3d5636;--map-3:#47613d;--map-4:#526d45;--map-5:#5e794e;--map-6:#6b8657;--map-7:#799361;--map-8:#88a06c;--map-9:#98ae79;--map-wall:#0d120a;--map-bg:#15120d}}
+:root[data-theme="dark"]{--map-0:#2c4129;--map-1:#344b2f;--map-2:#3d5636;--map-3:#47613d;--map-4:#526d45;--map-5:#5e794e;--map-6:#6b8657;--map-7:#799361;--map-8:#88a06c;--map-9:#98ae79;--map-wall:#0d120a;--map-bg:#15120d}
+.zmap-bar{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin:0 0 12px;max-width:1240px}
+.zmap-bar .field{min-width:260px}
+.zmap{max-width:1240px}
+.zmap-tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.zmap-tabs button{border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:999px;padding:4px 12px;font-size:13.5px;cursor:pointer}
+.zmap-tabs button.on{background:var(--gold);border-color:var(--gold);color:#1c1a12;font-weight:700}
+.zmap-frame{position:relative}
+.zmap-svg{display:block;width:100%;height:auto;max-height:calc(100vh - 260px);background:var(--map-bg);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow)}
+.zmap-svg{touch-action:none;cursor:grab}
+.zmap-svg.dragging{cursor:grabbing}
+.zmap-zoom{position:absolute;left:12px;top:12px;display:flex;flex-direction:column;gap:4px}
+.zmap-zoom button{width:30px;height:30px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--text);font-size:16px;line-height:1;cursor:pointer}
+.zmap-zoom button:hover{border-color:var(--gold)}
+.zmap-walls{fill:none;stroke:var(--map-wall);stroke-linecap:round;opacity:.7}
+.zm{cursor:pointer}
+.zm circle:not(.zm-ring){fill:var(--gold);stroke:#1c1a12;stroke-width:1.5px;vector-effect:non-scaling-stroke}
+.zm.t-interior circle:not(.zm-ring){fill:var(--ocarina)}
+.zm.t-grotto circle:not(.zm-ring){fill:#b07a3e}
+.zm.t-dungeon circle:not(.zm-ring){fill:var(--purple)}
+.zm.t-owl circle:not(.zm-ring){fill:#e0c48a}
+.zm text{fill:var(--text);font-family:var(--sans);font-weight:700;text-anchor:middle;paint-order:stroke;stroke:var(--surface);stroke-width:4px;vector-effect:non-scaling-stroke;pointer-events:none}
+.zm-ring{fill:none;stroke-width:3px;vector-effect:non-scaling-stroke;animation:zm-pulse 1.8s ease-in-out infinite}
+.zm.goal .zm-ring{stroke:var(--green)}
+.zm.next .zm-ring{stroke:var(--gold)}
+.zm.here .zm-ring{stroke:var(--ocarina);stroke-dasharray:4 3}
+.zm.sel circle:not(.zm-ring){stroke:var(--text);stroke-width:2.5px}
+@keyframes zm-pulse{50%{opacity:.35}}
+@media (prefers-reduced-motion:reduce){.zm-ring{animation:none}}
+.zmap-pop{position:absolute;right:12px;top:12px;width:min(380px,calc(100% - 24px));display:flex;flex-direction:column;gap:8px;padding:10px 12px;
+  background:var(--surface);border:1px solid var(--gold);border-radius:12px;box-shadow:var(--shadow);font-size:14px}
+.zp-row{display:flex;flex-direction:column;gap:6px}
+.zp-row + .zp-row{border-top:1px solid var(--line);padding-top:8px}
+.zp-name{display:flex;flex-direction:column}
+.zp-name small{color:var(--muted)}
+.zp-unk{font-style:italic}
+.zp-btns{display:flex;gap:6px}
+.zp-btns .btn{padding:3px 10px;font-size:13px}
+.zmap-empty{padding:30px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:12px}
+.zmap-legend{display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;margin-top:8px;font-size:13px;color:var(--muted)}
+.zmap-legend span{display:inline-flex;align-items:center;gap:6px}
+.zmap-legend i{width:12px;height:12px;border-radius:50%;border:2px solid}
+.zmap-legend .lg-here{border-color:var(--ocarina);border-style:dashed}
+.zmap-legend .lg-next{border-color:var(--gold)}
+.zmap-legend .lg-goal{border-color:var(--green)}
+.node-map{position:absolute;top:8px;right:8px;width:28px;height:28px;display:grid;place-items:center;border:0;border-radius:8px;background:none;color:var(--muted);cursor:pointer}
+.node-map:hover{background:var(--surface-2);color:var(--gold-deep)}
+.node-map svg{width:17px;height:17px}
+.nd-step.click{cursor:pointer}
+.nd-step.click:hover{border-color:var(--gold-deep)}
+
 /* Carte des entrées */
 .emap{position:relative;max-width:1240px}
 .emap-svg{display:block;width:100%;height:auto;max-height:calc(100vh - 220px);background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow)}
