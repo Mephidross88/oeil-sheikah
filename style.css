@@ -499,7 +499,8 @@ html.stream-mode,html.stream-mode body{background:transparent;overflow:hidden}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--map-0:#2c4129;--map-1:#344b2f;--map-2:#3d5636;--map-3:#47613d;--map-4:#526d45;--map-5:#5e794e;--map-6:#6b8657;--map-7:#799361;--map-8:#88a06c;--map-9:#98ae79;--map-wall:#0d120a;--map-bg:#15120d}}
 :root[data-theme="dark"]{--map-0:#2c4129;--map-1:#344b2f;--map-2:#3d5636;--map-3:#47613d;--map-4:#526d45;--map-5:#5e794e;--map-6:#6b8657;--map-7:#799361;--map-8:#88a06c;--map-9:#98ae79;--map-wall:#0d120a;--map-bg:#15120d}
 .zmap-bar{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin:0 0 12px;max-width:1240px}
-.zmap-bar .field{min-width:260px}
+.zmap-bar label.field{min-width:260px}
+.zmap-bar .field .seg{align-self:flex-start}
 .zmap{max-width:1240px}
 .zmap-tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
 .zmap-tabs button{border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:999px;padding:4px 12px;font-size:13.5px;cursor:pointer}
