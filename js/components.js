@@ -349,14 +349,23 @@ const ZoneMap = {
       for (const p of new Set(Object.values(MAPS.places || {}))) out[p] = resolve(p, 0);
       return out;
     },
-    // checks suivis (comme la page Checks : mélangés, version active, non exclus, catégories affichées)
+    /* Checks affichés : toujours mélangés selon la configuration, de la version active, et non exclus (zone ignorée…).
+       « Comme la page Checks » (filters) : aussi ses filtres — catégories, âge, checks faits masqués, seulement les
+       faisables, recherche ; « Tous » (all) : faits compris (en gris) ; « Aucun » (off). */
     checkList(){
-      const mode = store.ui.map.checks, done = store.game.checks, now = sohC.value.checks, out = [];
+      const mode = store.ui.map.checks, cf = store.ui.checks, done = store.game.checks, now = sohC.value.checks, ever = sohFullC.value.checks, out = [];
       if (mode === 'off' || !MAPS.checks) return out;
+      const filters = mode !== 'all', q = filters && cf.q.trim() ? norm(cf.q.trim()) : '';
       for (const c of CHECKS){
-        if (!checkListed(c) || store.settings.excluded[c.id] || store.ui.checks.hiddenCats[c.cat]) continue;
-        if (mode === 'todo' && done[c.id]) continue;
-        out.push({ c, done:!!done[c.id], now:(now['RC_' + c.id] || 0) > 0 });
+        if (!checkListed(c) || store.settings.excluded[c.id]) continue;
+        const k = 'RC_' + c.id, isDone = !!done[c.id], isNow = (now[k] || 0) > 0;
+        if (filters){
+          if (cf.hiddenCats[c.cat] || cf.hideDone && isDone || cf.onlyAvailable && !isDone && !isNow) continue;
+          const e = ever[k] || 0, age = (e & CHILD) && (e & ADULT) ? 'both' : e & CHILD ? 'child' : e & ADULT ? 'adult' : null;
+          if (cf.age !== 'all' && age && age !== 'both' && age !== cf.age) continue;
+          if (q && !norm(c.label + ' ' + c.soh).includes(q) && !norm(CHECK_AREA[c.area]?.label || '').includes(q)) continue;
+        }
+        out.push({ c, done:isDone, now:isNow });
       }
       return out;
     },

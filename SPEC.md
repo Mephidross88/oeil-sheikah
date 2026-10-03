@@ -722,9 +722,11 @@ du jeu vu de dessus (nord en haut).
   violet, hibou beige), anneaux (position, prochaine sortie, arrivée) et dégradé du terrain.
 - « Voir sur la carte » : bouton carte sur chaque carte du trajet du Routeur, et clic sur la prochaine étape du bandeau
   « Où aller ? » (sortie à prendre).
-- **Checks et pierres à potins** (barre au-dessus de la carte : « Checks » À faire / Tous / Aucun, `ui.map.checks` ;
-  « Pierres à potins », `ui.map.stones`). Checks suivis comme dans la page Checks (mélangés, version active, non exclus,
-  catégories affichées).
+- **Checks et pierres à potins** (barre au-dessus de la carte : « Checks » Comme la page Checks / Tous / Aucun,
+  `ui.map.checks` = `filters` / `all` / `off` ; case « Pierres à potins », `ui.map.stones`). Jamais affichés : checks non
+  mélangés selon la configuration, d'une autre version du donjon, exclus (zone ignorée…). « Comme la page Checks » :
+  aussi ses filtres (catégories, âge, checks faits masqués, seulement les faisables, recherche) ; « Tous » : faits compris
+  (en gris).
   - Check d'une scène d'extérieur : point à sa position (outil : position x, z donnée par SoH pour jarres, caisses, herbes,
     buissons, arbres ; sinon acteur des salles de même type et paramètres, toutes versions de la salle ; Skulltula : même
     numéro de symbole, carré de terre pour celles des haricots ; fées d'une pierre ou d'un carré de terre : à la pierre ou
