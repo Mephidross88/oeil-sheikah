@@ -497,8 +497,9 @@ check) ; règles dans `js/checks.js`.
   au survol ; ⊘ au survol pour exclure.
 - **Ignorer une zone** (zones futiles…) : ⊘ dans l'en-tête de la zone, à côté de « Y aller » : exclut d'un coup tous ses
   checks listés pas encore faits (les checks faits restent comptés) ; « Annuler » dans la notification ; ↺ réintègre
-  ses checks exclus. Zone dont tout ce qui reste est exclu : toujours listée, état « ignorée » (bordure neutre,
-  estompée, message « Zone ignorée : N checks exclus »).
+  ses checks exclus. Zone dont tout ce qui reste est exclu (zone ignorée, ou checks tous exclus) : listée seulement avec
+  « Afficher les checks exclus » (pour la réintégrer), état « ignorée » (bordure neutre, estompée, message « Zone
+  ignorée : N checks exclus ») ; sinon masquée, ainsi que son raccourci dans la barre de gauche.
 
 ## Entrées
 Cadre « Entrées » de la bande de progression (voir plus haut), dès qu'au moins une sortie est randomisée :

@@ -611,9 +611,10 @@ const App = {
         return { area:a, quest, checks:shown, total:tracked.length, got, byCat, hiddenQuest, complete, accessible, state, excluded };
       });
     });
+    // zone ignorée (tout ce qui reste à faire est exclu) : listée seulement avec « Afficher les checks exclus », pour la réintégrer
     const checkAreasC = computed(() => { const q = cf.q.trim();
-      return allCheckAreasC.value.filter(x => q || cf.onlyAvailable ? x.checks.length
-        : ((x.total || x.hiddenQuest || x.excluded) && !(cf.hideDoneZones && x.complete))); });
+      return allCheckAreasC.value.filter(x => (cf.showExcluded || !(x.excluded && x.got === x.total))
+        && (q || cf.onlyAvailable ? x.checks.length : (x.total || x.hiddenQuest || x.excluded) && !(cf.hideDoneZones && x.complete))); });
     // Progression globale des checks suivis (catégories et âge choisis, hors exclus), et par groupe de zones.
     // Progression globale des checks : selon la configuration seulement (checks mélangés, version active, hors exclus),
     // indépendamment des filtres d'affichage (catégories, âge, Skulltulas non mélangées, recherche).
