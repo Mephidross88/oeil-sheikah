@@ -662,7 +662,7 @@ a son propre stockage et ne verrait pas la partie).
 - Blocs disposés librement sur un fond uni (vert d'incrustation par défaut, magenta, transparent, fond de l'appli ou
   couleur au choix) : Objets (le panneau Objets, sur 1 ou 2 colonnes), Progression (cadres Checks et Entrées), Prochaine
   étape (du trajet du Routeur : mode de déplacement, destination, arrivée visée), Où aller maintenant ? (5 plus
-  proches), Trouvailles, Carte, Espace vide (emplacement du jeu, cadre doré en option), Image (chemin, adresse ou
+  proches), Trouvailles, Connexions, Espace vide (emplacement du jeu, cadre doré en option), Image (chemin, adresse ou
   fichier choisi, gardé en data URL), Texte. Contenus à leur largeur naturelle, mis à l'échelle de la largeur du bloc
   (`zoom`) ; Espace vide, Image et Texte à la taille du bloc.
 - Édition : touche E (ou double-clic) : grille, glisser un bloc pour le déplacer, coin bas-droit pour le redimensionner
@@ -672,16 +672,17 @@ a son propre stockage et ne verrait pas la partie).
   (événement `storage`, même navigateur), ne sauvegarde rien et ne se connecte pas au relais (trouvailles comptées
   une seule fois). Blocs non cliquables (affichage seul).
 
-## Carte
-Page « Carte » (`ui.view` = `map`, composant `EntranceMap` de `components.js`) : schéma des entrées connues.
-- Zones placées à peu près comme sur la carte d'Hyrule (`MAP_POS`), donjons en plus petit à côté de leur zone ; nœud
+## Connexions
+Page « Connexions » (`ui.view` = `graph`, composant `EntranceGraph` de `components.js`) : schéma (graphe) des entrées
+connues. (Ancien nom « Carte », id `map` : converti au chargement.)
+- Zones placées à peu près comme sur la carte d'Hyrule (`GRAPH_POS`), donjons en plus petit à côté de leur zone ; nœud
   « Apparitions et chants » à part (apparitions et chants de téléportation, en pointillés).
 - Une liaison par paire de nœuds pour les entrées connues (`effC` : notées, ou d'origine quand elles ne sont pas
   mélangées) ; couleur selon le type de la sortie (passage, intérieur, grotte, donjon, boss, hibou, apparition / chant),
   épaisseur selon le nombre de sorties regroupées, flèche quand un seul sens est connu (entrées découplées, sens
   uniques) ; détail des sorties au survol du trait.
 - Intérieurs et grottes : petit point autour de leur zone (sortie située dedans : celle de la paire dont le nom SoH
-  n'est pas l'entrée, `mapInside`), seulement s'ils mènent ailleurs que dans leur zone, orienté vers leur liaison.
+  n'est pas l'entrée, `graphInside`), seulement s'ils mènent ailleurs que dans leur zone, orienté vers leur liaison.
 - Position (auto-tracking, sinon départ du Routeur) : anneau doré qui pulse. Survol d'un nœud : ses liaisons en
   évidence, le reste estompé. Clic : liste de ses connexions sous la carte (sortie → destination), « Y aller » vers la
   zone (Routeur).

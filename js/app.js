@@ -171,7 +171,7 @@ const STREAM_TPL = `
         <ul v-if="nextC && nextC.list.length" class="sw-where">
           <li v-for="x in nextC.list.slice(0, 5)" :key="x.c.id"><img :src="CHECK_CAT[x.c.cat].icon" alt=""><span><b>{{x.c.label}}</b><small>{{CHECK_AREA[x.c.area].label}} · {{stepsLabel(x.steps)}}</small></span></li></ul>
         <div v-else class="sw-muted">Aucun check faisable à portée</div></div>
-      <entrance-map v-else-if="w.type==='map'"></entrance-map>
+      <entrance-graph v-else-if="w.type==='graph'"></entrance-graph>
       <img v-else-if="w.type==='image' && w.src" class="sw-img" :src="w.src" alt="" :style="{objectFit:w.fit || 'contain'}">
       <div v-else-if="w.type==='text'" class="sw-text" :style="{fontSize:(w.size || 32) + 'px'}">{{w.text}}</div>
     </div>
@@ -210,7 +210,7 @@ const STREAM_TPL = `
 `;
 
 const App = {
-  components:{ TypeIcon, Seg, DestPicker, ItemTile, ProgressCard, EntranceMap },
+  components:{ TypeIcon, Seg, DestPicker, ItemTile, ProgressCard, EntranceGraph },
   setup(){
     const navOpen = ref(false), itemsOpen = ref(false), modal = ref(null), tip = reactive({ show:false, key:null, style:{} });
     const backup = reactive({ text:'', msg:'', ok:true });
@@ -224,7 +224,7 @@ const App = {
       { id:'checks', label:'Checks', icon:ICONS.checks },
       { id:'entrances', label:'Entrées', icon:ICONS.entrances },
       { id:'router', label:'Routeur', icon:ICONS.router },
-      { id:'map', label:'Carte', icon:ICONS.map },
+      { id:'graph', label:'Connexions', icon:ICONS.graph },
       { id:'stats', label:'Statistiques', icon:ICONS.stats },
       { id:'config', label:'Configuration', icon:ICONS.config },
     ];
@@ -1312,12 +1312,12 @@ ${STREAM_TPL}
     </section>
 
     <!-- ================= CONFIGURATION ================= -->
-    <section v-if="shown('map')" class="pane" :class="'pane-' + paneOf('map')">
-      <div v-if="paneOf('map')==='side'" class="pane-bar">
+    <section v-if="shown('graph')" class="pane" :class="'pane-' + paneOf('graph')">
+      <div v-if="paneOf('graph')==='side'" class="pane-bar">
         <button type="button" title="Échanger les deux panneaux" v-html="ICONS.swapH" @click="swapPanes"></button>
         <button type="button" title="Fermer ce panneau" v-html="ICONS.close" @click="closeSide"></button></div>
-      <div class="page-head"><h1>Carte</h1><p class="lede">Les entrées connues (notées, ou d'origine), zone par zone. Survolez une zone pour voir ses liaisons, cliquez pour les lister.</p></div>
-      <entrance-map @go-zone="goToZone"></entrance-map>
+      <div class="page-head"><h1>Connexions</h1><p class="lede">Les entrées connues (notées, ou d'origine), zone par zone. Survolez une zone pour voir ses liaisons, cliquez pour les lister.</p></div>
+      <entrance-graph @go-zone="goToZone"></entrance-graph>
       <p class="note emap-legend"><span><i class="k-ow"></i>passage</span><span><i class="k-in"></i>intérieur</span><span><i class="k-gr"></i>grotte</span>
         <span><i class="k-dg"></i>donjon</span><span><i class="k-bs"></i>boss</span><span><i class="k-owl"></i>hibou</span><span><i class="k-wp"></i>apparition, chant</span>
         <span>flèche : un seul sens connu</span><span>point : intérieur ou grotte qui mène ailleurs</span></p>

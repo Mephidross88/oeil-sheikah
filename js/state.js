@@ -49,6 +49,9 @@ function load(){
 }
 
 const store = reactive(load());
+// page « Carte » renommée « Connexions » (id graph)
+if (store.ui.view === 'map') store.ui.view = 'graph';
+if (store.ui.split === 'map') store.ui.split = 'graph';
 const lastSaved = ref(null);
 // Fenêtre de stream (index.html?stream) : la partie vient de la fenêtre principale (événement « storage » à chaque
 // sauvegarde de celle-ci) ; elle ne sauvegarde rien elle-même.
@@ -66,7 +69,7 @@ else watch(store, () => {
 const STREAM_KEY = 'oeil-sheikah-stream';
 const STREAM_TYPES = {
   items:{ label:'Objets', base:426, base2:870, init:{ cols:2 } }, progress:{ label:'Progression', base:560 }, next:{ label:'Prochaine étape', base:420 },
-  where:{ label:'Où aller maintenant ?', base:420 }, loot:{ label:'Trouvailles', base:426 }, map:{ label:'Carte', base:1000 },
+  where:{ label:'Où aller maintenant ?', base:420 }, loot:{ label:'Trouvailles', base:426 }, graph:{ label:'Connexions', base:1000 },
   game:{ label:'Espace vide (jeu)', free:true, w:960, h:540, init:{ frame:true } },
   image:{ label:'Image', free:true, w:300, h:200, init:{ src:'', fit:'contain' } },
   text:{ label:'Texte', free:true, w:500, h:60, init:{ text:'L’Œil Sheikah', size:32 } },
@@ -80,7 +83,11 @@ const streamDefaults = () => ({ bg:'#00b140', color:'#00b140', widgets:[   // po
   { id:6, type:'loot', x:20, y:760, w:580 },
 ] });
 function loadStream(){
-  try { const raw = localStorage.getItem(STREAM_KEY); if (raw){ const v = JSON.parse(raw); if (Array.isArray(v.widgets)) return { ...streamDefaults(), ...v }; } } catch (e) {}
+  try { const raw = localStorage.getItem(STREAM_KEY); if (raw){ const v = JSON.parse(raw); if (Array.isArray(v.widgets)){
+    // ancien nom du bloc Connexions (« map ») ; blocs de types inconnus retirés
+    v.widgets = v.widgets.map(w => w.type === 'map' ? { ...w, type:'graph' } : w).filter(w => STREAM_TYPES[w.type]);
+    return { ...streamDefaults(), ...v };
+  } } } catch (e) {}
   return streamDefaults();
 }
 

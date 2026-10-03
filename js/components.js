@@ -134,13 +134,13 @@ const DestPicker = {
     </div></div>`,
 };
 
-/* ---------- Carte des entrées ----------
+/* ---------- Connexions : graphe des entrées ----------
    Schéma des zones placées comme sur la carte d'Hyrule (donjons à côté de leur zone) ; une liaison par paire de nœuds
    pour les entrées connues (notées, ou d'origine si non mélangées : effC), épaisseur selon le nombre de sorties, flèche
    si on ne connaît qu'un sens. Intérieurs et grottes : petits points autour de leur zone, seulement s'ils mènent
    ailleurs que dans leur zone (orientés vers leur liaison). Apparitions et chants : nœud à part. Position (auto-tracking,
    sinon départ du Routeur) mise en évidence ; survol = liaisons du nœud ; clic = liste de ses connexions. */
-const MAP_POS = {
+const GRAPH_POS = {
   desert_colossus:[70, 110], spirit_temple:[60, 35], wasteland:[120, 215], gerudo_fortress:[200, 315],
   gerudo_training_ground:[110, 390], gerudo_valley:[310, 405], lake_hylia:[420, 625], water_temple:[320, 675],
   hyrule_field:[520, 395], lon_lon_ranch:[520, 510], market:[520, 255], hyrule_castle:[520, 150], ganons_castle:[420, 75],
@@ -150,27 +150,27 @@ const MAP_POS = {
   jabu_jabus_belly:[960, 490], ice_cavern:[885, 300], lost_woods:[720, 525], sacred_forest_meadow:[620, 605],
   forest_temple:[540, 685], kokiri_forest:[830, 615], deku_tree:[935, 665], spawns:[75, 640],
 };
-const MAP_DUNGEONS = new Set(['deku_tree', 'dodongos_cavern', 'jabu_jabus_belly', 'forest_temple', 'fire_temple', 'water_temple',
+const GRAPH_DUNGEONS = new Set(['deku_tree', 'dodongos_cavern', 'jabu_jabus_belly', 'forest_temple', 'fire_temple', 'water_temple',
   'spirit_temple', 'shadow_temple', 'bottom_of_the_well', 'ice_cavern', 'gerudo_training_ground', 'ganons_castle']);
-const MAP_KIND = { overworld:'ow', interior:'in', grotto:'gr', dungeon:'dg', boss:'bs', owl:'owl', warp:'wp' };
+const GRAPH_KIND = { overworld:'ow', interior:'in', grotto:'gr', dungeon:'dg', boss:'bs', owl:'owl', warp:'wp' };
 // Sortie située à l'intérieur d'un lieu (maison, grotte, repaire) : celle de la paire dont le nom SoH n'est pas l'entrée.
-const mapInside = e => (e.type === 'interior' || e.type === 'grotto')
+const graphInside = e => (e.type === 'interior' || e.type === 'grotto')
   && (e.soh.startsWith('TH ') || !/Entry|^GF (?!.*Grotto)|Behind Pillar|Boulder Crawlspace/.test(e.soh));
-const mapExitName = k => k && EXIT[k] ? (EXIT[k].areaId === SPAWN_AREA ? '' : AREA[EXIT[k].areaId].name + ' · ') + EXIT[k].label : '?';
-const EntranceMap = {
+const graphExitName = k => k && EXIT[k] ? (EXIT[k].areaId === SPAWN_AREA ? '' : AREA[EXIT[k].areaId].name + ' · ') + EXIT[k].label : '?';
+const EntranceGraph = {
   emits:['go-zone'],
   data:() => ({ hover:null, sel:null }),
   computed:{
     graph(){
-      const eff = effC.value, nodeOf = k => mapInside(EXIT[k]) ? 'p:' + k : 'z:' + EXIT[k].areaId;
+      const eff = effC.value, nodeOf = k => graphInside(EXIT[k]) ? 'p:' + k : 'z:' + EXIT[k].areaId;
       const links = new Map();
       for (const e of ALL_EXITS){
         const t = eff[e.key];
         if (!t || !EXIT[t] || e.destOnly) continue;
         const a = nodeOf(e.key), b = nodeOf(t);
-        if (a === b || !MAP_POS[(a.startsWith('z:') ? a : 'z:' + EXIT[a.slice(2)].areaId).slice(2)]) continue;
+        if (a === b || !GRAPH_POS[(a.startsWith('z:') ? a : 'z:' + EXIT[a.slice(2)].areaId).slice(2)]) continue;
         const [lo, hi] = a < b ? [a, b] : [b, a], id = lo + '|' + hi;
-        const l = links.get(id) || { id, a:lo, b:hi, ab:false, ba:false, exits:[], kind:MAP_KIND[e.type] || 'ow' };
+        const l = links.get(id) || { id, a:lo, b:hi, ab:false, ba:false, exits:[], kind:GRAPH_KIND[e.type] || 'ow' };
         if (a === lo) l.ab = true; else l.ba = true;
         l.exits.push([e.key, t]);
         links.set(id, l);
@@ -182,7 +182,7 @@ const EntranceMap = {
       const shown = all.filter(l => !plain(l.a) && !plain(l.b));
       // positions : zones fixes ; lieux sur un cercle autour de leur zone, vers leur liaison, écartés entre eux
       const pos = {};
-      for (const [id, p] of Object.entries(MAP_POS)) pos['z:' + id] = p;
+      for (const [id, p] of Object.entries(GRAPH_POS)) pos['z:' + id] = p;
       const places = {};
       for (const l of shown) for (const [n, o] of [[l.a, l.b], [l.b, l.a]]) if (n.startsWith('p:') && !(n in places)){
         const c = pos[zoneOf(n)], oc = pos[zoneOf(o)] || c;
@@ -194,13 +194,13 @@ const EntranceMap = {
         list.sort((x, y) => x[1].ang - y[1].ang);
         const gap = Math.min(0.42, 2 * Math.PI / list.length);
         for (let i = 1; i < list.length; i++) if (list[i][1].ang - list[i - 1][1].ang < gap) list[i][1].ang = list[i - 1][1].ang + gap;
-        const c = pos[z], r = MAP_DUNGEONS.has(z.slice(2)) ? 26 : 34;
+        const c = pos[z], r = GRAPH_DUNGEONS.has(z.slice(2)) ? 26 : 34;
         for (const [n, p] of list) pos[n] = [c[0] + r * Math.cos(p.ang), c[1] + r * Math.sin(p.ang)];
       }
-      const zones = Object.keys(MAP_POS).filter(id => AREA[id]).map(id => ({ n:'z:' + id, id, name:id === SPAWN_AREA ? 'Apparitions et chants' : AREA[id].name,
-        dungeon:MAP_DUNGEONS.has(id), spawns:id === SPAWN_AREA, x:pos['z:' + id][0], y:pos['z:' + id][1] }));
+      const zones = Object.keys(GRAPH_POS).filter(id => AREA[id]).map(id => ({ n:'z:' + id, id, name:id === SPAWN_AREA ? 'Apparitions et chants' : AREA[id].name,
+        dungeon:GRAPH_DUNGEONS.has(id), spawns:id === SPAWN_AREA, x:pos['z:' + id][0], y:pos['z:' + id][1] }));
       const dots = Object.keys(places).map(n => ({ n, x:pos[n][0], y:pos[n][1], label:EXIT[n.slice(2)].label }));
-      const rad = n => n.startsWith('p:') ? 5 : MAP_DUNGEONS.has(n.slice(2)) ? 15 : 21;
+      const rad = n => n.startsWith('p:') ? 5 : GRAPH_DUNGEONS.has(n.slice(2)) ? 15 : 21;
       const lines = shown.map(l => {
         const [x1, y1] = pos[l.a], [x2, y2] = pos[l.b], d = Math.hypot(x2 - x1, y2 - y1) || 1, ux = (x2 - x1) / d, uy = (y2 - y1) / d;
         const sx = x1 + ux * rad(l.a), sy = y1 + uy * rad(l.a), ex = x2 - ux * rad(l.b), ey = y2 - uy * rad(l.b);
@@ -209,7 +209,7 @@ const EntranceMap = {
         const tri = ar ? [[ar[0], ar[1]], [ar[0] - ar[2] * 9 - ar[3] * 4.5, ar[1] - ar[3] * 9 + ar[2] * 4.5],
           [ar[0] - ar[2] * 9 + ar[3] * 4.5, ar[1] - ar[3] * 9 - ar[2] * 4.5]].map(p => p.join(',')).join(' ') : null;
         return { ...l, x1:sx, y1:sy, x2:ex, y2:ey, tri, w:Math.min(5, 1.4 + 0.7 * (l.exits.length - 1)),
-          title:l.exits.map(([s, t]) => mapExitName(s) + ' → ' + mapExitName(t)).join('\n') };
+          title:l.exits.map(([s, t]) => graphExitName(s) + ' → ' + graphExitName(t)).join('\n') };
       });
       return { zones, dots, lines };
     },
@@ -223,8 +223,8 @@ const EntranceMap = {
       if (!this.sel) return null;
       const n = this.sel.slice(2), zone = this.sel.startsWith('z:') ? n : EXIT[n].areaId;
       const rows = this.graph.lines.filter(l => l.a === this.sel || l.b === this.sel).flatMap(l => l.exits)
-        .map(([s, t]) => ({ s, t })).sort((x, y) => mapExitName(x.s).localeCompare(mapExitName(y.s)));
-      const title = this.sel.startsWith('z:') ? (n === SPAWN_AREA ? 'Apparitions et chants' : AREA[n].name) : mapExitName(n);
+        .map(([s, t]) => ({ s, t })).sort((x, y) => graphExitName(x.s).localeCompare(graphExitName(y.s)));
+      const title = this.sel.startsWith('z:') ? (n === SPAWN_AREA ? 'Apparitions et chants' : AREA[n].name) : graphExitName(n);
       return { title, zone, rows };
     },
   },
@@ -232,10 +232,10 @@ const EntranceMap = {
     on(l){ return !this.focus || l.a === this.focus || l.b === this.focus; },
     near(n){ return !this.focus || n === this.focus || this.graph.lines.some(l => (l.a === this.focus && l.b === n) || (l.b === this.focus && l.a === n)); },
     pick(n){ this.sel = this.sel === n ? null : n; },
-    mapExitName,
+    graphExitName,
   },
   template:`<div class="emap">
-    <svg viewBox="-40 -10 1090 745" class="emap-svg" role="img" aria-label="Carte des entrées connues" @click.self="sel=null">
+    <svg viewBox="-40 -10 1090 745" class="emap-svg" role="img" aria-label="Connexions : entrées connues" @click.self="sel=null">
       <g v-for="l in graph.lines" :key="l.id" :class="['el', 'k-' + l.kind, {dim:!on(l), hot:focus && on(l)}]">
         <line :x1="l.x1" :y1="l.y1" :x2="l.x2" :y2="l.y2" :stroke-width="l.w"><title>{{l.title}}</title></line>
         <polygon v-if="l.tri" :points="l.tri"></polygon>
@@ -257,7 +257,7 @@ const EntranceMap = {
       <div class="emap-info-head"><b>{{selInfo.title}}</b>
         <button v-if="selInfo.zone !== 'spawns'" type="button" class="btn" @click="$emit('go-zone', selInfo.zone)">Y aller</button>
         <button type="button" class="emap-close" @click="sel=null" aria-label="Fermer">×</button></div>
-      <ul><li v-for="(r,i) in selInfo.rows" :key="i"><span>{{mapExitName(r.s)}}</span><span class="emap-arrow">→</span><span>{{mapExitName(r.t)}}</span></li></ul>
+      <ul><li v-for="(r,i) in selInfo.rows" :key="i"><span>{{graphExitName(r.s)}}</span><span class="emap-arrow">→</span><span>{{graphExitName(r.t)}}</span></li></ul>
       <p v-if="!selInfo.rows.length" class="emap-empty">Aucune connexion connue.</p>
     </div>
   </div>`,
