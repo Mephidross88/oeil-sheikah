@@ -18,13 +18,13 @@ export const FULL = {
   'Song from Malon': 'Chant de Malon', 'Child Fishing': 'Pêche (enfant)', 'Adult Fishing': 'Pêche (adulte)',
   'Hyrule Loach Reward': 'Récompense de la Loche d\'Hyrule', 'Lab Dive': 'Plongée du Laboratoire du Lac',
   'Lab Trade Eyeball Frog': 'Échange au Laboratoire du Lac : Œil de Grenouille', 'Underwater Item': 'Objet sous l\'eau',
-  'Sun': 'Tirer sur le soleil', 'Freestanding PoH': 'Quart de cœur',
+  'Sun': 'Tirer sur le soleil', 'Freestanding PoH': 'Quart de cœur', 'GS Skull on Fire': 'Skulltula du crâne en feu',
   // Gerudo, désert
   'Waterfall Freestanding PoH': 'Quart de cœur de la cascade', 'Crate Freestanding PoH': 'Quart de cœur dans la caisse',
   'Trade Broken Sword': 'Échange : Épée Brisée', 'Trade Claim Check': 'Échange : Certificat', 'Trade Cojiro': 'Échange : Cojiro',
   'Trade Eyedrops': 'Échange : Super gouttes', 'Trade Odd Mushroom': 'Échange : Champignon Suspect', 'Trade Odd Potion': 'Échange : Mixture Suspecte',
   'Trade Pocket Cucco': 'Échange : P\'tit poulet', 'Trade Prescription': 'Échange : Ordonnance', 'Trade Saw': 'Échange : Scie de Chasseur',
-  'HBA 1000 Points': 'Tir à cheval : 1000 points', 'HBA 1500 Points': 'Tir à cheval : 1500 points',
+  'HBA 1000 Points': 'Archerie montée : 1000 points', 'HBA 1500 Points': 'Archerie montée : 1500 points',
   'Freed All Carpenters': 'Charpentiers libérés (Carte Gerudo)', '1 Torch Carpenter': 'Charpentier de la cellule à 1 torche',
   'Dead End Carpenter': 'Charpentier du cul-de-sac', 'Double Cell Carpenter': 'Charpentier de la double cellule',
   'Steep Slope Carpenter': 'Charpentier de la pente raide', 'Carpet Salesman': 'Marchand de tapis',
@@ -169,7 +169,7 @@ export const W = {
   Epona:P('Epona'), "Epona's":P('Epona'), Goron:P('Goron'), Zora:P('Zora'), "Zora's":P('Zora'), Zoras:P('Zora'), Deku:P('Mojo'),
   Kokiri:P('Kokiri'), Gerudo:P('Gerudo'), Hylia:P('Hylia'), Hyrule:P('Hyrule'), Kakariko:N('village'), Kak:N('village'),
   Colossus:N('Colosse'), Jabu:P('Jabu-Jabu'), GC:N('Village Goron'), KF:N('Forêt Kokiri','f'), HC:N('Château d\'Hyrule'), SFM:N('Bosquet Sacré'),
-  ToT:N('Temple du Temps'), OGC:N('Château de Ganon'), CE:P('entrée du château'), HBA:P('tir à cheval'), Flare:P('Flare'), Dancer:P('Danseur'),
+  ToT:N('Temple du Temps'), OGC:N('Château de Ganon'), CE:P('entrée du château'), HBA:P('archerie montée'), Flare:P('Flare'), Dancer:P('Danseur'),
   Queen:P('Reine'), King:P('Roi'), Phantom:P('Spectral'), Scarecrow:N('épouvantail'), GS:N('Skulltula','f'), End:N('fin','f'), Skull:P('Skull'), Poe2:P('Esprit'),
   // adjectifs
   Big:A('grand',{pre:1}), Small:A('petit',{pre:1}), Great:A('grand',{pre:1}), Giant:A('géant'), Mini:A('mini'), Hidden:A('caché'), Invisible:A('invisible'),
@@ -263,6 +263,10 @@ export const PHRASES = {
   'Lon Lon':N('Ranch Lon Lon'), 'Nine Thrones Room':N('salle des neuf trônes','f'), 'Spike Roller':N('rouleau à pics'),
   'Spike Baricade':N('barricade à pics','f'), 'Main Level 1':N('niveau principal 1'), 'Main Level 2':N('niveau principal 2'),
   'Rain Shed':N('abri contre la pluie'), 'Green Poe':N('Esprit vert'), 'Purple Poe':N('Esprit violet'), 'Temple':N('temple'), 'Beneath Domain':N('sous le domaine'),
+  'Horseback Archery Range':N('stand d\'archerie montée'), 'Horseback Archery':N('archerie montée','f'),
+  'Boarding House':N('maison du Chef des Charpentiers','f'), 'Freestanding PoH':N('quart de cœur'), 'Freestanding Key':N('petite clé','f'),
+  'Lift Room':N('salle de l\'ascenseur','f'), 'Truth Spinner':N('tourniquet de vérité'), 'Fire Wall Chase':N('poursuite du mur de feu','f'),
+  'The Log':N('tronc'),
 };
 
 // Prépositions : forme -> [français, article] ; article 'de' (de la / du / de l' / des) ou 'le' (la / le / l' / les).
