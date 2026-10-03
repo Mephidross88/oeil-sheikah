@@ -745,7 +745,7 @@ const App = {
     const tricksOn = computed(() => TRICKS.filter(t => s.tricks[t.key]).length);
     const trickGroups = computed(() => {
       const q = norm(trickFilter.q.trim()), lv = trickFilter.level, qu = trickFilter.quest;
-      const shown = TRICKS.filter(t => (!q || norm(t.name + ' ' + TRICK_AREAS[t.area]).includes(q))
+      const shown = TRICKS.filter(t => (!q || norm(t.label + ' ' + t.name + ' ' + TRICK_AREAS[t.area]).includes(q))
         && (!lv || t.tags.includes(lv)) && (!qu || t.quest === 'BOTH' || t.quest === qu));
       return Object.keys(TRICK_AREAS).map(area => {
         const tricks = shown.filter(t => t.area === area);
@@ -1401,7 +1401,7 @@ ${STREAM_TPL}
             <div class="trick-actions"><button type="button" class="link" @click="setTricks(g.tricks,true)">Tout cocher</button>
               <button type="button" class="link" @click="setTricks(g.tricks,false)">Tout décocher</button></div>
             <label v-for="t in g.tricks" :key="t.key" class="trick" :title="'SoH : ' + t.name">
-              <input type="checkbox" v-model="s.tricks[t.key]"><span>{{t.name}}</span>
+              <input type="checkbox" v-model="s.tricks[t.key]"><span>{{t.label}}</span>
               <span v-for="tag in t.tags" :key="tag" class="trick-tag" :class="'lv-'+tag.toLowerCase()">{{TRICK_LEVELS[tag]}}</span>
               <span v-if="t.quest!=='BOTH'" class="trick-tag">{{t.quest==='MQ'?'MQ':'Vanilla'}}</span>
             </label>

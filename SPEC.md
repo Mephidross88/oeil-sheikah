@@ -83,7 +83,8 @@ l'utilisateur ; ne pas se fier à la branche `develop`, qui a d'autres options).
   et que le type d'entrée correspondant l'est, sélection des donjons MQ, trousseaux par donjon si
   « Sélection ». Une carte sans option visible disparaît.
 - **Astuces** : les 193 astuces de logique actives de SoH, groupées par zone, avec leur difficulté et leur
-  quête (Vanilla / MQ / les deux) ; recherche, filtres difficulté et quête, « Tout cocher / décocher » par
+  quête (Vanilla / MQ / les deux) ; libellés français (`TRICK_FR`, sans répéter la zone ni « MQ »), nom SoH exact au
+  survol et dans la recherche ; recherche, filtres difficulté et quête, « Tout cocher / décocher » par
   zone ; nombre d'astuces actives dans l'onglet. Stockées dans `settings.tricks` (clé `RT_…`).
 - **Import depuis un spoiler SoH** (fichier `.json`) : lit **uniquement** `settings` et `enabledTricks`,
   jamais l'emplacement des objets. Signale les options ou valeurs inconnues et une version autre que 9.2.3 ;
