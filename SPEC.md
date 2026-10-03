@@ -640,6 +640,20 @@ Règles d'interface :
   choisies restent toujours proposées.
 - Si aucun chemin : expliquer les causes possibles (sorties non découvertes, objet ou âge manquant).
 
+## Carte
+Page « Carte » (`ui.view` = `map`, composant `EntranceMap` de `components.js`) : schéma des entrées connues.
+- Zones placées à peu près comme sur la carte d'Hyrule (`MAP_POS`), donjons en plus petit à côté de leur zone ; nœud
+  « Apparitions et chants » à part (apparitions et chants de téléportation, en pointillés).
+- Une liaison par paire de nœuds pour les entrées connues (`effC` : notées, ou d'origine quand elles ne sont pas
+  mélangées) ; couleur selon le type de la sortie (passage, intérieur, grotte, donjon, boss, hibou, apparition / chant),
+  épaisseur selon le nombre de sorties regroupées, flèche quand un seul sens est connu (entrées découplées, sens
+  uniques) ; détail des sorties au survol du trait.
+- Intérieurs et grottes : petit point autour de leur zone (sortie située dedans : celle de la paire dont le nom SoH
+  n'est pas l'entrée, `mapInside`), seulement s'ils mènent ailleurs que dans leur zone, orienté vers leur liaison.
+- Position (auto-tracking, sinon départ du Routeur) : anneau doré qui pulse. Survol d'un nœud : ses liaisons en
+  évidence, le reste estompé. Clic : liste de ses connexions sous la carte (sortie → destination), « Y aller » vers la
+  zone (Routeur).
+
 ## Où aller maintenant ?
 Bandeau collé en bas de la zone principale, sur toutes les pages (ne prend la place d'aucune), repliable
 (`ui.next.open`, replié par défaut). Replié : le check faisable le plus proche (zone, nombre d'étapes) et le nombre de

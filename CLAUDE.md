@@ -1,7 +1,7 @@
 # L'Œil Sheikah
 
 Tracker d'objets, de checks et d'entrées, et routeur, pour le randomizer de Ship of Harkinian 9.2.3 (migré depuis
-OoT Randomizer, voir SPEC.md). Modules : Entrées (id `entrances`), Routeur, Checks, Configuration, plus le panneau
+OoT Randomizer, voir SPEC.md). Modules : Entrées (id `entrances`), Routeur, Checks, Carte (id `map`), Configuration, plus le panneau
 Objets.
 Application 100 % client, sans build : ouvrir `index.html` dans un navigateur suffit.
 Interface et textes en français.
@@ -68,7 +68,8 @@ et le mettre à jour quand une règle change.
      `tools/soh-link/relay.mjs` (faux serveur Anchor en lecture seule ; tests sur d'autres ports, `--game=… --web=…`),
      lancé sous Windows par `lancer-relais.bat` (racine, fins de ligne CRLF imposées par `.gitattributes`).
   9. `js/components.js` : composants Vue réutilisables (`TypeIcon`, `Seg`, `DestPicker`, `ItemTile`,
-     `ProgressCard` — cadre de progression des pages Checks et Entrées).
+     `ProgressCard` — cadre de progression des pages Checks et Entrées, `EntranceMap` — page Carte : schéma des entrées
+     connues, positions des zones `MAP_POS`).
   10. `js/app.js` : le composant racine `App` (template complet, dont le panneau Objets et ses modales de
      pointage) + `createApp(...).mount('#app')`.
 - `style.css` : styles, variables de thème dans `:root` (clair + sombre).

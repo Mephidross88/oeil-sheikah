@@ -1,6 +1,6 @@
 /* ---------- Application ---------- */
 const App = {
-  components:{ TypeIcon, Seg, DestPicker, ItemTile, ProgressCard },
+  components:{ TypeIcon, Seg, DestPicker, ItemTile, ProgressCard, EntranceMap },
   setup(){
     const navOpen = ref(false), itemsOpen = ref(false), modal = ref(null), tip = reactive({ show:false, key:null, style:{} });
     const backup = reactive({ text:'', msg:'', ok:true });
@@ -14,6 +14,7 @@ const App = {
       { id:'checks', label:'Checks', icon:ICONS.checks },
       { id:'entrances', label:'Entrées', icon:ICONS.entrances },
       { id:'router', label:'Routeur', icon:ICONS.router },
+      { id:'map', label:'Carte', icon:ICONS.map },
       { id:'config', label:'Configuration', icon:ICONS.config },
     ];
     // Mise en page côte à côte : second panneau (ui.split), seulement sur un écran assez large (sinon page principale
@@ -1008,6 +1009,17 @@ const App = {
     </section>
 
     <!-- ================= CONFIGURATION ================= -->
+    <section v-if="shown('map')" class="pane" :class="'pane-' + paneOf('map')">
+      <div v-if="paneOf('map')==='side'" class="pane-bar">
+        <button type="button" title="Échanger les deux panneaux" v-html="ICONS.swapH" @click="swapPanes"></button>
+        <button type="button" title="Fermer ce panneau" v-html="ICONS.close" @click="closeSide"></button></div>
+      <div class="page-head"><h1>Carte</h1><p class="lede">Les entrées connues (notées, ou d'origine), zone par zone. Survolez une zone pour voir ses liaisons, cliquez pour les lister.</p></div>
+      <entrance-map @go-zone="goToZone"></entrance-map>
+      <p class="note emap-legend"><span><i class="k-ow"></i>passage</span><span><i class="k-in"></i>intérieur</span><span><i class="k-gr"></i>grotte</span>
+        <span><i class="k-dg"></i>donjon</span><span><i class="k-bs"></i>boss</span><span><i class="k-owl"></i>hibou</span><span><i class="k-wp"></i>apparition, chant</span>
+        <span>flèche : un seul sens connu</span><span>point : intérieur ou grotte qui mène ailleurs</span></p>
+    </section>
+
     <section v-if="shown('config')" class="pane" :class="'pane-' + paneOf('config')">
       <div v-if="paneOf('config')==='side'" class="pane-bar">
         <button type="button" title="Échanger les deux panneaux" v-html="ICONS.swapH" @click="swapPanes"></button>
