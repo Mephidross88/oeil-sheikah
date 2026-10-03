@@ -476,6 +476,15 @@ html.stream-mode,html.stream-mode body{background:transparent;overflow:hidden}
 .hr-type.ht-woth{background:var(--gold-soft);border-color:var(--gold);color:var(--gold-deep)}
 .hr-type.ht-item,.hr-type.ht-itemArea{border-color:var(--ocarina);color:var(--ocarina)}
 .hr-type.ht-trial{border-color:var(--purple);color:var(--purple)}
+/* zones selon les indices : voie du héros (doré), futile (estompée) — carte de zone et liste de la barre de gauche */
+.check-area.hint-woth{box-shadow:0 0 0 1px var(--gold),var(--shadow)}
+.check-area.hint-woth .area-head{background:linear-gradient(90deg,color-mix(in srgb,var(--gold) 20%,transparent),transparent 65%)}
+.check-area.hint-foolish{opacity:.5;filter:saturate(.35);transition:opacity .15s}
+.check-area.hint-foolish:hover,.check-area.hint-foolish:focus-within{opacity:1;filter:none}
+.zone-nav button.hint-woth .cn-name{color:var(--gold);font-weight:700}
+.cn-hint{font-style:normal;margin-right:5px;color:var(--gold)}
+.zone-nav button.hint-foolish{opacity:.45}
+.zone-nav button.hint-foolish .cn-name{text-decoration:line-through;text-decoration-color:rgba(255,255,255,.35)}
 /* badges dans Checks */
 .hint-badge{display:inline-flex;align-items:center;gap:3px;font-size:11.5px;font-weight:700;padding:1px 8px;border-radius:999px;white-space:nowrap;cursor:help}
 .hint-badge.woth{background:var(--gold-soft);border:1px solid var(--gold);color:var(--gold-deep)}

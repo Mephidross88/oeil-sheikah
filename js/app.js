@@ -1064,8 +1064,9 @@ ${STREAM_TPL}
       <div class="zone-nav check-nav">
         <template v-for="[g, list] in checkGroups" :key="g">
           <div class="side-title">{{g}}</div>
-          <button v-for="x in list" :key="x.area.id" :class="['st-' + x.state, {done:x.complete}]" :title="zoneTitle(x)" @click="jumpCheck(x.area.id)">
-            <span class="cn-name">{{x.area.label}}</span>
+          <button v-for="x in list" :key="x.area.id" :class="['st-' + x.state, {done:x.complete, 'hint-woth':hintsC.woth[x.area.id], 'hint-foolish':hintsC.foolish[x.area.id]}]"
+            :title="zoneTitle(x) + (hintsC.woth[x.area.id] ? ' — sur la voie du héros' : hintsC.foolish[x.area.id] ? ' — zone futile' : '')" @click="jumpCheck(x.area.id)">
+            <span class="cn-name"><i v-if="hintsC.woth[x.area.id]" class="cn-hint">★</i>{{x.area.label}}</span>
             <span v-if="x.total" class="cn-nums"><i>{{x.got}}</i><i class="a">{{x.accessible}}</i><i>{{x.total}}</i></span></button>
         </template>
       </div>
@@ -1187,7 +1188,7 @@ ${STREAM_TPL}
       <div v-if="!checkAreasC.length" class="empty"><b>Aucun check à afficher.</b>
         {{ui.checks.q ? 'Aucun résultat pour cette recherche.' : 'Vérifiez la Configuration ou les filtres.'}}</div>
       <article v-for="x in checkAreasC" :key="x.area.id" class="area check-area" :id="'carea-'+x.area.id"
-        :class="['st-' + x.state, {collapsed:ui.checks.collapsed[x.area.id], complete:x.complete}]">
+        :class="['st-' + x.state, {collapsed:ui.checks.collapsed[x.area.id], complete:x.complete, 'hint-woth':hintsC.woth[x.area.id], 'hint-foolish':hintsC.foolish[x.area.id]}]">
         <button class="area-head" @click="toggleCheckArea(x.area.id)" :aria-expanded="!ui.checks.collapsed[x.area.id]">
           <span class="chev" v-html="ICONS.chevron"></span>
           <h2>{{x.area.label}}</h2>

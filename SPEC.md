@@ -688,7 +688,9 @@ id = nom de la pierre dans le spoiler de SoH, zone de la page Checks, libellé f
   Sans spoiler : type, zone et texte à saisir ; « Modifier » pour corriger un indice rempli.
 - Synthèse en tête : zones sur la voie du héros, zones futiles, pierres lues. Dans Checks (`hintsC`) : badges de zone
   « Voie du héros » (doré), « Futile » (pointillés), nombre d'indices d'objet de la zone (texte au survol) ; icône
-  d'indice à côté d'un check visé par un indice d'objet.
+  d'indice à côté d'un check visé par un indice d'objet. Carte de zone : voie du héros = contour doré et en-tête teinté ;
+  futile = estompée et désaturée (normale au survol). Liste des zones de la barre de gauche : voie du héros en doré avec
+  ★, futile estompée et barrée.
 
 ## Carte
 Page « Carte » (`ui.view` = `map`, composant `ZoneMap` de `components.js`) : où se trouve chaque sortie, sur le terrain
