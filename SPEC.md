@@ -678,8 +678,10 @@ du jeu vu de dessus (nord en haut).
 - Données : `data/maps-data.js` (`window.MAPS_DATA`), **généré** depuis la ROM de l'utilisateur (NTSC 1.0 décompressée)
   par `tools/soh-maps/extract_maps.mjs` et **non versionné** (la géométrie vient de la cartouche). Sans ce fichier, la
   page explique comment le produire. Scènes d'extérieur des zones (23, dont l'entrée du bourg, la place, le parvis du
-  temple, la ruelle, et le château enfant et adulte) : sols de la collision (normale vers le haut) en triangles vus de
-  dessus avec leur hauteur, et murs (arête la plus longue des polygones verticaux).
+  temple, la ruelle, et le château enfant et adulte) : sols et pentes de la collision (normale vers le haut, même raide :
+  toits, rampes, falaises, sinon des trous noirs vus de dessus) en triangles avec leur hauteur, et murs (polygones
+  verticaux d'au moins 60 unités de haut et de long, tracés selon leur étendue vue de dessus : les pans fins feraient des
+  pointes).
 - Position d'une sortie : point d'apparition de Link de l'entrée qui y fait arriver (table des entrées de SoH : scène et
   numéro d'entrée dans la scène ; liste des entrées de la scène : point d'apparition) ; sortie située dans un intérieur :
   à sa porte (sortie d'origine associée) ; grotte : point de retour de la grotte ; envol du hibou : position du hibou

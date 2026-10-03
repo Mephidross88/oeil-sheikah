@@ -68,7 +68,7 @@ function readScene(name){
   const next = Math.min(b.length, ...Object.values(cmds).map(v => v.addr).filter(a => a > (cmds[0x06]?.addr ?? Infinity)));
   const entrances = [];
   if (cmds[0x06]) for (let o = cmds[0x06].addr; o + 1 < next && entrances.length < 64; o += 2){ const sp = u8(o); if (sp >= spawns.length) break; entrances.push(sp); }
-  // collision : sols (normale vers le haut), en triangles vus de dessus [x1, z1, x2, z2, x3, z3, hauteur moyenne]
+  // collision : sols et pentes (normale vers le haut), en triangles vus de dessus [x1, z1, x2, z2, x3, z3, hauteur moyenne]
   const ch = cmds[0x03].addr;
   const bounds = [s16(ch), s16(ch + 2), s16(ch + 4), s16(ch + 6), s16(ch + 8), s16(ch + 10)];
   const nVert = u16(ch + 12), vAddr = seg(u32(ch + 16)), nPoly = u16(ch + 20), pAddr = seg(u32(ch + 24));
@@ -76,11 +76,14 @@ function readScene(name){
   const floors = [], walls = [];
   for (let i = 0; i < nPoly; i++){
     const o = pAddr + i * 16, v = [u16(o + 2) & 0x1FFF, u16(o + 4) & 0x1FFF, u16(o + 6) & 0x1FFF].map(V), ny = s16(o + 10) / 0x7FFF;
-    if (ny > 0.5) floors.push([v[0][0], v[0][2], v[1][0], v[1][2], v[2][0], v[2][2], Math.round((v[0][1] + v[1][1] + v[2][1]) / 3)]);
-    else if (Math.abs(ny) < 0.3){
-      // mur : son arête la plus longue vue de dessus (trait sombre)
+    // sol et pentes, même raides (toits, rampes, falaises : sinon des trous vus de dessus) ; murs : verticaux (les murs inclinés feraient des pointes vus de dessus)
+    if (ny > 0.2) floors.push([v[0][0], v[0][2], v[1][0], v[1][2], v[2][0], v[2][2], Math.round((v[0][1] + v[1][1] + v[2][1]) / 3)]);
+    else if (Math.abs(ny) < 0.05){
+      // mur : trait sombre de son étendue vue de dessus (ses deux points les plus éloignés), seulement pour les vrais murs
+      // (au moins 60 unités de haut et de long) — les pans fins (rebords, mâts, bords de toit) feraient des pointes
+      const ys = v.map(p => p[1]), h = Math.max(...ys) - Math.min(...ys);
       const d = (p, q) => Math.hypot(p[0] - q[0], p[2] - q[2]), pairs = [[v[0], v[1]], [v[1], v[2]], [v[2], v[0]]].sort((p, q) => d(q[0], q[1]) - d(p[0], p[1]));
-      if (d(...pairs[0]) > 20) walls.push([pairs[0][0][0], pairs[0][0][2], pairs[0][1][0], pairs[0][1][2]]);
+      if (h >= 60 && d(...pairs[0]) >= 60) walls.push([pairs[0][0][0], pairs[0][0][2], pairs[0][1][0], pairs[0][1][2]]);
     }
   }
   // acteurs des salles (commande 0x04 : salles { début, fin } ; dans chaque salle, commande 0x01 : liste d'acteurs)
