@@ -479,6 +479,12 @@ check) ; règles dans `js/checks.js`.
   défaut) : dans chaque zone, faisables maintenant, puis pas encore faisables, puis faits.
 - **Annuler** : cocher / décocher ou exclure / réintégrer un check affiche quelques secondes un bandeau en bas
   d'écran (« … coché · Annuler », « … exclu · Annuler ») pour revenir en arrière (clic malencontreux).
+- **Pourquoi pas encore ?** : bouton « ? » au survol d'un check pas encore faisable. Fenêtre qui dit pourquoi
+  (`whyLocked` dans `state.js`, calculé au clic) : jamais faisable (configuration) ; derrière une entrée pas encore
+  découverte (pas faisable même avec tous les objets et les entrées notées) ; sinon les objets qui manquent, au plus
+  juste — l'inventaire « tout obtenu » est ramené vers l'inventaire noté tant que le check reste faisable : par blocs
+  (groupe du panneau Objets, objets d'un donjon, check-list), puis objet par objet, puis palier ou nombre au plus bas
+  (un ensemble minimal parmi d'autres) — avec l'âge auquel il devient faisable.
 - **Y aller** : bouton (icône du Routeur) au survol d'un check à faire et dans l'en-tête de zone. Ouvre le Routeur
   avec pour arrivée la sortie la plus proche, depuis le départ actuel du Routeur, d'où l'on rejoint à pied le check
   (une de ses régions SoH, `CHECK_REGIONS`, à l'âge où il est faisable s'il n'est faisable qu'à un âge) ou la zone.

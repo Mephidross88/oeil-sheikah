@@ -560,6 +560,16 @@ svg{display:block}
 @container (max-width: 640px){ .check-list-grid{grid-template-columns:1fr} }
 /* « Y aller » (Routeur) : au survol d'un check, et dans l'en-tête de zone */
 .ci-go{display:grid;place-items:center}
+/* « Pourquoi pas encore ? » */
+.why-modal p{margin:0 0 10px}
+.why-check{font-size:15px}
+.why-wait{color:var(--muted);font-style:italic}
+.why-items{list-style:none;margin:0 0 12px;padding:0;display:flex;flex-wrap:wrap;gap:6px}
+.why-items li{display:flex;align-items:center;gap:8px;padding:4px 12px 4px 6px;border:1px solid var(--line);border-radius:999px;background:var(--surface-2);font-size:14.5px}
+.why-items img{width:26px;height:26px;object-fit:contain}
+.why-dot{width:26px;height:26px;flex:none;display:grid;place-items:center}
+.why-dot::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--gold)}
+.why-note{font-size:13.5px;color:var(--muted)}
 .ci-go svg{width:16px;height:16px}
 .go-btn{display:grid;place-items:center;width:30px;height:30px;flex:none;border-radius:8px;color:var(--ocarina);cursor:pointer}
 .go-btn svg{width:18px;height:18px}

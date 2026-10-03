@@ -96,6 +96,57 @@ const routeC = computed(() => routeGraph(store.settings, store.game, linksC.valu
 const sohFullC = computed(() => computeSoh(store.settings, fullGame(store.settings),
   Object.fromEntries(Object.entries(linksC.value).filter(([, to]) => to))));
 
+/* Pourquoi un check n'est pas faisable (page Checks). Jamais faisable (même avec tout et les entrées inconnues
+   d'origine : configuration) ; derrière une entrée pas encore notée (pas faisable même avec tout l'inventaire) ; sinon
+   objets manquants, au plus juste : l'inventaire « tout obtenu » est ramené vers l'inventaire noté tant que le check
+   reste faisable — par blocs (un groupe du panneau Objets, les objets d'un donjon, une check-list), puis objet par
+   objet, puis palier ou nombre au plus bas. Un ensemble minimal parmi d'autres possibles.
+   → { never } | { entrances } | { items:[{ label, src }], age } */
+const DUNGEON_FLAGS = [['map', 'carte'], ['compass', 'boussole'], ['bossKey', 'clé du boss'], ['keys', 'petites clés'],
+  ['soul', 'âme du boss'], ['ringGot', 'trousseau de clés']];
+function whyLocked(checkId){
+  const rc = 'RC_' + checkId, s = store.settings, links = linksC.value, cur = store.game;
+  if (!sohFullC.value.checks[rc]) return { never:true };
+  const g = JSON.parse(JSON.stringify(fullGame(s)));
+  const bits = () => computeSoh(s, g, links).checks[rc] || 0;
+  if (!bits()) return { entrances:true };
+  // dimensions où l'inventaire « tout obtenu » dépasse l'inventaire noté : [bloc, objet, clé, valeur notée, valeur pleine, libellé(v), icône(v)]
+  const dims = [], num = v => typeof v === 'boolean' ? +v : v || 0;
+  ITEM_GROUPS.forEach((gr, bi) => gr.items.forEach(it => {
+    const lo = num(cur[gr.path][it.key]), hi = num(g[gr.path][it.key]);
+    if (hi > lo) dims.push({ block:'g' + bi, obj:g[gr.path], key:it.key, bool:it.kind === 'bool', lo, hi,
+      label:v => it.kind === 'level' && it.stages ? it.stages[v] : it.kind === 'count' ? it.label + ' : ' + v : it.label,
+      src:v => it.kind === 'level' && !it.sizes ? (it.icons ? 'icons/' + it.icons[Math.max(1, v) - 1] : 'icons/items/' + it.key + '_' + Math.max(1, v) + '.png')
+        : 'icons/' + (it.icon || 'items/' + it.key + '.png') });
+  }));
+  DUNGEONS.forEach(d => DUNGEON_FLAGS.forEach(([k, name]) => {
+    const lo = num(cur.dungeons[d.id][k]), hi = num(g.dungeons[d.id][k]);
+    if (hi > lo) dims.push({ block:'d' + d.id, obj:g.dungeons[d.id], key:k, bool:k !== 'keys', lo, hi,
+      label:v => d.title + ' : ' + (k === 'keys' ? v + ' petite' + (v > 1 ? 's' : '') + ' clé' + (v > 1 ? 's' : '') : name), src:() => null });
+  }));
+  Object.entries(CHECKLISTS).forEach(([name, c]) => c.locations.forEach(l => {
+    if (g.checklists[name][l.id] && !cur.checklists[name][l.id])
+      dims.push({ block:'c' + name, obj:g.checklists[name], key:l.id, bool:true, lo:0, hi:1, label:() => c.title + ' : ' + l.label, src:() => null });
+  }));
+  const set = (d, v) => { d.obj[d.key] = d.bool ? !!v : v; d.v = v; };
+  dims.forEach(d => { d.v = d.hi; });
+  // 1. par blocs, 2. un à un, 3. palier / nombre au plus bas (dichotomie)
+  for (const b of [...new Set(dims.map(d => d.block))]){
+    const ds = dims.filter(d => d.block === b && d.v !== d.lo);
+    ds.forEach(d => set(d, d.lo));
+    if (!bits()) ds.forEach(d => set(d, d.hi));
+  }
+  for (const d of dims) if (d.v !== d.lo){ set(d, d.lo); if (!bits()) set(d, d.hi); }
+  for (const d of dims) if (d.v - d.lo > 1){
+    let lo = d.lo, hi = d.v;   // faisable à hi, pas à lo
+    while (hi - lo > 1){ const m = (lo + hi) >> 1; set(d, m); if (bits()) hi = m; else lo = m; }
+    set(d, hi);
+  }
+  const b = bits();
+  return { items:dims.filter(d => d.v !== d.lo).map(d => ({ label:d.label(d.v), src:d.src(d.v) })),
+    age:(b & CHILD) && (b & ADULT) ? 'both' : b & CHILD ? 'child' : 'adult' };
+}
+
 /* ---------- Mutations ---------- */
 function clearMapping(src){
   const old = store.mappings[src];

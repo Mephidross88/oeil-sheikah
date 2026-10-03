@@ -477,6 +477,12 @@ const App = {
       const age = (now & CHILD) && !(now & ADULT) ? 'child' : (now & ADULT) && !(now & CHILD) ? 'adult' : null;
       routeTo((k, a, m) => (!age || a === age) && [...routeC.value.regions(k, a, m).keys()].some(rr => regs.has(rr)), age);
     }
+    // « Pourquoi ? » : ce qui manque pour un check pas encore faisable (whyLocked, calcul de ~1 s, lancé après affichage)
+    const why = reactive({ check:null, res:null });
+    function openWhy(c){
+      why.check = c; why.res = null; modal.value = 'why';
+      setTimeout(() => { if (why.check?.id === c.id) why.res = whyLocked(c.id); }, 30);
+    }
     const goToZone = id => { const z = id.toLowerCase(); routeTo(k => EXIT[k].areaId === z, null); };
     function setAllChecks(collapsed){ CHECK_AREAS.forEach(a => { cf.collapsed[a.id] = collapsed; }); }
     function jumpCheck(id){
@@ -636,7 +642,7 @@ const App = {
     return { store, ui, s, views, link, LINK_LABEL, linkRequestState, linkAsks, linkAnswer, askFrom, askLabel, canSplit, splitOn, shown, paneOf, swapPanes, openSide, closeSide, navOpen, itemsOpen, modal, tip, tipData, backup, stats, missingSpawns, visibleAreas,
       ICONS, ITEMS_PAGE, ITEM_BY_KEY, DUNGEONS, DUNGEON_BY_ID, CHECKLISTS, AREA, EXIT, DATA_ERRORS,
       iconKey, exitIcon, areaName, toggleArea, setAll, jump, go, showTip, hideTip, toggleTip, setMapping, clearMapping,
-      checkAreasC, checkStats, toggleCheckArea, lastCheck, toggleCheck, toggleExcluded, undoCheck, foundInfo, seenInfo, loadSpoilerFile, linkClearSpoiler, linkSpoilerOk, goToCheck, goToZone, goMsg, setAllChecks, jumpCheck, setCheck, setExcluded, CHECK_AREA,
+      checkAreasC, checkStats, toggleCheckArea, lastCheck, toggleCheck, toggleExcluded, undoCheck, foundInfo, seenInfo, loadSpoilerFile, linkClearSpoiler, linkSpoilerOk, goToCheck, goToZone, why, openWhy, goMsg, setAllChecks, jumpCheck, setCheck, setExcluded, CHECK_AREA,
       CHECK_CATS, CHECK_CAT, catCounts, toggleCat, zoneTitle, soloCat, allCats, CHECK_AGES, ageLabelShort, ageKnown, checkGroups,
       lg, canNow, timeOf, checkLogicTitle, CHILD, ADULT,
       panelSkills, panelChecklists, cells, dungeonRows, skeletonShown, atStart, visibleKeys,
@@ -854,6 +860,7 @@ const App = {
                   <i v-if="lg(c).age !== 'adult'" :class="{now:lg(c).now & CHILD}">E</i><i v-if="lg(c).age !== 'child'" :class="{now:lg(c).now & ADULT}">A</i></span>
                 <span v-else class="age-pill never">—</span>
                 <span class="cr-mark" v-html="store.game.checks[c.id] ? ICONS.check : ICONS.circleO"></span></button>
+              <button v-if="!store.game.checks[c.id] && !canNow(c)" type="button" class="ci-ex ci-go" title="Pourquoi ce check n’est pas faisable ?" v-html="ICONS.why" @click="openWhy(c)"></button>
               <button v-if="!store.game.checks[c.id]" type="button" class="ci-ex ci-go" title="Y aller (Routeur, depuis le départ actuel)" v-html="ICONS.router" @click="goToCheck(c)"></button>
               <button type="button" class="ci-ex" :title="s.excluded[c.id] ? 'Réintégrer ce check' : 'Exclure ce check (ne compte plus)'"
                 @click="toggleExcluded(c)">{{s.excluded[c.id] ? '↺' : '⊘'}}</button>
@@ -1236,6 +1243,20 @@ const App = {
               <span>{{l.label}}</span><span class="cr-mark" v-html="store.game.checklists[checklistModal.name][l.id]?ICONS.check:ICONS.circleO"></span>
             </button>
           </div>
+        </div>
+      </template>
+      <template v-else-if="modal==='why' && why.check">
+        <header><h3>Pourquoi pas encore ?</h3><button @click="modal=null" aria-label="Fermer" v-html="ICONS.close"></button></header>
+        <div class="body why-modal">
+          <p class="why-check"><b>{{why.check.label}}</b> · {{CHECK_AREA[why.check.area].label}}</p>
+          <p v-if="!why.res" class="why-wait">Calcul en cours…</p>
+          <p v-else-if="why.res.never">Jamais faisable selon la logique avec la configuration actuelle (même avec tous les objets).</p>
+          <p v-else-if="why.res.entrances">Même avec tous les objets, aucun chemin connu n’y mène : il passe par une entrée pas encore découverte (à noter dans Entrées).</p>
+          <template v-else>
+            <p>Il vous manque :</p>
+            <ul class="why-items"><li v-for="(it,i) in why.res.items" :key="i"><img v-if="it.src" :src="it.src" alt=""><span v-else class="why-dot"></span>{{it.label}}</li></ul>
+            <p class="why-note">Ensuite faisable {{ {child:'en enfant', adult:'en adulte', both:'en enfant et en adulte'}[why.res.age] }}. C’est un ensemble minimal d’objets parmi d’autres possibles (les entrées notées restent celles d’aujourd’hui).</p>
+          </template>
         </div>
       </template>
       <template v-else-if="modal==='backup'">

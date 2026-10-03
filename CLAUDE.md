@@ -57,7 +57,8 @@ et le mettre à jour quand une règle change.
      `ItemTile` (`itemActive`, `iconSrc`, `itemTitle`, `itemMaxed`, `clickItem`, `rightClickItem`), et les
      mutations des check-lists/donjons (`setChecklist`, `checklistStats`, `setDungeonFlag`,
      `addDungeonKeys`, `dungeonQuest`/`dungeonMaxKeys`/`cycleDungeonQuest` — version Vanilla/MQ, `dungeonKeyRing`/`setKeyRing`/`dungeonKeysDone` — trousseaux et clé squelette, `trialStatus`/`cycleTrial` — épreuves de Ganon tirées au sort), et `applyStartingItems` (objets de départ de la configuration → panneau Objets), et pour la page Checks `areaQuest`,
-     `checkListed`, `setCheck`, `setExcluded`.
+     `checkListed`, `setCheck`, `setExcluded`, `whyLocked` (ce qui manque pour un check : objets au plus juste, entrée à
+     découvrir ou jamais).
   8b. `js/link.js` : auto-tracking — connexion (EventSource) au relais local `tools/soh-link/relay.mjs`, état `link`
      (statut, journal), `linkApply` (paquets du jeu → partie : checks, `linkSaveToGame` sauvegarde SoH → panneau
      Objets, position → départ du Routeur, objet trouvé par check, trouvailles, entrées notées via `setMapping` — question au joueur si l'arrivée est ambiguë, `link.ask` —, spoiler
