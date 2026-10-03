@@ -687,9 +687,13 @@ Page « Carte » (`ui.view` = `map`, composant `EntranceMap` de `components.js`)
 
 ## Où aller maintenant ?
 Bandeau collé en bas de la zone principale, sur toutes les pages (ne prend la place d'aucune), repliable
-(`ui.next.open`, replié par défaut). Replié : le check faisable le plus proche (zone, nombre d'étapes) et le nombre de
-checks faisables. Déplié : les 12 plus proches, en cartes (icône de catégorie, libellé, zone, « à pied » ou « N étapes »,
-« adulte » si on s'y rend en adulte) ; un clic = « Y aller » (Routeur).
+(`ui.next.open`, replié par défaut) et masquable (× ou case « Bandeau « Où aller ? » » de la barre de gauche, page
+Routeur : `ui.next.enabled`, rien n'est alors calculé). Barre : prochaine étape du trajet en cours du Routeur (mode
+de déplacement → zone · sortie, comme le bloc du stream), check faisable le plus proche (zone, nombre d'étapes) avec
+son bouton « Y aller », nombre de checks faisables. Déplié : les 12 plus proches, en cartes (icône de catégorie,
+libellé, zone, « à pied » ou « N étapes », « adulte » si on s'y rend en adulte) ; un clic = « Y aller » (Routeur).
+Les trajets ne passent que par des entrées connues (notées, ou d'origine) : graphe du Routeur, où une entrée mélangée
+non notée est une impasse.
 - Proximité depuis le départ du Routeur (donc la position en direct si l'auto-tracking la suit) et son âge :
   exploration complète du graphe du Routeur (`reachAll` dans `entrances.js`, même Dijkstra que `shortest`, coûts du
   Routeur) ; chaque région SoH joignable à pied depuis un état reçoit le coût de l'état plus la marche estimée par

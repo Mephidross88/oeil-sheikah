@@ -1019,6 +1019,7 @@ ${STREAM_TPL}
       <div v-if="splitOn" class="side-title side-page">Routeur</div>
       <label class="check" title="Coût total dans le résumé et coût de chaque étape (réglables dans Configuration)"><input type="checkbox" v-model="ui.router.showCost">Afficher les coûts</label>
       <label class="check" title="Départ et arrivée : ne proposer que les sorties accessibles d'après la logique (entrées notées ou d'origine, objets notés)"><input type="checkbox" v-model="ui.router.onlyReachable">Seulement les lieux accessibles</label>
+      <label class="check" title="Bandeau en bas de page : prochaine étape du trajet et checks faisables les plus proches"><input type="checkbox" v-model="ui.next.enabled">Bandeau « Où aller ? »</label>
     </section>
 
     <section v-if="shown('checks')" class="side-sec" :style="{order:paneOf('checks')==='side' ? 2 : 1}">
@@ -1417,16 +1418,23 @@ ${STREAM_TPL}
     </section>
     </div>
 
-    <!-- « Où aller maintenant ? » : checks faisables les plus proches du départ du Routeur -->
-    <div class="next-dock" :class="{open:ui.next.open}">
-      <button type="button" class="nd-bar" @click="ui.next.open = !ui.next.open" :aria-expanded="ui.next.open">
-        <span class="nd-ic" v-html="ICONS.compass"></span><b>Où aller maintenant ?</b>
+    <!-- « Où aller maintenant ? » : prochaine étape du trajet en cours et checks faisables les plus proches du départ du Routeur -->
+    <div v-if="ui.next.enabled" class="next-dock" :class="{open:ui.next.open}">
+      <div class="nd-bar">
+        <button type="button" class="nd-toggle" @click="ui.next.open = !ui.next.open" :aria-expanded="ui.next.open"
+          :title="ui.next.open ? 'Replier' : 'Déplier : les 12 checks faisables les plus proches'"><span class="nd-ic" v-html="ICONS.compass"></span><b>Où aller ?</b></button>
+        <span v-if="nextStep" class="nd-step" :title="'Prochaine étape du trajet du Routeur' + (nextStep.goal ? ' (arrivée : ' + nextStep.goal + ')' : '')">
+          <img v-if="nextStep.icon" :src="nextStep.icon" alt=""><span v-else class="nd-step-ic" v-html="ICONS.uturn"></span>{{nextStep.mode}} → <b>{{nextStep.zone}}</b> · {{nextStep.exit}}</span>
         <span v-if="!nextC" class="nd-sum">Choisissez un départ dans le Routeur (ou activez la position en direct).</span>
         <span v-else-if="!nextC.list.length" class="nd-sum">Aucun check faisable à portée.</span>
-        <span v-else class="nd-sum">Le plus proche : <b>{{nextC.list[0].c.label}}</b> · {{CHECK_AREA[nextC.list[0].c.area].label}} ({{stepsLabel(nextC.list[0].steps)}})
-          <span class="nd-count">{{nextC.total}} faisable{{nextC.total > 1 ? 's' : ''}}</span></span>
-        <span class="nd-chev" v-html="ICONS.caret"></span>
-      </button>
+        <template v-else>
+          <span class="nd-sum" :title="nextC.list[0].c.soh">Check le plus proche : <b>{{nextC.list[0].c.label}}</b> · {{CHECK_AREA[nextC.list[0].c.area].label}} ({{stepsLabel(nextC.list[0].steps)}})</span>
+          <button type="button" class="btn nd-go" title="Y aller (Routeur, depuis le départ actuel)" @click="goToCheck(nextC.list[0].c)">Y aller</button>
+          <span class="nd-count">{{nextC.total}} faisable{{nextC.total > 1 ? 's' : ''}}</span>
+        </template>
+        <button type="button" class="nd-btn nd-chev" :title="ui.next.open ? 'Replier' : 'Déplier'" v-html="ICONS.caret" @click="ui.next.open = !ui.next.open"></button>
+        <button type="button" class="nd-btn" title="Masquer ce bandeau (à réactiver dans la barre de gauche, page Routeur)" v-html="ICONS.close" @click="ui.next.enabled = false"></button>
+      </div>
       <div v-if="ui.next.open && nextC && nextC.list.length" class="nd-list">
         <button v-for="x in nextC.list" :key="x.c.id" type="button" class="nd-card" :title="'Y aller (Routeur) — ' + x.c.soh" @click="goToCheck(x.c)">
           <img :src="CHECK_CAT[x.c.cat].icon" alt="">
