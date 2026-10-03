@@ -699,7 +699,7 @@ du jeu vu de dessus (nord en haut).
 
 ## Connexions
 Page « Connexions » (`ui.view` = `graph`, composant `EntranceGraph` de `components.js`) : schéma (graphe) des entrées
-connues. (Ancien nom « Carte », id `map` : converti au chargement.)
+connues.
 - Zones placées à peu près comme sur la carte d'Hyrule (`GRAPH_POS`), donjons en plus petit à côté de leur zone ; nœud
   « Apparitions et chants » à part (apparitions et chants de téléportation, en pointillés).
 - Une liaison par paire de nœuds pour les entrées connues (`effC` : notées, ou d'origine quand elles ne sont pas

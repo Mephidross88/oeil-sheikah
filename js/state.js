@@ -50,9 +50,6 @@ function load(){
 }
 
 const store = reactive(load());
-// page « Carte » renommée « Connexions » (id graph)
-if (store.ui.view === 'map') store.ui.view = 'graph';
-if (store.ui.split === 'map') store.ui.split = 'graph';
 const lastSaved = ref(null);
 // Fenêtre de stream (index.html?stream) : la partie vient de la fenêtre principale (événement « storage » à chaque
 // sauvegarde de celle-ci) ; elle ne sauvegarde rien elle-même.
