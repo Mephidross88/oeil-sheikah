@@ -1012,7 +1012,7 @@ const App = {
     /* Indices (pierres à potins) : pierres groupées par zone, édition du texte à la demande */
     const hintGroups = CHECK_AREAS.map(a => ({ area:a.id, stones:GOSSIP_STONES.filter(s => s.area === a.id) })).filter(g => g.stones.length);
     const hintEdit = reactive({});
-    return { store, ui, s, views, navGroups, link, LINK_LABEL, linkRequestState, linkAsks, linkAnswer, askFrom, askLabel, canSplit, splitOn, shown, paneOf, swapPanes, openSide, closeSide, navOpen, itemsOpen, modal, tip, tipData, backup, stats, missingSpawns, visibleAreas,
+    return { store, ui, s, views, navGroups, link, LINK_LABEL, linkRequestState, linkAdoptSave, linkAsks, linkAnswer, askFrom, askLabel, canSplit, splitOn, shown, paneOf, swapPanes, openSide, closeSide, navOpen, itemsOpen, modal, tip, tipData, backup, stats, missingSpawns, visibleAreas,
       ICONS, ITEMS_PAGE, ITEM_BY_KEY, DUNGEONS, DUNGEON_BY_ID, CHECKLISTS, AREA, EXIT, DATA_ERRORS,
       iconKey, exitIcon, areaName, toggleArea, setAll, jump, go, showTip, hideTip, toggleTip, setMapping, clearMapping,
       checkAreasC, checkStats, toggleCheckArea, lastCheck, toggleCheck, toggleExcluded, undoCheck, foundInfo, seenInfo, loadSpoilerFile, linkClearSpoiler, linkSpoilerOk, goToCheck, goToZone, why, openWhy, nextC, stepsLabel, goMsg, setAllChecks, jumpCheck, setCheck, setExcluded, CHECK_AREA,
@@ -1662,6 +1662,9 @@ ${ITEMS_TPL}${LOOT_TPL}    </div>
           <div class="link-status" :class="link.status"><i></i><b>{{LINK_LABEL[link.status]}}</b>
             <span v-if="link.status==='game' && link.client">— {{link.client.name || 'joueur sans nom'}}, sauvegarde {{link.client.isSaveLoaded ? 'chargée' : 'non chargée'}}</span>
             <button v-if="link.status==='game'" type="button" class="btn" @click="linkRequestState">Relire la sauvegarde</button></div>
+          <div v-if="link.status==='game' && link.foreign" class="msg ko link-foreign">Le jeu a chargé une autre sauvegarde que celle
+            de la partie notée : ses checks, objets et entrées sont ignorés. Pour une nouvelle partie, remettez d'abord la partie
+            à zéro ; sinon <button type="button" class="btn" @click="linkAdoptSave">Suivre cette sauvegarde</button></div>
           <div v-if="link.status==='game' && link.position" class="link-pos">Position : <b>{{areaName(link.position.key)}}</b> · {{EXIT[link.position.key].label}}
             <span v-if="link.position.age">({{ageLabel(link.position.age)}})</span></div>
           <div class="link-spoiler">

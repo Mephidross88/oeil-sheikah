@@ -10,6 +10,7 @@ const link = reactive({
   position:null,     // position reconnue : { key (sortie où l'on est apparu), age }
   spoiler:null,      // spoiler caché chargé : { file, seed, count }
   ask:[],            // entrées découvertes à destination ambiguë, à préciser par le joueur : { d, opts:[arrivée], seq }
+  foreign:false,     // le jeu a chargé une autre sauvegarde que celle de la partie notée : ses événements sont ignorés
   lastAt:null, log:[],
 });
 let linkSource = null;
@@ -59,6 +60,25 @@ function linkDescribe(p){
   }
 }
 let linkCatchup = false;   // la prochaine sauvegarde complète est un rattrapage (connexion du relais ou du jeu)
+/* Sauvegarde suivie : la partie notée retient la seed et la date de création du fichier de la première sauvegarde
+   reçue (store.game.save, remis à zéro avec la partie). Une autre sauvegarde chargée dans le jeu (autre seed, autre
+   fichier) est ignorée : ni checks, ni objets, ni entrées, ni position — sinon ses checks resteraient cochés. */
+let linkCreated = 0;   // fichier de la dernière sauvegarde complète reçue (0 : inconnu, ou retour à l'écran titre)
+function linkSaveSeen(){
+  const s = store.game.save, seed = link.client?.isSaveLoaded ? link.client.seed || 0 : 0;
+  if (link.client && !link.client.isSaveLoaded){ linkCreated = 0; return; }   // écran titre : on attend la sauvegarde chargée
+  const foreign = !!(seed && s.seed && seed !== s.seed || linkCreated && s.created && linkCreated !== s.created);
+  if (!foreign){ if (seed && !s.seed) s.seed = seed; if (linkCreated && !s.created) s.created = linkCreated; }
+  if (foreign && !link.foreign) linkLog('Autre sauvegarde chargée dans le jeu : ignorée (ce n’est pas la partie notée)');
+  if (!foreign && link.foreign) linkLog('Retour à la sauvegarde de la partie notée');
+  link.foreign = foreign;
+}
+// « Suivre cette sauvegarde » : la sauvegarde chargée devient celle de la partie notée, puis on la relit
+function linkAdoptSave(){
+  store.game.save = { seed:0, created:0 };
+  linkSaveSeen();
+  linkRequestState();
+}
 function linkHandle(m){
   link.lastAt = Date.now();
   if (m.type === 'hello'){
@@ -66,6 +86,9 @@ function linkHandle(m){
     linkCatchup = true;
     link.status = m.game ? 'game' : 'relay';
     link.client = m.clientState || null; link.player = m.player || null;
+    linkCreated = m.teamState?.ship?.stats?.fileCreatedAt || 0;
+    linkSaveSeen();
+    if (link.foreign) return;
     if (m.teamState){   // sauvegarde déjà connue du relais : rattrapage
       timelineQuiet = true;
       try { linkApply({ type:'UPDATE_TEAM_STATE', state:m.teamState }); } finally { timelineQuiet = false; }
@@ -78,13 +101,20 @@ function linkHandle(m){
     link.status = m.connected ? 'game' : 'relay';
     if (m.connected) linkCatchup = true;
     link.client = m.connected ? m.clientState : null;
+    linkSaveSeen();
     linkRevealAll();
     linkLog(m.connected ? 'Jeu connecté' : 'Jeu déconnecté');
     return;
   }
-  if (m.type === 'client'){ link.client = m.clientState; linkEntranceArrival(m.clientState); linkPositionFrom(m.clientState, true); linkRevealAll(); return; }
-  if (m.type === 'player'){ link.player = m.player; linkEntranceArrival(m.player); linkPositionFrom(m.player, true); return; }
+  if (m.type === 'client'){
+    link.client = m.clientState; linkSaveSeen();
+    if (!link.foreign){ linkEntranceArrival(m.clientState); linkPositionFrom(m.clientState, true); linkRevealAll(); }
+    return;
+  }
+  if (m.type === 'player'){ link.player = m.player; if (!link.foreign){ linkEntranceArrival(m.player); linkPositionFrom(m.player, true); } return; }
   if (m.type === 'packet'){
+    if (m.packet.type === 'UPDATE_TEAM_STATE'){ linkCreated = m.packet.state?.ship?.stats?.fileCreatedAt || 0; linkSaveSeen(); }
+    if (link.foreign) return;
     if (m.packet.type !== 'SET_FLAG' && m.packet.type !== 'UNSET_FLAG') linkLog(linkDescribe(m.packet));
     // première sauvegarde complète après la connexion : rattrapage, sans heure dans la chronologie
     const catchup = m.packet.type === 'UPDATE_TEAM_STATE' && linkCatchup;

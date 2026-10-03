@@ -9,7 +9,8 @@ function defaults(){
     seen:{},      // seen : objets vus en boutique / chez les pestes et marchands { id: [nom affiché, prix] } (spoiler caché)
     hints:{},     // hints : indices des pierres lues { id de la pierre: { t: type (HINT_TYPES), text, area: zone, check } }
     timeline:[],  // timeline : objets, chants et checks obtenus { t: heure (ms) ou null (avant le suivi), k: items | songs | checks, id, v }
-    runStart:0 }; // runStart : début de la partie dans le jeu (ship.stats.firstInput de la sauvegarde, ms), 0 si inconnu
+    runStart:0,   // runStart : début de la partie dans le jeu (ship.stats.firstInput de la sauvegarde, ms), 0 si inconnu
+    save:{ seed:0, created:0 } }; // save : sauvegarde suivie par l'auto-tracking (seed, ship.stats.fileCreatedAt), 0 si inconnu
   ITEM_GROUPS.forEach(g => g.items.forEach(it => { game[g.path][it.key] = it.locked ? true : it.kind === 'bool' ? false : 0; }));
   DUNGEONS.forEach(d => { game.dungeons[d.id] = { map:false, compass:false, keys:0, bossKey:false, soul:false, quest:'', keyRing:'', ringGot:false }; });
   Object.entries(CHECKLISTS).forEach(([name, c]) => {

@@ -796,6 +796,12 @@ Suivi en direct d'une partie de Ship of Harkinian, sans modifier le jeu.
 - **Appli** (`js/link.js`) : voyant dans le pied de la barre de gauche (gris : désactivé, orange : relais introuvable,
   doré : relais prêt, vert : jeu connecté), fenêtre « Auto-tracking » (mode d'emploi, activation et adresse du relais
   dans `ui.link`, état, « Relire la sauvegarde », journal des événements). Reconnexion automatique.
+- **Sauvegarde suivie** : la partie notée retient la seed (état du client) et la date de création du fichier
+  (`ship.stats.fileCreatedAt` de la sauvegarde complète) de la première sauvegarde reçue (`game.save`, remise à zéro avec
+  la partie). Si le jeu charge une autre sauvegarde (autre seed ou autre fichier), tous ses événements sont ignorés
+  (checks, objets, entrées, position) et la fenêtre Auto-tracking le signale, avec « Suivre cette sauvegarde » (elle
+  devient celle de la partie, puis relecture). Écran titre : rien n'est conclu. Sans cette règle, les checks d'une autre
+  sauvegarde resteraient cochés (jamais décochés, voir ci-dessous).
 - **Checks** (option « les checks faits », `ui.link.checks`) : un check fait dans le jeu (statut SoH « ramassé » ou
   « sauvegardé », `SET_CHECK_STATUS` en direct, et tous ceux de la sauvegarde complète `rando.itemLocations`) est coché ;
   jamais décoché (un check coché à la main reste coché). Le jeu désigne les checks par leur numéro dans l'énumération
