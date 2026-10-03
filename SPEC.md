@@ -636,7 +636,10 @@ Règles d'interface :
 
 ## Auto-tracking (en cours)
 Suivi en direct d'une partie de Ship of Harkinian, sans modifier le jeu.
-- **Relais** `tools/soh-link/relay.mjs` (Node, sans dépendance), lancé à la main pendant qu'on joue. SoH s'y connecte
+- **Relais** `tools/soh-link/relay.mjs` (Node, sans dépendance), lancé à la main pendant qu'on joue (sous Windows :
+  double-clic sur `lancer-relais.bat` à la racine, qui vérifie la présence de Node et transmet ses arguments ; fermer
+  la fenêtre l'arrête). L'appli se reconnecte seule si le relais est relancé (le relais demande un nouvel essai au bout de
+  2 s ; si le navigateur abandonne, l'appli relance la connexion au bout de 5 s). SoH s'y connecte
   avec son mode multijoueur Anchor (menu Réseau > Anchor : Host `127.0.0.1`, port `43383`, Room ID au choix, pas la
   salle globale) : TCP, messages JSON séparés par un octet nul. Le relais répond à la poignée de main (liste des joueurs
   avec le jeu marqué `self`, état de salle avec `syncItemsAndFlags` activé, sans quoi le jeu n'envoie pas sa

@@ -12,6 +12,7 @@
 // renvoyer un état d'équipe que le jeu applique à la sauvegarde.
 //
 // Usage : node tools/soh-link/relay.mjs [--game=43383] [--web=43390] [--verbose] [--dump[=fichier.jsonl]]
+//   (sous Windows : double-clic sur lancer-relais.bat, à la racine du projet)
 //   --dump : enregistre les paquets reçus du jeu (une ligne JSON par paquet, sans les mouvements) — pour le développement.
 import net from 'net';
 import http from 'http';
@@ -129,6 +130,7 @@ http.createServer((req, res) => {
   if (req.url === '/events'){
     res.writeHead(200, { 'Content-Type':'text/event-stream; charset=utf-8', 'Cache-Control':'no-cache', Connection:'keep-alive' });
     web.add(res);
+    res.write('retry: 2000\n\n');   // reconnexion de l'appli 2 s après une coupure (relais relancé)
     res.write(`data: ${JSON.stringify(hello())}\n\n`);
     const ka = setInterval(() => res.write(': ping\n\n'), 15000);
     req.on('close', () => { clearInterval(ka); web.delete(res); log('Appli déconnectée'); });

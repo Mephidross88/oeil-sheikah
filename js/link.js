@@ -25,9 +25,16 @@ function linkStart(){
   try { es = new EventSource(store.ui.link.url.replace(/\/+$/, '') + '/events'); } catch (e){ linkLog('Adresse du relais invalide'); return; }
   linkSource = es;
   es.onmessage = ev => { let m; try { m = JSON.parse(ev.data); } catch (e){ return; } linkHandle(m); };
-  es.onerror = () => { if (link.status !== 'connecting') linkLog('Relais injoignable, nouvelle tentative…'); link.status = 'connecting'; };
+  es.onerror = () => {
+    if (link.status !== 'connecting') linkLog('Relais injoignable, nouvelle tentative…');
+    link.status = 'connecting';
+    // le navigateur réessaie seul après une coupure, mais abandonne sur une réponse anormale : on relance alors
+    if (es.readyState === 2 && linkSource === es){ clearTimeout(linkRetry); linkRetry = setTimeout(() => { if (store.ui.link.enabled && linkSource === es) linkStart(); }, 5000); }
+  };
 }
+let linkRetry = null;
 function linkStop(){
+  clearTimeout(linkRetry);
   if (linkSource){ linkSource.close(); linkSource = null; }
   link.status = 'off'; link.client = null; link.player = null;
 }
