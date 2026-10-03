@@ -802,6 +802,17 @@ Suivi en direct d'une partie de Ship of Harkinian, sans modifier le jeu.
   (checks, objets, entrées, position) et la fenêtre Auto-tracking le signale, avec « Suivre cette sauvegarde » (elle
   devient celle de la partie, puis relecture). Écran titre : rien n'est conclu. Sans cette règle, les checks d'une autre
   sauvegarde resteraient cochés (jamais décochés, voir ci-dessous).
+- **Écart avec la sauvegarde** : à chaque sauvegarde complète, une fois appliqué ce que l'auto-tracking suit (options),
+  l'appli relève tout ce qui diffère encore entre la partie notée et le jeu (`link.drift`, `linkDrift`) : checks cochés
+  ici mais pas faits dans le jeu (statut SoH sous « ramassé » : coché à la main, ramassé puis perdu sans sauvegarder,
+  venu d'une autre sauvegarde), checks faits dans le jeu mais pas cochés (suivi des checks désactivé), objets et chants,
+  carte / boussole / clé du boss / âme de chaque donjon, clés des portes et haricots (mêmes règles que le suivi des
+  objets, `linkExpected` : cœurs selon le total du jeu, petites clés non comparées car le jeu ne garde que celles en
+  poche). Une fenêtre s'ouvre d'elle-même (une fois par liste, si aucune autre n'est ouverte ; « Plus tard » la ferme) :
+  une section par type, une ligne par écart (valeur ici → valeur dans le jeu) ; ce qui est coché est corrigé d'après le
+  jeu, le reste est gardé tel quel (`game.keepDrift` : clé → « ici>jeu », plus signalé tant que l'écart ne change pas).
+  Rappel avec « Voir » dans la fenêtre Auto-tracking tant qu'il reste un écart. Les entrées ne sont pas comparées (le
+  jeu ne dit pas où mène une entrée découverte).
 - **Checks** (option « les checks faits », `ui.link.checks`) : un check fait dans le jeu (statut SoH « ramassé » ou
   « sauvegardé », `SET_CHECK_STATUS` en direct, et tous ceux de la sauvegarde complète `rando.itemLocations`) est coché ;
   jamais décoché (un check coché à la main reste coché). Le jeu désigne les checks par leur numéro dans l'énumération

@@ -746,6 +746,48 @@ const App = {
       why.check = c; why.res = null; modal.value = 'why';
       setTimeout(() => { if (why.check?.id === c.id) why.res = whyLocked(c.id); }, 30);
     }
+    /* Écart avec la sauvegarde (link.drift, js/link.js) : fenêtre ouverte d'elle-même quand une sauvegarde complète
+       révèle un écart (une fois par liste : « Plus tard » la ferme). Ligne cochée = corrigée d'après le jeu, sinon gardée
+       telle quelle (game.keepDrift, plus signalée tant que l'écart ne change pas). */
+    const DRIFT_SECS = [
+      { id:'checksExtra', title:'Checks cochés ici, pas faits dans le jeu', fix:'décochés' },
+      { id:'checksMissing', title:'Checks faits dans le jeu, pas cochés ici', fix:'cochés' },
+      { id:'items', title:'Objets et chants', fix:'réglés comme dans le jeu' },
+      { id:'dungeons', title:'Donjons', fix:'réglés comme dans le jeu' },
+      { id:'checklists', title:'Clés des portes et haricots', fix:'réglés comme dans le jeu' },
+    ];
+    const driftSel = reactive({});
+    let driftSeen = '';
+    const driftSig = d => (d || []).map(r => r.key + '=' + r.sig).join();
+    // lignes encore valables (la partie a pu changer depuis la sauvegarde)
+    const driftList = computed(() => (link.drift || []).filter(r => num01(r.cur()) === num01(r.from)));
+    const driftGroups = computed(() => DRIFT_SECS.map(sec => {
+      const rows = driftList.value.filter(r => r.sec === sec.id);
+      if (sec.id.startsWith('checks')) rows.sort((x, y) => CHECK_AREAS.findIndex(a => a.id === x.check.area) - CHECK_AREAS.findIndex(a => a.id === y.check.area));
+      return { ...sec, rows };
+    }).filter(g => g.rows.length));
+    const driftVal = (r, v) => {
+      if (r.check) return v ? 'coché' : 'pas coché';
+      const it = r.it;
+      if (!it || it.kind === 'bool' || typeof v === 'boolean') return v ? (it ? 'obtenu' : 'oui') : (it ? 'pas obtenu' : 'non');
+      if (it.kind === 'level' && it.stages) return it.stages[v] ?? String(v);
+      return String(v ?? 0);
+    };
+    const driftIcon = r => r.check ? CHECK_CAT[r.check.cat].icon : r.it ? itemIconAt(r.it, Math.max(num01(r.to), num01(r.from), 1)) : null;
+    const driftLabel = r => r.check ? r.check.label : r.it ? r.it.label : r.label;
+    function openDrift(){
+      for (const k of Object.keys(driftSel)) delete driftSel[k];
+      driftList.value.forEach(r => { driftSel[r.key] = true; });
+      driftSeen = driftSig(link.drift); modal.value = 'drift';
+    }
+    watch(() => link.drift, d => { if (d && d.length && driftSig(d) !== driftSeen && !modal.value && driftList.value.length) openDrift(); });
+    const driftCount = computed(() => driftList.value.filter(r => driftSel[r.key]).length);
+    function driftAll(on, sec){ driftList.value.forEach(r => { if (!sec || r.sec === sec) driftSel[r.key] = on; }); }
+    // corrige la sélection d'après le jeu, garde le reste
+    function driftApply(){
+      for (const r of driftList.value){ if (driftSel[r.key]) r.apply(); else store.game.keepDrift[r.key] = r.sig; }
+      modal.value = null;
+    }
     const goToZone = id => { const z = id.toLowerCase(); routeTo(k => EXIT[k].areaId === z, null); };
     function setAllChecks(collapsed){ CHECK_AREAS.forEach(a => { cf.collapsed[a.id] = collapsed; }); }
     function jumpCheck(id){
@@ -1012,7 +1054,7 @@ const App = {
     /* Indices (pierres à potins) : pierres groupées par zone, édition du texte à la demande */
     const hintGroups = CHECK_AREAS.map(a => ({ area:a.id, stones:GOSSIP_STONES.filter(s => s.area === a.id) })).filter(g => g.stones.length);
     const hintEdit = reactive({});
-    return { store, ui, s, views, navGroups, link, LINK_LABEL, linkRequestState, linkAdoptSave, linkAsks, linkAnswer, askFrom, askLabel, canSplit, splitOn, shown, paneOf, swapPanes, openSide, closeSide, navOpen, itemsOpen, modal, tip, tipData, backup, stats, missingSpawns, visibleAreas,
+    return { store, ui, s, views, navGroups, link, LINK_LABEL, linkRequestState, linkAdoptSave, driftSel, driftList, driftGroups, openDrift, driftCount, driftAll, driftApply, driftVal, driftIcon, driftLabel, linkAsks, linkAnswer, askFrom, askLabel, canSplit, splitOn, shown, paneOf, swapPanes, openSide, closeSide, navOpen, itemsOpen, modal, tip, tipData, backup, stats, missingSpawns, visibleAreas,
       ICONS, ITEMS_PAGE, ITEM_BY_KEY, DUNGEONS, DUNGEON_BY_ID, CHECKLISTS, AREA, EXIT, DATA_ERRORS,
       iconKey, exitIcon, areaName, toggleArea, setAll, jump, go, showTip, hideTip, toggleTip, setMapping, clearMapping,
       checkAreasC, checkStats, toggleCheckArea, lastCheck, toggleCheck, toggleExcluded, undoCheck, foundInfo, seenInfo, loadSpoilerFile, linkClearSpoiler, linkSpoilerOk, goToCheck, goToZone, why, openWhy, nextC, stepsLabel, goMsg, setAllChecks, jumpCheck, setCheck, setExcluded, CHECK_AREA,
@@ -1618,6 +1660,34 @@ ${ITEMS_TPL}${LOOT_TPL}    </div>
           </div>
         </div>
       </template>
+      <template v-else-if="modal==='drift'">
+        <header><h3>Écart avec la sauvegarde du jeu</h3><button @click="modal=null" aria-label="Fermer" v-html="ICONS.close"></button></header>
+        <div class="body drift-modal">
+          <p v-if="!driftList.length">Plus aucun écart : la partie notée correspond à la sauvegarde du jeu.</p>
+          <template v-else>
+            <p>La partie notée ici diffère de la sauvegarde chargée dans le jeu sur <b>{{driftList.length}} point{{driftList.length > 1 ? 's' : ''}}</b>.
+              Causes possibles : modification à la main, check ramassé puis perdu sans sauvegarder (à refaire), données venues
+              d'une autre sauvegarde, ou suivi désactivé dans les options.</p>
+            <p class="drift-note">Ce qui est coché ci-dessous sera corrigé d'après le jeu ; le reste est gardé tel quel et ne sera plus signalé.
+              <button type="button" class="linklike" @click="driftAll(true)">Tout cocher</button> ·
+              <button type="button" class="linklike" @click="driftAll(false)">Tout décocher</button></p>
+            <div class="drift-list">
+              <div v-for="g in driftGroups" :key="g.id" class="drift-group">
+                <h4>{{g.title}} <small>{{g.rows.length}} · {{g.fix}}</small>
+                  <button type="button" class="linklike" @click="driftAll(!g.rows.every(r => driftSel[r.key]), g.id)">{{g.rows.every(r => driftSel[r.key]) ? 'aucun' : 'tous'}}</button></h4>
+                <label v-for="r in g.rows" :key="r.key" class="check drift-row"><input type="checkbox" v-model="driftSel[r.key]">
+                  <img v-if="driftIcon(r)" :src="driftIcon(r)" alt=""><span v-else class="why-dot"></span>
+                  <span class="drift-label">{{driftLabel(r)}}<small v-if="r.check"> · {{CHECK_AREA[r.check.area].label}}</small></span>
+                  <span v-if="!r.check" class="drift-vals">ici : {{driftVal(r, r.from)}} → jeu : <b>{{driftVal(r, r.to)}}</b></span></label>
+              </div>
+            </div>
+          </template>
+          <div class="mactions">
+            <button type="button" class="btn" @click="modal=null">Plus tard</button>
+            <button v-if="driftList.length" type="button" class="btn primary" @click="driftApply">{{driftCount ? 'Corriger ' + driftCount + ' écart' + (driftCount > 1 ? 's' : '') : 'Tout garder tel quel'}}</button>
+          </div>
+        </div>
+      </template>
       <template v-else-if="modal==='why' && why.check">
         <header><h3>Pourquoi pas encore ?</h3><button @click="modal=null" aria-label="Fermer" v-html="ICONS.close"></button></header>
         <div class="body why-modal">
@@ -1662,6 +1732,8 @@ ${ITEMS_TPL}${LOOT_TPL}    </div>
           <div class="link-status" :class="link.status"><i></i><b>{{LINK_LABEL[link.status]}}</b>
             <span v-if="link.status==='game' && link.client">— {{link.client.name || 'joueur sans nom'}}, sauvegarde {{link.client.isSaveLoaded ? 'chargée' : 'non chargée'}}</span>
             <button v-if="link.status==='game'" type="button" class="btn" @click="linkRequestState">Relire la sauvegarde</button></div>
+          <div v-if="driftList.length && !link.foreign" class="msg ko link-drift">{{driftList.length}} écart{{driftList.length > 1 ? 's' : ''}}
+            avec la sauvegarde du jeu. <button type="button" class="btn" @click="openDrift">Voir</button></div>
           <div v-if="link.status==='game' && link.foreign" class="msg ko link-foreign">Le jeu a chargé une autre sauvegarde que celle
             de la partie notée : ses checks, objets et entrées sont ignorés. Pour une nouvelle partie, remettez d'abord la partie
             à zéro ; sinon <button type="button" class="btn" @click="linkAdoptSave">Suivre cette sauvegarde</button></div>

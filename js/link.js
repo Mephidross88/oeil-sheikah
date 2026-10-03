@@ -11,6 +11,7 @@ const link = reactive({
   spoiler:null,      // spoiler caché chargé : { file, seed, count }
   ask:[],            // entrées découvertes à destination ambiguë, à préciser par le joueur : { d, opts:[arrivée], seq }
   foreign:false,     // le jeu a chargé une autre sauvegarde que celle de la partie notée : ses événements sont ignorés
+  drift:null,        // écart avec la dernière sauvegarde complète (linkDrift) : lignes à corriger ou à garder
   lastAt:null, log:[],
 });
 let linkSource = null;
@@ -156,6 +157,8 @@ function linkApply(p){
     // petite clé ramassée en direct : le jeu n'envoie que les clés en poche, on ajoute ce qui arrive
     if (p.type === 'UPDATE_DUNGEON_ITEMS') linkDungeonKeys(p.mapIndex, p.dungeonKeys);
   }
+  // ce qui diffère encore de la sauvegarde complète (après ce qui vient d'être appliqué)
+  if (p.type === 'UPDATE_TEAM_STATE' && p.state) linkDrift(p.state);
 }
 
 /* ---------- Objets : sauvegarde SoH (gSaveContext, envoyée par Anchor) -> panneau Objets ----------
@@ -576,25 +579,58 @@ function linkDungeonKeys(index, inHand){
   if (d.keys < n) d.keys = n;
   linkKeysSeen[index] = n;
 }
-function linkApplyItems(st){
-  const g = linkSaveToGame(st, store.settings), game = store.game;
-  let changed = 0;
-  const set = (obj, k, v) => { if (obj[k] !== v){ obj[k] = v; changed++; } };
-  for (const [k, v] of Object.entries(g.items)) if (ITEM_BY_KEY[k] && !ITEM_BY_KEY[k].locked) set(game.items, k, v);
-  for (const [k, v] of Object.entries(g.songs)) set(game.songs, k, v);
-  for (const [id, d] of Object.entries(g.dungeons)){
-    for (const f of ['map', 'compass', 'bossKey', 'soul']) if (d[f] !== undefined) set(game.dungeons[id], f, d[f]);
-    linkDungeonKeys(DUNGEON_INDEX[id], d.keysInHand);
+/* Ce que la sauvegarde dit de la partie : une ligne par donnée suivie { sec, key, obj, field, value, it?, label? } —
+   objets et chants, carte / boussole / clé du boss / âme de chaque donjon, clés des portes et haricots ; cœurs : on garde
+   les réceptacles notés, les quarts complètent jusqu'au total du jeu. Petites clés à part (linkDungeonKeys). */
+const DUNGEON_FIELDS = { map:'Carte', compass:'Boussole', bossKey:'Clé du boss', soul:'Âme du boss' };
+function linkExpected(st){
+  const g = linkSaveToGame(st, store.settings), game = store.game, out = [];
+  const item = (obj, k, v) => { const it = ITEM_BY_KEY[k]; if (it && !it.locked) out.push({ sec:'items', key:'items:' + k, obj, field:k, value:v, it }); };
+  for (const [k, v] of Object.entries(g.items)) item(game.items, k, v);
+  for (const [k, v] of Object.entries(g.songs)) item(game.songs, k, v);
+  for (const [id, d] of Object.entries(g.dungeons)) for (const f of Object.keys(DUNGEON_FIELDS)) if (d[f] !== undefined)
+    out.push({ sec:'dungeons', key:'dungeons:' + id + '.' + f, obj:game.dungeons[id], field:f, value:d[f], label:DUNGEON_FIELDS[f] + ' · ' + (CHECK_AREAS.find(x => x.dungeon === id)?.label || DUNGEON_BY_ID[id].title) });
+  for (const name of ['keys', 'beans']) for (const [id, v] of Object.entries(g.checklists[name])){
+    const loc = CHECKLISTS[name].locations.find(l => l.id === id);
+    out.push({ sec:'checklists', key:'checklists:' + name + '.' + id, obj:game.checklists[name], field:id, value:v, label:CHECKLISTS[name].title + ' · ' + (loc ? loc.label : id) });
   }
-  for (const name of ['keys', 'beans']) for (const [id, v] of Object.entries(g.checklists[name])) set(game.checklists[name], id, v);
-  // cœurs : on garde les réceptacles notés, les quarts complètent jusqu'au total du jeu
   const extra = g.hearts.total - (store.settings.startingHearts ?? 3);
   if (extra >= 0){
     let c = Math.min(game.items.heartContainers, extra), p = (extra - c) * 4 + g.hearts.pieces;
     if (p > 36){ c = Math.min(8, extra); p = Math.max(0, (extra - c) * 4) + g.hearts.pieces; }
-    set(game.items, 'heartContainers', c); set(game.items, 'heartPieces', Math.min(36, p));
+    item(game.items, 'heartContainers', c); item(game.items, 'heartPieces', Math.min(36, p));
   }
+  return { list:out, dungeons:g.dungeons };
+}
+function linkApplyItems(st){
+  const exp = linkExpected(st);
+  let changed = 0;
+  for (const e of exp.list) if (e.obj[e.field] !== e.value){ e.obj[e.field] = e.value; changed++; }
+  for (const [id, d] of Object.entries(exp.dungeons)) linkDungeonKeys(DUNGEON_INDEX[id], d.keysInHand);
   if (changed) linkLog(`Panneau Objets mis à jour (${changed} changement${changed > 1 ? 's' : ''})`);
+}
+/* Écart avec la sauvegarde : tout ce qui diffère encore entre la partie notée et la sauvegarde complète, une fois
+   appliqué ce que l'auto-tracking suit (options) — checks cochés ici mais pas faits dans le jeu (cochés à la main,
+   ramassés puis perdus sans sauvegarder, venus d'une autre sauvegarde), faits dans le jeu mais pas cochés, objets,
+   chants, donjons, clés des portes et haricots. Relevé à chaque sauvegarde complète : link.drift, lignes
+   { sec, key, sig: 'ici>jeu', from, to, cur() (valeur actuelle), apply(), check? | it? | label? } ; la fenêtre « Écart avec la sauvegarde »
+   propose de corriger. Un écart gardé tel quel (game.keepDrift, même signature) n'est plus signalé. */
+const NUM_OF_CHECK = {};
+for (const [n, c] of Object.entries(CHECK_BY_NUM)) NUM_OF_CHECK[c.id] = +n;
+function linkDrift(st){
+  const g = store.game, locs = st.rando?.itemLocations || [], rows = [];
+  if (locs.length) for (const c of CHECKS){
+    const n = NUM_OF_CHECK[c.id];
+    if (n == null) continue;
+    const done = (locs[n] || [])[0] >= CHECK_DONE, on = !!g.checks[c.id];
+    if (done !== on) rows.push({ sec:on ? 'checksExtra' : 'checksMissing', key:'checks:' + c.id, from:on, to:done, check:c, cur:() => !!g.checks[c.id], apply:() => setCheck(c.id, done) });
+  }
+  if (st.inventory) for (const e of linkExpected(st).list){
+    const from = e.obj[e.field];
+    if (num01(from) !== num01(e.value)) rows.push({ sec:e.sec, key:e.key, from, to:e.value, it:e.it, label:e.label, cur:() => e.obj[e.field], apply:() => { e.obj[e.field] = e.value; } });
+  }
+  rows.forEach(r => { r.sig = num01(r.from) + '>' + num01(r.to); });
+  link.drift = rows.filter(r => g.keepDrift[r.key] !== r.sig);
 }
 function linkCheckDone(rc){
   const c = CHECK_BY_NUM[rc];

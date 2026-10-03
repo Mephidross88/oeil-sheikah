@@ -64,7 +64,9 @@ et le mettre à jour quand une règle change.
      `timelineQuiet` / `timelineSkip`, `itemIconAt` / `itemLabelAt`).
   8b. `js/link.js` : auto-tracking — connexion (EventSource) au relais local `tools/soh-link/relay.mjs`, état `link`
      (statut, journal), `linkApply` (paquets du jeu → partie : checks, `linkSaveToGame` sauvegarde SoH → panneau
-     Objets, position → départ du Routeur, objet trouvé par check, trouvailles, entrées notées via `setMapping` — question au joueur si l'arrivée est ambiguë, `link.ask` —, spoiler
+     Objets, position → départ du Routeur, objet trouvé par check, trouvailles, entrées notées via `setMapping` — question au joueur si l'arrivée est ambiguë, `link.ask` —, sauvegarde suivie
+     (`game.save`, `link.foreign` : une autre sauvegarde est ignorée), écart avec la sauvegarde (`linkDrift`, `link.drift`,
+     `game.keepDrift`), spoiler
      caché gardé à part dans localStorage `oeil-sheikah-spoiler`). Options persistantes `store.ui.link`. Données
      `data/link-data.js` (drapeaux RandomizerInf, noms RandomizerGet et leurs noms français, numéros GetItemID, entrées
      et positions de retour des grottes), **fichier généré** par `tools/soh-link/gen_link_data.mjs`. Relais :
