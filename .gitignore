@@ -3,5 +3,4 @@ tools/soh-checks/checks_raw.json
 soh-packets.jsonl
 *.jsonl
 zscenes
-zcenes
 data/maps-data.js

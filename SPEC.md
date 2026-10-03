@@ -25,8 +25,10 @@ total », restants, zones terminées, détail par groupe (voir Checks et Entrée
 la page correspondante, souligné quand on y est. Côte à côte, empilés sur mobile.
 
 ## Navigation (panneau de gauche)
-- Accès aux quatre modules, dans cet ordre : Checks, Entrées (anciennement « Tracker », id `entrances`), Routeur,
-  Configuration. Page ouverte au premier lancement : Checks ; ensuite, la dernière page consultée.
+- Pages du menu, en groupes titrés : **Progression** (la partie en cours) : Checks, Routeur, Entrées (id `entrances`) ;
+  **Aperçus** (vues d'ensemble) : Carte, Connexions, Statistiques ; puis Configuration à part, sous un trait. Barre
+  réduite à des icônes : les titres de groupe deviennent des traits. Page ouverte au premier lancement : Checks ;
+  ensuite, la dernière page consultée.
 - **Côte à côte** (écran d'au moins 1500 px) : au survol d'un élément du menu, icône « ouvrir à côté » qui affiche
   cette page dans un second panneau à droite (`ui.split`) ; un clic normal change le panneau principal (`ui.view`).
   Chaque panneau défile seul ; le second a ⇄ (échanger les panneaux) et ✕ (fermer). Une page déjà affichée dans un

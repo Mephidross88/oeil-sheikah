@@ -220,15 +220,17 @@ const App = {
       { immediate:true });
     const setTheme = t => { ui.theme = ui.theme === t ? 'auto' : t; };
 
+    // Pages du menu, par groupe : la partie en cours (Progression), les vues d'ensemble (Aperçus), puis la Configuration à part.
     const views = [
-      { id:'checks', label:'Checks', icon:ICONS.checks },
-      { id:'entrances', label:'Entrées', icon:ICONS.entrances },
-      { id:'router', label:'Routeur', icon:ICONS.router },
-      { id:'map', label:'Carte', icon:ICONS.map },
-      { id:'graph', label:'Connexions', icon:ICONS.graph },
-      { id:'stats', label:'Statistiques', icon:ICONS.stats },
-      { id:'config', label:'Configuration', icon:ICONS.config },
+      { id:'checks', label:'Checks', icon:ICONS.checks, group:'Progression' },
+      { id:'router', label:'Routeur', icon:ICONS.router, group:'Progression' },
+      { id:'entrances', label:'Entrées', icon:ICONS.entrances, group:'Progression' },
+      { id:'map', label:'Carte', icon:ICONS.map, group:'Aperçus' },
+      { id:'graph', label:'Connexions', icon:ICONS.graph, group:'Aperçus' },
+      { id:'stats', label:'Statistiques', icon:ICONS.stats, group:'Aperçus' },
+      { id:'config', label:'Configuration', icon:ICONS.config, group:'' },
     ];
+    const navGroups = [...new Set(views.map(v => v.group))].map(g => ({ title:g, views:views.filter(v => v.group === g) }));
     // Mise en page côte à côte : second panneau (ui.split), seulement sur un écran assez large (sinon page principale
     // seule). go() n'ouvre une page que si elle n'est pas déjà affichée (dans un panneau ou l'autre).
     const SPLIT_MIN = 1500, winW = ref(window.innerWidth);
@@ -989,7 +991,7 @@ const App = {
     const mapHere = () => { ui.map.area = ''; mapFocus.value = null; };
     const mapStart = key => setStart(key, ui.router.fromAge);
     function mapGoal(key){ const r = ui.router; r.toArea = EXIT[key].areaId; nextTick(() => { r.toExit = key; }); }
-    return { store, ui, s, views, link, LINK_LABEL, linkRequestState, linkAsks, linkAnswer, askFrom, askLabel, canSplit, splitOn, shown, paneOf, swapPanes, openSide, closeSide, navOpen, itemsOpen, modal, tip, tipData, backup, stats, missingSpawns, visibleAreas,
+    return { store, ui, s, views, navGroups, link, LINK_LABEL, linkRequestState, linkAsks, linkAnswer, askFrom, askLabel, canSplit, splitOn, shown, paneOf, swapPanes, openSide, closeSide, navOpen, itemsOpen, modal, tip, tipData, backup, stats, missingSpawns, visibleAreas,
       ICONS, ITEMS_PAGE, ITEM_BY_KEY, DUNGEONS, DUNGEON_BY_ID, CHECKLISTS, AREA, EXIT, DATA_ERRORS,
       iconKey, exitIcon, areaName, toggleArea, setAll, jump, go, showTip, hideTip, toggleTip, setMapping, clearMapping,
       checkAreasC, checkStats, toggleCheckArea, lastCheck, toggleCheck, toggleExcluded, undoCheck, foundInfo, seenInfo, loadSpoilerFile, linkClearSpoiler, linkSpoilerOk, goToCheck, goToZone, why, openWhy, nextC, stepsLabel, goMsg, setAllChecks, jumpCheck, setCheck, setExcluded, CHECK_AREA,
@@ -1017,10 +1019,13 @@ ${STREAM_TPL}
       <button type="button" class="nav-fold" @click="ui.navFolded=!ui.navFolded" :aria-expanded="!ui.navFolded"
         :title="ui.navFolded ? 'Déplier la barre de gauche' : 'Réduire la barre de gauche'" v-html="ICONS.chevron"></button></div>
     <nav class="nav">
-      <button v-for="v in views" :key="v.id" class="nav-item" :class="{active:shown(v.id), 'in-side':paneOf(v.id)==='side' && shown(v.id)}" :title="ui.navFolded ? v.label : null" @click="go(v.id)">
+      <template v-for="g in navGroups" :key="g.title">
+      <div class="nav-group" :class="{sep:!g.title}">{{g.title}}</div>
+      <button v-for="v in g.views" :key="v.id" class="nav-item" :class="{active:shown(v.id), 'in-side':paneOf(v.id)==='side' && shown(v.id)}" :title="ui.navFolded ? v.label : null" @click="go(v.id)">
         <span v-html="v.icon"></span><span class="nav-label">{{v.label}}</span>
         <span v-if="canSplit && !shown(v.id)" class="nav-split" role="button" :title="'Ouvrir ' + v.label + ' à côté'" v-html="ICONS.split"
           @click.stop="openSide(v.id)"></span></button>
+      </template>
     </nav>
 
     <section v-if="shown('entrances')" class="side-sec" :style="{order:paneOf('entrances')==='side' ? 2 : 1}">

@@ -1,8 +1,8 @@
 # L'Œil Sheikah
 
 Tracker d'objets, de checks et d'entrées, et routeur, pour le randomizer de Ship of Harkinian 9.2.3 (migré depuis
-OoT Randomizer, voir SPEC.md). Modules : Entrées (id `entrances`), Routeur, Checks, Carte (id `map`), Connexions (id `graph`), Statistiques (id `stats`), Configuration, plus
-le panneau Objets.
+OoT Randomizer, voir SPEC.md). Modules (menu, par groupe) : Progression — Checks, Routeur, Entrées (id `entrances`) ; Aperçus — Carte (id `map`),
+Connexions (id `graph`), Statistiques (id `stats`) ; Configuration ; plus le panneau Objets.
 Application 100 % client, sans build : ouvrir `index.html` dans un navigateur suffit.
 Interface et textes en français.
 Le comportement attendu est décrit dans `SPEC.md` : le lire avant toute évolution fonctionnelle,
