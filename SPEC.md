@@ -712,7 +712,12 @@ Suivi en direct d'une partie de Ship of Harkinian, sans modifier le jeu.
   Cocorico, porte principale ; Village Goron, sortie haute). L'appli retient la grotte où l'on est (reconnue à l'arrivée,
   ou par le signalement de sa sortie) : en sortant, l'arrivée est le retour où mène sa sortie (notée ou d'origine). Pour
   noter l'entrée prise, à défaut, la seule arrivée encore possible pour elle (`candidatesFor` : pools, destinations
-  déjà prises), sinon rien n'est noté — en pools mélangés, n'importe quelle sortie peut mener à un retour de grotte. Si
+  déjà prises) — en pools mélangés, n'importe quelle sortie peut mener à un retour de grotte. De même pour une entrée
+  qui mène dans une grotte à entrée partagée (la seule de ces grottes encore possible). S'il en reste plusieurs, une
+  carte « Où êtes-vous arrivé ? » (en bas à droite, `link.ask`, non sauvegardée) propose les arrivées possibles : un clic
+  note l'entrée, et si c'est l'arrivée courante, la position (et le départ du Routeur) suit ; « Ignorer » la ferme. Une
+  question tombe d'elle-même si l'entrée est notée entre-temps (à la main, spoiler, signalement de la sortie de la
+  grotte) ; une à la fois, les suivantes en attente (5 au plus). Si
   la position de Link est connue (mises à jour du joueur, résumées par le relais), le retour de grotte se reconnaît
   aussi à la position au point d'apparition (120 unités au plus en 3D). Avec le spoiler
   caché valable, la destination vient du spoiler (`entrances` : `index` → `override`), et les entrées déjà découvertes

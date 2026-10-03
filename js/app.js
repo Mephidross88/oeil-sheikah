@@ -629,7 +629,11 @@ const App = {
     const savedAt = computed(() => lastSaved.value ? lastSaved.value.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit', second:'2-digit' }) : null);
 
     const LINK_LABEL = { off:'Auto-tracking désactivé', connecting:'Relais introuvable', relay:'Relais prêt, jeu non connecté', game:'Jeu connecté' };
-    return { store, ui, s, views, link, LINK_LABEL, linkRequestState, canSplit, splitOn, shown, paneOf, swapPanes, openSide, closeSide, navOpen, itemsOpen, modal, tip, tipData, backup, stats, missingSpawns, visibleAreas,
+    // Question de l'auto-tracking : entrée découverte à destination ambiguë
+    const exitName = k => k && EXIT[k] ? areaName(k) + ' · ' + EXIT[k].label : '?';
+    const askFrom = q => exitName(EXIT_BY_ENTR[q.d]?.key);
+    const askLabel = a => exitName(EXIT_BY_ARRIVAL[a]);
+    return { store, ui, s, views, link, LINK_LABEL, linkRequestState, linkAsks, linkAnswer, askFrom, askLabel, canSplit, splitOn, shown, paneOf, swapPanes, openSide, closeSide, navOpen, itemsOpen, modal, tip, tipData, backup, stats, missingSpawns, visibleAreas,
       ICONS, ITEMS_PAGE, ITEM_BY_KEY, DUNGEONS, DUNGEON_BY_ID, CHECKLISTS, AREA, EXIT, DATA_ERRORS,
       iconKey, exitIcon, areaName, toggleArea, setAll, jump, go, showTip, hideTip, toggleTip, setMapping, clearMapping,
       checkAreasC, checkStats, toggleCheckArea, lastCheck, toggleCheck, toggleExcluded, undoCheck, foundInfo, seenInfo, loadSpoilerFile, linkClearSpoiler, linkSpoilerOk, goToCheck, goToZone, goMsg, setAllChecks, jumpCheck, setCheck, setExcluded, CHECK_AREA,
@@ -1193,6 +1197,15 @@ const App = {
   </aside>
 
   <div class="scrim" @click="navOpen=false; itemsOpen=false"></div>
+
+  <!-- Auto-tracking : où mène l'entrée qu'on vient de prendre (destination ambiguë) -->
+  <div v-for="q in linkAsks().slice(0, 1)" :key="q.d" class="ask-card" role="dialog" aria-live="polite">
+    <div class="ask-head"><span v-html="ICONS.live"></span><b>Où êtes-vous arrivé ?</b>
+      <span v-if="linkAsks().length > 1" class="ask-more" :title="(linkAsks().length - 1) + ' autre(s) question(s) en attente'">+{{linkAsks().length - 1}}</span></div>
+    <p>Entrée prise : <b>{{askFrom(q)}}</b>. Le jeu ne permet pas de savoir où elle mène : choisissez votre arrivée pour la noter.</p>
+    <div class="ask-opts"><button v-for="a in q.opts" :key="a" type="button" class="btn" @click="linkAnswer(q, a)">{{askLabel(a)}}</button></div>
+    <button type="button" class="ask-skip" @click="linkAnswer(q, null)">Ignorer</button>
+  </div>
 
   <!-- Infobulle -->
   <div v-if="tip.show && tipData" class="tip" :style="tip.style" role="tooltip">

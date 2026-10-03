@@ -9,6 +9,7 @@ const link = reactive({
   player:null,       // position brute : scène, entrée d'arrivée, âge
   position:null,     // position reconnue : { key (sortie où l'on est apparu), age }
   spoiler:null,      // spoiler caché chargé : { file, seed, count }
+  ask:[],            // entrées découvertes à destination ambiguë, à préciser par le joueur : { d, opts:[arrivée], seq }
   lastAt:null, log:[],
 });
 let linkSource = null;
@@ -323,9 +324,15 @@ function linkPositionFrom(x, fresh){
   // grotte(s) où l'on peut être, pour reconnaître la sortie de grotte à l'arrivée suivante
   const gs = GROTTO_LOAD[x.entranceIndex];
   linkGrottoIn = !gs ? null : a >= GROTTO_LOAD_START && a < GROTTO_EXIT_START ? [a - GROTTO_LOAD_START] : gs;
+  if (fresh) linkSeq++;
   const cur = link.position;
   if (!key || !EXIT[key]){ if (!cur || !age || cur.age === age) return; key = cur.key; }   // endroit inconnu : âge seul
-  else if (cur && cur.key === key && cur.age === age) return;
+  linkSetPosition(key, age);
+}
+let linkSeq = 0;   // numéro de l'arrivée courante (une question sur l'arrivée courante met aussi la position à jour)
+function linkSetPosition(key, age){
+  const cur = link.position;
+  if (cur && cur.key === key && cur.age === age) return;
   link.position = { key, age };
   if (!store.ui.link.position) return;
   const r = store.ui.router;
@@ -421,7 +428,7 @@ function linkEntranceDiscovered(d){
   // une sortie de grotte (0x800 + i) dit dans quelle grotte menait l'entrée précédente
   if (d >= GROTTO_EXIT_START && d < GROTTO_EXIT_START + GROTTO_RETURN.length){
     linkGrottoIn = [d - GROTTO_EXIT_START];
-    if (linkGrottoEntr !== null) linkNoteEntrance(linkGrottoEntr, GROTTO_LOAD_START + (d - GROTTO_EXIT_START));
+    if (linkGrottoEntr !== null){ linkNoteEntrance(linkGrottoEntr, GROTTO_LOAD_START + (d - GROTTO_EXIT_START)); linkUnask(linkGrottoEntr); }
     linkGrottoEntr = null;
   }
   // en entrées couplées, le jeu signale aussi le sens inverse aussitôt : on garde la première
@@ -435,14 +442,41 @@ function linkEntranceArrival(x){
   let a = linkArrival(x, true);
   const d = linkPendingEntr.d, src = EXIT_BY_ENTR[d];
   linkPendingEntr = null;
-  // sortie de grotte ambiguë : la seule arrivée encore possible pour la sortie prise (pools, destinations déjà prises)
-  if (a === null && src){
-    const cands = new Set(candidatesFor(src.key).map(e => e.key)), ok = linkReturnOptions(x.entranceIndex).filter(o => cands.has(EXIT_BY_ARRIVAL[o]));
-    if (ok.length === 1) a = ok[0];
+  // arrivée ambiguë — devant une grotte ou à l'arrivée normale de l'entrée générique (a null), dans l'une des grottes
+  // qui partagent l'entrée (a 'grotto') : la seule arrivée encore possible pour la sortie prise (pools, destinations
+  // déjà prises), sinon on demande au joueur (une grotte reste aussi reconnue au signalement de sa sortie)
+  if ((a === null || a === 'grotto') && src && isRandomized(src, store.settings)){
+    const cands = new Set(candidatesFor(src.key).map(e => e.key));
+    const opts = (a === null ? linkReturnOptions(x.entranceIndex) : GROTTO_LOAD[x.entranceIndex].map(i => GROTTO_LOAD_START + i))
+      .filter(o => cands.has(EXIT_BY_ARRIVAL[o]));
+    if (a === 'grotto') linkGrottoEntr = d;
+    if (opts.length === 1) a = opts[0];
+    else { if (opts.length > 1) linkAskEntrance(d, opts); return; }
   }
-  if (a === 'grotto') linkGrottoEntr = d;
-  else if (typeof a === 'number') linkNoteEntrance(d, a);
+  if (typeof a === 'number') linkNoteEntrance(d, a);
 }
+/* Question au joueur : où mène l'entrée d (arrivées possibles opts) ? Une seule question par entrée ; elle tombe si
+   l'entrée est notée entre-temps (à la main, par le spoiler ou au signalement de la sortie de grotte). */
+function linkAskEntrance(d, opts){
+  linkUnask(d);
+  link.ask.push({ d, opts, seq:linkSeq + 1 });   // posée avant la mise à jour de la position pour cette arrivée
+  if (link.ask.length > 5) link.ask.shift();
+  const x = EXIT_BY_ENTR[d];
+  linkLog(`Entrée à préciser : ${AREA[x.areaId].name} · ${x.label} (${opts.length} arrivées possibles)`);
+}
+function linkUnask(d){ link.ask = link.ask.filter(q => q.d !== d); }
+// Réponse du joueur : note l'entrée ; si c'est l'arrivée courante, la position (et le départ du Routeur) suit.
+function linkAnswer(q, a){
+  linkUnask(q.d);
+  if (a == null) return;
+  linkNoteEntrance(q.d, a);
+  if (q.seq === linkSeq && EXIT[EXIT_BY_ARRIVAL[a]]){
+    if (a >= GROTTO_LOAD_START && a < GROTTO_EXIT_START) linkGrottoIn = [a - GROTTO_LOAD_START];
+    linkSetPosition(EXIT_BY_ARRIVAL[a], link.position?.age || null);
+  }
+}
+// Questions encore ouvertes (l'entrée n'a pas été notée entre-temps).
+const linkAsks = () => link.ask.filter(q => !store.mappings[EXIT_BY_ENTR[q.d]?.key]);
 // Note dans Entrées : la sortie prise (entrée d) mène là où l'on apparaît par l'entrée a.
 function linkNoteEntrance(d, a){
   const x = EXIT_BY_ENTR[d], target = EXIT_BY_ARRIVAL[a];

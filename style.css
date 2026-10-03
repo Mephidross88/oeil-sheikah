@@ -567,6 +567,18 @@ svg{display:block}
 .zone-go{margin-left:auto}
 .zone-go + .zone-prog{margin-left:0}
 /* bandeau en bas d'écran : annuler le dernier coché, message */
+/* auto-tracking : question sur une entrée à destination ambiguë */
+.ask-card{position:fixed;right:22px;bottom:22px;z-index:45;width:min(420px,calc(100vw - 32px));display:flex;flex-direction:column;gap:10px;
+  padding:14px 16px;border-radius:14px;background:var(--surface);border:1px solid var(--gold);box-shadow:0 0 0 3px color-mix(in srgb,var(--gold) 30%,transparent),var(--shadow)}
+.ask-head{display:flex;align-items:center;gap:8px;font-family:var(--serif);font-size:17px;color:var(--gold-deep)}
+.ask-head svg{width:18px;height:18px;color:var(--green)}
+.ask-more{margin-left:auto;font:700 12px/1 var(--sans);background:var(--gold);color:#1c1a12;border-radius:999px;padding:3px 8px}
+.ask-card p{margin:0;font-size:14px;color:var(--muted)}
+.ask-card p b{color:var(--text)}
+.ask-opts{display:flex;flex-direction:column;gap:6px}
+.ask-opts .btn{text-align:left;width:100%}
+.ask-skip{align-self:flex-end;background:none;border:0;color:var(--muted);font-size:13px;cursor:pointer;padding:2px 4px}
+.ask-skip:hover{color:var(--text);text-decoration:underline}
 .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:40;display:flex;align-items:center;gap:12px;max-width:calc(100vw - 32px);
   padding:10px 12px 10px 18px;border-radius:12px;background:var(--ink);color:var(--ink-text);box-shadow:0 6px 24px rgba(0,0,0,.3);font-size:14.5px}
 .toast button{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--ink-line);border-radius:8px;background:var(--ink-2);color:var(--gold);
