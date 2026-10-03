@@ -50,7 +50,7 @@ const store = reactive(load());
 const lastSaved = ref(null);
 // Fenêtre de stream (index.html?stream) : la partie vient de la fenêtre principale (événement « storage » à chaque
 // sauvegarde de celle-ci) ; elle ne sauvegarde rien elle-même.
-const STREAM_MODE = /[?&]stream(&|=|$)/.test(location.search);
+const STREAM_MODE = typeof location !== 'undefined' && /[?&]stream(&|=|$)/.test(location.search);
 if (STREAM_MODE) window.addEventListener('storage', ev => {
   if (ev.key !== STORE_KEY || !ev.newValue) return;
   try { const fresh = merge(defaults(), JSON.parse(ev.newValue)); for (const k of Object.keys(fresh)) store[k] = fresh[k]; } catch (e) {}
