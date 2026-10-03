@@ -92,6 +92,11 @@ export const FULL = {
 
 // ---------- Objets (tête du libellé) ----------
 // [motif anglais, libellé FR, position] ; position 'start' = préfixe (GS X), sinon suffixe (X Chest).
+// Arbres de la Plaine numérotés par secteur (« HF Tree in Southeast 1 ») : « in » serait pris pour une préposition
+for (const [en, fr] of [['East', "à l'est"], ['West', "à l'ouest"], ['North', 'au nord'], ['South', 'au sud'], ['Northeast', 'au nord-est'],
+  ['Northwest', 'au nord-ouest'], ['Southeast', 'au sud-est'], ['Southwest', 'au sud-ouest']])
+  for (let n = 1; n <= 40; n++) FULL[`Tree in ${en} ${n}`] = `Arbre ${n} ${fr}`;
+
 const HEADS = [
   ['GS', 'Skulltula', 'start'], ['Deku Scrub', 'Peste Mojo', 'start'], ['Trade', 'Échange', 'start'],
   ['Freestanding PoH', 'Quart de cœur'], ['PoH', 'Quart de cœur'], ['Heart Container', 'Réceptacle de cœur'],
@@ -268,7 +273,7 @@ export const PHRASES = {
   'Horseback Archery Range':N('stand d\'archerie montée'), 'Horseback Archery':N('archerie montée','f'),
   'Boarding House':N('maison du Chef des Charpentiers','f'), 'Freestanding PoH':N('quart de cœur'), 'Freestanding Key':N('petite clé','f'),
   'Lift Room':N('salle de l\'ascenseur','f'), 'Truth Spinner':N('tourniquet de vérité'), 'Fire Wall Chase':N('poursuite du mur de feu','f'),
-  'The Log':N('tronc'), 'Song of Time Room':N('salle du Chant du Temps','f'), 'Song of Time Block Room':N('salle du bloc du Chant du Temps','f'),
+  'The Log':N('tronc'), 'Medicine Shop':N('apothicaire'), 'Song of Time Room':N('salle du Chant du Temps','f'), 'Song of Time Block Room':N('salle du bloc du Chant du Temps','f'),
 };
 
 // Prépositions : forme -> [français, article] ; article 'de' (de la / du / de l' / des) ou 'le' (la / le / l' / les).
