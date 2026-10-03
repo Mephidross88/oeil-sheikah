@@ -19,6 +19,8 @@ export const FULL = {
   'Hyrule Loach Reward': 'Récompense de la Loche d\'Hyrule', 'Lab Dive': 'Plongée du Laboratoire du Lac',
   'Lab Trade Eyeball Frog': 'Échange au Laboratoire du Lac : Œil de Grenouille', 'Underwater Item': 'Objet sous l\'eau',
   'Sun': 'Tirer sur le soleil', 'Freestanding PoH': 'Quart de cœur', 'GS Skull on Fire': 'Skulltula du crâne en feu',
+  'Boomerang Room Small Chest': 'Petit coffre de la salle du boomerang', 'First Stalfos Chest': 'Coffre du 1er Stalfos',
+  'First Iron Knuckle Chest': 'Coffre du 1er Hache-Viande', 'Second Iron Knuckle Chest': 'Coffre du 2e Hache-Viande',
   // Gerudo, désert
   'Waterfall Freestanding PoH': 'Quart de cœur de la cascade', 'Crate Freestanding PoH': 'Quart de cœur dans la caisse',
   'Trade Broken Sword': 'Échange : Épée Brisée', 'Trade Claim Check': 'Échange : Certificat', 'Trade Cojiro': 'Échange : Cojiro',
@@ -156,7 +158,7 @@ export const W = {
   Jailed:A('emprisonné'), Metal:A('métallique'), Underwater:S("sous l'eau"), Two:A('deux',{num:1}), Three:A('trois',{num:1}),
   Four:A('quatre',{num:1}), Nine:A('neuf',{num:1}), Outside2:N('extérieur'), Shooting:A('de tir'), Diving:A('de plongée'),
   // ennemis / personnages (noms propres, sans article)
-  Lizalfos:P('Lézalfos'), Dinolfos:P('Dinolfos'), Dinalfos:P('Dinolfos'), Stalfos:P('Stalfos'), Beamos:N('Sentinelle','f'), Armos:P('Armos'),
+  Lizalfos:N('Lézalfos','m',{pl:1}), Dinolfos:P('Dinolfos'), Dinalfos:P('Dinolfos'), Stalfos:N('Stalfos','m',{pl:1}), Beamos:N('Sentinelle','f'), Armos:P('Armos'),
   Gibdo:N('Momie','f'), Gibdos:N('Momies','f',{pl:1}), Redead:N('Effroi'), Keese:N('Saigneur'), Wolfos:N('Lobo'), Octorok:P('Octorok'), Octo:P('Octo'),
   Tektite:P('Tektite'), Leever:P('Leever'), Anubis:P('Anubis'), Floormaster:N('Grossbaffe'), Slugma:N('Feu Visqueux'), Parasan:N('Tailpasaran'),
   Jigglies:N('Biri','m',{pl:1}), Larvae:P('larves'), Baba:P('Baba Mojo'), Dodongo:P('Dodongo'), Dodongos:P('Dodongos'), Knuckle:P('Hache-Viande'),
@@ -266,7 +268,7 @@ export const PHRASES = {
   'Horseback Archery Range':N('stand d\'archerie montée'), 'Horseback Archery':N('archerie montée','f'),
   'Boarding House':N('maison du Chef des Charpentiers','f'), 'Freestanding PoH':N('quart de cœur'), 'Freestanding Key':N('petite clé','f'),
   'Lift Room':N('salle de l\'ascenseur','f'), 'Truth Spinner':N('tourniquet de vérité'), 'Fire Wall Chase':N('poursuite du mur de feu','f'),
-  'The Log':N('tronc'),
+  'The Log':N('tronc'), 'Song of Time Room':N('salle du Chant du Temps','f'), 'Song of Time Block Room':N('salle du bloc du Chant du Temps','f'),
 };
 
 // Prépositions : forme -> [français, article] ; article 'de' (de la / du / de l' / des) ou 'le' (la / le / l' / les).
