@@ -691,6 +691,8 @@ du jeu vu de dessus (nord en haut).
   zoom à la molette et boutons, déplacement en glissant, « tout le terrain ». Mis en évidence : position (auto-tracking,
   sinon départ du Routeur), prochaine sortie à prendre (première transition du trajet), arrivée du Routeur. Clic sur un
   repère : ses sorties, leur destination notée, « Partir d'ici » (départ du Routeur) et « Y aller » (arrivée).
+- Légende sous la carte : couleur des repères par type (passage doré, intérieur bleu canard, grotte brune, donjon
+  violet, hibou beige), anneaux (position, prochaine sortie, arrivée) et dégradé du terrain.
 - « Voir sur la carte » : bouton carte sur chaque carte du trajet du Routeur, et clic sur la prochaine étape du bandeau
   « Où aller ? » (sortie à prendre).
 

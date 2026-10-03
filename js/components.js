@@ -395,8 +395,10 @@ const ZoneMap = {
         </div>
       </div>
     </div>
-    <div class="zmap-legend"><span><i class="lg-here"></i>vous êtes ici</span><span><i class="lg-next"></i>prochaine sortie</span><span><i class="lg-goal"></i>arrivée du Routeur</span>
-      <span>Clic sur un repère : partir d’ici ou y aller.</span></div>
+    <div class="zmap-legend"><b>Sorties</b><span><i class="lg-dot t-overworld"></i>passage</span><span><i class="lg-dot t-interior"></i>intérieur (porte)</span>
+      <span><i class="lg-dot t-grotto"></i>grotte</span><span><i class="lg-dot t-dungeon"></i>donjon</span><span><i class="lg-dot t-owl"></i>hibou</span></div>
+    <div class="zmap-legend"><b>Repères</b><span><i class="lg-here"></i>vous êtes ici</span><span><i class="lg-next"></i>prochaine sortie</span><span><i class="lg-goal"></i>arrivée du Routeur</span>
+      <span><i class="lg-ground"></i>terrain : du plus bas (foncé) au plus haut (clair)</span><span>Clic sur un repère : partir d’ici ou y aller.</span></div>
   </div>`,
   setup(){ return { EXIT, MAP_SCENE_LABEL }; },
 };

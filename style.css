@@ -454,11 +454,9 @@ html.stream-mode,html.stream-mode body{background:transparent;overflow:hidden}
 .zmap-zoom button:hover{border-color:var(--gold)}
 .zmap-walls{fill:none;stroke:var(--map-wall);stroke-linecap:round;opacity:.7}
 .zm{cursor:pointer}
-.zm circle:not(.zm-ring){fill:var(--gold);stroke:#1c1a12;stroke-width:1.5px;vector-effect:non-scaling-stroke}
-.zm.t-interior circle:not(.zm-ring){fill:var(--ocarina)}
-.zm.t-grotto circle:not(.zm-ring){fill:#b07a3e}
-.zm.t-dungeon circle:not(.zm-ring){fill:var(--purple)}
-.zm.t-owl circle:not(.zm-ring){fill:#e0c48a}
+/* couleur par type de sortie (repères et légende) */
+.t-overworld,.zm{--zc:var(--gold)} .t-interior{--zc:var(--ocarina)} .t-grotto{--zc:#b07a3e} .t-dungeon{--zc:var(--purple)} .t-owl{--zc:#e0c48a}
+.zm circle:not(.zm-ring){fill:var(--zc);stroke:#1c1a12;stroke-width:1.5px;vector-effect:non-scaling-stroke}
 .zm text{fill:var(--text);font-family:var(--sans);font-weight:700;text-anchor:middle;paint-order:stroke;stroke:var(--surface);stroke-width:4px;vector-effect:non-scaling-stroke;pointer-events:none}
 .zm-ring{fill:none;stroke-width:3px;vector-effect:non-scaling-stroke;animation:zm-pulse 1.8s ease-in-out infinite}
 .zm.goal .zm-ring{stroke:var(--green)}
@@ -478,6 +476,10 @@ html.stream-mode,html.stream-mode body{background:transparent;overflow:hidden}
 .zp-btns .btn{padding:3px 10px;font-size:13px}
 .zmap-empty{padding:30px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:12px}
 .zmap-legend{display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;margin-top:8px;font-size:13px;color:var(--muted)}
+.zmap-legend + .zmap-legend{margin-top:4px}
+.zmap-legend b{color:var(--text);font-weight:700;min-width:62px}
+.zmap-legend .lg-dot{background:var(--zc);border:1.5px solid #1c1a12}
+.zmap-legend .lg-ground{width:34px;height:10px;border-radius:3px;border:0;background:linear-gradient(90deg,var(--map-0),var(--map-5),var(--map-9))}
 .zmap-legend span{display:inline-flex;align-items:center;gap:6px}
 .zmap-legend i{width:12px;height:12px;border-radius:50%;border:2px solid}
 .zmap-legend .lg-here{border-color:var(--ocarina);border-style:dashed}
