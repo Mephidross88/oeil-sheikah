@@ -1,0 +1,408 @@
+{
+ "BOTTOM_OF_THE_WELL_BASEMENT_SUN_FAIRY": {
+  "scene": "BOTTOM_OF_THE_WELL",
+  "x": 642,
+  "y": -720,
+  "z": -1534,
+  "age": "child"
+ },
+ "COLOSSUS_OASIS_FAIRY_1": {
+  "scene": "DESERT_COLOSSUS",
+  "x": 845,
+  "y": -54,
+  "z": 2109,
+  "age": "adult"
+ },
+ "COLOSSUS_OASIS_FAIRY_2": {
+  "scene": "DESERT_COLOSSUS",
+  "x": 861,
+  "y": -46,
+  "z": 2154,
+  "age": "adult"
+ },
+ "COLOSSUS_OASIS_FAIRY_3": {
+  "scene": "DESERT_COLOSSUS",
+  "x": 840,
+  "y": -57,
+  "z": 2122,
+  "age": "adult"
+ },
+ "COLOSSUS_OASIS_FAIRY_4": {
+  "scene": "DESERT_COLOSSUS",
+  "x": 821,
+  "y": 3,
+  "z": 2098,
+  "age": "adult"
+ },
+ "COLOSSUS_OASIS_FAIRY_5": {
+  "scene": "DESERT_COLOSSUS",
+  "x": 893,
+  "y": -50,
+  "z": 2138,
+  "age": "adult"
+ },
+ "COLOSSUS_OASIS_FAIRY_6": {
+  "scene": "DESERT_COLOSSUS",
+  "x": 864,
+  "y": -62,
+  "z": 2151,
+  "age": "adult"
+ },
+ "COLOSSUS_OASIS_FAIRY_7": {
+  "scene": "DESERT_COLOSSUS",
+  "x": 847,
+  "y": -61,
+  "z": 2146,
+  "age": "adult"
+ },
+ "COLOSSUS_OASIS_FAIRY_8": {
+  "scene": "DESERT_COLOSSUS",
+  "x": 843,
+  "y": -60,
+  "z": 2141,
+  "age": "adult"
+ },
+ "GANONS_CASTLE_DEKU_SCRUB_CENTER_RIGHT": {
+  "scene": "INSIDE_GANONS_CASTLE",
+  "x": -51,
+  "y": -240,
+  "z": 942,
+  "age": "adult"
+ },
+ "GANONS_CASTLE_SCRUBS_FAIRY_1": {
+  "scene": "INSIDE_GANONS_CASTLE",
+  "x": -1,
+  "y": -240,
+  "z": 674,
+  "age": "adult"
+ },
+ "GANONS_CASTLE_SCRUBS_FAIRY_2": {
+  "scene": "INSIDE_GANONS_CASTLE",
+  "x": -33,
+  "y": -240,
+  "z": 642,
+  "age": "adult"
+ },
+ "GANONS_CASTLE_SCRUBS_FAIRY_3": {
+  "scene": "INSIDE_GANONS_CASTLE",
+  "x": 55,
+  "y": -240,
+  "z": 883,
+  "age": "adult"
+ },
+ "GANONS_CASTLE_SCRUBS_FAIRY_4": {
+  "scene": "INSIDE_GANONS_CASTLE",
+  "x": -1,
+  "y": -240,
+  "z": 674,
+  "age": "adult"
+ },
+ "GANONS_CASTLE_SCRUBS_FAIRY_5": {
+  "scene": "INSIDE_GANONS_CASTLE",
+  "x": 55,
+  "y": -240,
+  "z": 883,
+  "age": "adult"
+ },
+ "GANONS_CASTLE_SCRUBS_FAIRY_6": {
+  "scene": "INSIDE_GANONS_CASTLE",
+  "x": -26,
+  "y": -240,
+  "z": 771,
+  "age": "adult"
+ },
+ "GANONS_CASTLE_SCRUBS_FAIRY_7": {
+  "scene": "INSIDE_GANONS_CASTLE",
+  "x": -1,
+  "y": -240,
+  "z": 674,
+  "age": "adult"
+ },
+ "GANONS_CASTLE_SCRUBS_FAIRY_8": {
+  "scene": "INSIDE_GANONS_CASTLE",
+  "x": -33,
+  "y": -240,
+  "z": 642,
+  "age": "adult"
+ },
+ "GANONS_CASTLE_SPIRIT_TRIAL_SUN_FAIRY": {
+  "scene": "INSIDE_GANONS_CASTLE",
+  "x": -826,
+  "y": 150,
+  "z": 581,
+  "age": "adult"
+ },
+ "GERUDO_TRAINING_GROUND_ENTRANCE_STORMS_FAIRY": {
+  "scene": "GERUDO_TRAINING_GROUND",
+  "x": -98,
+  "y": -20,
+  "z": -374,
+  "age": "adult"
+ },
+ "GIFT_FROM_RAURU": {
+  "scene": "TEMPLE_OF_TIME",
+  "x": -1,
+  "y": 70,
+  "z": 23,
+  "age": "child"
+ },
+ "HC_GS_TREE": {
+  "scene": "HYRULE_CASTLE",
+  "x": -143,
+  "y": 1093,
+  "z": 3077,
+  "age": "child"
+ },
+ "HC_MALON_EGG": {
+  "scene": "HYRULE_CASTLE",
+  "x": 37,
+  "y": 1090,
+  "z": 3354,
+  "age": "child"
+ },
+ "ICE_CAVERN_ENTRANCE_STORMS_FAIRY": {
+  "scene": "ICE_CAVERN",
+  "x": -4,
+  "y": -10,
+  "z": 1195,
+  "age": "adult"
+ },
+ "KF_ADULT_GRASS_19": {
+  "scene": "KOKIRI_FOREST",
+  "x": -516,
+  "y": 120,
+  "z": 735,
+  "age": "adult"
+ },
+ "KF_ADULT_GRASS_20": {
+  "scene": "KOKIRI_FOREST",
+  "x": -523,
+  "y": 120,
+  "z": 736,
+  "age": "adult"
+ },
+ "LH_UNDERWATER_ITEM": {
+  "scene": "LAKE_HYLIA",
+  "x": -895,
+  "y": -1598,
+  "z": 4311,
+  "age": "child"
+ },
+ "LLR_GS_TREE": {
+  "scene": "LON_LON_RANCH",
+  "x": 1240,
+  "y": 0,
+  "z": -2158,
+  "age": "child"
+ },
+ "LW_GIFT_FROM_SARIA": {
+  "scene": "LOST_WOODS",
+  "x": -1018,
+  "y": -203,
+  "z": 1602,
+  "age": "adult"
+ },
+ "LW_OCARINA_MEMORY_GAME": {
+  "scene": "LOST_WOODS",
+  "x": 1123,
+  "y": -140,
+  "z": 339,
+  "age": "child"
+ },
+ "LW_SKULL_KID": {
+  "scene": "LOST_WOODS",
+  "x": -951,
+  "y": 20,
+  "z": 52,
+  "age": "child"
+ },
+ "LW_TARGET_IN_WOODS": {
+  "scene": "LOST_WOODS",
+  "x": 968,
+  "y": 0,
+  "z": -15,
+  "age": "child"
+ },
+ "SHADOW_TEMPLE_BEAMOS_STORM_FAIRY": {
+  "scene": "SHADOW_TEMPLE",
+  "x": 3357,
+  "y": -543,
+  "z": 54,
+  "age": "adult"
+ },
+ "SHADOW_TEMPLE_FREESTANDING_KEY": {
+  "scene": "SHADOW_TEMPLE",
+  "x": 1495,
+  "y": -1332,
+  "z": 1185,
+  "age": "adult"
+ },
+ "SHADOW_TEMPLE_PIT_STORM_FAIRY": {
+  "scene": "SHADOW_TEMPLE",
+  "x": 3751,
+  "y": -1143,
+  "z": 3339,
+  "age": "adult"
+ },
+ "SHADOW_TEMPLE_WIND_HINT_SUN_FAIRY": {
+  "scene": "SHADOW_TEMPLE",
+  "x": 4933,
+  "y": -1363,
+  "z": -130,
+  "age": "adult"
+ },
+ "SHEIK_AT_COLOSSUS": {
+  "scene": "DESERT_COLOSSUS",
+  "x": -1503,
+  "y": 48,
+  "z": 2,
+  "age": "adult"
+ },
+ "SHEIK_AT_TEMPLE": {
+  "scene": "TEMPLE_OF_TIME",
+  "x": -7,
+  "y": 0,
+  "z": 822,
+  "age": "adult"
+ },
+ "SHEIK_IN_FOREST": {
+  "scene": "SACRED_FOREST_MEADOW",
+  "x": 49,
+  "y": 500,
+  "z": -2604,
+  "age": "adult"
+ },
+ "SHEIK_IN_ICE_CAVERN": {
+  "scene": "ICE_CAVERN",
+  "x": -1032,
+  "y": 280,
+  "z": 1043,
+  "age": "adult"
+ },
+ "SONG_FROM_MALON": {
+  "scene": "LON_LON_RANCH",
+  "x": 66,
+  "y": 0,
+  "z": -597,
+  "age": "child"
+ },
+ "SONG_FROM_SARIA": {
+  "scene": "SACRED_FOREST_MEADOW",
+  "x": 10,
+  "y": 500,
+  "z": -2610,
+  "age": "child"
+ },
+ "SPIRIT_TEMPLE_ARMOS_ROOM_SUN_FAIRY": {
+  "scene": "SPIRIT_TEMPLE",
+  "x": 2037,
+  "y": 843,
+  "z": -150,
+  "age": "adult"
+ },
+ "SPIRIT_TEMPLE_BOULDER_ROOM_SUN_FAIRY": {
+  "scene": "SPIRIT_TEMPLE",
+  "x": 1544,
+  "y": -130,
+  "z": -1852,
+  "age": "adult"
+ },
+ "TOT_LIGHT_ARROWS_CUTSCENE": {
+  "scene": "TEMPLE_OF_TIME",
+  "x": 0,
+  "y": -20,
+  "z": 2025,
+  "age": "adult"
+ },
+ "TOT_MASTER_SWORD": {
+  "scene": "TEMPLE_OF_TIME",
+  "x": -1,
+  "y": 69,
+  "z": 20,
+  "age": "child"
+ },
+ "ZD_BEHIND_KING_ZORA_BEEHIVE": {
+  "scene": "ZORAS_DOMAIN",
+  "x": 694,
+  "y": 996,
+  "z": -1974,
+  "age": "child"
+ },
+ "ZD_DIVING_MINIGAME": {
+  "scene": "ZORAS_DOMAIN",
+  "x": -191,
+  "y": 857,
+  "z": -1011,
+  "age": "child"
+ },
+ "ZD_FISH_1": {
+  "scene": "ZORAS_DOMAIN",
+  "x": 646,
+  "y": -20,
+  "z": -642,
+  "age": "child"
+ },
+ "ZD_FISH_2": {
+  "scene": "ZORAS_DOMAIN",
+  "x": 470,
+  "y": -20,
+  "z": -448,
+  "age": "child"
+ },
+ "ZD_FISH_3": {
+  "scene": "ZORAS_DOMAIN",
+  "x": 538,
+  "y": -20,
+  "z": -403,
+  "age": "child"
+ },
+ "ZD_FISH_4": {
+  "scene": "ZORAS_DOMAIN",
+  "x": 693,
+  "y": -20,
+  "z": -507,
+  "age": "child"
+ },
+ "ZD_FISH_5": {
+  "scene": "ZORAS_DOMAIN",
+  "x": 567,
+  "y": -20,
+  "z": -483,
+  "age": "child"
+ },
+ "ZD_IN_FRONT_OF_KING_ZORA_BEEHIVE_LEFT": {
+  "scene": "ZORAS_DOMAIN",
+  "x": 393,
+  "y": 857,
+  "z": -1353,
+  "age": "child"
+ },
+ "ZD_IN_FRONT_OF_KING_ZORA_BEEHIVE_RIGHT": {
+  "scene": "ZORAS_DOMAIN",
+  "x": 739,
+  "y": 857,
+  "z": -1460,
+  "age": "child"
+ },
+ "ZD_KING_ZORA_THAWED": {
+  "scene": "ZORAS_DOMAIN",
+  "x": 621,
+  "y": 947,
+  "z": -1489,
+  "age": "adult"
+ },
+ "ZD_TRADE_PRESCRIPTION": {
+  "scene": "ZORAS_DOMAIN",
+  "x": 617,
+  "y": 947,
+  "z": -1504,
+  "age": "adult"
+ },
+ "ZF_GS_TREE": {
+  "scene": "ZORAS_FOUNTAIN",
+  "x": 267,
+  "y": 47,
+  "z": 2299,
+  "age": "child"
+ }
+}

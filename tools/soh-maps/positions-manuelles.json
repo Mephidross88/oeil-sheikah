@@ -1,0 +1,398 @@
+{
+ "BOTTOM_OF_THE_WELL_MQ_BASEMENT_SUN_FAIRY": {
+  "scene": "BOTTOM_OF_THE_WELL",
+  "x": 649,
+  "y": -720,
+  "z": -1540
+ },
+ "BOTTOM_OF_THE_WELL_MQ_CELL_SUN_FAIRY": {
+  "scene": "BOTTOM_OF_THE_WELL",
+  "x": 339,
+  "y": 0,
+  "z": -386
+ },
+ "DMC_DEKU_SCRUB": {
+  "scene": "DEATH_MOUNTAIN_CRATER",
+  "x": -832,
+  "y": 769,
+  "z": 1201
+ },
+ "DMC_GS_CRATE": {
+  "scene": "DEATH_MOUNTAIN_CRATER",
+  "x": -929,
+  "y": 1837,
+  "z": 1928
+ },
+ "DMT_FLAG_SUN_FAIRY": {
+  "scene": "DEATH_MOUNTAIN_TRAIL",
+  "x": -1469,
+  "y": 1092,
+  "z": 1144
+ },
+ "DMT_TRADE_BROKEN_SWORD": {
+  "scene": "DEATH_MOUNTAIN_TRAIL",
+  "x": 480,
+  "y": 3277,
+  "z": -4408
+ },
+ "DMT_TRADE_CLAIM_CHECK": {
+  "scene": "DEATH_MOUNTAIN_TRAIL",
+  "x": 448,
+  "y": 3234,
+  "z": -4230
+ },
+ "DMT_TRADE_EYEDROPS": {
+  "scene": "DEATH_MOUNTAIN_TRAIL",
+  "x": 496,
+  "y": 3277,
+  "z": -4316
+ },
+ "FIRE_TEMPLE_MQ_LOOP_KNUCKLE_SUN_FAIRY": {
+  "scene": "FIRE_TEMPLE",
+  "x": 350,
+  "y": 20,
+  "z": -1559
+ },
+ "FIRE_TEMPLE_MQ_LOOP_STALFOS_SUN_FAIRY": {
+  "scene": "FIRE_TEMPLE",
+  "x": 100,
+  "y": 0,
+  "z": -545
+ },
+ "GANONS_CASTLE_MQ_DEKU_SCRUB_CENTER": {
+  "scene": "INSIDE_GANONS_CASTLE",
+  "x": -106,
+  "y": 150,
+  "z": 972
+ },
+ "GANONS_CASTLE_MQ_SCRUBS_FAIRY_1": {
+  "scene": "INSIDE_GANONS_CASTLE",
+  "x": -90,
+  "y": 150,
+  "z": 723
+ },
+ "GANONS_CASTLE_MQ_SCRUBS_FAIRY_2": {
+  "scene": "INSIDE_GANONS_CASTLE",
+  "x": -9,
+  "y": 150,
+  "z": 717
+ },
+ "GANONS_CASTLE_MQ_SCRUBS_FAIRY_3": {
+  "scene": "INSIDE_GANONS_CASTLE",
+  "x": 63,
+  "y": 150,
+  "z": 720
+ },
+ "GANONS_CASTLE_MQ_SCRUBS_FAIRY_4": {
+  "scene": "INSIDE_GANONS_CASTLE",
+  "x": 42,
+  "y": 150,
+  "z": 776
+ },
+ "GANONS_CASTLE_MQ_SCRUBS_FAIRY_5": {
+  "scene": "INSIDE_GANONS_CASTLE",
+  "x": -58,
+  "y": 150,
+  "z": 805
+ },
+ "GANONS_CASTLE_MQ_SCRUBS_FAIRY_6": {
+  "scene": "INSIDE_GANONS_CASTLE",
+  "x": 10,
+  "y": 150,
+  "z": 833
+ },
+ "GANONS_CASTLE_MQ_SCRUBS_FAIRY_7": {
+  "scene": "INSIDE_GANONS_CASTLE",
+  "x": -76,
+  "y": 150,
+  "z": 862
+ },
+ "GANONS_CASTLE_MQ_SCRUBS_FAIRY_8": {
+  "scene": "INSIDE_GANONS_CASTLE",
+  "x": 77,
+  "y": 150,
+  "z": 862
+ },
+ "GC_DARUNIAS_JOY": {
+  "scene": "GORON_CITY",
+  "x": 88,
+  "y": 40,
+  "z": -1300
+ },
+ "GC_GS_BOULDER_MAZE": {
+  "scene": "GORON_CITY",
+  "x": -1124,
+  "y": 520,
+  "z": -1312
+ },
+ "GC_MEDIGORON": {
+  "scene": "GORON_CITY",
+  "x": -720,
+  "y": 400,
+  "z": 1340
+ },
+ "GC_POT_FREESTANDING_POH": {
+  "scene": "GORON_CITY",
+  "x": 10,
+  "y": -3,
+  "z": -25
+ },
+ "GC_ROLLING_GORON_AS_ADULT": {
+  "scene": "GORON_CITY",
+  "x": 162,
+  "y": 197,
+  "z": 438
+ },
+ "GC_ROLLING_GORON_AS_CHILD": {
+  "scene": "GORON_CITY",
+  "x": -84,
+  "y": 197,
+  "z": 483
+ },
+ "GF_HBA_1000_POINTS": {
+  "scene": "GERUDOS_FORTRESS",
+  "x": 3590,
+  "y": 1413,
+  "z": -562
+ },
+ "GF_HBA_1500_POINTS": {
+  "scene": "GERUDOS_FORTRESS",
+  "x": 3590,
+  "y": 1413,
+  "z": -472
+ },
+ "GRAVEYARD_DAMPE_GRAVEDIGGING_TOUR": {
+  "scene": "GRAVEYARD",
+  "x": -546,
+  "y": 120,
+  "z": 338
+ },
+ "GV_TRADE_SAW": {
+  "scene": "GERUDO_VALLEY",
+  "x": -833,
+  "y": 20,
+  "z": -294
+ },
+ "HF_OCARINA_OF_TIME_ITEM": {
+  "scene": "HYRULE_FIELD",
+  "x": 309,
+  "y": -140,
+  "z": 881
+ },
+ "HF_POND_STORMS_FAIRY": {
+  "scene": "HYRULE_FIELD",
+  "x": 5135,
+  "y": -27,
+  "z": 4666
+ },
+ "KAK_ANJU_AS_ADULT": {
+  "scene": "KAKARIKO_VILLAGE",
+  "x": 484,
+  "y": 80,
+  "z": 1410
+ },
+ "KAK_ANJU_AS_CHILD": {
+  "scene": "KAKARIKO_VILLAGE",
+  "x": 484,
+  "y": 80,
+  "z": 1422
+ },
+ "KAK_GS_TREE": {
+  "scene": "KAKARIKO_VILLAGE",
+  "x": -901,
+  "y": 0,
+  "z": 522
+ },
+ "KAK_MAN_ON_ROOF": {
+  "scene": "KAKARIKO_VILLAGE",
+  "x": 379,
+  "y": 467,
+  "z": 121
+ },
+ "KAK_TRADE_POCKET_CUCCO": {
+  "scene": "KAKARIKO_VILLAGE",
+  "x": 484,
+  "y": 80,
+  "z": 1416
+ },
+ "LH_ISLAND_SUN_FAIRY": {
+  "scene": "LAKE_HYLIA",
+  "x": 817,
+  "y": -1298,
+  "z": 7312
+ },
+ "LH_SUN": {
+  "scene": "LAKE_HYLIA",
+  "x": 708,
+  "y": -1298,
+  "z": 7257
+ },
+ "LW_BEAN_SPROUT_NEAR_BRIDGE_FAIRY_1": {
+  "scene": "LOST_WOODS",
+  "x": -1235,
+  "y": 0,
+  "z": 930
+ },
+ "LW_BEAN_SPROUT_NEAR_BRIDGE_FAIRY_2": {
+  "scene": "LOST_WOODS",
+  "x": -1209,
+  "y": 0,
+  "z": 929
+ },
+ "LW_BEAN_SPROUT_NEAR_BRIDGE_FAIRY_3": {
+  "scene": "LOST_WOODS",
+  "x": -1222,
+  "y": 0,
+  "z": 948
+ },
+ "LW_BEAN_SPROUT_NEAR_THEATER_FAIRY_1": {
+  "scene": "LOST_WOODS",
+  "x": 610,
+  "y": 0,
+  "z": -1781
+ },
+ "LW_BEAN_SPROUT_NEAR_THEATER_FAIRY_2": {
+  "scene": "LOST_WOODS",
+  "x": 620,
+  "y": 0,
+  "z": -1765
+ },
+ "LW_BEAN_SPROUT_NEAR_THEATER_FAIRY_3": {
+  "scene": "LOST_WOODS",
+  "x": 602,
+  "y": 0,
+  "z": -1763
+ },
+ "LW_DEKU_SCRUB_NEAR_BRIDGE": {
+  "scene": "LOST_WOODS",
+  "x": -1100,
+  "y": -200,
+  "z": 2195
+ },
+ "LW_DEKU_SCRUB_NEAR_DEKU_THEATER_LEFT": {
+  "scene": "LOST_WOODS",
+  "x": 351,
+  "y": 0,
+  "z": -1346
+ },
+ "LW_DEKU_SCRUB_NEAR_DEKU_THEATER_RIGHT": {
+  "scene": "LOST_WOODS",
+  "x": 582,
+  "y": 0,
+  "z": -1806
+ },
+ "LW_SHORTCUT_STORMS_FAIRY": {
+  "scene": "LOST_WOODS",
+  "x": 1955,
+  "y": -27,
+  "z": -846
+ },
+ "LW_TRADE_COJIRO": {
+  "scene": "LOST_WOODS",
+  "x": -1099,
+  "y": 0,
+  "z": -140
+ },
+ "LW_TRADE_ODD_POTION": {
+  "scene": "LOST_WOODS",
+  "x": -1099,
+  "y": 0,
+  "z": -117
+ },
+ "SHADOW_TEMPLE_MQ_BEAMOS_STORM_FAIRY": {
+  "scene": "SHADOW_TEMPLE",
+  "x": 3349,
+  "y": -543,
+  "z": 54
+ },
+ "SHADOW_TEMPLE_MQ_PIT_STORM_FAIRY": {
+  "scene": "SHADOW_TEMPLE",
+  "x": 3738,
+  "y": -1143,
+  "z": 3343
+ },
+ "SHADOW_TEMPLE_MQ_WIND_HINT_SUN_FAIRY": {
+  "scene": "SHADOW_TEMPLE",
+  "x": 5081,
+  "y": -1363,
+  "z": -126
+ },
+ "SHEIK_IN_CRATER": {
+  "scene": "DEATH_MOUNTAIN_CRATER",
+  "x": -946,
+  "y": 603,
+  "z": -344
+ },
+ "SHEIK_IN_KAKARIKO": {
+  "scene": "KAKARIKO_VILLAGE",
+  "x": 491,
+  "y": 53,
+  "z": 520
+ },
+ "SONG_FROM_OCARINA_OF_TIME": {
+  "scene": "HYRULE_FIELD",
+  "x": 352,
+  "y": -140,
+  "z": 881
+ },
+ "SPIRIT_TEMPLE_MQ_DINALFOS_ROOM_SUN_FAIRY": {
+  "scene": "SPIRIT_TEMPLE",
+  "x": 2042,
+  "y": 843,
+  "z": -238
+ },
+ "WASTELAND_BOMBCHU_SALESMAN": {
+  "scene": "HAUNTED_WASTELAND",
+  "x": 1503,
+  "y": -600,
+  "z": 3516
+ },
+ "WATER_TEMPLE_MQ_DARK_LINK_LEFT_STORM_FAIRY": {
+  "scene": "WATER_TEMPLE",
+  "x": -3266,
+  "y": 1060,
+  "z": -1510
+ },
+ "WATER_TEMPLE_MQ_DARK_LINK_PILAR_SUN_FAIRY": {
+  "scene": "WATER_TEMPLE",
+  "x": -3154,
+  "y": 760,
+  "z": -542
+ },
+ "WATER_TEMPLE_MQ_DARK_LINK_RIGHT_SUN_FAIRY": {
+  "scene": "WATER_TEMPLE",
+  "x": -2974,
+  "y": 1060,
+  "z": -1516
+ },
+ "ZR_BEAN_SPROUT_FAIRY_1": {
+  "scene": "ZORAS_RIVER",
+  "x": -707,
+  "y": 100,
+  "z": -197
+ },
+ "ZR_BEAN_SPROUT_FAIRY_2": {
+  "scene": "ZORAS_RIVER",
+  "x": -761,
+  "y": 100,
+  "z": -190
+ },
+ "ZR_BEAN_SPROUT_FAIRY_3": {
+  "scene": "ZORAS_RIVER",
+  "x": -741,
+  "y": 100,
+  "z": -221
+ },
+ "ZR_GS_TREE": {
+  "scene": "ZORAS_RIVER",
+  "x": -1642,
+  "y": 100,
+  "z": 550
+ },
+ "ZR_MAGIC_BEAN_SALESMAN": {
+  "scene": "ZORAS_RIVER",
+  "x": -763,
+  "y": 100,
+  "z": -266
+ }
+}
