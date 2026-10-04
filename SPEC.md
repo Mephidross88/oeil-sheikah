@@ -515,7 +515,8 @@ Les zones sont celles du tracker de checks de SoH (32 : 20 zones d'overworld et 
 Voleurs dans la Forteresse), plus « Apparitions et chants » (id `spawns`) pour les apparitions et les chants de
 téléportation, qui ne sont pas des lieux. Identifiants en minuscules des zones SoH (`hyrule_field`,
 `zoras_river`…), regroupement fait par `tools/soh-entrances/regroup_areas.mjs`.
-Une carte dépliable par zone, avec progression (sorties renseignées / randomisées). Une ligne par sortie :
+Une carte dépliable par zone, avec progression (sorties renseignées / randomisées). Une ligne par sortie (avec, à côté
+de son nom, « Y aller » : la sortie devient l'arrivée du Routeur, à n'importe quel âge — sauf apparitions et chants) :
 1. Icône du type (extérieur, intérieur, grotte, donjon, boss, hibou, téléportation, spawn).
 2. Globe : au survol, liste des sorties de la même zone reliées à pied, avec leur coût (coûts de marche du
    Routeur ; c'est la logique SoH qui dit si le passage est possible). Grisé si aucune connexion.
@@ -571,6 +572,9 @@ Règles :
   (la porte) ; la prendre mène à « Sortie de la maison de Mido », à l'intérieur.
 
 ## Routeur
+Départ : bouton « Ma position » (au bout de la ligne Départ) — la sortie la plus proche de Link avec la position en temps
+réel (`linkNearestExit`, même règle que le départ suivi en direct), sinon la dernière entrée prise (auto-tracking), et
+l'âge de Link s'il est connu ; inactif sans position.
 Plus court chemin (Dijkstra, `shortest`) sur un graphe dont les nœuds sont (sortie, âge, position), construit sur la
 logique SoH avec l'inventaire, les événements et les entrées notés (`routeGraph` dans `js/logic.js`, `routeC`). La
 position dit dans quelle région SoH on se trouve à cette sortie : on vient d'y apparaître (région d'arrivée), on y est
@@ -828,8 +832,12 @@ connues.
 ## Où aller maintenant ?
 Bandeau collé en bas de la zone principale, sur toutes les pages (ne prend la place d'aucune), repliable
 (`ui.next.open`, replié par défaut) et masquable (× ou case « Bandeau « Où aller ? » » de la barre de gauche, page
-Routeur : `ui.next.enabled`, rien n'est alors calculé). Le bandeau calcule lui-même la route vers sa cible, sans passer
-par le Routeur : le check faisable le plus proche, ou celui choisi dans sa liste (`dockTarget`, non gardé, tant qu'il
+Routeur : `ui.next.enabled`, rien n'est alors calculé). Deux modes (`ui.next.follow`) : **Routeur** dès qu'une
+destination est fixée à la main (page Routeur, « Y aller » de la Carte, des Entrées, des Checks) — barre : première étape
+vers elle, « Destination : zone · sortie » (nombre d'étapes, ou « Aucun trajet connu vers »), « Routeur » (ouvre la page)
+et « Auto » (revient au mode automatique sans toucher au Routeur) ; retour automatique à l'arrivée (le départ devient la
+destination : position en direct ou sortie où l'on apparaît). **Auto** : le bandeau calcule lui-même la route vers sa
+cible, sans passer par le Routeur : le check faisable le plus proche, ou celui choisi dans sa liste (`dockTarget`, non gardé, tant qu'il
 reste faisable), depuis le départ du Routeur, à l'âge où il est le plus proche (`shortest` vers une de ses régions).
 Barre : première étape de cette route (mode de déplacement → zone · sortie à prendre, ou arrivée pour un chant, un
 sauvegarder-recharger, un changement d'âge ; « À pied, dans la zone » s'il n'y en a pas ; clic : voir sur la carte),
@@ -837,7 +845,7 @@ check visé (« le plus proche » ou « choisi », zone, nombre d'étapes) avec 
 nombre de checks faisables. Déplié : la route complète (étapes numérotées, clic : voir sur la carte, « puis à pied jusqu'au
 check »), puis les 12 plus proches en cartes (icône de catégorie, libellé, zone, « à pied » ou « N étapes », « adulte » si
 on s'y rend en adulte ; cible encadrée) ; un clic fait du check la cible du bandeau (un second clic revient au plus proche).
-Le bloc « Prochaine étape » de la fenêtre de stream suit toujours le trajet du Routeur.
+
 Les trajets ne passent que par des entrées connues (notées, ou d'origine) : graphe du Routeur, où une entrée mélangée
 non notée est une impasse.
 - Proximité depuis le départ du Routeur (donc la position en direct si l'auto-tracking la suit) et son âge :

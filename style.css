@@ -1018,6 +1018,15 @@ select.sel:hover{border-color:var(--gold)}
   container-type:inline-size}
 .rline{display:grid;grid-template-columns:92px minmax(0,1fr) minmax(0,1.2fr) auto;gap:14px;align-items:end}
 .rline .rtag{font-family:var(--serif);font-size:19px;padding-bottom:9px}
+/* ligne Départ : bouton « Ma position » en dernière colonne */
+:where(.rline):has(> .rme){grid-template-columns:92px minmax(0,1fr) minmax(0,1.2fr) auto auto}
+.rme{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;margin-bottom:1px}
+.rme span{display:inline-flex;width:16px;height:16px}
+.rme svg{width:16px;height:16px}
+/* page Entrées : « Y aller » à côté du nom de la sortie */
+.r-go{margin-left:8px;width:24px;height:24px;padding:3px;border:0;border-radius:6px;background:none;color:var(--muted);cursor:pointer;vertical-align:middle;opacity:.55}
+.r-go:hover,.row:hover .r-go{opacity:1;color:var(--gold-deep);background:var(--surface-2)}
+.r-go svg{width:16px;height:16px;display:block}
 .rswap{display:flex;justify-content:flex-start;padding-left:92px}
 .rswap button{display:flex;align-items:center;gap:6px;font-size:14px;color:var(--muted);background:none;border:1px dashed var(--line);border-radius:999px;padding:3px 12px}
 .rswap button:hover{color:var(--text);border-color:var(--gold)}

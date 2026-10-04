@@ -440,24 +440,33 @@ function linkSetPosition(key, age){
    placées à leur porte ni les apparitions), à moins de 250 unités de hauteur et 800 de distance ; on ne change que si
    elle est plus proche de 150 unités que le départ actuel (pas de va-et-vient entre deux sorties voisines). La position
    (link.position, « dernière entrée ») reste la dernière entrée prise. */
-function linkLiveStart(L){
-  const M = window.MAPS_DATA, r = store.ui.router;
-  if (!M || !store.ui.link.position) return;
-  const dist = k => {
-    let d = Infinity;
-    for (const p of [M.exits[k], M.exitsMq?.[k]]){
-      if (!p || p[0].replace(/_MQ$/, '') !== L.scene || p[4] || Math.abs((p[3] ?? L.y) - L.y) > 250) continue;
-      d = Math.min(d, Math.hypot(p[1] - L.x, p[2] - L.z));
-    }
-    return d;
-  };
+// distance de Link à une sortie de sa scène (Infinity si elle n'y est pas, ou trop haut / trop bas)
+function linkExitDist(L, k){
+  const M = window.MAPS_DATA;
+  let d = Infinity;
+  for (const p of [M?.exits[k], M?.exitsMq?.[k]]){
+    if (!p || p[0].replace(/_MQ$/, '') !== L.scene || p[4] || Math.abs((p[3] ?? L.y) - L.y) > 250) continue;
+    d = Math.min(d, Math.hypot(p[1] - L.x, p[2] - L.z));
+  }
+  return d;
+}
+// sortie la plus proche de Link (à moins de 800 unités) : { k, d } ou null
+function linkNearestExit(L){
+  const M = window.MAPS_DATA;
+  if (!M || !L) return null;
   let best = null;
   for (const k of new Set([...Object.keys(M.exits), ...Object.keys(M.exitsMq || {})])){
     if (!EXIT[k] || EXIT[k].areaId === SPAWN_AREA) continue;
-    const d = dist(k);
+    const d = linkExitDist(L, k);
     if (d < (best ? best.d : 800)) best = { k, d };
   }
-  if (!best || best.k === r.fromExit || dist(r.fromExit) < best.d + 150) return;
+  return best;
+}
+function linkLiveStart(L){
+  const r = store.ui.router;
+  if (!store.ui.link.position) return;
+  const best = linkNearestExit(L);
+  if (!best || best.k === r.fromExit || linkExitDist(L, r.fromExit) < best.d + 150) return;
   r.fromArea = EXIT[best.k].areaId; r.fromExit = best.k;
 }
 

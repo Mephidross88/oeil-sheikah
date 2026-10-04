@@ -368,6 +368,16 @@ const App = {
     const backToPrev = () => setStart(prevStart.value.exit, prevStart.value.age);
     // départ suivi en direct (auto-tracking de la position)
     const liveStart = computed(() => ui.link.enabled && ui.link.position && link.status === 'game');
+    /* « Ma position » (départ du Routeur) : la sortie la plus proche de Link (position en temps réel), sinon la dernière
+       entrée prise (auto-tracking) ; âge de Link si connu */
+    const myPos = computed(() => {
+      const L = ui.link.live && link.live, near = L && linkNearestExit(L);
+      if (near) return { key:near.k, age:L.age === 1 ? 'child' : L.age === 0 ? 'adult' : link.position?.age || ui.router.fromAge };
+      return link.position && EXIT[link.position.key] ? { key:link.position.key, age:link.position.age || ui.router.fromAge } : null;
+    });
+    const startAtMe = () => { const p = myPos.value; if (p) setStart(p.key, p.age); };
+    // « Y aller » d'une sortie (page Entrées) : arrivée du Routeur, à n'importe quel âge
+    function goExit(key){ const r = ui.router; r.toArea = EXIT[key].areaId; r.toAge = 'any'; nextTick(() => { r.toExit = key; }); go('router'); }
     function swap(){
       const r = ui.router;
       [r.fromArea, r.toArea] = [r.toArea, r.fromArea];
@@ -739,20 +749,36 @@ const App = {
        chant, sauvegarder-recharger, changement d'âge), avec la sortie à prendre ou l'arrivée. */
     const dockTarget = ref(null);
     const dockCheck = computed(() => { const l = nextC.value?.list || []; return l.find(x => x.c.id === dockTarget.value) || l[0] || null; });
+    // destination du Routeur suivie par le bandeau (mode « router ») : tant qu'on n'y est pas
+    const dockFollowsRouter = computed(() => ui.next.follow === 'router' && !!EXIT[ui.router.toExit]);
     const dockRoute = computed(() => {
       const x = dockCheck.value, r = ui.router;
-      if (!x || !r.fromExit || !EXIT[r.fromExit]) return null;
-      const rg = routeC.value, regs = new Set(CHECK_REGIONS['RC_' + x.c.id] || []);
-      const res = shortest(rg.edges, r.fromExit, r.fromAge, (k, a, m) => a === x.age && [...rg.regions(k, a, m).keys()].some(rr => regs.has(rr)));
-      if (!res) return null;
+      if (!r.fromExit || !EXIT[r.fromExit]) return null;
+      const rg = routeC.value;
+      let res, target;
+      if (dockFollowsRouter.value){
+        res = shortest(rg.edges, r.fromExit, r.fromAge, r.toExit, r.toAge || 'any'); target = { exit:r.toExit };
+      } else {
+        if (!x) return null;
+        const regs = new Set(CHECK_REGIONS['RC_' + x.c.id] || []);
+        res = shortest(rg.edges, r.fromExit, r.fromAge, (k, a, m) => a === x.age && [...rg.regions(k, a, m).keys()].some(rr => regs.has(rr)));
+        target = { check:x.c };
+      }
+      if (!res) return target.exit ? { ...target, steps:[], none:true } : null;
       const steps = res.edges.filter(e => e.kind !== 'walk').map(e => {
         if (e.kind === 'age') return { label:e.age === 'adult' ? 'Devenir adulte' : 'Redevenir enfant', icon:null, key:e.to };
         const take = ['transition', 'bluewarp', 'owl'].includes(e.kind) && EXIT[e.from] ? e.from : null;
         return { label:edgeLabel(e), icon:edgeIcon(e), key:take || e.to, take:!!take, to:e.to };
       });
-      return { check:x.c, steps };
+      return { ...target, steps };
     });
-    const pickDock = c => { dockTarget.value = dockTarget.value === c.id ? null : c.id; };
+    const pickDock = c => { dockTarget.value = dockTarget.value === c.id ? null : c.id; ui.next.follow = 'auto'; };
+    /* Bandeau et Routeur : une destination fixée à la main (page Routeur, « Y aller » de la Carte, des Entrées, des Checks)
+       fait suivre le Routeur au bandeau ; « Auto » le remet sur le check le plus proche ; arrivé à destination (le départ
+       devient l'arrivée : position en direct ou sortie où l'on apparaît), il y revient tout seul. */
+    watch(() => ui.router.toExit, (to, old) => { if (to && to !== old && EXIT[to]) ui.next.follow = 'router'; });
+    watch(() => [ui.router.fromExit, ui.router.toExit], ([from, to]) => { if (ui.next.follow === 'router' && from && from === to) ui.next.follow = 'auto'; });
+    const dockAuto = () => { ui.next.follow = 'auto'; };
     // « Pourquoi ? » : ce qui manque pour un check pas encore faisable (whyLocked, calcul de ~1 s, lancé après affichage)
     const why = reactive({ check:null, res:null });
     function openWhy(c){
@@ -1104,7 +1130,7 @@ const App = {
       itemVisible, tierLabel, iconSrc, checklistModal, openChecklist, setChecklist, checklistStats,
       tradeModal, openTrade, tradeStats, counterClass,
       TRIALS, trialStatus, cycleTrial, setDungeonFlag, addDungeonKeys, dungeonQuest, dungeonMaxKeys, cycleDungeonQuest, questLabel, questClass, questTitle, keysLabel, dungeonKeyRing, setKeyRing, dungeonKeysDone, keysTitle, brokenIcons,
-      setTheme, startHere, prevStart, backToPrev, liveStart, pickAreas, pickExits, zoneExcludeMode, zoneExclude, hintGroups, hintEdit, hintsC, setHintRead, GOSSIP_STONES, HINT_TYPES, CHECK_AREAS, MAP_SCENES, MAPS_OK, mapAreas, mapGroups, followArea, mapFocus, mapArea, openMap, mapHere, mapHereTick, mapStart, mapGoal, fmtDur, stFilter, statsC, statsRows, playNow, STREAM, STREAM_TYPES, sl, swEdit, swSel, swAdd, swHint, swSelW, streamBg, swBodyStyle, swDown, swMove, swUp, swNew, swDelete, swReset, swImage, openStream, dockCheck, dockRoute, dockTarget, pickDock, swap, route, edgeLabel, edgeIcon, WARP_SONGS, ageLabel, openBackup, copyBackup, importBackup, resetAll, declineSpoiler, savedAt, TYPE_LABEL };
+      setTheme, startHere, prevStart, backToPrev, liveStart, myPos, startAtMe, goExit, pickAreas, pickExits, zoneExcludeMode, zoneExclude, hintGroups, hintEdit, hintsC, setHintRead, GOSSIP_STONES, HINT_TYPES, CHECK_AREAS, MAP_SCENES, MAPS_OK, mapAreas, mapGroups, followArea, mapFocus, mapArea, openMap, mapHere, mapHereTick, mapStart, mapGoal, fmtDur, stFilter, statsC, statsRows, playNow, STREAM, STREAM_TYPES, sl, swEdit, swSel, swAdd, swHint, swSelW, streamBg, swBodyStyle, swDown, swMove, swUp, swNew, swDelete, swReset, swImage, openStream, dockCheck, dockRoute, dockTarget, pickDock, dockFollowsRouter, dockAuto, go, swap, route, edgeLabel, edgeIcon, WARP_SONGS, ageLabel, openBackup, copyBackup, importBackup, resetAll, declineSpoiler, savedAt, TYPE_LABEL };
   },
   template:`
 ${STREAM_TPL}
@@ -1234,7 +1260,7 @@ ${STREAM_TPL}
               <button class="globe" :class="{none:!r.e.connections.length}" :aria-label="'Connexions depuis '+r.e.label"
                 @mouseenter="r.e.connections.length && showTip($event,r.e.key)" @mouseleave="hideTip" @focus="r.e.connections.length && showTip($event,r.e.key)" @blur="hideTip"
                 @click.stop="r.e.connections.length && toggleTip($event,r.e.key)" v-html="ICONS.globe"></button>
-              <div class="c-name" :title="r.e.soh">{{r.e.label}}</div>
+              <div class="c-name" :title="r.e.soh">{{r.e.label}}<button v-if="r.e.areaId !== 'spawns'" type="button" class="r-go" title="Y aller (Routeur, depuis le départ actuel)" v-html="ICONS.router" @click.stop="goExit(r.e.key)"></button></div>
               <div v-if="decoupled" class="c-from"><button v-for="f in r.from" :key="f.key" class="loc link" @click="jump(EXIT[f.key].areaId, f.key)"><b>{{f.area}}</b><span :title="EXIT[f.key].soh">{{f.label}}</span></button></div>
               <div class="c-dest">
                 <dest-picker v-if="r.mode==='open'" :source="r.e.key" @choose="k => setMapping(r.e.key, k)"></dest-picker>
@@ -1359,6 +1385,8 @@ ${STREAM_TPL}
             <select id="fe" class="sel" v-model="ui.router.fromExit" :disabled="!ui.router.fromArea"><option value="" disabled>Choisir une sortie</option>
               <option v-for="e in pickExits(ui.router.fromArea, ui.router.fromExit)" :key="e.key" :value="e.key" :title="e.soh">{{e.label}}</option></select></div>
           <div class="field agebox"><span class="lbl">Âge</span><seg v-model="ui.router.fromAge" :options="[['child','Enfant'],['adult','Adulte']]"></seg></div>
+          <button type="button" class="btn rme" :disabled="!myPos" @click="startAtMe"
+            :title="myPos ? 'Partir de votre position : ' + areaName(myPos.key) + ' · ' + EXIT[myPos.key].label + (ui.link.live && link.live ? ' (sortie la plus proche de Link)' : ' (dernière entrée prise)') : 'Position inconnue : activez l’auto-tracking (fenêtre Auto-tracking)'"><span v-html="ICONS.live"></span>Ma position</button>
         </div>
         <div class="rswap"><button type="button" @click="swap"><span v-html="ICONS.swap"></span>Inverser</button></div>
         <div class="rline">
@@ -1634,13 +1662,18 @@ ${STREAM_TPL}
       <div class="nd-bar">
         <button type="button" class="nd-toggle" @click="ui.next.open = !ui.next.open" :aria-expanded="ui.next.open"
           :title="ui.next.open ? 'Replier' : 'Déplier : les 12 checks faisables les plus proches'"><span class="nd-ic" v-html="ICONS.compass"></span><b>Où aller ?</b></button>
-        <template v-if="dockRoute">
-          <span v-if="dockRoute.steps.length" class="nd-step" :class="{click:MAPS_OK}" :title="'Prochaine étape vers ' + dockRoute.check.label + (MAPS_OK ? ' — clic : voir sur la carte' : '')"
+        <template v-if="dockRoute && !dockRoute.none">
+          <span v-if="dockRoute.steps.length" class="nd-step" :class="{click:MAPS_OK}" :title="'Prochaine étape vers ' + (dockRoute.check ? dockRoute.check.label : areaName(dockRoute.exit) + ' · ' + EXIT[dockRoute.exit].label) + (MAPS_OK ? ' — clic : voir sur la carte' : '')"
             @click="MAPS_OK && openMap(dockRoute.steps[0].key)">
             <img v-if="dockRoute.steps[0].icon" :src="dockRoute.steps[0].icon" alt=""><span v-else class="nd-step-ic" v-html="ICONS.uturn"></span>{{dockRoute.steps[0].label}} → <b>{{areaName(dockRoute.steps[0].key)}}</b> · {{EXIT[dockRoute.steps[0].key].label}}</span>
           <span v-else class="nd-step"><span class="nd-step-ic" v-html="ICONS.compass"></span>À pied, dans la zone</span>
         </template>
-        <span v-if="!nextC" class="nd-sum">Choisissez un départ dans le Routeur (ou activez la position en direct).</span>
+        <template v-if="dockFollowsRouter">
+          <span class="nd-sum" :title="'Destination du Routeur : ' + areaName(ui.router.toExit) + ' · ' + EXIT[ui.router.toExit].label">{{dockRoute && dockRoute.none ? 'Aucun trajet connu vers' : 'Destination'}} : <b>{{areaName(ui.router.toExit)}}</b> · {{EXIT[ui.router.toExit].label}}<small v-if="dockRoute && !dockRoute.none"> ({{stepsLabel(dockRoute.steps.length)}})</small></span>
+          <button type="button" class="btn nd-go" title="Ouvrir ce trajet dans le Routeur" @click="go('router')">Routeur</button>
+          <button type="button" class="btn nd-go nd-auto" title="Revenir au check le plus proche (le bandeau ne suit plus le Routeur)" @click="dockAuto">Auto</button>
+        </template>
+        <span v-else-if="!nextC" class="nd-sum">Choisissez un départ dans le Routeur (ou activez la position en direct).</span>
         <span v-else-if="!nextC.list.length" class="nd-sum">Aucun check faisable à portée.</span>
         <template v-else-if="dockCheck">
           <span class="nd-sum" :title="dockCheck.c.soh">{{dockTarget === dockCheck.c.id ? 'Check choisi' : 'Check le plus proche'}} : <b>{{dockCheck.c.label}}</b> · {{CHECK_AREA[dockCheck.c.area].label}} ({{stepsLabel(dockCheck.steps)}})</span>
@@ -1651,11 +1684,11 @@ ${STREAM_TPL}
         <button type="button" class="nd-btn" title="Masquer ce bandeau (à réactiver dans la barre de gauche, page Routeur)" v-html="ICONS.close" @click="ui.next.enabled = false"></button>
       </div>
       <div v-if="ui.next.open && dockRoute && dockRoute.steps.length" class="nd-route">
-        <span class="nd-route-t">Route vers <b>{{dockRoute.check.label}}</b> :</span>
+        <span class="nd-route-t">Route vers <b>{{dockRoute.check ? dockRoute.check.label : areaName(dockRoute.exit) + ' · ' + EXIT[dockRoute.exit].label}}</b> :</span>
         <button v-for="(st, i) in dockRoute.steps" :key="i" type="button" class="nd-rstep" :disabled="!MAPS_OK" :title="MAPS_OK ? 'Voir sur la carte' : ''" @click="openMap(st.key)">
           <i>{{i + 1}}</i><img v-if="st.icon" :src="st.icon" alt=""><span v-else class="nd-step-ic" v-html="ICONS.uturn"></span>
           <span>{{st.label}} → <b>{{areaName(st.key)}}</b> · {{EXIT[st.key].label}}</span></button>
-        <span class="nd-route-t">puis à pied jusqu'au check</span>
+        <span class="nd-route-t">puis à pied jusqu'{{dockRoute.check ? 'au check' : 'à la sortie'}}</span>
       </div>
       <div v-if="ui.next.open && nextC && nextC.list.length" class="nd-list">
         <button v-for="x in nextC.list" :key="x.c.id" type="button" class="nd-card" :class="{on:dockCheck && dockCheck.c.id === x.c.id}"
