@@ -753,7 +753,9 @@ du jeu vu de dessus (nord en haut).
   « Exporter » télécharge `positions-manuelles.json`, à déposer dans `tools/soh-maps/` (versionné) : `extract_maps.mjs`
   le reprend comme `positions.json` (et l'emporte sur lui). Checks sans lieu dans le monde : Poche de Link à la maison de Link, Cadeau de Rauru
   (Chambre des Sages) au piédestal de l'Épée de Légende.
-- Affichage : zone choisie (`ui.map.area`, sinon celle de la position), onglets si elle a plusieurs scènes ; sol en
+- Affichage : zone choisie (`ui.map.area`, sinon celle de la position ; menu groupé par région — Forêt, Plaine et
+  château, Cocorico, Montagne du Péril, Zoras, Lac Hylia, Désert Gerudo —, chaque donjon avec sa région), onglets si elle
+  a plusieurs scènes ; sol en
   10 teintes par tranches de hauteur réparties selon le terrain présent (quantiles), murs en traits sombres ; un repère
   par position (une porte et l'intérieur derrière partagent un repère), couleur par type ; cadrage sur les repères,
   zoom à la molette et boutons, déplacement en glissant, « tout le terrain ». Hauteur : ce qui reste à l'écran sous la

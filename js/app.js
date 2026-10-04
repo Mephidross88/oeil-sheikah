@@ -1038,6 +1038,22 @@ const App = {
        évidence (« Voir sur la carte ») */
     const MAPS_OK = !!window.MAPS_DATA;
     const mapAreas = AREAS.filter(a => MAP_SCENES[a.id]);
+    // menu des zones de la Carte : par région, chaque donjon avec la région où il se trouve
+    const MAP_REGIONS = [
+      ['Forêt', ['kokiri_forest', 'deku_tree', 'lost_woods', 'sacred_forest_meadow', 'forest_temple']],
+      ['Plaine et château', ['hyrule_field', 'lon_lon_ranch', 'market', 'hyrule_castle', 'ganons_castle']],
+      ['Cocorico', ['kakariko_village', 'bottom_of_the_well', 'graveyard', 'shadow_temple']],
+      ['Montagne du Péril', ['death_mountain_trail', 'dodongos_cavern', 'goron_city', 'death_mountain_crater', 'fire_temple']],
+      ['Zoras', ['zoras_river', 'zoras_domain', 'zoras_fountain', 'jabu_jabus_belly', 'ice_cavern']],
+      ['Lac Hylia', ['lake_hylia', 'water_temple']],
+      ['Désert Gerudo', ['gerudo_valley', 'gerudo_fortress', 'gerudo_training_ground', 'wasteland', 'desert_colossus', 'spirit_temple']],
+    ];
+    const mapGroups = (() => {
+      const has = id => mapAreas.some(a => a.id === id), placed = new Set(MAP_REGIONS.flatMap(r => r[1]));
+      const out = MAP_REGIONS.map(([label, ids]) => ({ label, areas:ids.filter(has).map(id => AREA[id]) })).filter(g => g.areas.length);
+      const rest = mapAreas.filter(a => !placed.has(a.id));
+      return rest.length ? out.concat([{ label:'Autres', areas:rest }]) : out;
+    })();
     const mapFocus = ref(null);
     const mapArea = computed({
       get(){ const k = link.position?.key || ui.router.fromExit; return ui.map.area || (k && EXIT[k] && MAP_SCENES[EXIT[k].areaId] ? EXIT[k].areaId : mapAreas[0]?.id); },
@@ -1066,7 +1082,7 @@ const App = {
       itemVisible, tierLabel, iconSrc, checklistModal, openChecklist, setChecklist, checklistStats,
       tradeModal, openTrade, tradeStats, counterClass,
       TRIALS, trialStatus, cycleTrial, setDungeonFlag, addDungeonKeys, dungeonQuest, dungeonMaxKeys, cycleDungeonQuest, questLabel, questClass, questTitle, keysLabel, dungeonKeyRing, setKeyRing, dungeonKeysDone, keysTitle, brokenIcons,
-      setTheme, startHere, prevStart, backToPrev, liveStart, pickAreas, pickExits, zoneExcludeMode, zoneExclude, hintGroups, hintEdit, hintsC, setHintRead, GOSSIP_STONES, HINT_TYPES, CHECK_AREAS, MAP_SCENES, MAPS_OK, mapAreas, mapFocus, mapArea, openMap, mapHere, mapStart, mapGoal, fmtDur, stFilter, statsC, statsRows, STREAM, STREAM_TYPES, sl, swEdit, swSel, swAdd, swHint, swSelW, streamBg, swBodyStyle, swDown, swMove, swUp, swNew, swDelete, swReset, swImage, openStream, nextStep, swap, route, edgeLabel, edgeIcon, WARP_SONGS, ageLabel, openBackup, copyBackup, importBackup, resetAll, declineSpoiler, savedAt, TYPE_LABEL };
+      setTheme, startHere, prevStart, backToPrev, liveStart, pickAreas, pickExits, zoneExcludeMode, zoneExclude, hintGroups, hintEdit, hintsC, setHintRead, GOSSIP_STONES, HINT_TYPES, CHECK_AREAS, MAP_SCENES, MAPS_OK, mapAreas, mapGroups, mapFocus, mapArea, openMap, mapHere, mapStart, mapGoal, fmtDur, stFilter, statsC, statsRows, STREAM, STREAM_TYPES, sl, swEdit, swSel, swAdd, swHint, swSelW, streamBg, swBodyStyle, swDown, swMove, swUp, swNew, swDelete, swReset, swImage, openStream, nextStep, swap, route, edgeLabel, edgeIcon, WARP_SONGS, ageLabel, openBackup, copyBackup, importBackup, resetAll, declineSpoiler, savedAt, TYPE_LABEL };
   },
   template:`
 ${STREAM_TPL}
@@ -1462,7 +1478,8 @@ ${STREAM_TPL}
           <code>data/maps-data.js</code>. Rechargez ensuite la page.</div></div>
       <template v-else>
         <div class="zmap-bar"><label class="field"><span class="lbl">Zone</span>
-          <select class="sel" v-model="mapArea"><option v-for="a in mapAreas" :key="a.id" :value="a.id">{{a.name}}</option></select></label>
+          <select class="sel" v-model="mapArea"><optgroup v-for="g in mapGroups" :key="g.label" :label="g.label">
+            <option v-for="a in g.areas" :key="a.id" :value="a.id">{{a.name}}</option></optgroup></select></label>
           <button v-if="ui.map.area" type="button" class="btn" @click="mapHere" title="Afficher la zone où vous êtes (position en direct, sinon départ du Routeur)">Ma position</button>
           <div class="field" title="Comme la page Checks : ses filtres (catégories, âge, checks faits masqués, seulement les faisables, recherche). Tous : tous les checks mélangés et non exclus, faits compris. Les checks non mélangés et exclus n’apparaissent jamais."><span class="lbl">Checks</span>
             <seg v-model="ui.map.checks" :options="[['filters','Comme la page Checks'],['all','Tous'],['off','Aucun']]"></seg></div>
