@@ -495,7 +495,8 @@ check) ; règles dans `js/checks.js`.
   Sans départ noté : une sortie d'où l'on y va à pied. Message si aucune sortie connue n'y mène. Checks sur 2 colonnes (1 sur mobile) : icône de catégorie, libellé,
   ☾ / ☀, pastille d'âge, coche ; un clic (gauche) bascule fait / à faire (`game.checks`, stockage creux `{ id: true }`) ; nom SoH
   au survol ; ⊘ au survol pour exclure.
-- **Ignorer une zone** (zones futiles…) : ⊘ dans l'en-tête de la zone, à côté de « Y aller » : exclut d'un coup tous ses
+- **Ignorer une zone** (zones futiles…) : ⊘ dans l'en-tête de la zone, à côté de « Y aller » (et « ⊘ ignorer » /
+  « ↺ réintégrer » sur chaque zone futile du résumé de la page Indices, zone ignorée barrée) : exclut d'un coup tous ses
   checks listés pas encore faits (les checks faits restent comptés) ; « Annuler » dans la notification ; ↺ réintègre
   ses checks exclus. Zone dont tout ce qui reste est exclu (zone ignorée, ou checks tous exclus) : listée seulement avec
   « Afficher les checks exclus » (pour la réintégrer), état « ignorée » (bordure neutre, estompée, message « Zone

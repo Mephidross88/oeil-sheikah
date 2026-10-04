@@ -1470,7 +1470,10 @@ ${STREAM_TPL}
           <span v-for="(f, a) in hintsC.woth" :key="a" class="hs-chip" :title="'Indiqué par : ' + f.join(', ')">{{CHECK_AREA[a]?.label || a}}</span>
           <span v-if="!Object.keys(hintsC.woth).length" class="hs-none">—</span></div>
         <div class="hs-card foolish"><b>Zones futiles</b>
-          <span v-for="(f, a) in hintsC.foolish" :key="a" class="hs-chip" :title="'Indiqué par : ' + f.join(', ')">{{CHECK_AREA[a]?.label || a}}</span>
+          <span v-for="(f, a) in hintsC.foolish" :key="a" class="hs-chip" :class="{ignored:zoneExcludeMode(a) === 'include'}" :title="'Indiqué par : ' + f.join(', ')">{{CHECK_AREA[a]?.label || a}}
+            <button v-if="CHECK_AREA[a] && zoneExcludeMode(a)" type="button" class="hs-ex"
+              :title="zoneExcludeMode(a) === 'exclude' ? 'Ignorer la zone : exclure tous ses checks restants' : 'Réintégrer la zone : ses checks exclus comptent de nouveau'"
+              @click="zoneExclude({ area:CHECK_AREA[a] })">{{zoneExcludeMode(a) === 'exclude' ? '⊘ ignorer' : '↺ réintégrer'}}</button></span>
           <span v-if="!Object.keys(hintsC.foolish).length" class="hs-none">—</span></div>
         <div class="hs-card count"><b>{{Object.keys(store.game.hints).length}} / {{GOSSIP_STONES.length}}</b><span>pierres lues</span></div>
       </div>
