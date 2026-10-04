@@ -110,7 +110,12 @@ function linkHandle(m){
   }
   if (m.type === 'live'){
     const L = m.live;
-    if (store.ui.link.live && !link.foreign) link.live = { ...L, scene:LINK_DATA.scenes[L.sceneNum] || String(L.sceneNum), at:Date.now() };
+    if (!store.ui.link.live || link.foreign) return;
+    link.live = { ...L, scene:LINK_DATA.scenes[L.sceneNum] || String(L.sceneNum), at:Date.now() };
+    // âge en direct (le jeu l'envoie avec la position : 0 adulte, 1 enfant) : il l'emporte sur l'âge déduit
+    const age = L.age === 1 ? 'child' : L.age === 0 ? 'adult' : null;
+    if (age && link.position && link.position.age !== age) linkSetPosition(link.position.key, age);
+    linkLiveStart(link.live);
     return;
   }
   if (m.type === 'liveState') return;
@@ -421,6 +426,32 @@ function linkSetPosition(key, age){
   const r = store.ui.router;
   if (r.fromExit !== key){ r.fromArea = EXIT[key].areaId; r.fromExit = key; }
   if (age) r.fromAge = age;
+}
+
+/* Départ du Routeur en temps réel (options « la position » et « la position en temps réel ») : la sortie la plus proche
+   de Link dans sa scène (positions des sorties de data/maps-data.js, versions vanilla et Master Quest ; pas les sorties
+   placées à leur porte ni les apparitions), à moins de 250 unités de hauteur et 800 de distance ; on ne change que si
+   elle est plus proche de 150 unités que le départ actuel (pas de va-et-vient entre deux sorties voisines). La position
+   (link.position, « dernière entrée ») reste la dernière entrée prise. */
+function linkLiveStart(L){
+  const M = window.MAPS_DATA, r = store.ui.router;
+  if (!M || !store.ui.link.position) return;
+  const dist = k => {
+    let d = Infinity;
+    for (const p of [M.exits[k], M.exitsMq?.[k]]){
+      if (!p || p[0].replace(/_MQ$/, '') !== L.scene || p[4] || Math.abs((p[3] ?? L.y) - L.y) > 250) continue;
+      d = Math.min(d, Math.hypot(p[1] - L.x, p[2] - L.z));
+    }
+    return d;
+  };
+  let best = null;
+  for (const k of new Set([...Object.keys(M.exits), ...Object.keys(M.exitsMq || {})])){
+    if (!EXIT[k] || EXIT[k].areaId === SPAWN_AREA) continue;
+    const d = dist(k);
+    if (d < (best ? best.d : 800)) best = { k, d };
+  }
+  if (!best || best.k === r.fromExit || dist(r.fromExit) < best.d + 150) return;
+  r.fromArea = EXIT[best.k].areaId; r.fromExit = best.k;
 }
 
 // Chargement d'une partie au point d'apparition (apparition enfant / adulte non mélangée : le jeu envoie l'entrée de

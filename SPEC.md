@@ -897,6 +897,10 @@ Suivi en direct d'une partie de Ship of Harkinian, sans modifier le jeu.
   appli connectée, il retire le joueur fictif. Carte : flèche bleue orientée sur un halo, à l'étage de sa hauteur ; la
   carte suit la zone (menu sur sa position), la scène et l'étage de Link tant qu'on n'en choisit pas d'autres ; l'anneau
   « vous êtes ici » (dernière entrée prise) devient continu, « dernière entrée ». Noms des scènes : `LINK_DATA.scenes`.
+  Âge en direct (envoyé avec la position) : il l'emporte sur l'âge déduit (position et départ du Routeur). Départ du
+  Routeur (avec l'option « la position ») : la sortie la plus proche de Link dans sa scène (`linkLiveStart` : à moins de
+  250 unités de hauteur et 800 de distance, pas les sorties placées à leur porte ni les apparitions ; changement
+  seulement si elle est plus proche de 150 unités que le départ actuel) — le Routeur et « Où aller ? » partent de là.
 - **Position** (option « la position », `ui.link.position`) : sortie où l'on vient d'apparaître, d'après l'entrée
   d'arrivée du jeu (`entranceIndex` de l'état du client, `UPDATE_CLIENT_STATE`, envoyé à chaque changement de scène,
   via `EXIT_BY_ARRIVAL`), et âge. Le jeu n'envoie l'âge (`linkAge`) que dans les mises à jour du joueur (`PLAYER_UPDATE`),
