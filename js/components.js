@@ -295,6 +295,8 @@ const mapSceneLabel = (name, both) => {
 };
 // étage d'une hauteur (index dans levels ; null : scène sans étages ou hauteur inconnue)
 const mapLevelOf = (levels, y) => { if (!levels || y == null) return null; const i = levels.findIndex(l => y > l.min); return i < 0 ? levels.length - 1 : i; };
+// Flèches de changement de zone dont le point d'apparition trompe : cap à la main (degrés, 0 = nord, 90 = est…)
+const EXIT_ARROW = { 'market::market_to_templeplaza':90, 'hyrule_castle::castle_to_market':180, 'goron_city::gc_to_lw':157.5 };
 const mapSceneCache = {};
 function mapScene(name, li){
   const key = name + '|' + li;
@@ -398,11 +400,16 @@ const ZoneMap = {
          huitième de tour */
       const ex = this.exitsHere, b = MAPS.scenes[this.cur].bounds, cx = (b[0] + b[2]) / 2, cz = (b[1] + b[3]) / 2, q = Math.PI / 4;
       const angOf = g => {
+        const fix = g.keys.find(k => k in EXIT_ARROW);
+        if (fix) return (EXIT_ARROW[fix] - 90) * Math.PI / 180;
         const k = g.keys.find(k => MAPS.exitRot?.[k] != null), r = k != null && MAPS.exitRot[k] * Math.PI / 0x8000;
         const a = k != null ? Math.atan2(-Math.cos(r), -Math.sin(r)) : Math.atan2(g.z - cz, g.x - cx);
         return Math.round(a / q) * q;
       };
-      return [...groups.values()].map(g => ({ ...g, ang:angOf(g), type:EXIT[g.keys.find(k => !ex[k][4]) || g.keys[0]].type,
+      // arrivées seules (plateformes de téléportation, atterrissage du hibou, arrivée de la rivière) : on ne peut pas les
+      // prendre, masquées — sauf position, arrivée du Routeur ou prochaine sortie
+      const shown = g => g.keys.some(k => !EXIT[k].destinationOnly || k === this.here || k === this.goal || k === this.next);
+      return [...groups.values()].filter(shown).map(g => ({ ...g, ang:angOf(g), type:EXIT[g.keys.find(k => !ex[k][4]) || g.keys[0]].type,
         keys:g.keys.sort((a, b) => (ex[a][4] || 0) - (ex[b][4] || 0)) }));
     },
     here(){ return link.position?.key || store.ui.router.fromExit; },

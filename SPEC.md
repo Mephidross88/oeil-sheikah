@@ -759,12 +759,16 @@ du jeu vu de dessus (nord en haut).
   10 teintes par tranches de hauteur réparties selon le terrain présent (quantiles), murs en traits sombres ; un repère
   par position (une porte et l'intérieur derrière partagent un repère), forme et couleur par type — intérieur : porte
   (arceau), changement de zone : flèche vers l'extérieur de la zone (à l'opposé de l'orientation de Link quand il
-  apparaît à la sortie, `exitRot` ; à défaut du centre de la scène vers le repère ; arrondie au huitième de tour), grotte : rond percé, donjon : écusson, hibou : tête à deux oreilles (les checks
+  apparaît à la sortie, `exitRot` ; à défaut du centre de la scène vers le repère ; arrondie au huitième de tour ;
+  corrigée à la main quand le point d'apparition trompe, `EXIT_ARROW` : vers le temple au Bourg, sortie sud des abords
+  du château, raccourci du tunnel du Village Goron), grotte : rond percé, donjon : écusson, hibou : tête à deux oreilles (les checks
   restent des ronds ; mêmes formes dans la légende) ; cadrage sur les repères,
   zoom à la molette et boutons, déplacement en glissant, « tout le terrain ». Hauteur : ce qui reste à l'écran sous la
   carte, moins la légende et le bandeau du bas (260 px au moins), recalculée au redimensionnement. Mis en évidence : position (auto-tracking,
   sinon départ du Routeur), prochaine sortie à prendre (première transition du trajet), arrivée du Routeur. Clic sur un
   repère : ses sorties, leur destination notée, « Partir d'ici » (départ du Routeur) et « Y aller » (arrivée).
+- Arrivées seules (`destinationOnly` : plateformes de téléportation, atterrissage du hibou, arrivée de la rivière Gerudo)
+  masquées : on ne peut pas les prendre — sauf si c'est la position, l'arrivée du Routeur ou la prochaine sortie.
 - Légende sous la carte : forme et couleur des repères par type (changement de zone doré, intérieur bleu canard, grotte brune, donjon
   violet, hibou beige), anneaux (position, prochaine sortie, arrivée) et dégradé du terrain.
 - « Voir sur la carte » : bouton carte sur chaque carte du trajet du Routeur, et clic sur la prochaine étape du bandeau
