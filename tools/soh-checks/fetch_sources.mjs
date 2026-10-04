@@ -29,7 +29,9 @@ wanted.push('soh/soh/util.cpp', 'soh/soh/Enhancements/randomizer/randomizerEnums
   // noms français des objets et numéros GetItemID (objets reçus)
   'soh/soh/Enhancements/randomizer/item_list.cpp', 'soh/include/z64item.h',
   // grottes : entrées génériques et positions de retour (auto-tracking des entrées)
-  'soh/soh/Enhancements/randomizer/randomizer_grotto.c');
+  'soh/soh/Enhancements/randomizer/randomizer_grotto.c',
+  // cartes des donjons (tools/soh-maps) : étages de chaque donjon (hauteurs limites, noms), numéros des objets (décors mobiles)
+  'soh/src/code/z_map_data.c', 'soh/include/tables/object_table.h');
 
 for (const p of wanted){
   const dest = path.join(SRC, p.startsWith(RANDO) ? p.slice(RANDO.length) : path.basename(p));

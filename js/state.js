@@ -69,6 +69,12 @@ else watch(store, () => {
 /* Disposition de la fenêtre de stream, gardée à part (STREAM_KEY) : fond et blocs { id, type, x, y, w, h?, … } (px).
    base : largeur naturelle du contenu (agrandi ou réduit à la largeur du bloc) ; free : bloc à la taille choisie. */
 const STREAM_KEY = 'oeil-sheikah-stream';
+/* Positions de checks placées à la main sur la Carte (mode « Placer les checks »), gardées à part de la partie (POS_KEY) :
+   { id: { scene: scène affichée (« …_MQ » : Master Quest), x, y, z } } ; exportées en positions-manuelles.json pour
+   tools/soh-maps/extract_maps.mjs. */
+const POS_KEY = 'oeil-sheikah-positions';
+const mapEdits = reactive((() => { try { return JSON.parse(localStorage.getItem(POS_KEY)) || {}; } catch (e) { return {}; } })());
+if (!STREAM_MODE) watch(mapEdits, () => { try { localStorage.setItem(POS_KEY, JSON.stringify(mapEdits)); } catch (e) {} }, { deep:true });
 const STREAM_TYPES = {
   items:{ label:'Objets', base:426, base2:870, init:{ cols:2 } }, progress:{ label:'Progression', base:560 }, next:{ label:'Prochaine étape', base:420 },
   where:{ label:'Où aller maintenant ?', base:420 }, loot:{ label:'Trouvailles', base:426 }, graph:{ label:'Connexions', base:1000 },

@@ -268,7 +268,10 @@ const EntranceGraph = {
    tools/soh-maps/extract_maps.mjs, non versionné) et une repère par sortie (point d'apparition de l'entrée qui y fait
    arriver ; intérieur : à sa porte ; grotte : point de retour ; hibou : position du hibou). Les sorties au même endroit
    (une porte et l'intérieur derrière) partagent un repère. Mis en évidence : position (auto-tracking, sinon départ du
-   Routeur), arrivée du Routeur, prochaine sortie à prendre. Clic sur un repère : en faire le départ ou l'arrivée. */
+   Routeur), arrivée du Routeur, prochaine sortie à prendre. Clic sur un repère : en faire le départ ou l'arrivée.
+   Donjons : scène du donjon (version Master Quest « …_MQ » selon la version du donjon, si la ROM MQ a été fournie ; les
+   deux si elle est inconnue) et salle du boss ; étages du jeu (levels : on est à l'étage i au-dessus de sa hauteur min),
+   un à la fois, avec le nombre de checks à faire par étage ; repères placés selon leur hauteur. */
 const MAPS = window.MAPS_DATA || null;
 const MAP_BANDS = 10;   // tranches de hauteur (une teinte et un tracé chacune)
 // scènes de chaque zone, de la plus fournie en sorties à la moins fournie
@@ -279,45 +282,100 @@ if (MAPS) for (const [key, p] of Object.entries(MAPS.exits)){
   const m = MAP_SCENES[a] = MAP_SCENES[a] || {};
   m[p[0]] = (m[p[0]] || 0) + 1;
 }
-for (const a of Object.keys(MAP_SCENES)) MAP_SCENES[a] = Object.entries(MAP_SCENES[a]).sort((x, y) => y[1] - x[1]).map(x => x[0]);
+// (donjon d'abord, salle du boss ensuite)
+for (const a of Object.keys(MAP_SCENES)) MAP_SCENES[a] = Object.entries(MAP_SCENES[a])
+  .sort((x, y) => (MAPS.scenes[x[0]]?.kind === 'boss') - (MAPS.scenes[y[0]]?.kind === 'boss') || y[1] - x[1]).map(x => x[0]);
 const MAP_SCENE_LABEL = { MARKET_ENTRANCE_DAY:'Entrée du bourg', MARKET_DAY:'Place du marché', TEMPLE_OF_TIME_EXTERIOR_DAY:'Parvis du temple',
-  BACK_ALLEY_DAY:'Ruelle', HYRULE_CASTLE:'Château (enfant)', OUTSIDE_GANONS_CASTLE:'Château de Ganon (adulte)' };
+  BACK_ALLEY_DAY:'Ruelle', HYRULE_CASTLE:'Château (enfant)', OUTSIDE_GANONS_CASTLE:'Château de Ganon (adulte)',
+  INSIDE_GANONS_CASTLE:'Château', GANONS_TOWER:'Tour', TEMPLE_OF_TIME:'Temple du Temps' };
+const mapSceneLabel = (name, both) => {
+  const s = MAPS.scenes[name], base = name.replace(/_MQ$/, '');
+  const label = MAP_SCENE_LABEL[base] || (s?.kind === 'boss' ? 'Salle du boss' : s?.kind === 'dungeon' ? 'Donjon' : name);
+  return both && s?.kind === 'dungeon' ? label + (s.mq ? ' (Master Quest)' : ' (vanilla)') : label;
+};
+// étage d'une hauteur (index dans levels ; null : scène sans étages ou hauteur inconnue)
+const mapLevelOf = (levels, y) => { if (!levels || y == null) return null; const i = levels.findIndex(l => y > l.min); return i < 0 ? levels.length - 1 : i; };
 const mapSceneCache = {};
-function mapScene(name){
-  if (mapSceneCache[name]) return mapSceneCache[name];
-  const s = MAPS.scenes[name], f = s.floors, paths = Array.from({ length:MAP_BANDS }, () => []);
+function mapScene(name, li){
+  const key = name + '|' + li;
+  if (mapSceneCache[key]) return mapSceneCache[key];
+  const s = MAPS.scenes[name], f0 = s.floors, paths = Array.from({ length:MAP_BANDS }, () => []);
+  // étage : sol dont la hauteur est dans sa tranche, murs qui la traversent
+  const lv = s.levels && li != null ? s.levels[li] : null, top = lv && li > 0 ? s.levels[li - 1].min : Infinity;
+  const inLevel = y => !lv || y > lv.min && y <= top;
+  let f = f0;
+  if (lv){ f = []; for (let i = 0; i < f0.length; i += 7) if (inLevel(f0[i + 6])) f.push(...f0.slice(i, i + 7)); }
   // tranches de hauteur par quantiles (autant de sol dans chacune) : contraste là où il y a du terrain
   const hs = []; for (let i = 6; i < f.length; i += 7) hs.push(f[i]);
   hs.sort((a, c) => a - c);
   const cuts = Array.from({ length:MAP_BANDS - 1 }, (_, k) => hs[Math.floor((k + 1) * hs.length / MAP_BANDS)]);
+  let x0 = Infinity, z0 = Infinity, x1 = -Infinity, z1 = -Infinity;
   for (let i = 0; i < f.length; i += 7){
     let b = 0; while (b < cuts.length && f[i + 6] > cuts[b]) b++;
     paths[b].push(`M${f[i]} ${f[i + 1]}L${f[i + 2]} ${f[i + 3]}L${f[i + 4]} ${f[i + 5]}Z`);
+    for (let k = 0; k < 6; k += 2){ x0 = Math.min(x0, f[i + k]); x1 = Math.max(x1, f[i + k]); z0 = Math.min(z0, f[i + k + 1]); z1 = Math.max(z1, f[i + k + 1]); }
   }
   let walls = '';
-  for (let i = 0; i < s.walls.length; i += 4) walls += `M${s.walls[i]} ${s.walls[i + 1]}L${s.walls[i + 2]} ${s.walls[i + 3]}`;
-  const [x0, z0, x1, z1] = s.bounds, pad = Math.max(x1 - x0, z1 - z0) * 0.03;
-  return (mapSceneCache[name] = { bands:paths.map(p => p.join('')), walls, view:[x0 - pad, z0 - pad, x1 - x0 + 2 * pad, z1 - z0 + 2 * pad],
+  for (let i = 0, j = 0; i < s.walls.length; i += 4, j += 2){
+    if (lv && !(s.wallsY[j + 1] > lv.min && s.wallsY[j] <= top)) continue;
+    walls += `M${s.walls[i]} ${s.walls[i + 1]}L${s.walls[i + 2]} ${s.walls[i + 3]}`;
+  }
+  if (!lv || !isFinite(x0)) [x0, z0, x1, z1] = s.bounds;
+  const pad = Math.max(x1 - x0, z1 - z0) * 0.03;
+  return (mapSceneCache[key] = { bands:paths.map(p => p.join('')), walls, view:[x0 - pad, z0 - pad, x1 - x0 + 2 * pad, z1 - z0 + 2 * pad],
     unit:Math.max(x1 - x0, z1 - z0) / 110 });
 }
 const ZoneMap = {
   props:['area', 'focus'],   // focus : sortie à mettre en évidence (« Voir sur la carte »)
   emits:['start', 'goal', 'go-check'],
-  data:() => ({ scene:null, sel:null, hover:null, view:null, drag:null, maxH:null, csel:null, showOff:false }),
+  data:() => ({ scene:null, level:null, sel:null, hover:null, view:null, drag:null, maxH:null, csel:null, showOff:false,
+    edit:false, pick:{} }),   // edit : mode « Placer les checks » ; pick : checks cochés, à placer au prochain clic
   computed:{
-    scenes(){ return MAP_SCENES[this.area] || []; },
+    // version du donjon (MQ, Vanilla, '' : inconnue) ; scènes : version Master Quest selon elle (les deux si inconnue)
+    quest(){ const a = CHECK_AREA[String(this.area).toUpperCase()]; return a && a.dungeon ? areaQuest(a.id) : null; },
+    scenes(){
+      const out = [];
+      for (const n of MAP_SCENES[this.area] || []){
+        const mq = MAPS.scenes[n + '_MQ'] ? n + '_MQ' : null;
+        if (this.quest === 'MQ' && mq) out.push(mq);
+        else { out.push(n); if ((this.quest === '' || this.edit) && mq) out.push(mq); }   // (mode édition : les deux versions)
+      }
+      return out;
+    },
+    bothVersions(){ return this.scenes.some(n => MAPS.scenes[n]?.mq) && this.scenes.some(n => MAPS.scenes[n]?.kind === 'dungeon' && !MAPS.scenes[n].mq); },
+    // donjon Master Quest sans carte Master Quest (ROM MQ non fournie) : carte vanilla, prévenir
+    mqMissing(){ return this.quest === 'MQ' && MAPS.scenes[this.cur]?.kind === 'dungeon' && !MAPS.scenes[this.cur].mq; },
     cur(){ return this.scenes.includes(this.scene) ? this.scene : this.scenes[0]; },
-    geo(){ return this.cur ? mapScene(this.cur) : null; },
-    // repères : sorties de la zone dans cette scène, regroupées par position
+    isMq(){ return !!MAPS.scenes[this.cur]?.mq; },
+    exitsHere(){ return this.isMq ? MAPS.exitsMq || {} : MAPS.exits; },
+    levels(){ return MAPS.scenes[this.cur]?.levels || null; },
+    // étage affiché : choisi, sinon celui où l'on est (position dans cette scène), sinon celui de l'entrée
+    lvl(){
+      if (!this.levels) return null;
+      if (this.level != null && this.level < this.levels.length) return this.level;
+      const at = [this.here, ...Object.keys(this.exitsHere)].map(k => k && this.exitsHere[k]).find(p => p && p[0] === this.cur && p[3] != null);
+      return at ? mapLevelOf(this.levels, at[3]) : this.levels.length - 1;
+    },
+    geo(){ return this.cur ? mapScene(this.cur, this.lvl) : null; },
+    // checks à faire par étage (pastilles du sélecteur d'étage)
+    levelTodo(){
+      if (!this.levels) return [];
+      const n = this.levels.map(() => 0);
+      for (const x of this.checkList){ const p = this.checkAt(x.c.id); if (p && !x.done){ const i = mapLevelOf(this.levels, p[3]); if (i != null) n[i]++; } }
+      return n;
+    },
+    hereLevel(){ const p = this.here && this.exitsHere[this.here]; return p && p[0] === this.cur ? mapLevelOf(this.levels, p[3]) : null; },
+    // repères : sorties de la zone dans cette scène (et à cet étage), regroupées par position
     marks(){
       const groups = new Map();
-      for (const [key, p] of Object.entries(MAPS.exits)){
-        if (p[0] !== this.cur || EXIT[key]?.areaId !== this.area) continue;
+      for (const [key, p] of Object.entries(this.exitsHere)){
+        if (p[0] !== this.cur || EXIT[key]?.areaId !== this.area || !this.onLevel(p[3])) continue;
         const id = p[1] + ',' + p[2], g = groups.get(id) || { id, x:p[1], z:p[2], keys:[] };
         g.keys.push(key); groups.set(id, g);
       }
-      return [...groups.values()].map(g => ({ ...g, type:EXIT[g.keys.find(k => !MAPS.exits[k][4]) || g.keys[0]].type,
-        keys:g.keys.sort((a, b) => (MAPS.exits[a][4] || 0) - (MAPS.exits[b][4] || 0)) }));
+      const ex = this.exitsHere;
+      return [...groups.values()].map(g => ({ ...g, type:EXIT[g.keys.find(k => !ex[k][4]) || g.keys[0]].type,
+        keys:g.keys.sort((a, b) => (ex[a][4] || 0) - (ex[b][4] || 0)) }));
     },
     here(){ return link.position?.key || store.ui.router.fromExit; },
     goal(){ return store.ui.router.toExit; },
@@ -372,38 +430,71 @@ const ZoneMap = {
     checkMarks(){
       const out = [], groups = new Map();
       for (const x of this.checkList){
+        const at = this.checkAt(x.c.id);
+        if (at){ if (this.onLevel(at[3])) out.push({ t:'c', id:'c:' + x.c.id, x:at[1], z:at[2], ...x }); continue; }
+        // check placé dans une autre scène d'extérieur : pas ici ; sinon (intérieur, grotte, donjon) à la porte de son lieu
         const p = MAPS.checks[x.c.id];
-        if (p){ if (p[0] === this.cur) out.push({ t:'c', id:'c:' + x.c.id, x:p[1], z:p[2], ...x }); continue; }
+        if (p && !MAPS.scenes[p[0]]?.kind) continue;
         const place = MAPS.places[x.c.id], door = place && this.doors[place];
         if (!door || door[0] !== this.cur) continue;
         const g = groups.get(place) || { t:'p', id:'p:' + place, place, x:door[1], z:door[2], list:[] };
         g.list.push(x); groups.set(place, g);
       }
+      // checks au même point (objet dans une caisse…) : écartés en cercle, pour les voir et les cliquer tous
+      const stack = new Map();
+      for (const m of out){ const k = m.x + ',' + m.z; if (!stack.has(k)) stack.set(k, []); stack.get(k).push(m); }
+      for (const g of stack.values()) if (g.length > 1) g.forEach((m, i) => {
+        const a = 2 * Math.PI * i / g.length - Math.PI / 2;
+        m.x += Math.cos(a) * this.unit * 0.9; m.z += Math.sin(a) * this.unit * 0.9;
+      });
       return out.concat([...groups.values()].map(g => ({ ...g, todo:g.list.filter(x => !x.done).length, now:g.list.some(x => !x.done && x.now) })));
     },
     stoneMarks(){
       if (!store.ui.map.stones || !MAPS.checks) return [];
       return GOSSIP_STONES.map(s => {
-        const p = MAPS.checks[s.rc], place = !p && MAPS.places[s.rc], door = place && this.doors[place], at = p || door;
-        return at && at[0] === this.cur ? { t:'s', id:'s:' + s.id, x:at[1], z:at[2], s, inside:!p, read:!!store.game.hints[s.id] } : null;
+        // dans cette scène (version Master Quest ou vanilla), à l'étage affiché ; sinon à la porte de son lieu
+        const here = [MAPS.checksMq?.[s.rc], MAPS.checks[s.rc]].find(q => q && q[0] === this.cur);
+        if (here) return this.onLevel(here[3]) ? { t:'s', id:'s:' + s.id, x:here[1], z:here[2], s, inside:false, read:!!store.game.hints[s.id] } : null;
+        const p = MAPS.checks[s.rc], place = !p && MAPS.places[s.rc], door = place && this.doors[place];
+        return door && door[0] === this.cur ? { t:'s', id:'s:' + s.id, x:door[1], z:door[2], s, inside:true, read:!!store.game.hints[s.id] } : null;
       }).filter(Boolean);
     },
     // checks de la zone sans repère : sans position connue, ou derrière une entrée pas encore notée
     offList(){
       const area = String(this.area).toUpperCase(), noPos = [], hidden = [];
       for (const x of this.checkList){
-        if (x.c.area !== area || MAPS.checks[x.c.id]) continue;
+        if (x.c.area !== area || MAPS.checks[x.c.id] || MAPS.checksMq?.[x.c.id] || mapEdits[x.c.id]) continue;
         const place = MAPS.places[x.c.id];
-        if (!place) noPos.push(x); else if (!this.doors[place]) hidden.push(x);
+        // donjon : sa carte montre l'intérieur, un check sans position y est « sans position »
+        if (!place || CHECK_AREA[area]?.dungeon) noPos.push(x); else if (!this.doors[place]) hidden.push(x);
       }
       return { noPos, hidden };
     },
+    /* Mode « Placer les checks » : checks de la zone sans position (ni placés par l'outil, ni rattachés à un lieu non
+       dessiné ; version du donjon affichée), pas encore placés à la main ; et ceux placés à la main dans la zone. */
+    editList(){
+      if (!this.edit) return [];
+      const area = String(this.area).toUpperCase(), mq = !!MAPS.scenes[this.cur]?.mq, dungeon = !!CHECK_AREA[area]?.dungeon;
+      return (CHECKS_BY_AREA[area] || []).filter(c => {
+        if (mapEdits[c.id] || MAPS.checks[c.id] || MAPS.checksMq?.[c.id]) return false;
+        if (c.quest === (mq ? 'V' : 'M') && dungeon) return false;
+        const place = MAPS.places[c.id], at = place && MAPS.exits[place];
+        return !place || dungeon || !!(at && MAPS.scenes[at[0]]?.kind);
+      });
+    },
+    editPlaced(){
+      const area = String(this.area).toUpperCase();
+      return Object.entries(mapEdits).filter(([id]) => CHECK_BY_ID[id]?.area === area).map(([id, p]) => ({ c:CHECK_BY_ID[id], p }));
+    },
+    // repères des checks placés à la main, dans cette scène et à cet étage (visibles en mode édition)
+    editMarks(){ return this.edit ? this.editPlaced.filter(x => x.p.scene === this.cur && this.onLevel(x.p.y)) : []; },
+    picked(){ return Object.keys(this.pick).filter(id => this.pick[id]); },
     cselMark(){ return this.csel && [...this.checkMarks, ...this.stoneMarks].find(m => m.id === this.csel) || null; },
     // cadrage par défaut : les repères de la scène (avec une marge), pas tout le terrain
     fit(){
       if (!this.geo) return null;
       const g = this.geo.view, ms = this.marks;
-      if (ms.length < 2) return g;
+      if (ms.length < 2 || MAPS.scenes[this.cur]?.kind) return g;   // donjon : tout l'étage
       const xs = ms.map(m => m.x), zs = ms.map(m => m.z), min = Math.max(g[2], g[3]) * 0.22;
       let w = Math.max(...xs) - Math.min(...xs), h = Math.max(...zs) - Math.min(...zs);
       const cx = (Math.max(...xs) + Math.min(...xs)) / 2, cz = (Math.max(...zs) + Math.min(...zs)) / 2;
@@ -414,12 +505,62 @@ const ZoneMap = {
     unit(){ return this.vb ? Math.max(this.vb[2], this.vb[3]) / 110 : 1; },   // taille des repères : constante à l'écran
   },
   watch:{
-    focus:{ immediate:true, handler(k){ const p = k && MAPS?.exits[k]; if (p){ this.scene = p[0]; this.sel = p[1] + ',' + p[2]; } } },
-    area(){ this.scene = null; this.sel = null; this.view = null; },
+    focus:{ immediate:true, handler(k){
+      const p = k && MAPS && ((this.isMq && MAPS.exitsMq?.[k]) || MAPS.exits[k]);
+      if (!p) return;
+      const mq = MAPS.exitsMq?.[k];
+      const at = mq && this.scenes.includes(mq[0]) ? mq : p;
+      this.scene = at[0]; this.level = mapLevelOf(MAPS.scenes[at[0]]?.levels, at[3]); this.sel = at[1] + ',' + at[2];
+    } },
+    area(){ this.scene = null; this.level = null; this.sel = null; this.view = null; },
     cur(){ this.view = null; },
+    lvl(){ this.view = null; this.csel = null; },
   },
   methods:{
     has(m, k){ return !!k && m.keys.includes(k); },
+    // position d'un check dans la scène affichée (version Master Quest ou vanilla), sinon null
+    checkAt(id){
+      const e = mapEdits[id];
+      if (e) return e.scene === this.cur ? [e.scene, e.x, e.z, e.y] : null;
+      return [MAPS.checksMq?.[id], MAPS.checks[id]].find(q => q && q[0] === this.cur) || null;
+    },
+    // hauteur du sol sous un point (étage affiché ; le plus haut s'il y en a plusieurs), null hors du sol
+    floorY(x, z){
+      const s = MAPS.scenes[this.cur], f = s.floors, lv = this.levels && this.levels[this.lvl], top = lv && this.lvl > 0 ? this.levels[this.lvl - 1].min : Infinity;
+      let best = null;
+      for (let i = 0; i < f.length; i += 7){
+        const y = f[i + 6];
+        if (lv && !(y > lv.min && y <= top)) continue;
+        const d = (ax, az, bx, bz) => (x - bx) * (az - bz) - (ax - bx) * (z - bz);
+        const d1 = d(f[i], f[i + 1], f[i + 2], f[i + 3]), d2 = d(f[i + 2], f[i + 3], f[i + 4], f[i + 5]), d3 = d(f[i + 4], f[i + 5], f[i], f[i + 1]);
+        if ((d1 < 0 || d2 < 0 || d3 < 0) && (d1 > 0 || d2 > 0 || d3 > 0)) continue;
+        if (best == null || y > best) best = y;
+      }
+      return best;
+    },
+    // place les checks cochés au point cliqué
+    placeAt(ev){
+      const [x, z] = this.toWorld(ev), lv = this.levels && this.levels[this.lvl];
+      let y = this.floorY(x, z);
+      if (y == null && lv) y = lv.min + 1;
+      for (const id of this.picked) mapEdits[id] = { scene:this.cur, x:Math.round(x), y:y == null ? null : Math.round(y), z:Math.round(z) };
+      this.pick = {};
+    },
+    unplace(id){ delete mapEdits[id]; },
+    movePlaced(id){ this.pick = { [id]:true }; },
+    // positions placées à la main → positions-manuelles.json (scène sans « _MQ » : la version vient du check)
+    exportEdits(){
+      const out = {};
+      for (const id of Object.keys(mapEdits).sort()){ const e = mapEdits[id]; out[id] = { scene:e.scene.replace(/_MQ$/, ''), x:e.x, y:e.y, z:e.z }; }
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([JSON.stringify(out, null, 1) + '\n'], { type:'application/json' }));
+      a.download = 'positions-manuelles.json'; a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    },
+    clearEdits(){ if (confirm('Effacer toutes les positions placées à la main (toutes zones) ?')) for (const k of Object.keys(mapEdits)) delete mapEdits[k]; },
+    sceneName(s){ const l = mapSceneLabel(s, true); return l === s ? '' : l; },   // (scène d'extérieur sans libellé : rien)
+    onLevel(y){ const i = mapLevelOf(this.levels, y); return i == null || i === this.lvl; },
+    setScene(s){ this.scene = s; this.level = null; this.sel = null; },
     dest(k){ const t = effC.value[k]; return t && EXIT[t] ? AREA[EXIT[t].areaId].name + ' · ' + EXIT[t].label : null; },
     title(m){ return m.keys.map(k => EXIT[k].label + (this.dest(k) ? ' → ' + this.dest(k) : '')).join('\n'); },
     pick(m){ this.sel = this.sel === m.id ? null : m.id; this.csel = null; },
@@ -441,7 +582,10 @@ const ZoneMap = {
     move(ev){ const d = this.drag; if (!d) return; const dx = ev.clientX - d.sx, dy = ev.clientY - d.sy;
       if (Math.abs(dx) + Math.abs(dy) > 3) d.moved = true;
       if (d.moved) this.view = [d.v[0] - dx * d.k, d.v[1] - dy * d.k, d.v[2], d.v[3]]; },
-    up(){ const d = this.drag; this.drag = null; if (d && !d.moved){ this.sel = null; this.csel = null; } },
+    up(ev){
+      const d = this.drag; this.drag = null;
+      if (d && !d.moved){ if (this.edit && this.picked.length) this.placeAt(ev); else { this.sel = null; this.csel = null; } }
+    },
     // hauteur de la carte : ce qui reste à l'écran sous son haut de page, moins la légende et le bandeau du bas
     fitHeight(){
       const svg = this.$refs.svg;
@@ -452,11 +596,18 @@ const ZoneMap = {
     },
   },
   template:`<div class="zmap">
-    <div v-if="scenes.length > 1" class="zmap-tabs"><button v-for="s in scenes" :key="s" type="button" :class="{on:s===cur}" @click="scene=s; sel=null">{{MAP_SCENE_LABEL[s] || s}}</button></div>
-    <div v-if="!geo" class="zmap-empty">Pas de carte pour cette zone (donjon ou intérieur).</div>
-    <div v-else class="zmap-frame">
-      <svg ref="svg" :viewBox="vb.join(' ')" :style="maxH ? { maxHeight:maxH + 'px' } : null" class="zmap-svg" :class="{dragging:drag && drag.moved}" @wheel.prevent="wheel"
-        @pointerdown="down" @pointermove="move" @pointerup="up" @pointerleave="drag=null">
+    <div class="zmap-top"><div v-if="scenes.length > 1" class="zmap-tabs"><button v-for="s in scenes" :key="s" type="button" :class="{on:s===cur}" @click="setScene(s)">{{mapSceneLabel(s, bothVersions)}}</button></div>
+      <button type="button" class="btn zmap-edit-btn" :class="{on:edit}" @click="edit = !edit; pick = {}" title="Placer à la main les checks qui n'ont pas de position">✎ Placer les checks</button></div>
+    <div v-if="mqMissing" class="zmap-note">Ce donjon est en version Master Quest : carte vanilla affichée (salles identiques, checks
+      absents). Pour la carte Master Quest, régénérer les cartes avec la ROM Master Quest (option --mq de tools/soh-maps/extract_maps.mjs).</div>
+    <div v-else-if="quest === '' && bothVersions" class="zmap-note">Version du donjon inconnue : cartes vanilla et Master Quest.</div>
+    <div v-else-if="edit && bothVersions" class="zmap-note">Mode « Placer les checks » : cartes vanilla et Master Quest, quelle que soit la version du donjon.</div>
+    <div v-if="!geo" class="zmap-empty">Pas de carte pour cette zone (intérieur).</div>
+    <div v-else class="zmap-body" :class="{editing:edit}"><div class="zmap-frame">
+      <div v-if="levels" class="zmap-levels"><button v-for="(l,i) in levels" :key="i" type="button" :class="{on:i===lvl, here:i===hereLevel}" @click="level=i"
+        :title="'Étage ' + l.n + (levelTodo[i] ? ' — ' + levelTodo[i] + ' check' + (levelTodo[i] > 1 ? 's' : '') + ' à faire' : '') + (i===hereLevel ? ' — vous êtes ici' : '')">{{l.n}}<i v-if="levelTodo[i]">{{levelTodo[i]}}</i></button></div>
+      <svg ref="svg" :viewBox="vb.join(' ')" :style="maxH ? { maxHeight:maxH + 'px' } : null" class="zmap-svg" :class="{dragging:drag && drag.moved, placing:edit && picked.length}" @wheel.prevent="wheel"
+        @pointerdown="down" @pointermove="move" @pointerup="up($event)" @pointerleave="drag=null">
         <path v-for="(d,i) in geo.bands" :key="i" :d="d" :fill="bandColor(i)" :stroke="bandColor(i)" :stroke-width="unit * 0.12"></path>
         <path :d="geo.walls" class="zmap-walls" :stroke-width="unit * 0.35"></path>
         <g v-for="m in checkMarks" :key="m.id" class="zc" :class="[m.t === 'p' ? 'zc-place' : 'zc-check', {done:m.t === 'c' ? m.done : !m.todo, now:m.now, sel:csel===m.id}]"
@@ -467,6 +618,9 @@ const ZoneMap = {
             <text :x="m.x + unit * 2.5" :y="m.z - unit * 1.75" :font-size="unit * 1.4">{{m.todo}}</text>
             <title>{{placeName(m.place)}} : {{m.todo}} check{{m.todo > 1 ? 's' : ''}} à faire sur {{m.list.length}}</title></template>
         </g>
+        <g v-for="x in editMarks" :key="'e:' + x.c.id" class="ze-mark" :class="{moving:pick[x.c.id]}">
+          <rect :x="x.p.x - unit * 0.9" :y="x.p.z - unit * 0.9" :width="unit * 1.8" :height="unit * 1.8" :rx="unit * 0.3"></rect>
+          <title>{{x.c.label}} (placé à la main)</title></g>
         <g v-for="m in stoneMarks" :key="m.id" class="zs" :class="{read:m.read, sel:csel===m.id}" @pointerdown.stop @click.stop="cpick(m)"
           :transform="'translate(' + (m.x + (m.inside ? -unit * 2.4 : 0)) + ' ' + (m.z + (m.inside ? -unit * 2.2 : 0)) + ') rotate(45)'">
           <rect :x="-unit * 0.75" :y="-unit * 0.75" :width="unit * 1.5" :height="unit * 1.5"></rect>
@@ -508,6 +662,24 @@ const ZoneMap = {
         </div>
       </div>
     </div>
+    <div v-if="edit" class="zmap-edit">
+      <div class="ze-head"><b>Placer les checks sans position</b>
+        <span class="muted">Cochez un ou plusieurs checks, puis cliquez sur la carte à leur emplacement{{levels ? ' (à l’étage affiché)' : ''}}.</span>
+        <span class="ze-btns"><button type="button" class="btn" :disabled="!Object.keys(mapEdits).length" @click="exportEdits" title="Télécharge positions-manuelles.json, à déposer dans tools/soh-maps/">Exporter ({{Object.keys(mapEdits).length}})</button>
+          <button type="button" class="btn" :disabled="!Object.keys(mapEdits).length" @click="clearEdits">Tout effacer</button></span></div>
+      <div class="ze-cols">
+        <div><h4>À placer <small>{{editList.length}}</small></h4>
+          <p v-if="!editList.length" class="muted">Rien à placer dans cette zone{{MAPS.scenes[cur]?.mq ? ' (version Master Quest)' : ''}}.</p>
+          <label v-for="c in editList" :key="c.id" class="check ze-row"><input type="checkbox" v-model="pick[c.id]"><img :src="CHECK_CAT[c.cat].icon" alt="">{{c.label}}
+            <small v-if="c.quest === 'M'">MQ</small></label></div>
+        <div><h4>Placés à la main <small>{{editPlaced.length}}</small></h4>
+          <p v-if="!editPlaced.length" class="muted">Aucun pour l’instant.</p>
+          <div v-for="x in editPlaced" :key="x.c.id" class="ze-row" :class="{moving:pick[x.c.id]}"><img :src="CHECK_CAT[x.c.cat].icon" alt="">
+            <span>{{x.c.label}} <small v-if="sceneName(x.p.scene)">· {{sceneName(x.p.scene)}}</small></span>
+            <button type="button" class="linklike" @click="movePlaced(x.c.id)">{{pick[x.c.id] ? 'cliquez sur la carte' : 'déplacer'}}</button>
+            <button type="button" class="linklike" @click="unplace(x.c.id)">retirer</button></div></div>
+      </div>
+    </div></div>
     <div v-if="offList.noPos.length || offList.hidden.length" class="zmap-off">
       <button type="button" class="link" @click="showOff = !showOff">{{offList.noPos.length ? offList.noPos.length + ' check' + (offList.noPos.length > 1 ? 's' : '') + ' sans position' : ''}}{{offList.noPos.length && offList.hidden.length ? ' · ' : ''}}{{offList.hidden.length ? offList.hidden.length + ' derrière une entrée pas encore notée' : ''}}</button>
       <ul v-if="showOff"><li v-for="x in [...offList.noPos, ...offList.hidden]" :key="x.c.id" :class="{done:x.done, now:x.now}">
@@ -523,5 +695,5 @@ const ZoneMap = {
   mounted(){ this.$nextTick(this.fitHeight); this.onResize = () => this.fitHeight(); window.addEventListener('resize', this.onResize); },
   updated(){ if (!this.maxH) this.$nextTick(this.fitHeight); },
   unmounted(){ window.removeEventListener('resize', this.onResize); },
-  setup(){ return { EXIT, MAP_SCENE_LABEL, CHECK_CAT, ICONS }; },
+  setup(){ return { EXIT, mapSceneLabel, CHECK_CAT, ICONS, MAPS, mapEdits }; },
 };

@@ -61,7 +61,8 @@ et le mettre à jour quand une règle change.
      `checkListed`, `setCheck`, `setExcluded`, `whyLocked` (ce qui manque pour un check : objets au plus juste, entrée à
      découvrir ou jamais), les indices des pierres (`game.hints`, `setHintRead`, synthèse `hintsC`),
      et la chronologie de la partie (`game.timeline`, `game.runStart`, observateur synchrone,
-     `timelineQuiet` / `timelineSkip`, `itemIconAt` / `itemLabelAt`).
+     `timelineQuiet` / `timelineSkip`, `itemIconAt` / `itemLabelAt`), et `mapEdits` (positions de checks placées à la main
+     sur la Carte, localStorage `oeil-sheikah-positions`, exportées en `positions-manuelles.json`).
   8b. `js/link.js` : auto-tracking — connexion (EventSource) au relais local `tools/soh-link/relay.mjs`, état `link`
      (statut, journal), `linkApply` (paquets du jeu → partie : checks, `linkSaveToGame` sauvegarde SoH → panneau
      Objets, position → départ du Routeur, objet trouvé par check, trouvailles, entrées notées via `setMapping` — question au joueur si l'arrivée est ambiguë, `link.ask` —, sauvegarde suivie
@@ -97,10 +98,14 @@ et le mettre à jour quand une règle change.
   notées et, à chaque sphère, les régions atteintes par le Routeur à celles de la logique, voir SPEC.md > Logique Ship of
   Harkinian ; à relancer après toute modification de `js/logic.js`, de la
   conversion, des règles d'entrées ou de `areas-data.js`).
-- `tools/soh-maps/extract_maps.mjs` : cartes de la page Carte depuis la ROM de l'utilisateur (NTSC 1.0 décompressée,
-  hors dépôt) — scènes d'OoT (points d'apparition, liste des entrées, collision, acteurs des salles, toutes versions) + tables
+- `tools/soh-maps/extract_maps.mjs` : cartes de la page Carte depuis la ROM de l'utilisateur (compressée ou non, décompressée
+  par l'outil ; `--mq=` ROM Master Quest pour les donjons MQ ; hors dépôt) — scènes d'OoT (points d'apparition, liste des entrées, collision, acteurs des salles, toutes versions) + tables
   des entrées, scènes et acteurs de SoH et définitions des checks (`tools/soh-checks/src`), logique (`logic-data.js`) :
-  sol, position des sorties, des checks et des pierres d'extérieur, lieu des autres (intérieur, grotte, donjon) →
+  sol, position des sorties, des checks et des pierres d'extérieur et des donjons (étages : `z_map_data.c` de SoH), lieu
+  des autres (intérieur, grotte, donjon), positions placées à la main (`tools/soh-maps/positions-manuelles.json`, exporté par
+  la Carte) ou notées en jouant (`tools/soh-maps/positions.json`, versionnés ; ce dernier écrit par
+  `tools/soh-maps/capture_positions.mjs` / `lancer-capture.bat` : faux serveur Anchor qui déclare un second joueur pour
+  recevoir la position de Link) →
   `data/maps-data.js`, **généré et non versionné** (chargé par `index.html`,
   absent par défaut : la page Carte l'explique).
 - `tools/soh-link/replay_packets.mjs` : test de l'auto-tracking — rejoue une partie enregistrée par le relais

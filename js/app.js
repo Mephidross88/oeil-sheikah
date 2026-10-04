@@ -1457,8 +1457,9 @@ ${STREAM_TPL}
         <button type="button" title="Fermer ce panneau" v-html="ICONS.close" @click="closeSide"></button></div>
       <div class="page-head"><h1>Carte</h1><p class="lede">Où se trouve chaque sortie, zone par zone, sur le terrain du jeu vu de dessus (nord en haut).</p></div>
       <div v-if="!MAPS_OK" class="warn-box"><span class="warn-box-ic" v-html="ICONS.warn"></span>
-        <div><b>Cartes non générées.</b> Elles se fabriquent depuis votre propre cartouche : <code>node tools/soh-maps/extract_maps.mjs &lt;ROM décompressée .z64&gt;</code>
-          (NTSC 1.0), qui écrit <code>data/maps-data.js</code>. Rechargez ensuite la page.</div></div>
+        <div><b>Cartes non générées.</b> Elles se fabriquent depuis votre propre cartouche : <code>node tools/soh-maps/extract_maps.mjs &lt;ROM .z64&gt; [--mq=&lt;ROM Master Quest .z64&gt;]</code>
+          (compressée ou non ; la ROM Master Quest, facultative, donne les cartes des donjons Master Quest), qui écrit
+          <code>data/maps-data.js</code>. Rechargez ensuite la page.</div></div>
       <template v-else>
         <div class="zmap-bar"><label class="field"><span class="lbl">Zone</span>
           <select class="sel" v-model="mapArea"><option v-for="a in mapAreas" :key="a.id" :value="a.id">{{a.name}}</option></select></label>

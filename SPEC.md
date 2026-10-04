@@ -700,8 +700,9 @@ id = nom de la pierre dans le spoiler de SoH, zone de la page Checks, libellé f
 ## Carte
 Page « Carte » (`ui.view` = `map`, composant `ZoneMap` de `components.js`) : où se trouve chaque sortie, sur le terrain
 du jeu vu de dessus (nord en haut).
-- Données : `data/maps-data.js` (`window.MAPS_DATA`), **généré** depuis la ROM de l'utilisateur (NTSC 1.0 décompressée)
-  par `tools/soh-maps/extract_maps.mjs` et **non versionné** (la géométrie vient de la cartouche). Sans ce fichier, la
+- Données : `data/maps-data.js` (`window.MAPS_DATA`), **généré** depuis la ROM de l'utilisateur (N64 ou GameCube,
+  compressée ou non : l'outil décompresse les fichiers Yaz0 et trouve seul la table des scènes ; `--mq=` : ROM Master
+  Quest, facultative) par `tools/soh-maps/extract_maps.mjs` et **non versionné** (la géométrie vient de la cartouche). Sans ce fichier, la
   page explique comment le produire. Scènes d'extérieur des zones (23, dont l'entrée du bourg, la place, le parvis du
   temple, la ruelle, et le château enfant et adulte) : sols et pentes de la collision (normale vers le haut, même raide :
   toits, rampes, falaises, sinon des trous noirs vus de dessus) en triangles avec leur hauteur, et murs (polygones
@@ -710,8 +711,46 @@ du jeu vu de dessus (nord en haut).
 - Position d'une sortie : point d'apparition de Link de l'entrée qui y fait arriver (table des entrées de SoH : scène et
   numéro d'entrée dans la scène ; liste des entrées de la scène : point d'apparition) ; sortie située dans un intérieur :
   à sa porte (sortie d'origine associée) ; grotte : point de retour de la grotte ; envol du hibou : position du hibou
-  (acteurs des salles). Sans position : sorties des donjons, rivière Gerudo, plateforme du Prélude, fontaine de la
-  Grande Fée du Château de Ganon.
+  (acteurs des salles). Sans position : rivière Gerudo, plateforme du Prélude, fontaine de la Grande Fée du Château de
+  Ganon.
+- **Intérieur dessiné** : Temple du Temps (onglet de la zone du Bourg), comme un donjon — ses checks y sont placés et
+  restent comptés à sa porte sur la carte du parvis.
+- **Donjons** : scène de chaque donjon (Château de Ganon : château et tour) et de sa salle du boss, en onglets (donjon
+  d'abord). Étages des dix donjons de la carte du menu pause (`z_map_data.c` de SoH : `sFloorCoordY`, hauteur au-dessus
+  de laquelle on est à un étage, et `sFloorID`, son nom) : sélecteur à droite de la carte (du plus haut au plus bas,
+  pastille verte : checks à faire à cet étage, point : vous êtes ici), un étage à la fois — sol dont la hauteur est dans
+  sa tranche, murs qui la traversent, cadrage sur l'étage ; repères (sorties, checks) à l'étage de leur hauteur. Étage
+  affiché par défaut : celui de la position, sinon celui de l'entrée. Tour de Ganon (pas d'étages dans le jeu) : étages
+  d'après le sol (paliers : hauteurs où il y a beaucoup de sol, limite à mi-hauteur), 1F à 6F depuis le bas.
+  - Décors mobiles : leur sol n'est pas dans la collision de la scène. Couloirs tordus du Temple de la Forêt
+    (Bg_Mori_Hineri, à l'état droit) : collision de leur objet (table des objets de la ROM ; en-tête à l'adresse de la
+    décompilation, sinon le seul de l'objet), placée comme l'acteur (position, rotation) ; le coffre de la clé du boss
+    qu'ils font apparaître est placé à (+147, −245, −453) du premier. Autres décors mobiles (plateformes, ascenseurs) :
+    pas de sol à leur place.
+  - Version : selon celle du donjon (`areaQuest`). Master Quest : scène « …_MQ » (ROM Master Quest : sol, sorties
+    `exitsMq`, checks `checksMq`), sinon carte vanilla et un avertissement ; version inconnue : les deux cartes en
+    onglets. Checks vanilla placés avec la ROM principale, Master Quest avec la ROM Master Quest (mêmes paramètres
+    d'acteur dans SoH pour les deux versions : jamais l'un avec l'autre).
+  - Checks des donjons : à leur position (coffres, Skulltulas, pots, caisses… ; pestes Mojo marchandes : En_Shopnuts ;
+    réceptacle et récompense du boss : centre de la salle du boss), et toujours aussi à la porte du donjon sur la carte
+    de l'extérieur ; check du donjon sans position (fées des chants, Sheik…) : « sans position ».
+- **Positions notées en jouant** (checks sans acteur fixe : personnages, échanges, fées des chants, poissons…) :
+  `tools/soh-maps/capture_positions.mjs` (ou `lancer-capture.bat`), faux serveur Anchor lancé à la place du relais, déclare
+  au jeu un second joueur « Capture » qui suit Link de scène en scène (caché sous le sol) ; le jeu envoie alors la
+  position de Link à chaque image (il ne l'envoie qu'aux autres joueurs de sa scène). Check ramassé (statut « ramassé ») :
+  position de Link à ce moment, notée dans `tools/soh-maps/positions.json` (versionné : coordonnées seulement), pour les
+  checks sans position (`--all` : tous ; `--list` : ceux qui restent, par zone ; `--v` / `--mq` : donjons vanilla / Master
+  Quest seulement, checks communs compris). `extract_maps.mjs` la reprend pour les
+  checks sans position (scène d'extérieur ou de donjon ; donjon Master Quest : check MQ dans la scène « …_MQ », check
+  commun dans les deux versions).
+- **Placer les checks à la main** (bouton « ✎ Placer les checks » au-dessus de la carte) : panneau listant les checks de la
+  zone sans position (ni placés par l'outil, ni rattachés à un lieu non dessiné ; version du donjon affichée) ; cocher un
+  ou plusieurs checks puis cliquer sur la carte les y place (hauteur : sol de l'étage affiché sous le clic) ; « déplacer »,
+  « retirer » ; carrés dorés sur la carte. Donjons : les deux versions (vanilla, Master Quest) en onglets, quelle que soit
+  la version du donjon. Gardées dans localStorage `oeil-sheikah-positions` (à part de la partie) ;
+  « Exporter » télécharge `positions-manuelles.json`, à déposer dans `tools/soh-maps/` (versionné) : `extract_maps.mjs`
+  le reprend comme `positions.json` (et l'emporte sur lui). Checks sans lieu dans le monde : Poche de Link à la maison de Link, Cadeau de Rauru
+  (Chambre des Sages) au piédestal de l'Épée de Légende.
 - Affichage : zone choisie (`ui.map.area`, sinon celle de la position), onglets si elle a plusieurs scènes ; sol en
   10 teintes par tranches de hauteur réparties selon le terrain présent (quantiles), murs en traits sombres ; un repère
   par position (une porte et l'intérieur derrière partagent un repère), couleur par type ; cadrage sur les repères,

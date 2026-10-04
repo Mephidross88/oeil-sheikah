@@ -505,6 +505,34 @@ html.stream-mode,html.stream-mode body{background:transparent;overflow:hidden}
 .zmap-bar .field .seg{align-self:flex-start}
 .zmap{max-width:1240px}
 .zmap-tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.zmap-top{display:flex;align-items:flex-start;gap:10px}
+.zmap-top .zmap-tabs{flex:1}
+.zmap-edit-btn{margin:0 0 8px auto;padding:4px 12px;font-size:13.5px}
+.zmap-edit-btn.on{background:var(--gold);border-color:var(--gold);color:#1c1a12}
+/* mode « Placer les checks » */
+.zmap-svg.placing{cursor:crosshair}
+.ze-mark rect{fill:#e9b949;stroke:#1c1a12;stroke-width:1.5;vector-effect:non-scaling-stroke}
+.ze-mark.moving rect{fill:var(--ocarina)}
+/* panneau à côté de la carte (en dessous sur écran étroit) */
+.zmap-body.editing{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:12px;align-items:start}
+.zmap-body.editing .zmap-edit{margin-top:0}
+.zmap-body.editing .ze-cols{grid-template-columns:1fr}
+.zmap-body.editing .ze-cols > div{max-height:34vh}
+@media (max-width:1100px){ .zmap-body.editing{grid-template-columns:1fr} .zmap-body.editing .zmap-edit{margin-top:10px} }
+.zmap-edit{margin-top:10px;border:1px solid var(--gold);border-radius:12px;background:var(--surface);padding:10px 14px}
+.ze-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 12px;margin-bottom:8px}
+.ze-head .muted{font-size:13px}
+.ze-btns{margin-left:auto;display:flex;gap:6px}
+.ze-cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:800px){ .ze-cols{grid-template-columns:1fr} }
+.ze-cols h4{margin:0 0 6px;font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+.ze-cols h4 small{font-weight:400;margin-left:4px}
+.ze-cols > div{max-height:260px;overflow-y:auto}
+.ze-row{display:flex;align-items:center;gap:8px;padding:3px 0;font-size:14px}
+.ze-row img{width:20px;height:20px;object-fit:contain}
+.ze-row small{color:var(--muted)}
+.ze-row > span{flex:1;min-width:0}
+.ze-row.moving{color:var(--ocarina)}
 .zmap-tabs button{border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:999px;padding:4px 12px;font-size:13.5px;cursor:pointer}
 .zmap-tabs button.on{background:var(--gold);border-color:var(--gold);color:#1c1a12;font-weight:700}
 .zmap-frame{position:relative}
@@ -536,6 +564,14 @@ html.stream-mode,html.stream-mode body{background:transparent;overflow:hidden}
 .zp-unk{font-style:italic}
 .zp-btns{display:flex;gap:6px}
 .zp-btns .btn{padding:3px 10px;font-size:13px}
+/* étages d'un donjon : à droite de la carte, du plus haut au plus bas */
+.zmap-levels{position:absolute;right:12px;top:12px;display:flex;flex-direction:column;gap:4px;z-index:1}
+.zmap-levels button{position:relative;min-width:42px;height:32px;padding:0 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--text);font-weight:700;font-size:13.5px;cursor:pointer}
+.zmap-levels button:hover{border-color:var(--gold)}
+.zmap-levels button.on{background:var(--gold);border-color:var(--gold);color:#1c1a12}
+.zmap-levels button.here::before{content:"";position:absolute;left:-7px;top:50%;width:8px;height:8px;margin-top:-4px;border-radius:50%;background:var(--ocarina)}
+.zmap-levels button i{position:absolute;right:-7px;top:-7px;min-width:17px;height:17px;padding:0 4px;border-radius:999px;background:var(--green);color:#fff;font-style:normal;font-size:11px;line-height:17px;font-weight:700}
+.zmap-note{font-size:13.5px;color:var(--muted);margin:0 0 8px}
 .zmap-empty{padding:30px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:12px}
 .zmap-legend{display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;margin-top:8px;font-size:13px;color:var(--muted)}
 .zmap-legend + .zmap-legend{margin-top:4px}
