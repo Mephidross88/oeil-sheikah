@@ -1032,26 +1032,31 @@ const App = {
     const statsC = computed(() => {
       const g = store.game, tl = Array.isArray(g.timeline) ? g.timeline : [], timed = tl.filter(e => e.t);
       const origin = g.runStart || (timed.length ? Math.min(...timed.map(e => e.t)) : 0);
+      // temps de jeu (game.play, auto-tracking) : s'il y en a, les heures et la courbe sont en temps de jeu
+      const play = Array.isArray(g.play) ? g.play : [], playTotal = play.reduce((n, [a, b]) => n + b - a, 0);
+      const playAt = t => play.reduce((n, [a, b]) => n + Math.max(0, Math.min(b, t) - a), 0), usePlay = playTotal > 0;
+      const atOf = t => !t ? null : usePlay ? fmtDur(playAt(t)) : origin ? fmtDur(t - origin) : null;
       const rows = tl.map((e, i) => {
         if (e.k === 'checks'){
           const c = CHECK_BY_ID[e.id];
-          return { i, k:e.k, at:e.t && origin ? fmtDur(e.t - origin) : null, label:c ? c.label + ' · ' + CHECK_AREA[c.area].label : e.id,
+          return { i, k:e.k, at:atOf(e.t), label:c ? c.label + ' · ' + CHECK_AREA[c.area].label : e.id,
             icon:c && CHECK_CAT[c.cat].icon, found:g.found[e.id] !== undefined ? foundInfo(g.found[e.id]).title : '' };
         }
         const it = ITEM_BY_KEY[e.id];
-        return { i, k:e.k, at:e.t && origin ? fmtDur(e.t - origin) : null, label:it ? itemLabelAt(it, e.v) : e.id, icon:it ? itemIconAt(it, e.v) : null, found:'' };
+        return { i, k:e.k, at:atOf(e.t), label:it ? itemLabelAt(it, e.v) : e.id, icon:it ? itemIconAt(it, e.v) : null, found:'' };
       }).reverse();
       // courbe en escalier : checks faits depuis l'origine (ceux d'avant le suivi au départ)
       const ck = timed.filter(e => e.k === 'checks').map(e => e.t).sort((a, b) => a - b);
       let curve = null;
-      if (origin && ck.length){
-        const end = Math.max(nowTick.value, ck[ck.length - 1]), span = Math.max(1, end - origin), start = tl.filter(e => e.k === 'checks' && !e.t).length;
-        const max = Math.max(1, start + ck.length), W = 600, H = 150, x = t => (t - origin) / span * W, y = n => H - n / max * H;
+      if ((usePlay || origin) && ck.length){
+        const end = Math.max(nowTick.value, ck[ck.length - 1]), span = Math.max(1, usePlay ? playTotal : end - origin), start = tl.filter(e => e.k === 'checks' && !e.t).length;
+        const max = Math.max(1, start + ck.length), W = 600, H = 150, x = t => (usePlay ? playAt(t) : t - origin) / span * W, y = n => H - n / max * H;
         let d = 'M0,' + y(start).toFixed(1), n = start;
         for (const t of ck){ d += ' H' + x(t).toFixed(1) + ' V' + y(++n).toFixed(1); }
-        curve = { d:d + ' H' + W, area:d + ' H' + W + ' V' + H + ' H0 Z', end:fmtDur(end - origin), max };
+        curve = { d:d + ' H' + W, area:d + ' H' + W + ' V' + H + ' H0 Z', end:fmtDur(usePlay ? playTotal : end - origin), max, play:usePlay };
       }
-      return { origin, elapsed:origin ? nowTick.value - origin : null, rows, curve, nItems:tl.filter(e => e.k !== 'checks').length };
+      // (nowTick : recalcul toutes les 30 s, le temps de jeu en cours compris)
+      return { origin, elapsed:origin ? nowTick.value - origin : null, playTotal, rows, curve, nItems:tl.filter(e => e.k !== 'checks').length };
     });
     const statsRows = computed(() => statsC.value.rows.filter(r => stFilter.value === 'all' || (stFilter.value === 'checks' ? r.k === 'checks' : r.k !== 'checks')));
     /* Carte (js/components.js, ZoneMap) : zone affichée (choisie, sinon celle de la position) et sortie à mettre en
@@ -1531,14 +1536,14 @@ ${STREAM_TPL}
         <button type="button" title="Fermer ce panneau" v-html="ICONS.close" @click="closeSide"></button></div>
       <div class="page-head"><h1>Statistiques</h1><p class="lede">Chronologie de la partie : objets, chants et checks, à l'heure où ils ont été notés (en direct avec l'auto-tracking).</p></div>
       <div class="rsum st-tiles">
-        <div class="rstat"><div><b>{{statsC.elapsed != null ? fmtDur(statsC.elapsed) : '—'}}</b><span>{{store.game.runStart ? 'depuis le début de la partie' : 'depuis le premier objet noté'}}</span></div></div>
+        <div class="rstat" title="Temps passé avec le jeu connecté au relais et la partie chargée (le jeu n'envoie pas son propre compteur) : seulement les sessions jouées avec l'auto-tracking"><div><b>{{statsC.playTotal ? fmtDur(statsC.playTotal) : '—'}}</b><span>temps de jeu (auto-tracking)</span></div></div>
         <div class="rstat"><div><b>{{checkStats.got}} / {{checkStats.total}}</b><span>checks faits</span></div></div>
         <div class="rstat" v-if="stats.editable"><div><b>{{stats.mapped}} / {{stats.editable}}</b><span>sorties notées</span></div></div>
         <div class="rstat"><div><b>{{statsC.nItems}}</b><span>objets et chants obtenus</span></div></div>
         <div class="rstat" v-if="ui.link.loot"><div><b>{{store.game.loot.iceTraps}}</b><span>piège{{store.game.loot.iceTraps>1?'s':''}} de glace</span></div></div>
       </div>
       <div v-if="statsC.curve" class="st-chart">
-        <div class="st-chart-title">Checks faits au fil du temps <small>(jusqu'à {{statsC.curve.max}})</small></div>
+        <div class="st-chart-title">Checks faits au fil du {{statsC.curve.play ? 'temps de jeu' : 'temps'}} <small>(jusqu'à {{statsC.curve.max}})</small></div>
         <svg viewBox="0 0 600 150" preserveAspectRatio="none"><path class="st-area" :d="statsC.curve.area"></path><path class="st-line" :d="statsC.curve.d"></path></svg>
         <div class="st-axis"><span>0:00:00</span><span>{{statsC.curve.end}}</span></div>
       </div>

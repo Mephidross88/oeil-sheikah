@@ -656,6 +656,18 @@ function linkCheckDone(rc){
   return true;
 }
 
+/* Temps de jeu : le jeu n'envoie pas son compteur (playTimer de la sauvegarde) ; l'appli cumule les périodes où le jeu est
+   connecté avec la partie notée chargée (game.play : [[début, fin], …], heure réelle), mises à jour toutes les 10 s ; une
+   coupure de plus de 30 s ouvre une nouvelle période. Seulement pendant que le relais et l'appli tournent. */
+function linkPlayTick(){
+  if (link.status !== 'game' || !link.client?.isSaveLoaded || link.foreign) return;
+  const g = store.game, now = Date.now();
+  if (!Array.isArray(g.play)) g.play = [];
+  const last = g.play[g.play.length - 1];
+  if (last && now - last[1] <= 30000) last[1] = now; else g.play.push([now, now]);
+}
+if (!STREAM_MODE) setInterval(linkPlayTick, 10000);
+
 linkLoadSpoiler();
 // (Re)connexion selon l'option, au chargement et quand elle change.
 // (pas dans la fenêtre de stream : la fenêtre principale suit le jeu, sinon les trouvailles seraient comptées deux fois)

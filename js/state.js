@@ -10,6 +10,7 @@ function defaults(){
     hints:{},     // hints : indices des pierres lues { id de la pierre: { t: type (HINT_TYPES), text, area: zone, check } }
     timeline:[],  // timeline : objets, chants et checks obtenus { t: heure (ms) ou null (avant le suivi), k: items | songs | checks, id, v }
     runStart:0,   // runStart : début de la partie dans le jeu (ship.stats.firstInput de la sauvegarde, ms), 0 si inconnu
+    play:[],      // play : périodes de jeu suivies par l'auto-tracking [[début, fin], …] (heure réelle, ms) — temps de jeu
     save:{ seed:0, created:0 },   // save : sauvegarde suivie par l'auto-tracking (seed, ship.stats.fileCreatedAt), 0 si inconnu
     keepDrift:{} }; // keepDrift : écarts avec la sauvegarde du jeu gardés tels quels { clé: 'ici>jeu' } (voir js/link.js)
   ITEM_GROUPS.forEach(g => g.items.forEach(it => { game[g.path][it.key] = it.locked ? true : it.kind === 'bool' ? false : 0; }));

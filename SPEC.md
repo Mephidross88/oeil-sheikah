@@ -658,8 +658,13 @@ Page « Statistiques » (`ui.view` = `stats`) : chronologie de la partie.
   du jeu contenait déjà à la connexion de l'auto-tracking (première sauvegarde complète reçue) est noté sans heure
   (« avant le suivi », `timelineQuiet`).
 - Début de la partie : `game.runStart` = `ship.stats.firstInput` de la sauvegarde du jeu (auto-tracking), sinon le
-  premier événement daté. Temps affichés depuis ce début (temps réel, pauses comprises).
-- Contenu : temps écoulé, checks faits, sorties notées, objets et chants obtenus, pièges de glace ; courbe en escalier
+  premier événement daté (origine des heures et de la courbe quand il n'y a pas de temps de jeu).
+- Temps de jeu : le jeu n'envoie pas son compteur (`playTimer` de sa sauvegarde) ; l'appli cumule les périodes où le jeu
+  est connecté au relais avec la partie notée chargée (`game.play` : `[[début, fin], …]`, heure réelle, mises à jour
+  toutes les 10 s, nouvelle période après une coupure de plus de 30 s ; `linkPlayTick` de `link.js`) — seulement les
+  sessions jouées avec l'auto-tracking. S'il y en a, les heures de la chronologie et la courbe sont en temps de jeu
+  (temps de jeu cumulé à l'heure de l'événement), sinon en heure réelle depuis le début.
+- Contenu : temps de jeu, checks faits, sorties notées, objets et chants obtenus, pièges de glace ; courbe en escalier
   des checks faits au fil du temps ; chronologie (plus récent d'abord) filtrable « Objets et chants » / « Checks » /
   « Tout », avec l'objet trouvé dans le check quand il est connu.
 
