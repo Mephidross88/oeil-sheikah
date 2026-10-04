@@ -83,6 +83,8 @@ et le mettre à jour quand une règle change.
      `STREAM_TPL`) insérés par `${…}` dans le gabarit d'App (évalués par JS, pas par Vue) : la fenêtre de stream
      (`index.html?stream`, `STREAM_MODE` de `state.js` : relit le store via l'événement `storage`, ne sauvegarde pas, pas
      de relais ; disposition `STREAM_TYPES`/`streamDefaults`, clé `oeil-sheikah-stream`) réutilise le panneau Objets.
+- `README.md` : mode d'emploi pour les joueurs (lancer l'appli, auto-tracking, cartes, stream) — à tenir à jour quand une
+  de ces étapes change.
 - `style.css` : styles, variables de thème dans `:root` (clair + sombre).
 - `data/areas-data.js` : données (`window.AREAS_DATA`). Gros fichier : ne le lire que si la tâche porte sur les données.
 - `data/checks-data.js` : checks SoH (`window.CHECKS_DATA`), **fichier généré** (voir son en-tête et SPEC.md > Checks) ;
