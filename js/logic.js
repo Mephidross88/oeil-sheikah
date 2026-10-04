@@ -1267,5 +1267,14 @@ function routeGraph(settings, game, links, eff, costs){
     return { items:[...items], alts };
   }
   // regions(key, age, mode) : régions joignables à pied depuis ce nœud (contrôle par replay_spoilers.mjs)
-  return { edges, needs, regions:(key, age, mode = 'start') => walk(key, age, mode) };
+  /* canTake(sortie) : la sortie peut être prise maintenant — sa région de départ (entrée SoH) est accessible à un âge, et
+     le passage vers sa destination y est franchissable à cet âge (tombes du cimetière : Saisir…) ; null si la sortie n'a pas
+     d'entrée SoH simple (salle de boss, arrivée seule) */
+  const canTake = key => {
+    const e = EXIT[key], s = e && !e.specialTag && !e.destOnly && e.entr != null && SOH_ENTRANCE[e.entr];
+    if (!s) return null;
+    const bits = state.access[s.from] || 0;
+    return !!(bits & CHILD && pass(s.from, s.to, 'child') || bits & ADULT && pass(s.from, s.to, 'adult'));
+  };
+  return { edges, needs, canTake, regions:(key, age, mode = 'start') => walk(key, age, mode) };
 }

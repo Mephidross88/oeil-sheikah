@@ -779,8 +779,9 @@ du jeu vu de dessus (nord en haut).
   sinon départ du Routeur), prochaine sortie à prendre (première transition du trajet), arrivée du Routeur. Clic sur un
   repère : ses sorties, leur destination notée, « Partir d'ici » (départ du Routeur) et « Y aller » (arrivée).
 - État d'une sortie (sa sortie principale, pas celle placée à sa porte) : destination inconnue (entrée mélangée pas encore
-  notée : `effC` vide) — « ? » blanc sur le repère ; pas encore accessible (aucune de ses régions SoH ne l'est : `reachC`,
-  comme la page Entrées) — repère estompé et désaturé. Légende : « destination inconnue », « pas encore accessible ».
+  notée : `effC` vide) — « ? » blanc sur le repère ; pas encore accessible = ne peut pas encore être prise (`canTake` du
+  graphe du Routeur : région de départ de son entrée SoH accessible à un âge et passage franchissable à cet âge — une tombe
+  du cimetière demande Saisir… ; salle de boss : une de ses régions accessible, `reachC`) — repère estompé et désaturé. Légende : « destination inconnue », « pas encore accessible ».
 - Arrivées seules (`destinationOnly` : plateformes de téléportation, atterrissage du hibou, arrivée de la rivière Gerudo)
   masquées : on ne peut pas les prendre — sauf si c'est la position, l'arrivée du Routeur ou la prochaine sortie.
 - Légende sous la carte : forme et couleur des repères par type (changement de zone doré, intérieur bleu canard, grotte brune, donjon

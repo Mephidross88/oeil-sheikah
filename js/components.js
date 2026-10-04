@@ -410,8 +410,10 @@ const ZoneMap = {
       // prendre, masquées — sauf position, arrivée du Routeur ou prochaine sortie
       const shown = g => g.keys.some(k => !EXIT[k].destinationOnly || k === this.here || k === this.goal || k === this.next);
       // état de la sortie principale du repère (pas celle placée à sa porte) : destination connue (notée, ou entrée non
-      // mélangée) ; accessible (une de ses régions SoH l'est, comme la page Entrées)
-      const eff = effC.value, reach = reachC.value;
+      // mélangée) ; accessible = peut être prise maintenant (Routeur : région de départ accessible et passage franchissable —
+      // une tombe sans Saisir ne l'est pas) ; à défaut (salle de boss…), une de ses régions SoH est accessible
+      const eff = effC.value, reachSet = reachC.value, rg = routeC.value;
+      const reach = { has:k => { const t = rg.canTake(k); return t == null ? reachSet.has(k) : t; } };
       return [...groups.values()].filter(shown).map(g => {
         const keys = g.keys.sort((a, b) => (ex[a][4] || 0) - (ex[b][4] || 0)), main = keys[0];
         return { ...g, keys, ang:angOf(g), type:EXIT[g.keys.find(k => !ex[k][4]) || g.keys[0]].type, known:!!eff[main], reach:reach.has(main) };
