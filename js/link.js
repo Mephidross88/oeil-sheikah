@@ -12,6 +12,7 @@ const link = reactive({
   ask:[],            // entrées découvertes à destination ambiguë, à préciser par le joueur : { d, opts:[arrivée], seq }
   foreign:false,     // le jeu a chargé une autre sauvegarde que celle de la partie notée : ses événements sont ignorés
   drift:null,        // écart avec la dernière sauvegarde complète (linkDrift) : lignes à corriger ou à garder
+  live:null,         // position de Link en temps réel (option ui.link.live) : { scene, x, y, z, rot, age, at }
   lastAt:null, log:[],
 });
 let linkSource = null;
@@ -38,7 +39,15 @@ let linkRetry = null;
 function linkStop(){
   clearTimeout(linkRetry);
   if (linkSource){ linkSource.close(); linkSource = null; }
-  link.status = 'off'; link.client = null; link.player = null;
+  link.status = 'off'; link.client = null; link.player = null; link.live = null;
+}
+/* Position en temps réel (option ui.link.live) : le relais déclare au jeu un second joueur fictif, ce qui lui fait envoyer
+   la position de Link (voir relay.mjs) ; l'appli dit au relais si l'option est active, à chaque connexion et à chaque
+   changement, et garde la dernière position reçue (link.live, scène nommée d'après LINK_DATA.scenes). */
+function linkSyncLive(){
+  if (!linkSource) return;
+  fetch(store.ui.link.url.replace(/\/+$/, '') + '/live?on=' + (store.ui.link.live ? 1 : 0), { method:'POST' }).catch(() => {});
+  if (!store.ui.link.live) link.live = null;
 }
 function linkRequestState(){
   fetch(store.ui.link.url.replace(/\/+$/, '') + '/request-state', { method:'POST' }).catch(() => linkLog('Relais injoignable'));
@@ -96,12 +105,20 @@ function linkHandle(m){
       linkCatchup = false;
     }
     linkPositionFrom(m.player || m.clientState, false);
+    if (!!m.live !== !!store.ui.link.live) linkSyncLive();
     return;
   }
+  if (m.type === 'live'){
+    const L = m.live;
+    if (store.ui.link.live && !link.foreign) link.live = { ...L, scene:LINK_DATA.scenes[L.sceneNum] || String(L.sceneNum), at:Date.now() };
+    return;
+  }
+  if (m.type === 'liveState') return;
   if (m.type === 'game'){
     link.status = m.connected ? 'game' : 'relay';
     if (m.connected) linkCatchup = true;
     link.client = m.connected ? m.clientState : null;
+    if (!m.connected) link.live = null;
     linkSaveSeen();
     linkRevealAll();
     linkLog(m.connected ? 'Jeu connecté' : 'Jeu déconnecté');
@@ -643,3 +660,4 @@ linkLoadSpoiler();
 // (Re)connexion selon l'option, au chargement et quand elle change.
 // (pas dans la fenêtre de stream : la fenêtre principale suit le jeu, sinon les trouvailles seraient comptées deux fois)
 if (!STREAM_MODE) watch(() => [store.ui.link.enabled, store.ui.link.url], ([on]) => { if (on) linkStart(); else linkStop(); }, { immediate:true });
+if (!STREAM_MODE) watch(() => store.ui.link.live, linkSyncLive);

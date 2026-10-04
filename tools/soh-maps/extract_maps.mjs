@@ -191,7 +191,7 @@ const sceneReader = ({ rom, table:TABLE, objects:OBJ_TABLE }) => { const sceneCa
   const cmds = {};
   for (let o = 0; o < 0x400; o += 8){ const c = u8(o); cmds[c] = { n:u8(o + 1), addr:seg(u32(o + 4)) }; if (c === 0x14) break; }
   const spawns = [];
-  for (let i = 0; i < (cmds[0x00]?.n || 0); i++){ const o = cmds[0x00].addr + i * 16; spawns.push([s16(o + 2), s16(o + 4), s16(o + 6)]); }
+  for (let i = 0; i < (cmds[0x00]?.n || 0); i++){ const o = cmds[0x00].addr + i * 16; spawns.push([s16(o + 2), s16(o + 4), s16(o + 6), s16(o + 10)]); }   // x, y, z, orientation (rotation y)
   // liste des entrées : (point d'apparition, salle) ; longueur non donnée, jusqu'à la donnée suivante de l'en-tête
   const next = Math.min(b.length, ...Object.values(cmds).map(v => v.addr).filter(a => a > (cmds[0x06]?.addr ?? Infinity)));
   const entrances = [];
@@ -292,9 +292,11 @@ function arrivalPos(key){
   const t = ENTR[n];
   if (!t || !MAPPED.has(t.scene)) return t ? { scene:t.scene } : null;
   const s = readScene(t.scene), sp = s.spawns[s.entrances[t.spawn] ?? t.spawn];
-  return sp ? { scene:t.scene, x:sp[0], y:sp[1], z:sp[2] } : null;
+  return sp ? { scene:t.scene, x:sp[0], y:sp[1], z:sp[2], rot:sp[3] } : null;
 }
-const pos = {}, missing = [];
+// exitRot : orientation de Link quand il apparaît à la sortie (tourné vers l'intérieur de la zone ; angle du jeu, 0x10000 = un
+// tour, 0 = vers le sud) — l'appli en tire la direction de la sortie
+const pos = {}, missing = [], exitRot = {};
 for (const [key, e] of Object.entries(EXITS)){
   if (e.areaId === 'spawns') continue;
   let p = arrivalPos(key);
@@ -311,6 +313,7 @@ for (const [key, e] of Object.entries(EXITS)){
   }
   if (!p || !MAPPED.has(p.scene) || p.x == null){ missing.push(key); continue; }
   pos[key] = [p.scene.replace('SCENE_', ''), Math.round(p.x), Math.round(p.z), Math.round(p.y)].concat(p.door ? [1] : []);
+  if (!p.door && p.rot != null) exitRot[key] = p.rot;
 }
 
 /* ---------- Position de chaque check ----------
@@ -522,8 +525,9 @@ const out = `/* Cartes des zones (page Carte) — FICHIER GÉNÉRÉ par tools/so
    exits : { 'zone::sortie': [scène, x, z, hauteur, porte?] } (porte : sortie située dans un intérieur, placée à sa porte) ;
    checks : { id: [scène, x, z, hauteur?] } (scènes d'extérieur et donjons vanilla) ; places : { id: sortie où l'on apparaît
    en entrant dans le lieu du check } (intérieur, grotte, donjon : placé à la porte qui y mène selon les entrées notées) ;
-   areaEntry : { zone de donjon: sortie d'entrée } ; exitsMq, checksMq : de même dans les scènes Master Quest. */
-window.MAPS_DATA = ${JSON.stringify({ scenes, exits:pos, checks:checkPos, places:checkPlace, areaEntry, exitsMq, checksMq })};
+   areaEntry : { zone de donjon: sortie d'entrée } ; exitsMq, checksMq : de même dans les scènes Master Quest ; exitRot : { sortie:
+   orientation de Link à son point d'apparition (angle du jeu, 0 = vers le sud) }. */
+window.MAPS_DATA = ${JSON.stringify({ scenes, exits:pos, exitRot, checks:checkPos, places:checkPlace, areaEntry, exitsMq, checksMq })};
 `;
 const file = path.join(APP, 'data/maps-data.js');
 fs.writeFileSync(file, out);

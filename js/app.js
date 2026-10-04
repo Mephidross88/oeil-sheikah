@@ -741,6 +741,26 @@ const App = {
       return { list:out.slice(0, 12), total:out.length };
     });
     const stepsLabel = n => n ? n + ' étape' + (n > 1 ? 's' : '') : 'à pied';
+    /* Route du bandeau « Où aller ? », calculée par lui-même (sans passer par le Routeur) : vers sa cible — le check
+       faisable le plus proche, ou celui choisi dans sa liste (dockTarget, tant qu'il reste faisable) —, depuis le départ
+       du Routeur, à l'âge où le check est le plus proche. Étapes : déplacements autres qu'à pied (sortie à prendre,
+       chant, sauvegarder-recharger, changement d'âge), avec la sortie à prendre ou l'arrivée. */
+    const dockTarget = ref(null);
+    const dockCheck = computed(() => { const l = nextC.value?.list || []; return l.find(x => x.c.id === dockTarget.value) || l[0] || null; });
+    const dockRoute = computed(() => {
+      const x = dockCheck.value, r = ui.router;
+      if (!x || !r.fromExit || !EXIT[r.fromExit]) return null;
+      const rg = routeC.value, regs = new Set(CHECK_REGIONS['RC_' + x.c.id] || []);
+      const res = shortest(rg.edges, r.fromExit, r.fromAge, (k, a, m) => a === x.age && [...rg.regions(k, a, m).keys()].some(rr => regs.has(rr)));
+      if (!res) return null;
+      const steps = res.edges.filter(e => e.kind !== 'walk').map(e => {
+        if (e.kind === 'age') return { label:e.age === 'adult' ? 'Devenir adulte' : 'Redevenir enfant', icon:null, key:e.to };
+        const take = ['transition', 'bluewarp', 'owl'].includes(e.kind) && EXIT[e.from] ? e.from : null;
+        return { label:edgeLabel(e), icon:edgeIcon(e), key:take || e.to, take:!!take, to:e.to };
+      });
+      return { check:x.c, steps };
+    });
+    const pickDock = c => { dockTarget.value = dockTarget.value === c.id ? null : c.id; };
     // « Pourquoi ? » : ce qui manque pour un check pas encore faisable (whyLocked, calcul de ~1 s, lancé après affichage)
     const why = reactive({ check:null, res:null });
     function openWhy(c){
@@ -1056,7 +1076,13 @@ const App = {
     })();
     const mapFocus = ref(null);
     const mapArea = computed({
-      get(){ const k = link.position?.key || ui.router.fromExit; return ui.map.area || (k && EXIT[k] && MAP_SCENES[EXIT[k].areaId] ? EXIT[k].areaId : mapAreas[0]?.id); },
+      get(){
+        if (ui.map.area) return ui.map.area;
+        // position en temps réel : la zone de la scène où est Link (s'il est dans une scène dessinée)
+        const L = ui.link.live && link.live, live = L && mapAreas.find(a => MAP_SCENES[a.id].includes(L.scene));
+        if (live) return live.id;
+        const k = link.position?.key || ui.router.fromExit; return k && EXIT[k] && MAP_SCENES[EXIT[k].areaId] ? EXIT[k].areaId : mapAreas[0]?.id;
+      },
       set(v){ ui.map.area = v; mapFocus.value = null; },
     });
     function openMap(key){
@@ -1082,7 +1108,7 @@ const App = {
       itemVisible, tierLabel, iconSrc, checklistModal, openChecklist, setChecklist, checklistStats,
       tradeModal, openTrade, tradeStats, counterClass,
       TRIALS, trialStatus, cycleTrial, setDungeonFlag, addDungeonKeys, dungeonQuest, dungeonMaxKeys, cycleDungeonQuest, questLabel, questClass, questTitle, keysLabel, dungeonKeyRing, setKeyRing, dungeonKeysDone, keysTitle, brokenIcons,
-      setTheme, startHere, prevStart, backToPrev, liveStart, pickAreas, pickExits, zoneExcludeMode, zoneExclude, hintGroups, hintEdit, hintsC, setHintRead, GOSSIP_STONES, HINT_TYPES, CHECK_AREAS, MAP_SCENES, MAPS_OK, mapAreas, mapGroups, mapFocus, mapArea, openMap, mapHere, mapStart, mapGoal, fmtDur, stFilter, statsC, statsRows, STREAM, STREAM_TYPES, sl, swEdit, swSel, swAdd, swHint, swSelW, streamBg, swBodyStyle, swDown, swMove, swUp, swNew, swDelete, swReset, swImage, openStream, nextStep, swap, route, edgeLabel, edgeIcon, WARP_SONGS, ageLabel, openBackup, copyBackup, importBackup, resetAll, declineSpoiler, savedAt, TYPE_LABEL };
+      setTheme, startHere, prevStart, backToPrev, liveStart, pickAreas, pickExits, zoneExcludeMode, zoneExclude, hintGroups, hintEdit, hintsC, setHintRead, GOSSIP_STONES, HINT_TYPES, CHECK_AREAS, MAP_SCENES, MAPS_OK, mapAreas, mapGroups, mapFocus, mapArea, openMap, mapHere, mapStart, mapGoal, fmtDur, stFilter, statsC, statsRows, STREAM, STREAM_TYPES, sl, swEdit, swSel, swAdd, swHint, swSelW, streamBg, swBodyStyle, swDown, swMove, swUp, swNew, swDelete, swReset, swImage, openStream, nextStep, dockCheck, dockRoute, dockTarget, pickDock, swap, route, edgeLabel, edgeIcon, WARP_SONGS, ageLabel, openBackup, copyBackup, importBackup, resetAll, declineSpoiler, savedAt, TYPE_LABEL };
   },
   template:`
 ${STREAM_TPL}
@@ -1610,21 +1636,32 @@ ${STREAM_TPL}
       <div class="nd-bar">
         <button type="button" class="nd-toggle" @click="ui.next.open = !ui.next.open" :aria-expanded="ui.next.open"
           :title="ui.next.open ? 'Replier' : 'Déplier : les 12 checks faisables les plus proches'"><span class="nd-ic" v-html="ICONS.compass"></span><b>Où aller ?</b></button>
-        <span v-if="nextStep" class="nd-step" :class="{click:MAPS_OK}" :title="'Prochaine étape du trajet du Routeur' + (nextStep.goal ? ' (arrivée : ' + nextStep.goal + ')' : '') + (MAPS_OK ? ' — clic : voir la sortie à prendre sur la carte' : '')"
-          @click="MAPS_OK && openMap(nextStep.take)">
-          <img v-if="nextStep.icon" :src="nextStep.icon" alt=""><span v-else class="nd-step-ic" v-html="ICONS.uturn"></span>{{nextStep.mode}} → <b>{{nextStep.zone}}</b> · {{nextStep.exit}}</span>
+        <template v-if="dockRoute">
+          <span v-if="dockRoute.steps.length" class="nd-step" :class="{click:MAPS_OK}" :title="'Prochaine étape vers ' + dockRoute.check.label + (MAPS_OK ? ' — clic : voir sur la carte' : '')"
+            @click="MAPS_OK && openMap(dockRoute.steps[0].key)">
+            <img v-if="dockRoute.steps[0].icon" :src="dockRoute.steps[0].icon" alt=""><span v-else class="nd-step-ic" v-html="ICONS.uturn"></span>{{dockRoute.steps[0].label}} → <b>{{areaName(dockRoute.steps[0].key)}}</b> · {{EXIT[dockRoute.steps[0].key].label}}</span>
+          <span v-else class="nd-step"><span class="nd-step-ic" v-html="ICONS.compass"></span>À pied, dans la zone</span>
+        </template>
         <span v-if="!nextC" class="nd-sum">Choisissez un départ dans le Routeur (ou activez la position en direct).</span>
         <span v-else-if="!nextC.list.length" class="nd-sum">Aucun check faisable à portée.</span>
-        <template v-else>
-          <span class="nd-sum" :title="nextC.list[0].c.soh">Check le plus proche : <b>{{nextC.list[0].c.label}}</b> · {{CHECK_AREA[nextC.list[0].c.area].label}} ({{stepsLabel(nextC.list[0].steps)}})</span>
-          <button type="button" class="btn nd-go" title="Y aller (Routeur, depuis le départ actuel)" @click="goToCheck(nextC.list[0].c)">Y aller</button>
+        <template v-else-if="dockCheck">
+          <span class="nd-sum" :title="dockCheck.c.soh">{{dockTarget === dockCheck.c.id ? 'Check choisi' : 'Check le plus proche'}} : <b>{{dockCheck.c.label}}</b> · {{CHECK_AREA[dockCheck.c.area].label}} ({{stepsLabel(dockCheck.steps)}})</span>
+          <button type="button" class="btn nd-go" title="Ouvrir cette route dans le Routeur" @click="goToCheck(dockCheck.c)">Y aller</button>
           <span class="nd-count">{{nextC.total}} faisable{{nextC.total > 1 ? 's' : ''}}</span>
         </template>
         <button type="button" class="nd-btn nd-chev" :title="ui.next.open ? 'Replier' : 'Déplier'" v-html="ICONS.caret" @click="ui.next.open = !ui.next.open"></button>
         <button type="button" class="nd-btn" title="Masquer ce bandeau (à réactiver dans la barre de gauche, page Routeur)" v-html="ICONS.close" @click="ui.next.enabled = false"></button>
       </div>
+      <div v-if="ui.next.open && dockRoute && dockRoute.steps.length" class="nd-route">
+        <span class="nd-route-t">Route vers <b>{{dockRoute.check.label}}</b> :</span>
+        <button v-for="(st, i) in dockRoute.steps" :key="i" type="button" class="nd-rstep" :disabled="!MAPS_OK" :title="MAPS_OK ? 'Voir sur la carte' : ''" @click="openMap(st.key)">
+          <i>{{i + 1}}</i><img v-if="st.icon" :src="st.icon" alt=""><span v-else class="nd-step-ic" v-html="ICONS.uturn"></span>
+          <span>{{st.label}} → <b>{{areaName(st.key)}}</b> · {{EXIT[st.key].label}}</span></button>
+        <span class="nd-route-t">puis à pied jusqu'au check</span>
+      </div>
       <div v-if="ui.next.open && nextC && nextC.list.length" class="nd-list">
-        <button v-for="x in nextC.list" :key="x.c.id" type="button" class="nd-card" :title="'Y aller (Routeur) — ' + x.c.soh" @click="goToCheck(x.c)">
+        <button v-for="x in nextC.list" :key="x.c.id" type="button" class="nd-card" :class="{on:dockCheck && dockCheck.c.id === x.c.id}"
+          :title="(dockTarget === x.c.id ? 'Revenir au check le plus proche' : 'Afficher la route vers ce check') + ' — ' + x.c.soh" @click="pickDock(x.c)">
           <img :src="CHECK_CAT[x.c.cat].icon" alt="">
           <span class="nd-txt"><b>{{x.c.label}}</b><small>{{CHECK_AREA[x.c.area].label}} · {{stepsLabel(x.steps)}}{{x.age === 'adult' ? ' · adulte' : ''}}</small></span>
         </button>
@@ -1752,7 +1789,8 @@ ${ITEMS_TPL}${LOOT_TPL}    </div>
             <label class="check"><input type="checkbox" v-model="ui.link.items">les objets</label>
             <label class="check" title="Le départ du Routeur suit l'endroit où vous apparaissez dans le jeu"><input type="checkbox" v-model="ui.link.position">la position (départ du Routeur)</label>
             <label class="check" title="Destination de chaque entrée prise, notée dans Entrées"><input type="checkbox" v-model="ui.link.entrances">les entrées</label>
-            <label class="check" title="Pièges de glace, rubis et munitions reçus, affichés en bas du panneau Objets"><input type="checkbox" v-model="ui.link.loot">les trouvailles (pour le fun)</label></div>
+            <label class="check" title="Pièges de glace, rubis et munitions reçus, affichés en bas du panneau Objets"><input type="checkbox" v-model="ui.link.loot">les trouvailles (pour le fun)</label>
+            <label class="check" title="Position de Link sur la Carte, en continu. Le relais déclare au jeu un second joueur fictif « L'Œil Sheikah », invisible (le jeu affiche « Connected ») : c'est la seule façon d'obtenir la position du jeu."><input type="checkbox" v-model="ui.link.live">la position en temps réel (Carte)</label></div>
           <label class="link-url">Adresse du relais <input class="sel" v-model.lazy="ui.link.url" spellcheck="false"></label>
           <div class="link-status" :class="link.status"><i></i><b>{{LINK_LABEL[link.status]}}</b>
             <span v-if="link.status==='game' && link.client">— {{link.client.name || 'joueur sans nom'}}, sauvegarde {{link.client.isSaveLoaded ? 'chargée' : 'non chargée'}}</span>

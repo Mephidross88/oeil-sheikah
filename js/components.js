@@ -353,7 +353,15 @@ const ZoneMap = {
     bothVersions(){ return this.scenes.some(n => MAPS.scenes[n]?.mq) && this.scenes.some(n => MAPS.scenes[n]?.kind === 'dungeon' && !MAPS.scenes[n].mq); },
     // donjon Master Quest sans carte Master Quest (ROM MQ non fournie) : carte vanilla, prévenir
     mqMissing(){ return this.quest === 'MQ' && MAPS.scenes[this.cur]?.kind === 'dungeon' && !MAPS.scenes[this.cur].mq; },
-    cur(){ return this.scenes.includes(this.scene) ? this.scene : this.scenes[0]; },
+    cur(){ return this.scenes.includes(this.scene) ? this.scene : this.liveScene || this.scenes[0]; },
+    /* Position en temps réel (link.live) : scène de Link parmi celles de la zone (version Master Quest comprise), repère
+       orienté dans la direction où il regarde ; la carte suit sa scène et son étage tant qu'on n'en choisit pas d'autre. */
+    liveOn(){ return !!(store.ui.link.live && link.live); },
+    liveScene(){ return this.liveOn ? this.scenes.find(s => s.replace(/_MQ$/, '') === link.live.scene) || null : null; },
+    liveMark(){
+      if (!this.liveOn || this.liveScene !== this.cur || !this.onLevel(link.live.y)) return null;
+      return { x:link.live.x, z:link.live.z, deg:-link.live.rot * 360 / 65536 };
+    },
     isMq(){ return !!MAPS.scenes[this.cur]?.mq; },
     exitsHere(){ return this.isMq ? MAPS.exitsMq || {} : MAPS.exits; },
     levels(){ return MAPS.scenes[this.cur]?.levels || null; },
@@ -361,6 +369,7 @@ const ZoneMap = {
     lvl(){
       if (!this.levels) return null;
       if (this.level != null && this.level < this.levels.length) return this.level;
+      if (this.liveOn && this.liveScene === this.cur) return mapLevelOf(this.levels, link.live.y);
       const at = [this.here, ...Object.keys(this.exitsHere)].map(k => k && this.exitsHere[k]).find(p => p && p[0] === this.cur && p[3] != null);
       return at ? mapLevelOf(this.levels, at[3]) : this.levels.length - 1;
     },
@@ -372,7 +381,10 @@ const ZoneMap = {
       for (const x of this.checkList){ const p = this.checkAt(x.c.id); if (p && !x.done){ const i = mapLevelOf(this.levels, p[3]); if (i != null) n[i]++; } }
       return n;
     },
-    hereLevel(){ const p = this.here && this.exitsHere[this.here]; return p && p[0] === this.cur ? mapLevelOf(this.levels, p[3]) : null; },
+    hereLevel(){
+      if (this.liveOn && this.liveScene === this.cur) return mapLevelOf(this.levels, link.live.y);
+      const p = this.here && this.exitsHere[this.here]; return p && p[0] === this.cur ? mapLevelOf(this.levels, p[3]) : null;
+    },
     // repères : sorties de la zone dans cette scène (et à cet étage), regroupées par position
     marks(){
       const groups = new Map();
@@ -381,8 +393,16 @@ const ZoneMap = {
         const id = p[1] + ',' + p[2], g = groups.get(id) || { id, x:p[1], z:p[2], keys:[] };
         g.keys.push(key); groups.set(id, g);
       }
-      const ex = this.exitsHere;
-      return [...groups.values()].map(g => ({ ...g, type:EXIT[g.keys.find(k => !ex[k][4]) || g.keys[0]].type,
+      /* changement de zone : flèche vers l'extérieur de la zone — à l'opposé de l'orientation de Link quand il apparaît à
+         la sortie (exitRot ; 0 = vers le sud, z croissant) ; à défaut, du centre de la scène vers le repère ; arrondie au
+         huitième de tour */
+      const ex = this.exitsHere, b = MAPS.scenes[this.cur].bounds, cx = (b[0] + b[2]) / 2, cz = (b[1] + b[3]) / 2, q = Math.PI / 4;
+      const angOf = g => {
+        const k = g.keys.find(k => MAPS.exitRot?.[k] != null), r = k != null && MAPS.exitRot[k] * Math.PI / 0x8000;
+        const a = k != null ? Math.atan2(-Math.cos(r), -Math.sin(r)) : Math.atan2(g.z - cz, g.x - cx);
+        return Math.round(a / q) * q;
+      };
+      return [...groups.values()].map(g => ({ ...g, ang:angOf(g), type:EXIT[g.keys.find(k => !ex[k][4]) || g.keys[0]].type,
         keys:g.keys.sort((a, b) => (ex[a][4] || 0) - (ex[b][4] || 0)) }));
     },
     here(){ return link.position?.key || store.ui.router.fromExit; },
@@ -528,10 +548,29 @@ const ZoneMap = {
   },
   methods:{
     has(m, k){ return !!k && m.keys.includes(k); },
-    // repère de sortie : une porte (arceau) centrée sur sa position — les checks restent des ronds
-    doorPath(x, z, s){
-      const w = s * 1.5, h = s * 2, r = w / 2, top = z - h / 2, bot = z + h / 2;
-      return `M${x - r} ${bot}V${top + r}A${r} ${r} 0 0 1 ${x + r} ${top + r}V${bot}Z`;
+    /* Repère de sortie, forme selon le type (les checks restent des ronds) : intérieur — porte (arceau) ; changement de
+       zone — flèche orientée (ang : vers l'extérieur de la zone) ; grotte — rond percé ; donjon — écusson ; hibou — tête à
+       deux oreilles. Éléments SVG (texte), aussi pour la légende. */
+    markSvg(type, x, z, s, ang = 0){
+      const n = v => +v.toFixed(2), p = d => `<path class="zm-shape" d="${d}"></path>`;
+      if (type === 'interior'){
+        const r = s * 0.75, top = z - s, bot = z + s;
+        return p(`M${n(x - r)} ${n(bot)}V${n(top + r)}A${n(r)} ${n(r)} 0 0 1 ${n(x + r)} ${n(top + r)}V${n(bot)}Z`);
+      }
+      if (type === 'grotto') return `<circle class="zm-shape" cx="${n(x)}" cy="${n(z)}" r="${n(s * 1.1)}"></circle><circle class="zm-hole" cx="${n(x)}" cy="${n(z)}" r="${n(s * 0.45)}"></circle>`;
+      if (type === 'dungeon'){
+        const w = s * 1.05, h = s * 1.2;
+        return p(`M${n(x - w)} ${n(z - h)}H${n(x + w)}V${n(z)}Q${n(x + w)} ${n(z + h * 0.75)} ${n(x)} ${n(z + h)}Q${n(x - w)} ${n(z + h * 0.75)} ${n(x - w)} ${n(z)}Z`);
+      }
+      if (type === 'owl'){
+        const r = s * 0.95;
+        return p(`M${n(x - r * 0.95)} ${n(z - r * 0.3)}L${n(x - r * 0.85)} ${n(z - r * 1.3)}L${n(x - r * 0.3)} ${n(z - r * 0.85)}L${n(x + r * 0.3)} ${n(z - r * 0.85)}L${n(x + r * 0.85)} ${n(z - r * 1.3)}L${n(x + r * 0.95)} ${n(z - r * 0.3)}A${n(r)} ${n(r)} 0 1 1 ${n(x - r * 0.95)} ${n(z - r * 0.3)}Z`);
+      }
+      // changement de zone (et autres) : flèche pleine, pointe vers +x puis tournée de ang
+      const c = Math.cos(ang), si = Math.sin(ang);
+      const pts = [[-1.1, -0.38], [0.1, -0.38], [0.1, -0.9], [1.25, 0], [0.1, 0.9], [0.1, 0.38], [-1.1, 0.38]]
+        .map(([u, v]) => `${n(x + (u * c - v * si) * s)} ${n(z + (u * si + v * c) * s)}`);
+      return p('M' + pts.join('L') + 'Z');
     },
     // position d'un check dans la scène affichée (version Master Quest ou vanilla), sinon null
     checkAt(id){
@@ -631,7 +670,7 @@ const ZoneMap = {
           <template v-if="m.t === 'c'"><circle :cx="m.x" :cy="m.z" :r="unit * (csel===m.id ? 1.05 : 0.75)"></circle>
             <title>{{m.c.label}}{{m.done ? ' (fait)' : m.now ? ' — faisable' : ' — pas encore faisable'}}</title></template>
           <template v-else><rect :x="m.x + unit * 1.3" :y="m.z - unit * 3.3" :width="unit * 2.4" :height="unit * 2" :rx="unit * 0.4"></rect>
-            <text :x="m.x + unit * 2.5" :y="m.z - unit * 1.75" :font-size="unit * 1.4">{{m.todo}}</text>
+            <text :x="m.x + unit * 2.5" :y="m.z - unit * 2.3" dominant-baseline="central" :font-size="unit * 1.4">{{m.todo}}</text>
             <title>{{placeName(m.place)}} : {{m.todo}} check{{m.todo > 1 ? 's' : ''}} à faire sur {{m.list.length}}</title></template>
         </g>
         <g v-for="x in editMarks" :key="'e:' + x.c.id" class="ze-mark" :class="{moving:pick[x.c.id]}">
@@ -642,13 +681,17 @@ const ZoneMap = {
           <rect :x="-unit * 0.75" :y="-unit * 0.75" :width="unit * 1.5" :height="unit * 1.5"></rect>
           <title>Pierre à potins : {{m.s.label}}{{m.read ? ' (lue)' : ''}}</title>
         </g>
-        <g v-for="m in marks" :key="m.id" class="zm" :class="['t-' + m.type, {here:has(m, here), goal:has(m, goal), next:has(m, next), sel:sel===m.id}]"
+        <g v-for="m in marks" :key="m.id" class="zm" :class="['t-' + m.type, {here:has(m, here), live:liveOn, goal:has(m, goal), next:has(m, next), sel:sel===m.id}]"
           @pointerdown.stop @click.stop="pick(m)" @mouseenter="hover=m.id" @mouseleave="hover=null">
           <circle v-if="has(m, here) || has(m, goal) || has(m, next)" class="zm-ring" :cx="m.x" :cy="m.z" :r="unit * 2.6"></circle>
-          <path class="zm-door" :d="doorPath(m.x, m.z, unit * (sel===m.id || hover===m.id ? 1.7 : 1.3))"></path>
+          <g v-html="markSvg(m.type, m.x, m.z, unit * (sel===m.id || hover===m.id ? 1.7 : 1.3), m.ang)"></g>
           <text v-if="sel===m.id || hover===m.id || has(m, here) || has(m, goal) || has(m, next)" :x="m.x" :y="m.z - unit * 2.2" :font-size="unit * 2.3">{{EXIT[m.keys[0]].label}}</text>
           <title>{{title(m)}}</title>
         </g>
+        <g v-if="liveMark" class="zl" :transform="'translate(' + liveMark.x + ' ' + liveMark.z + ') rotate(' + liveMark.deg + ')'">
+          <circle class="zl-halo" :r="unit * 2.2"></circle>
+          <path :d="'M0 ' + unit * 1.9 + 'L' + unit * -1.4 + ' ' + unit * -1.3 + 'L0 ' + unit * -0.5 + 'L' + unit * 1.4 + ' ' + unit * -1.3 + 'Z'"></path>
+          <title>Link (position en temps réel)</title></g>
       </svg>
       <div class="zmap-zoom"><button type="button" title="Zoomer" @click="zoom(1 / 1.5)">+</button><button type="button" title="Dézoomer" @click="zoom(1.5)">−</button>
         <button type="button" title="Cadrer sur les sorties" @click="view = null">⤢</button><button type="button" title="Tout le terrain" @click="view = [...geo.view]">▢</button></div>
@@ -703,13 +746,13 @@ const ZoneMap = {
     </div>
     <div class="zmap-legend"><b>Checks</b><span><i class="lg-c now"></i>faisable</span><span><i class="lg-c"></i>pas encore faisable</span><span><i class="lg-c done"></i>fait</span>
       <span><i class="lg-p"></i>checks d’un intérieur, d’une grotte ou d’un donjon (à faire)</span><span><i class="lg-s"></i>pierre à potins (pleine : lue)</span></div>
-    <div class="zmap-legend"><b>Sorties</b><span><i class="lg-dot t-overworld"></i>passage</span><span><i class="lg-dot t-interior"></i>intérieur (porte)</span>
-      <span><i class="lg-dot t-grotto"></i>grotte</span><span><i class="lg-dot t-dungeon"></i>donjon</span><span><i class="lg-dot t-owl"></i>hibou</span></div>
-    <div class="zmap-legend"><b>Repères</b><span><i class="lg-here"></i>vous êtes ici</span><span><i class="lg-next"></i>prochaine sortie</span><span><i class="lg-goal"></i>arrivée du Routeur</span>
+    <div class="zmap-legend"><b>Sorties</b><span v-for="t in [['overworld','changement de zone'],['interior','intérieur'],['grotto','grotte'],['dungeon','donjon'],['owl','hibou']]" :key="t[0]">
+      <svg class="lg-mark zm" :class="'t-' + t[0]" viewBox="-1.45 -1.45 2.9 2.9" v-html="markSvg(t[0], 0, 0, 1)"></svg>{{t[1]}}</span></div>
+    <div class="zmap-legend"><b>Repères</b><span v-if="liveOn"><i class="lg-link"></i>Link (temps réel)</span><span><i class="lg-here" :class="{live:liveOn}"></i>{{liveOn ? 'dernière entrée' : 'vous êtes ici'}}</span><span><i class="lg-next"></i>prochaine sortie</span><span><i class="lg-goal"></i>arrivée du Routeur</span>
       <span><i class="lg-ground"></i>terrain : du plus bas (foncé) au plus haut (clair)</span><span>Clic sur un repère : partir d’ici ou y aller.</span></div>
   </div>`,
   mounted(){ this.$nextTick(this.fitHeight); this.onResize = () => this.fitHeight(); window.addEventListener('resize', this.onResize); },
   updated(){ if (!this.maxH) this.$nextTick(this.fitHeight); },
   unmounted(){ window.removeEventListener('resize', this.onResize); },
-  setup(){ return { EXIT, mapSceneLabel, CHECK_CAT, ICONS, MAPS, mapEdits }; },
+  setup(){ return { EXIT, mapSceneLabel, CHECK_CAT, ICONS, MAPS, mapEdits, link }; },
 };

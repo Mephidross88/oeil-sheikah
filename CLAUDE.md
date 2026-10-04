@@ -71,7 +71,8 @@ et le mettre à jour quand une règle change.
      caché gardé à part dans localStorage `oeil-sheikah-spoiler`). Options persistantes `store.ui.link`. Données
      `data/link-data.js` (drapeaux RandomizerInf, noms RandomizerGet et leurs noms français, numéros GetItemID, entrées
      et positions de retour des grottes), **fichier généré** par `tools/soh-link/gen_link_data.mjs`. Relais :
-     `tools/soh-link/relay.mjs` (faux serveur Anchor en lecture seule ; tests sur d'autres ports, `--game=… --web=…`),
+     `tools/soh-link/relay.mjs` (faux serveur Anchor en lecture seule ; position en temps réel `link.live` par un second
+     joueur fictif, option `ui.link.live` ; tests sur d'autres ports, `--game=… --web=…`),
      lancé sous Windows par `lancer-relais.bat` (racine, fins de ligne CRLF imposées par `.gitattributes`).
   9. `js/components.js` : composants Vue réutilisables (`TypeIcon`, `Seg`, `DestPicker`, `ItemTile`,
      `ProgressCard` — cadre de progression des pages Checks et Entrées, `EntranceGraph` — page Connexions : graphe des

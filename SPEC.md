@@ -757,13 +757,15 @@ du jeu vu de dessus (nord en haut).
   château, Cocorico, Montagne du Péril, Zoras, Lac Hylia, Désert Gerudo —, chaque donjon avec sa région), onglets si elle
   a plusieurs scènes ; sol en
   10 teintes par tranches de hauteur réparties selon le terrain présent (quantiles), murs en traits sombres ; un repère
-  par position (une porte et l'intérieur derrière partagent un repère) en forme de porte (arceau), couleur par type —
-  les checks restent des ronds ; cadrage sur les repères,
+  par position (une porte et l'intérieur derrière partagent un repère), forme et couleur par type — intérieur : porte
+  (arceau), changement de zone : flèche vers l'extérieur de la zone (à l'opposé de l'orientation de Link quand il
+  apparaît à la sortie, `exitRot` ; à défaut du centre de la scène vers le repère ; arrondie au huitième de tour), grotte : rond percé, donjon : écusson, hibou : tête à deux oreilles (les checks
+  restent des ronds ; mêmes formes dans la légende) ; cadrage sur les repères,
   zoom à la molette et boutons, déplacement en glissant, « tout le terrain ». Hauteur : ce qui reste à l'écran sous la
   carte, moins la légende et le bandeau du bas (260 px au moins), recalculée au redimensionnement. Mis en évidence : position (auto-tracking,
   sinon départ du Routeur), prochaine sortie à prendre (première transition du trajet), arrivée du Routeur. Clic sur un
   repère : ses sorties, leur destination notée, « Partir d'ici » (départ du Routeur) et « Y aller » (arrivée).
-- Légende sous la carte : couleur des repères par type (passage doré, intérieur bleu canard, grotte brune, donjon
+- Légende sous la carte : forme et couleur des repères par type (changement de zone doré, intérieur bleu canard, grotte brune, donjon
   violet, hibou beige), anneaux (position, prochaine sortie, arrivée) et dégradé du terrain.
 - « Voir sur la carte » : bouton carte sur chaque carte du trajet du Routeur, et clic sur la prochaine étape du bandeau
   « Où aller ? » (sortie à prendre).
@@ -804,10 +806,16 @@ connues.
 ## Où aller maintenant ?
 Bandeau collé en bas de la zone principale, sur toutes les pages (ne prend la place d'aucune), repliable
 (`ui.next.open`, replié par défaut) et masquable (× ou case « Bandeau « Où aller ? » » de la barre de gauche, page
-Routeur : `ui.next.enabled`, rien n'est alors calculé). Barre : prochaine étape du trajet en cours du Routeur (mode
-de déplacement → zone · sortie, comme le bloc du stream), check faisable le plus proche (zone, nombre d'étapes) avec
-son bouton « Y aller », nombre de checks faisables. Déplié : les 12 plus proches, en cartes (icône de catégorie,
-libellé, zone, « à pied » ou « N étapes », « adulte » si on s'y rend en adulte) ; un clic = « Y aller » (Routeur).
+Routeur : `ui.next.enabled`, rien n'est alors calculé). Le bandeau calcule lui-même la route vers sa cible, sans passer
+par le Routeur : le check faisable le plus proche, ou celui choisi dans sa liste (`dockTarget`, non gardé, tant qu'il
+reste faisable), depuis le départ du Routeur, à l'âge où il est le plus proche (`shortest` vers une de ses régions).
+Barre : première étape de cette route (mode de déplacement → zone · sortie à prendre, ou arrivée pour un chant, un
+sauvegarder-recharger, un changement d'âge ; « À pied, dans la zone » s'il n'y en a pas ; clic : voir sur la carte),
+check visé (« le plus proche » ou « choisi », zone, nombre d'étapes) avec « Y aller » (ouvre la route dans le Routeur),
+nombre de checks faisables. Déplié : la route complète (étapes numérotées, clic : voir sur la carte, « puis à pied jusqu'au
+check »), puis les 12 plus proches en cartes (icône de catégorie, libellé, zone, « à pied » ou « N étapes », « adulte » si
+on s'y rend en adulte ; cible encadrée) ; un clic fait du check la cible du bandeau (un second clic revient au plus proche).
+Le bloc « Prochaine étape » de la fenêtre de stream suit toujours le trajet du Routeur.
 Les trajets ne passent que par des entrées connues (notées, ou d'origine) : graphe du Routeur, où une entrée mélangée
 non notée est une impasse.
 - Proximité depuis le départ du Routeur (donc la position en direct si l'auto-tracking la suit) et son âge :
@@ -872,6 +880,14 @@ Suivi en direct d'une partie de Ship of Harkinian, sans modifier le jeu.
   total de la jauge est connu : réceptacles notés conservés, quarts ajustés), objets verrouillés, chant de
   l'Épouvantail. Le relais redemande la sauvegarde complète après chaque objet reçu (`GIVE_ITEM`, objets de donjon).
   Numéros des drapeaux : `data/link-data.js`, **généré** par `tools/soh-link/gen_link_data.mjs`.
+- **Position en temps réel** (option « la position en temps réel (Carte) », `ui.link.live`, désactivée par défaut) : le
+  jeu n'envoie la position de Link (PLAYER_UPDATE, à chaque image) qu'aux autres joueurs de sa scène ; l'appli demande
+  au relais (`POST /live?on=1|0`, à chaque connexion et à chaque changement de l'option) de déclarer un second joueur
+  fictif « L'Œil Sheikah », qui suit Link de scène en scène, caché sous le sol (le jeu affiche « Connected »). Le relais
+  transmet la position (`live` : scène, x, y, z, orientation, âge) au plus 10 fois par seconde, quand elle change ; sans
+  appli connectée, il retire le joueur fictif. Carte : flèche bleue orientée sur un halo, à l'étage de sa hauteur ; la
+  carte suit la zone (menu sur sa position), la scène et l'étage de Link tant qu'on n'en choisit pas d'autres ; l'anneau
+  « vous êtes ici » (dernière entrée prise) devient continu, « dernière entrée ». Noms des scènes : `LINK_DATA.scenes`.
 - **Position** (option « la position », `ui.link.position`) : sortie où l'on vient d'apparaître, d'après l'entrée
   d'arrivée du jeu (`entranceIndex` de l'état du client, `UPDATE_CLIENT_STATE`, envoyé à chaque changement de scène,
   via `EXIT_BY_ARRIVAL`), et âge. Le jeu n'envoie l'âge (`linkAge`) que dans les mises à jour du joueur (`PLAYER_UPDATE`),

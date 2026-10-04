@@ -55,11 +55,15 @@ const grottoReturn = [...table('grottoReturnTable').matchAll(/\.entranceIndex\s*
   .map(m => [ENTR[m[1]], +m[2], +m[3], +m[4]]);
 if (grottoLoad.some(x => x === undefined) || grottoReturn.some(r => r[0] === undefined)) throw new Error('entrée de grotte inconnue');
 
+// Scènes (scene_table.h, dans l'ordre : numéro de scène envoyé par le jeu) → nom, sans « SCENE_ » (comme data/maps-data.js)
+const scenes = [...fs.readFileSync(new URL('../soh-checks/src/scene_table.h', import.meta.url), 'utf8').matchAll(/DEFINE_SCENE\(\w+,\s*\w+,\s*SCENE_(\w+)/g)].map(m => m[1]);
+
 const out = `/* Auto-tracking (js/link.js) — FICHIER GÉNÉRÉ par tools/soh-link/gen_link_data.mjs depuis les sources de
    Ship of Harkinian 9.2.3 (commit cb71e22). randInf : { NOM: numéro de drapeau RandomizerInf } ; rg : noms des objets
    RandomizerGet, par numéro ; rgFr : leur nom français (item_list.cpp) ; giRg : { numéro GetItemID: numéro RG } des
    objets du jeu de base (reçus avec modId 0) ; grottoLoad[i] : entrée (de la scène des grottes, parfois partagée)
-   par laquelle on arrive dans la grotte i ; grottoReturn[i] : [entrée générique, x, y, z] de la sortie de la grotte i (entrée 0x700 + i, sortie 0x800 + i). */
+   par laquelle on arrive dans la grotte i ; grottoReturn[i] : [entrée générique, x, y, z] de la sortie de la grotte i (entrée 0x700 + i, sortie 0x800 + i) ;
+   scenes[n] : nom de la scène n (position en temps réel). */
 window.LINK_DATA = {
   randInf:${JSON.stringify(randInf)},
   rg:${JSON.stringify(rg)},
@@ -67,6 +71,7 @@ window.LINK_DATA = {
   giRg:${JSON.stringify(giRg)},
   grottoLoad:${JSON.stringify(grottoLoad)},
   grottoReturn:${JSON.stringify(grottoReturn)},
+  scenes:${JSON.stringify(scenes)},
 };
 `;
 fs.writeFileSync(OUT, out);
