@@ -778,6 +778,9 @@ du jeu vu de dessus (nord en haut).
   carte, moins la légende et le bandeau du bas (260 px au moins), recalculée au redimensionnement. Mis en évidence : position (auto-tracking,
   sinon départ du Routeur), prochaine sortie à prendre (première transition du trajet), arrivée du Routeur. Clic sur un
   repère : ses sorties, leur destination notée, « Partir d'ici » (départ du Routeur) et « Y aller » (arrivée).
+- État d'une sortie (sa sortie principale, pas celle placée à sa porte) : destination inconnue (entrée mélangée pas encore
+  notée : `effC` vide) — « ? » blanc sur le repère ; pas encore accessible (aucune de ses régions SoH ne l'est : `reachC`,
+  comme la page Entrées) — repère estompé et désaturé. Légende : « destination inconnue », « pas encore accessible ».
 - Arrivées seules (`destinationOnly` : plateformes de téléportation, atterrissage du hibou, arrivée de la rivière Gerudo)
   masquées : on ne peut pas les prendre — sauf si c'est la position, l'arrivée du Routeur ou la prochaine sortie.
 - Légende sous la carte : forme et couleur des repères par type (changement de zone doré, intérieur bleu canard, grotte brune, donjon

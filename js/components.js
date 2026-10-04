@@ -409,8 +409,13 @@ const ZoneMap = {
       // arrivées seules (plateformes de téléportation, atterrissage du hibou, arrivée de la rivière) : on ne peut pas les
       // prendre, masquées — sauf position, arrivée du Routeur ou prochaine sortie
       const shown = g => g.keys.some(k => !EXIT[k].destinationOnly || k === this.here || k === this.goal || k === this.next);
-      return [...groups.values()].filter(shown).map(g => ({ ...g, ang:angOf(g), type:EXIT[g.keys.find(k => !ex[k][4]) || g.keys[0]].type,
-        keys:g.keys.sort((a, b) => (ex[a][4] || 0) - (ex[b][4] || 0)) }));
+      // état de la sortie principale du repère (pas celle placée à sa porte) : destination connue (notée, ou entrée non
+      // mélangée) ; accessible (une de ses régions SoH l'est, comme la page Entrées)
+      const eff = effC.value, reach = reachC.value;
+      return [...groups.values()].filter(shown).map(g => {
+        const keys = g.keys.sort((a, b) => (ex[a][4] || 0) - (ex[b][4] || 0)), main = keys[0];
+        return { ...g, keys, ang:angOf(g), type:EXIT[g.keys.find(k => !ex[k][4]) || g.keys[0]].type, known:!!eff[main], reach:reach.has(main) };
+      });
     },
     here(){ return link.position?.key || store.ui.router.fromExit; },
     goal(){ return store.ui.router.toExit; },
@@ -689,10 +694,11 @@ const ZoneMap = {
           <rect :x="-unit * 0.75" :y="-unit * 0.75" :width="unit * 1.5" :height="unit * 1.5"></rect>
           <title>Pierre à potins : {{m.s.label}}{{m.read ? ' (lue)' : ''}}</title>
         </g>
-        <g v-for="m in marks" :key="m.id" class="zm" :class="['t-' + m.type, {here:has(m, here), live:liveOn, goal:has(m, goal), next:has(m, next), sel:sel===m.id}]"
+        <g v-for="m in marks" :key="m.id" class="zm" :class="['t-' + m.type, {here:has(m, here), live:liveOn, goal:has(m, goal), next:has(m, next), sel:sel===m.id, locked:!m.reach}]"
           @pointerdown.stop @click.stop="pick(m)" @mouseenter="hover=m.id" @mouseleave="hover=null">
           <circle v-if="has(m, here) || has(m, goal) || has(m, next)" class="zm-ring" :cx="m.x" :cy="m.z" :r="unit * 2.6"></circle>
           <g v-html="markSvg(m.type, m.x, m.z, unit * (sel===m.id || hover===m.id ? 1.7 : 1.3), m.ang)"></g>
+          <text v-if="!m.known" class="zm-q" :x="m.x" :y="m.z" :font-size="unit * (sel===m.id || hover===m.id ? 2 : 1.6)">?</text>
           <text v-if="sel===m.id || hover===m.id || has(m, here) || has(m, goal) || has(m, next)" :x="m.x" :y="m.z - unit * 2.2" :font-size="unit * 2.3">{{EXIT[m.keys[0]].label}}</text>
           <title>{{title(m)}}</title>
         </g>
@@ -755,7 +761,9 @@ const ZoneMap = {
     <div v-if="!compact" class="zmap-legend"><b>Checks</b><span><i class="lg-c now"></i>faisable</span><span><i class="lg-c"></i>pas encore faisable</span><span><i class="lg-c done"></i>fait</span>
       <span><i class="lg-p"></i>checks d’un intérieur, d’une grotte ou d’un donjon (à faire)</span><span><i class="lg-s"></i>pierre à potins (pleine : lue)</span></div>
     <div v-if="!compact" class="zmap-legend"><b>Sorties</b><span v-for="t in [['overworld','changement de zone'],['interior','intérieur'],['grotto','grotte'],['dungeon','donjon'],['owl','hibou']]" :key="t[0]">
-      <svg class="lg-mark zm" :class="'t-' + t[0]" viewBox="-1.45 -1.45 2.9 2.9" v-html="markSvg(t[0], 0, 0, 1)"></svg>{{t[1]}}</span></div>
+      <svg class="lg-mark zm" :class="'t-' + t[0]" viewBox="-1.45 -1.45 2.9 2.9" v-html="markSvg(t[0], 0, 0, 1)"></svg>{{t[1]}}</span>
+      <span><svg class="lg-mark zm t-interior" viewBox="-1.45 -1.45 2.9 2.9"><g v-html="markSvg('interior', 0, 0, 1)"></g><text class="zm-q" x="0" y="0" font-size="1.6">?</text></svg>destination inconnue</span>
+      <span><svg class="lg-mark zm t-interior locked" viewBox="-1.45 -1.45 2.9 2.9" v-html="markSvg('interior', 0, 0, 1)"></svg>pas encore accessible</span></div>
     <div v-if="!compact" class="zmap-legend"><b>Repères</b><span v-if="liveOn"><i class="lg-link"></i>Link (temps réel)</span><span><i class="lg-here" :class="{live:liveOn}"></i>{{liveOn ? 'dernière entrée' : 'vous êtes ici'}}</span><span><i class="lg-next"></i>prochaine sortie</span><span><i class="lg-goal"></i>arrivée du Routeur</span>
       <span><i class="lg-ground"></i>terrain : du plus bas (foncé) au plus haut (clair)</span><span>Clic sur un repère : partir d’ici ou y aller.</span></div>
   </div>`,
