@@ -33,7 +33,7 @@ function defaults(){
       next:{ open:false, enabled:true },
       map:{ area:'', checks:'filters', stones:true, editTool:false },   // page Carte : zone ('' : celle de la position), checks (filters : comme la page Checks | all | off), pierres, outil « Placer les checks » affiché
       checks:{ q:'', hideDone:false, hideDoneZones:false, onlyAvailable:false, showLogic:false, showExcluded:false, alwaysGS:false, sortAvail:true, showFound:true, age:'all', hiddenCats:{}, collapsed:{} },
-      filters:{ showReachableTargets:false, showInaccessibleAreas:false, showDiscovered:true, showVanilla:true },
+      filters:{ showReachableTargets:false, showInaccessibleAreas:false, showInaccessibleExits:false, showDiscovered:true, showVanilla:true },
       router:{ fromArea:'', fromExit:'', fromAge:'child', toArea:'', toExit:'', toAge:'any', showCost:false, onlyReachable:true, prevFrom:null } },
   };
 }

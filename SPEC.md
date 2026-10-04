@@ -52,6 +52,9 @@ la page correspondante, souligné quand on y est. Côte à côte, empilés sur m
     comme une destination atteignable : masquée si OFF, affichée en grisé avec la mention « Atteignable »
     si ON.
   - Afficher les zones non atteintes (aucun chemin connu n'y mène) : OFF par défaut.
+  - Afficher les sorties pas encore accessibles (`showInaccessibleExits`) : OFF par défaut — sinon une sortie ne
+    s'affiche que si elle peut être prise maintenant (`canTake` du Routeur, comme la Carte : une tombe sans Saisir…) ;
+    une sortie déjà notée et les apparitions restent toujours affichées ; avec l'option, les autres sont estompées.
   - Afficher les sorties découvertes : ON par défaut.
   - Afficher les sorties non randomisées : ON par défaut.
 - Bouton rouge « Tout remettre à zéro », avec confirmation : efface destinations et état de la partie,

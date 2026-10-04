@@ -271,14 +271,18 @@ const App = {
     });
 
     const visibleAreas = computed(() => {
-      const f = ui.filters, reach = reachC.value, inc = incC.value;
+      const f = ui.filters, reach = reachC.value, inc = incC.value, rg = routeC.value;
+      // sortie qui peut être prise maintenant (comme la Carte : canTake du Routeur ; sinon une de ses régions est accessible)
+      const takeable = e => { const t = rg.canTake(e.key); return t == null ? reach.has(e.key) : t; };
       return AREAS.map(area => {
         const reachable = area.id === SPAWN_AREA || area.exits.some(e => reach.has(e.key));
         if (!reachable && !f.showInaccessibleAreas) return null;
-        const all = area.exits.filter(e => !e.destOnly).map(e => ({ e, ...rowInfo(e) }));
+        const all = area.exits.filter(e => !e.destOnly).map(e => ({ e, ...rowInfo(e), reach:area.id === SPAWN_AREA || takeable(e) }));
         const editable = all.filter(r => r.mode !== 'vanilla' && r.mode !== 'auto').length;
         const mapped = all.filter(r => r.mode === 'set').length;
-        const rows = all.filter(r => (f.showVanilla || (r.mode !== 'vanilla' && r.mode !== 'auto')) && (f.showDiscovered || r.mode !== 'set'));
+        // (sorties pas encore accessibles : masquées, sauf option ; une sortie déjà notée reste affichée)
+        const rows = all.filter(r => (f.showVanilla || (r.mode !== 'vanilla' && r.mode !== 'auto')) && (f.showDiscovered || r.mode !== 'set')
+          && (r.reach || r.mode === 'set' || f.showInaccessibleExits));
         if (!rows.length) return null;
         rows.forEach(r => { r.from = (inc[r.e.key] || []).map(k => ({ key:k, area:areaName(k), label:EXIT[k].label })); });
         return { area, reachable, rows, editable, mapped };
@@ -1131,6 +1135,7 @@ ${STREAM_TPL}
       <div class="side-row"><button class="side-btn" @click="setAll(false)">Tout déplier</button><button class="side-btn" @click="setAll(true)">Tout replier</button></div>
       <label class="check"><input type="checkbox" v-model="ui.filters.showReachableTargets">Proposer les destinations déjà atteignables ou déjà mappées</label>
       <label class="check"><input type="checkbox" v-model="ui.filters.showInaccessibleAreas">Afficher les zones non atteintes</label>
+      <label class="check"><input type="checkbox" v-model="ui.filters.showInaccessibleExits">Afficher les sorties pas encore accessibles</label>
       <label class="check"><input type="checkbox" v-model="ui.filters.showDiscovered">Afficher les sorties découvertes</label>
       <label class="check"><input type="checkbox" v-model="ui.filters.showVanilla">Afficher les sorties non randomisées</label>
       <div class="side-title">Zones</div>
@@ -1224,7 +1229,7 @@ ${STREAM_TPL}
           </button>
           <div v-if="!ui.collapsed[va.area.id]" class="rows" :class="{'no-from':!decoupled}">
             <div class="row row-head"><span></span><span></span><span>Sortie</span><span v-if="decoupled">Accessible depuis</span><span>{{decoupled?'Va vers':'Sortie associée'}}</span><span></span></div>
-            <div v-for="r in va.rows" :key="r.e.key" class="row" :class="'m-'+r.mode" :id="'row-'+r.e.key">
+            <div v-for="r in va.rows" :key="r.e.key" class="row" :class="['m-'+r.mode, {unreach:!r.reach}]" :id="'row-'+r.e.key" :title="r.reach ? null : 'Pas encore accessible : on ne peut pas encore prendre cette sortie (logique SoH)'">
               <type-icon :type="iconKey(r.e)" :src="exitIcon(r.e)"></type-icon>
               <button class="globe" :class="{none:!r.e.connections.length}" :aria-label="'Connexions depuis '+r.e.label"
                 @mouseenter="r.e.connections.length && showTip($event,r.e.key)" @mouseleave="hideTip" @focus="r.e.connections.length && showTip($event,r.e.key)" @blur="hideTip"

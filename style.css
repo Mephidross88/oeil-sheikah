@@ -1229,3 +1229,5 @@ select.sel:hover{border-color:var(--gold)}
 }
 @container (max-width: 420px){ .rline{grid-template-columns:1fr} }
 @media (prefers-reduced-motion: reduce){ *{transition:none!important;animation:none!important} }
+/* page Entrées : sortie pas encore accessible (affichée avec l'option) */
+.row.unreach{opacity:.5}
