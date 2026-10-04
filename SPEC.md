@@ -663,10 +663,12 @@ Page « Statistiques » (`ui.view` = `stats`) : chronologie de la partie.
 - Temps de jeu : le jeu n'envoie pas son compteur (`playTimer` de sa sauvegarde) ; l'appli cumule les périodes où le jeu
   est connecté au relais avec la partie notée chargée (`game.play` : `[[début, fin], …]`, heure réelle, mises à jour
   toutes les 10 s, nouvelle période après une coupure de plus de 30 s ; `linkPlayTick` de `link.js`) — seulement les
-  sessions jouées avec l'auto-tracking. S'il y en a, les heures de la chronologie et la courbe sont en temps de jeu
-  (temps de jeu cumulé à l'heure de l'événement), sinon en heure réelle depuis le début.
-- Contenu : temps de jeu, checks faits, sorties notées, objets et chants obtenus, pièges de glace ; courbe en escalier
-  des checks faits au fil du temps ; chronologie (plus récent d'abord) filtrable « Objets et chants » / « Checks » /
+  sessions jouées avec l'auto-tracking ; démarre dès que la partie est chargée ; affiché à la seconde pendant qu'on joue
+  (`playNow` : périodes enregistrées plus le temps écoulé depuis la fin de la dernière). Heures de la chronologie en temps
+  de jeu (temps de jeu cumulé à l'heure de l'événement ; sans temps de jeu, heure réelle depuis le début) ; courbe des
+  checks seulement en temps de jeu.
+- Contenu : avancement — temps de jeu, checks faits, entrées trouvées (s'il y a des entrées mélangées) ; courbe en
+  escalier des checks faits au fil du temps de jeu ; chronologie (plus récent d'abord) filtrable « Objets et chants » / « Checks » /
   « Tout », avec l'objet trouvé dans le check quand il est connu.
 
 ## Fenêtre de stream
@@ -674,12 +676,14 @@ Bouton « Fenêtre de stream ↗ » (barre de gauche) : ouvre `index.html?stream
 capturer dans OBS (« Capture de fenêtre » + filtre d'incrustation sur le fond vert ; une source « Navigateur » d'OBS
 a son propre stockage et ne verrait pas la partie).
 - Blocs disposés librement sur un fond uni (vert d'incrustation par défaut, magenta, transparent, fond de l'appli ou
-  couleur au choix) : Objets (le panneau Objets, sur 1 ou 2 colonnes), Progression (cadres Checks et Entrées), Prochaine
-  étape (du trajet du Routeur : mode de déplacement, destination, arrivée visée), Où aller maintenant ? (5 plus
-  proches), Trouvailles, Connexions, Carte (zone de Link : celle de sa scène en temps réel, sinon de sa dernière
+  couleur au choix) : Objets (le panneau Objets, sur 1 ou 2 colonnes), Progression (cadres Checks et Entrées côte à côte ;
+  Checks seul, centré, sans entrées mélangées), Trouvailles, Connexions, Carte (zone de Link : celle de sa scène en temps réel, sinon de sa dernière
   entrée ; carte seule, sans boutons ni légende, flèche de Link comprise ; type `zonemap`), Espace vide (emplacement du jeu, cadre doré en option), Image (chemin, adresse ou
   fichier choisi, gardé en data URL), Texte. Contenus à leur largeur naturelle, mis à l'échelle de la largeur du bloc
   (`zoom`) ; Espace vide, Image et Texte à la taille du bloc.
+- Disposition par défaut (1920 × 1080) : Objets à gauche, Trouvailles en dessous ; emplacement du jeu à droite,
+  Progression sous lui sur toute sa largeur. Disposition gardée d'avant : blocs Prochaine étape et Où aller retirés
+  (types disparus) ; Progression et Trouvailles encore à leur ancienne place par défaut mises à la nouvelle.
 - Édition : touche E (ou double-clic) : grille, glisser un bloc pour le déplacer, coin bas-droit pour le redimensionner
   (pas de 10 px), × pour le retirer ; barre d'outils : ajouter un bloc, fond, options du bloc choisi, disposition par
   défaut (pensée pour 1920 × 1080). Disposition gardée à part (localStorage `oeil-sheikah-stream`).

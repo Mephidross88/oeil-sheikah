@@ -106,6 +106,7 @@ function linkHandle(m){
     }
     linkPositionFrom(m.player || m.clientState, false);
     if (!!m.live !== !!store.ui.link.live) linkSyncLive();
+    linkPlayTick();
     return;
   }
   if (m.type === 'live'){
@@ -132,6 +133,7 @@ function linkHandle(m){
   if (m.type === 'client'){
     link.client = m.clientState; linkSaveSeen();
     if (!link.foreign){ linkEntranceArrival(m.clientState); linkPositionFrom(m.clientState, true); linkRevealAll(); }
+    linkPlayTick();   // (temps de jeu : dès le chargement de la partie)
     return;
   }
   if (m.type === 'player'){ link.player = m.player; if (!link.foreign){ linkEntranceArrival(m.player); linkPositionFrom(m.player, true); } return; }

@@ -158,19 +158,6 @@ const STREAM_TPL = `
       <div v-else-if="w.type==='progress'" class="global-progress sw-progress">
         <progress-card :stats="checkStats" unit="checks" title="Checks"></progress-card>
         <progress-card v-if="stats.editable" :stats="stats" unit="sorties" title="Entrées"></progress-card></div>
-      <div v-else-if="w.type==='next'" class="sw-card">
-        <div class="sw-title">Prochaine étape</div>
-        <template v-if="nextStep">
-          <div class="sw-next-mode"><img v-if="nextStep.icon" :src="nextStep.icon" alt=""><span v-else v-html="ICONS.uturn"></span>{{nextStep.mode}}</div>
-          <div class="sw-next-dest"><b>{{nextStep.zone}}</b> · {{nextStep.exit}}</div>
-          <div v-if="nextStep.goal" class="sw-muted">Arrivée : {{nextStep.goal}}</div>
-        </template>
-        <div v-else class="sw-muted">Aucun trajet en cours</div></div>
-      <div v-else-if="w.type==='where'" class="sw-card">
-        <div class="sw-title">Où aller maintenant ?</div>
-        <ul v-if="nextC && nextC.list.length" class="sw-where">
-          <li v-for="x in nextC.list.slice(0, 5)" :key="x.c.id"><img :src="CHECK_CAT[x.c.cat].icon" alt=""><span><b>{{x.c.label}}</b><small>{{CHECK_AREA[x.c.area].label}} · {{stepsLabel(x.steps)}}</small></span></li></ul>
-        <div v-else class="sw-muted">Aucun check faisable à portée</div></div>
       <entrance-graph v-else-if="w.type==='graph'"></entrance-graph>
       <zone-map v-else-if="w.type==='zonemap' && MAPS_OK && followArea" class="sw-map" :compact="true" :area="followArea"></zone-map>
       <img v-else-if="w.type==='image' && w.src" class="sw-img" :src="w.src" alt="" :style="{objectFit:w.fit || 'contain'}">
@@ -1013,21 +1000,16 @@ const App = {
       window.addEventListener('dblclick', ev => { if (!swEdit.value && !ev.target.closest('input')) swEdit.value = true; });
     }
     const openStream = () => window.open('index.html?stream', 'oeil-sheikah-stream', 'width=1600,height=900');
-    // Prochaine étape du trajet du Routeur (bloc du stream) : mode de déplacement et carte suivante
-    const nextStep = computed(() => {
-      const r = route.value;
-      if (r.state !== 'ok') return null;
-      const items = r.items, i = items.findIndex((it, k) => k > 0 && (it.t === 'card' || it.t === 'retake'));
-      if (i < 0) return null;
-      const it = items[i], edge = items.slice(1, i).find(x => x.t === 'edge'), key = it.t === 'retake' ? it.key : it.key0;
-      const to = ui.router.toExit;
-      return { take:edge ? edge.e.from : key, mode:it.t === 'retake' ? 'Reprendre cette sortie' : edge ? edgeLabel(edge.e) : 'Changement d’âge',
-        icon:it.t === 'retake' || !edge ? null : edgeIcon(edge.e), zone:areaName(key), exit:EXIT[key].label,
-        goal:it.end || !EXIT[to] ? '' : areaName(to) + ' · ' + EXIT[to].label };
-    });
     /* Statistiques : chronologie de la partie (game.timeline, js/state.js) et compteurs */
-    const nowTick = ref(Date.now());
-    setInterval(() => { nowTick.value = Date.now(); }, 30000);
+    // temps de jeu affiché, qui défile à la seconde pendant qu'on joue (game.play n'est mis à jour que toutes les 10 s)
+    const secTick = ref(Date.now());
+    setInterval(() => { secTick.value = Date.now(); }, 1000);
+    const playNow = computed(() => {
+      const play = Array.isArray(store.game.play) ? store.game.play : [], last = play[play.length - 1];
+      const total = play.reduce((n, [a, b]) => n + b - a, 0), now = secTick.value;
+      const playing = link.status === 'game' && link.client?.isSaveLoaded && !link.foreign && last && now - last[1] <= 30000;
+      return total + (playing ? Math.max(0, now - last[1]) : 0);
+    });
     const fmtDur = ms => { const t = Math.max(0, Math.round(ms / 1000)); return Math.floor(t / 3600) + ':' + String(Math.floor(t % 3600 / 60)).padStart(2, '0') + ':' + String(t % 60).padStart(2, '0'); };
     const stFilter = ref('items');
     const statsC = computed(() => {
@@ -1046,18 +1028,18 @@ const App = {
         const it = ITEM_BY_KEY[e.id];
         return { i, k:e.k, at:atOf(e.t), label:it ? itemLabelAt(it, e.v) : e.id, icon:it ? itemIconAt(it, e.v) : null, found:'' };
       }).reverse();
-      // courbe en escalier : checks faits depuis l'origine (ceux d'avant le suivi au départ)
+      // courbe en escalier : checks faits au fil du temps de jeu (ceux d'avant le suivi au départ) ; sans temps de jeu, pas
+      // de courbe
       const ck = timed.filter(e => e.k === 'checks').map(e => e.t).sort((a, b) => a - b);
       let curve = null;
-      if ((usePlay || origin) && ck.length){
-        const end = Math.max(nowTick.value, ck[ck.length - 1]), span = Math.max(1, usePlay ? playTotal : end - origin), start = tl.filter(e => e.k === 'checks' && !e.t).length;
-        const max = Math.max(1, start + ck.length), W = 600, H = 150, x = t => (usePlay ? playAt(t) : t - origin) / span * W, y = n => H - n / max * H;
+      if (usePlay && ck.length){
+        const span = Math.max(1, playTotal), start = tl.filter(e => e.k === 'checks' && !e.t).length;
+        const max = Math.max(1, start + ck.length), W = 600, H = 150, x = t => playAt(t) / span * W, y = n => H - n / max * H;
         let d = 'M0,' + y(start).toFixed(1), n = start;
         for (const t of ck){ d += ' H' + x(t).toFixed(1) + ' V' + y(++n).toFixed(1); }
-        curve = { d:d + ' H' + W, area:d + ' H' + W + ' V' + H + ' H0 Z', end:fmtDur(usePlay ? playTotal : end - origin), max, play:usePlay };
+        curve = { d:d + ' H' + W, area:d + ' H' + W + ' V' + H + ' H0 Z', end:fmtDur(playTotal), max };
       }
-      // (nowTick : recalcul toutes les 30 s, le temps de jeu en cours compris)
-      return { origin, elapsed:origin ? nowTick.value - origin : null, playTotal, rows, curve, nItems:tl.filter(e => e.k !== 'checks').length };
+      return { origin, playTotal, rows, curve };
     });
     const statsRows = computed(() => statsC.value.rows.filter(r => stFilter.value === 'all' || (stFilter.value === 'checks' ? r.k === 'checks' : r.k !== 'checks')));
     /* Carte (js/components.js, ZoneMap) : zone affichée (choisie, sinon celle de la position) et sortie à mettre en
@@ -1116,7 +1098,7 @@ const App = {
       itemVisible, tierLabel, iconSrc, checklistModal, openChecklist, setChecklist, checklistStats,
       tradeModal, openTrade, tradeStats, counterClass,
       TRIALS, trialStatus, cycleTrial, setDungeonFlag, addDungeonKeys, dungeonQuest, dungeonMaxKeys, cycleDungeonQuest, questLabel, questClass, questTitle, keysLabel, dungeonKeyRing, setKeyRing, dungeonKeysDone, keysTitle, brokenIcons,
-      setTheme, startHere, prevStart, backToPrev, liveStart, pickAreas, pickExits, zoneExcludeMode, zoneExclude, hintGroups, hintEdit, hintsC, setHintRead, GOSSIP_STONES, HINT_TYPES, CHECK_AREAS, MAP_SCENES, MAPS_OK, mapAreas, mapGroups, followArea, mapFocus, mapArea, openMap, mapHere, mapStart, mapGoal, fmtDur, stFilter, statsC, statsRows, STREAM, STREAM_TYPES, sl, swEdit, swSel, swAdd, swHint, swSelW, streamBg, swBodyStyle, swDown, swMove, swUp, swNew, swDelete, swReset, swImage, openStream, nextStep, dockCheck, dockRoute, dockTarget, pickDock, swap, route, edgeLabel, edgeIcon, WARP_SONGS, ageLabel, openBackup, copyBackup, importBackup, resetAll, declineSpoiler, savedAt, TYPE_LABEL };
+      setTheme, startHere, prevStart, backToPrev, liveStart, pickAreas, pickExits, zoneExcludeMode, zoneExclude, hintGroups, hintEdit, hintsC, setHintRead, GOSSIP_STONES, HINT_TYPES, CHECK_AREAS, MAP_SCENES, MAPS_OK, mapAreas, mapGroups, followArea, mapFocus, mapArea, openMap, mapHere, mapStart, mapGoal, fmtDur, stFilter, statsC, statsRows, playNow, STREAM, STREAM_TYPES, sl, swEdit, swSel, swAdd, swHint, swSelW, streamBg, swBodyStyle, swDown, swMove, swUp, swNew, swDelete, swReset, swImage, openStream, dockCheck, dockRoute, dockTarget, pickDock, swap, route, edgeLabel, edgeIcon, WARP_SONGS, ageLabel, openBackup, copyBackup, importBackup, resetAll, declineSpoiler, savedAt, TYPE_LABEL };
   },
   template:`
 ${STREAM_TPL}
@@ -1542,14 +1524,12 @@ ${STREAM_TPL}
         <button type="button" title="Fermer ce panneau" v-html="ICONS.close" @click="closeSide"></button></div>
       <div class="page-head"><h1>Statistiques</h1><p class="lede">Chronologie de la partie : objets, chants et checks, à l'heure où ils ont été notés (en direct avec l'auto-tracking).</p></div>
       <div class="rsum st-tiles">
-        <div class="rstat" title="Temps passé avec le jeu connecté au relais et la partie chargée (le jeu n'envoie pas son propre compteur) : seulement les sessions jouées avec l'auto-tracking"><div><b>{{statsC.playTotal ? fmtDur(statsC.playTotal) : '—'}}</b><span>temps de jeu (auto-tracking)</span></div></div>
+        <div class="rstat" title="Temps passé avec le jeu connecté au relais et la partie chargée (le jeu n'envoie pas son propre compteur) : seulement les sessions jouées avec l'auto-tracking"><div><b>{{playNow ? fmtDur(playNow) : '—'}}</b><span>temps de jeu (auto-tracking)</span></div></div>
         <div class="rstat"><div><b>{{checkStats.got}} / {{checkStats.total}}</b><span>checks faits</span></div></div>
-        <div class="rstat" v-if="stats.editable"><div><b>{{stats.mapped}} / {{stats.editable}}</b><span>sorties notées</span></div></div>
-        <div class="rstat"><div><b>{{statsC.nItems}}</b><span>objets et chants obtenus</span></div></div>
-        <div class="rstat" v-if="ui.link.loot"><div><b>{{store.game.loot.iceTraps}}</b><span>piège{{store.game.loot.iceTraps>1?'s':''}} de glace</span></div></div>
+        <div class="rstat" v-if="stats.editable"><div><b>{{stats.mapped}} / {{stats.editable}}</b><span>entrées trouvées</span></div></div>
       </div>
       <div v-if="statsC.curve" class="st-chart">
-        <div class="st-chart-title">Checks faits au fil du {{statsC.curve.play ? 'temps de jeu' : 'temps'}} <small>(jusqu'à {{statsC.curve.max}})</small></div>
+        <div class="st-chart-title">Checks faits au fil du temps de jeu <small>(jusqu'à {{statsC.curve.max}})</small></div>
         <svg viewBox="0 0 600 150" preserveAspectRatio="none"><path class="st-area" :d="statsC.curve.area"></path><path class="st-line" :d="statsC.curve.d"></path></svg>
         <div class="st-axis"><span>0:00:00</span><span>{{statsC.curve.end}}</span></div>
       </div>
