@@ -408,7 +408,7 @@ const ZoneMap = {
       };
       // arrivées seules (plateformes de téléportation, atterrissage du hibou, arrivée de la rivière) : on ne peut pas les
       // prendre, masquées — sauf position, arrivée du Routeur ou prochaine sortie
-      const shown = g => g.keys.some(k => !EXIT[k].destinationOnly || k === this.here || k === this.goal || k === this.next);
+      const shown = g => g.keys.some(k => !EXIT[k].destOnly || k === this.here || k === this.goal || k === this.next);
       // état de la sortie principale du repère (pas celle placée à sa porte) : destination connue (notée, ou entrée non
       // mélangée) ; accessible = peut être prise maintenant (Routeur : région de départ accessible et passage franchissable —
       // une tombe sans Saisir ne l'est pas) ; à défaut (salle de boss…), une de ses régions SoH est accessible
