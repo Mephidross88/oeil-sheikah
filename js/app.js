@@ -1578,6 +1578,12 @@ ${STREAM_TPL}
             <div class="field" title="Coût estimé par région de la logique SoH traversée, quand les données n'ont pas de coût de marche (intérieur des donjons, certaines portes)"><label for="c5">Marche estimée (par région)</label><input id="c5" type="number" min="0" v-model.number="store.costs.walk"></div>
           </div>
         </section>
+        <section class="cblock"><h2>Carte</h2>
+          <div class="copt" title="Pour placer à la main un check sans position et exporter les positions (positions-manuelles.json, pour tools/soh-maps). Tous les checks ont déjà une position : utile seulement pour en corriger une.">
+            <div><div class="t">Outil « Placer les checks »</div></div>
+            <seg v-model="ui.map.editTool" :options="[[false,'Non'],[true,'Oui']]"></seg>
+          </div>
+        </section>
       </div>
     </section>
     </div>

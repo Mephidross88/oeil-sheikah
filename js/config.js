@@ -12,7 +12,7 @@ const CONFIG_TABS = [
   { id:'shuffles', label:'Mélanges', cards:[['locations','Lieux'], ['items','Objets'], ['abilities','Capacités et langues'], ['extras','Objets additionnels']] },
   { id:'starting', label:'Départ', hidden:true, cards:[['equipment','Équipement et objets'], ['songs','Chants']] },
   { id:'tricks', label:'Astuces' },
-  { id:'router', label:'Routeur' },
+  { id:'router', label:'Routeur et carte' },
 ];
 
 // { key, soh (nom exact SoH), label, card ('onglet.carte'), type 'choice'|'number', choices [[valeur SoH, libellé]],

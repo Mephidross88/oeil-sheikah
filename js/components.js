@@ -489,6 +489,7 @@ const ZoneMap = {
     // repères des checks placés à la main, dans cette scène et à cet étage (visibles en mode édition)
     editMarks(){ return this.edit ? this.editPlaced.filter(x => x.p.scene === this.cur && this.onLevel(x.p.y)) : []; },
     picked(){ return Object.keys(this.pick).filter(id => this.pick[id]); },
+    editTool(){ return store.ui.map.editTool; },   // outil affiché (Configuration > Routeur et carte)
     cselMark(){ return this.csel && [...this.checkMarks, ...this.stoneMarks].find(m => m.id === this.csel) || null; },
     // cadrage par défaut : les repères de la scène (avec une marge), pas tout le terrain
     fit(){
@@ -515,6 +516,7 @@ const ZoneMap = {
     area(){ this.scene = null; this.level = null; this.sel = null; this.view = null; },
     cur(){ this.view = null; },
     lvl(){ this.view = null; this.csel = null; },
+    editTool(on){ if (!on){ this.edit = false; this.pick = {}; } },
   },
   methods:{
     has(m, k){ return !!k && m.keys.includes(k); },
@@ -597,7 +599,7 @@ const ZoneMap = {
   },
   template:`<div class="zmap">
     <div class="zmap-top"><div v-if="scenes.length > 1" class="zmap-tabs"><button v-for="s in scenes" :key="s" type="button" :class="{on:s===cur}" @click="setScene(s)">{{mapSceneLabel(s, bothVersions)}}</button></div>
-      <button type="button" class="btn zmap-edit-btn" :class="{on:edit}" @click="edit = !edit; pick = {}" title="Placer à la main les checks qui n'ont pas de position">✎ Placer les checks</button></div>
+      <button v-if="editTool" type="button" class="btn zmap-edit-btn" :class="{on:edit}" @click="edit = !edit; pick = {}" title="Placer à la main les checks qui n'ont pas de position">✎ Placer les checks</button></div>
     <div v-if="mqMissing" class="zmap-note">Ce donjon est en version Master Quest : carte vanilla affichée (salles identiques, checks
       absents). Pour la carte Master Quest, régénérer les cartes avec la ROM Master Quest (option --mq de tools/soh-maps/extract_maps.mjs).</div>
     <div v-else-if="quest === '' && bothVersions" class="zmap-note">Version du donjon inconnue : cartes vanilla et Master Quest.</div>

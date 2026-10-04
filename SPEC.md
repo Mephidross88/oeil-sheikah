@@ -743,7 +743,8 @@ du jeu vu de dessus (nord en haut).
   Quest seulement, checks communs compris). `extract_maps.mjs` la reprend pour les
   checks sans position (scène d'extérieur ou de donjon ; donjon Master Quest : check MQ dans la scène « …_MQ », check
   commun dans les deux versions).
-- **Placer les checks à la main** (bouton « ✎ Placer les checks » au-dessus de la carte) : panneau listant les checks de la
+- **Placer les checks à la main** (bouton « ✎ Placer les checks » au-dessus de la carte, affiché seulement avec l'option
+  Configuration > Routeur et carte > « Outil « Placer les checks » », `ui.map.editTool`, désactivée par défaut) : panneau listant les checks de la
   zone sans position (ni placés par l'outil, ni rattachés à un lieu non dessiné ; version du donjon affichée) ; cocher un
   ou plusieurs checks puis cliquer sur la carte les y place (hauteur : sol de l'étage affiché sous le clic) ; « déplacer »,
   « retirer » ; carrés dorés sur la carte. Donjons : les deux versions (vanilla, Master Quest) en onglets, quelle que soit
