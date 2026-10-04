@@ -63,7 +63,8 @@ function makeApp(){
   const FakeDate = class extends Date { static now(){ return clock.now; } };
   const mem = {};
   const ctx = { console, Math, JSON, Object, Array, Set, Map, String, Number, Date:FakeDate, RegExp, Error, parseInt, isNaN,
-    localStorage:{ getItem:k => mem[k] ?? null, setItem(k, v){ mem[k] = v; }, removeItem(k){ delete mem[k]; } } };
+    localStorage:{ getItem:k => mem[k] ?? null, setItem(k, v){ mem[k] = v; }, removeItem(k){ delete mem[k]; } },
+    setInterval(){}, clearInterval(){} };   // (minuteries de l'appli : temps de jeu — inutiles au rejeu)
   ctx.window = ctx;
   ctx.Vue = { reactive:x => x, ref:v => ({ value:v }), computed:f => ({ get value(){ return f(); } }), watch(){}, watchEffect(){},
     createApp:() => ({ component(){ return this; }, mount(){} }), defineComponent:x => x, nextTick(){}, toRaw:x => x, h(){} };
