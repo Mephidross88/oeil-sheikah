@@ -528,6 +528,11 @@ const ZoneMap = {
   },
   methods:{
     has(m, k){ return !!k && m.keys.includes(k); },
+    // repère de sortie : une porte (arceau) centrée sur sa position — les checks restent des ronds
+    doorPath(x, z, s){
+      const w = s * 1.5, h = s * 2, r = w / 2, top = z - h / 2, bot = z + h / 2;
+      return `M${x - r} ${bot}V${top + r}A${r} ${r} 0 0 1 ${x + r} ${top + r}V${bot}Z`;
+    },
     // position d'un check dans la scène affichée (version Master Quest ou vanilla), sinon null
     checkAt(id){
       const e = mapEdits[id];
@@ -640,7 +645,7 @@ const ZoneMap = {
         <g v-for="m in marks" :key="m.id" class="zm" :class="['t-' + m.type, {here:has(m, here), goal:has(m, goal), next:has(m, next), sel:sel===m.id}]"
           @pointerdown.stop @click.stop="pick(m)" @mouseenter="hover=m.id" @mouseleave="hover=null">
           <circle v-if="has(m, here) || has(m, goal) || has(m, next)" class="zm-ring" :cx="m.x" :cy="m.z" :r="unit * 2.6"></circle>
-          <circle :cx="m.x" :cy="m.z" :r="unit * (sel===m.id || hover===m.id ? 1.7 : 1.3)"></circle>
+          <path class="zm-door" :d="doorPath(m.x, m.z, unit * (sel===m.id || hover===m.id ? 1.7 : 1.3))"></path>
           <text v-if="sel===m.id || hover===m.id || has(m, here) || has(m, goal) || has(m, next)" :x="m.x" :y="m.z - unit * 2.2" :font-size="unit * 2.3">{{EXIT[m.keys[0]].label}}</text>
           <title>{{title(m)}}</title>
         </g>

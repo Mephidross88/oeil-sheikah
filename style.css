@@ -546,13 +546,13 @@ html.stream-mode,html.stream-mode body{background:transparent;overflow:hidden}
 .zm{cursor:pointer}
 /* couleur par type de sortie (repères et légende) */
 .t-overworld,.zm{--zc:var(--gold)} .t-interior{--zc:var(--ocarina)} .t-grotto{--zc:#b07a3e} .t-dungeon{--zc:var(--purple)} .t-owl{--zc:#e0c48a}
-.zm circle:not(.zm-ring){fill:var(--zc);stroke:#1c1a12;stroke-width:1.5px;vector-effect:non-scaling-stroke}
+.zm .zm-door{fill:var(--zc);stroke:#1c1a12;stroke-width:1.5px;vector-effect:non-scaling-stroke;stroke-linejoin:round}
 .zm text{fill:var(--text);font-family:var(--sans);font-weight:700;text-anchor:middle;paint-order:stroke;stroke:var(--surface);stroke-width:4px;vector-effect:non-scaling-stroke;pointer-events:none}
 .zm-ring{fill:none;stroke-width:3px;vector-effect:non-scaling-stroke;animation:zm-pulse 1.8s ease-in-out infinite}
 .zm.goal .zm-ring{stroke:var(--green)}
 .zm.next .zm-ring{stroke:var(--gold)}
 .zm.here .zm-ring{stroke:var(--ocarina);stroke-dasharray:4 3}
-.zm.sel circle:not(.zm-ring){stroke:var(--text);stroke-width:2.5px}
+.zm.sel .zm-door{stroke:var(--text);stroke-width:2.5px}
 @keyframes zm-pulse{50%{opacity:.35}}
 @media (prefers-reduced-motion:reduce){.zm-ring{animation:none}}
 .zmap-pop{position:absolute;right:12px;top:12px;width:min(380px,calc(100% - 24px));display:flex;flex-direction:column;gap:8px;padding:10px 12px;
@@ -576,7 +576,7 @@ html.stream-mode,html.stream-mode body{background:transparent;overflow:hidden}
 .zmap-legend{display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;margin-top:8px;font-size:13px;color:var(--muted)}
 .zmap-legend + .zmap-legend{margin-top:4px}
 .zmap-legend b{color:var(--text);font-weight:700;min-width:62px}
-.zmap-legend .lg-dot{background:var(--zc);border:1.5px solid #1c1a12}
+.zmap-legend .lg-dot{background:var(--zc);border:1.5px solid #1c1a12;width:9px;height:12px;border-radius:5px 5px 1px 1px}
 .zmap-ghost{fill:var(--text);stroke:var(--text);opacity:.09}
 .zmap-legend .lg-ground{width:34px;height:10px;border-radius:3px;border:0;background:linear-gradient(90deg,var(--map-0),var(--map-5),var(--map-9))}
 .zmap-legend span{display:inline-flex;align-items:center;gap:6px}
