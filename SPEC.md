@@ -675,7 +675,8 @@ a son propre stockage et ne verrait pas la partie).
 - Blocs disposés librement sur un fond uni (vert d'incrustation par défaut, magenta, transparent, fond de l'appli ou
   couleur au choix) : Objets (le panneau Objets, sur 1 ou 2 colonnes), Progression (cadres Checks et Entrées), Prochaine
   étape (du trajet du Routeur : mode de déplacement, destination, arrivée visée), Où aller maintenant ? (5 plus
-  proches), Trouvailles, Connexions, Espace vide (emplacement du jeu, cadre doré en option), Image (chemin, adresse ou
+  proches), Trouvailles, Connexions, Carte (zone de Link : celle de sa scène en temps réel, sinon de sa dernière
+  entrée ; carte seule, sans boutons ni légende, flèche de Link comprise ; type `zonemap`), Espace vide (emplacement du jeu, cadre doré en option), Image (chemin, adresse ou
   fichier choisi, gardé en data URL), Texte. Contenus à leur largeur naturelle, mis à l'échelle de la largeur du bloc
   (`zoom`) ; Espace vide, Image et Texte à la taille du bloc.
 - Édition : touche E (ou double-clic) : grille, glisser un bloc pour le déplacer, coin bas-droit pour le redimensionner
@@ -683,7 +684,7 @@ a son propre stockage et ne verrait pas la partie).
   défaut (pensée pour 1920 × 1080). Disposition gardée à part (localStorage `oeil-sheikah-stream`).
 - La partie vient de la fenêtre principale : la fenêtre de stream relit le `store` à chaque sauvegarde de celle-ci
   (événement `storage`, même navigateur), ne sauvegarde rien et ne se connecte pas au relais (trouvailles comptées
-  une seule fois). Blocs non cliquables (affichage seul).
+  une seule fois) ; la position (en temps réel et dernière entrée) lui vient de même (localStorage `oeil-sheikah-live`). Blocs non cliquables (affichage seul).
 
 ## Indices
 Page « Indices » (`ui.view` = `hints`, groupe Progression) : les 40 pierres à potins (`GOSSIP_STONES` de `checks.js`,

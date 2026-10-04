@@ -336,7 +336,7 @@ function mapScene(name, li){
     unit:Math.max(x1 - x0, z1 - z0) / 110 });
 }
 const ZoneMap = {
-  props:['area', 'focus'],   // focus : sortie à mettre en évidence (« Voir sur la carte »)
+  props:['area', 'focus', 'compact'],   // focus : sortie à mettre en évidence (« Voir sur la carte ») ; compact : carte seule (stream)
   emits:['start', 'goal', 'go-check'],
   data:() => ({ scene:null, level:null, sel:null, hover:null, view:null, drag:null, maxH:null, csel:null, showOff:false,
     edit:false, pick:{} }),   // edit : mode « Placer les checks » ; pick : checks cochés, à placer au prochain clic
@@ -650,24 +650,25 @@ const ZoneMap = {
     // hauteur de la carte : ce qui reste à l'écran sous son haut de page, moins la légende et le bandeau du bas
     fitHeight(){
       const svg = this.$refs.svg;
+      if (this.compact) return;
       if (!svg) return;
       const top = svg.getBoundingClientRect().top + window.scrollY, legend = [...this.$el.querySelectorAll('.zmap-legend')].reduce((h, l) => h + l.offsetHeight + 6, 0);
       const dock = document.querySelector('.next-dock')?.offsetHeight || 0;
       this.maxH = Math.max(260, window.innerHeight - top - legend - dock - 24);
     },
   },
-  template:`<div class="zmap">
-    <div class="zmap-top"><div v-if="scenes.length > 1" class="zmap-tabs"><button v-for="s in scenes" :key="s" type="button" :class="{on:s===cur}" @click="setScene(s)">{{mapSceneLabel(s, bothVersions)}}</button></div>
+  template:`<div class="zmap" :class="{compact}">
+    <div v-if="!compact" class="zmap-top"><div v-if="scenes.length > 1" class="zmap-tabs"><button v-for="s in scenes" :key="s" type="button" :class="{on:s===cur}" @click="setScene(s)">{{mapSceneLabel(s, bothVersions)}}</button></div>
       <button v-if="editTool" type="button" class="btn zmap-edit-btn" :class="{on:edit}" @click="edit = !edit; pick = {}" title="Placer à la main les checks qui n'ont pas de position">✎ Placer les checks</button></div>
-    <div v-if="mqMissing" class="zmap-note">Ce donjon est en version Master Quest : carte vanilla affichée (salles identiques, checks
+    <div v-if="!compact && mqMissing" class="zmap-note">Ce donjon est en version Master Quest : carte vanilla affichée (salles identiques, checks
       absents). Pour la carte Master Quest, régénérer les cartes avec la ROM Master Quest (option --mq de tools/soh-maps/extract_maps.mjs).</div>
-    <div v-else-if="quest === '' && bothVersions" class="zmap-note">Version du donjon inconnue : cartes vanilla et Master Quest.</div>
-    <div v-else-if="edit && bothVersions" class="zmap-note">Mode « Placer les checks » : cartes vanilla et Master Quest, quelle que soit la version du donjon.</div>
+    <div v-else-if="!compact && quest === '' && bothVersions" class="zmap-note">Version du donjon inconnue : cartes vanilla et Master Quest.</div>
+    <div v-else-if="!compact && edit && bothVersions" class="zmap-note">Mode « Placer les checks » : cartes vanilla et Master Quest, quelle que soit la version du donjon.</div>
     <div v-if="!geo" class="zmap-empty">Pas de carte pour cette zone (intérieur).</div>
     <div v-else class="zmap-body" :class="{editing:edit}"><div class="zmap-frame">
-      <div v-if="levels" class="zmap-levels"><button v-for="(l,i) in levels" :key="i" type="button" :class="{on:i===lvl, here:i===hereLevel}" @click="level=i"
+      <div v-if="levels && !compact" class="zmap-levels"><button v-for="(l,i) in levels" :key="i" type="button" :class="{on:i===lvl, here:i===hereLevel}" @click="level=i"
         :title="'Étage ' + l.n + (levelTodo[i] ? ' — ' + levelTodo[i] + ' check' + (levelTodo[i] > 1 ? 's' : '') + ' à faire' : '') + (i===hereLevel ? ' — vous êtes ici' : '')">{{l.n}}<i v-if="levelTodo[i]">{{levelTodo[i]}}</i></button></div>
-      <svg ref="svg" :viewBox="vb.join(' ')" :style="maxH ? { maxHeight:maxH + 'px' } : null" class="zmap-svg" :class="{dragging:drag && drag.moved, placing:edit && picked.length}" @wheel.prevent="wheel"
+      <svg ref="svg" :viewBox="vb.join(' ')" :style="maxH && !compact ? { maxHeight:maxH + 'px' } : null" class="zmap-svg" :class="{dragging:drag && drag.moved, placing:edit && picked.length}" @wheel.prevent="wheel"
         @pointerdown="down" @pointermove="move" @pointerup="up($event)" @pointerleave="drag=null">
         <path v-if="geo.ghost" :d="geo.ghost" class="zmap-ghost" :stroke-width="unit * 0.12"></path>
         <path v-for="(d,i) in geo.bands" :key="i" :d="d" :fill="bandColor(i)" :stroke="bandColor(i)" :stroke-width="unit * 0.12"></path>
@@ -700,9 +701,9 @@ const ZoneMap = {
           <path :d="'M0 ' + unit * 1.9 + 'L' + unit * -1.4 + ' ' + unit * -1.3 + 'L0 ' + unit * -0.5 + 'L' + unit * 1.4 + ' ' + unit * -1.3 + 'Z'"></path>
           <title>Link (position en temps réel)</title></g>
       </svg>
-      <div class="zmap-zoom"><button type="button" title="Zoomer" @click="zoom(1 / 1.5)">+</button><button type="button" title="Dézoomer" @click="zoom(1.5)">−</button>
+      <div v-if="!compact" class="zmap-zoom"><button type="button" title="Zoomer" @click="zoom(1 / 1.5)">+</button><button type="button" title="Dézoomer" @click="zoom(1.5)">−</button>
         <button type="button" title="Cadrer sur les sorties" @click="view = null">⤢</button><button type="button" title="Tout le terrain" @click="view = [...geo.view]">▢</button></div>
-      <div v-if="cselMark" class="zmap-pop">
+      <div v-if="cselMark && !compact" class="zmap-pop">
         <template v-if="cselMark.t === 'c'">
           <div class="zp-name"><b>{{cselMark.c.label}}</b><small>{{CHECK_CAT[cselMark.c.cat].label}} · {{cselMark.done ? 'fait' : cselMark.now ? 'faisable maintenant' : 'pas encore faisable'}}</small></div>
           <div class="zp-btns"><button type="button" class="btn" @click="toggleCheck(cselMark.c)">{{cselMark.done ? 'Remettre à faire' : 'Marquer fait'}}</button>
@@ -720,7 +721,7 @@ const ZoneMap = {
           <div class="zp-btns"><button type="button" class="btn" @click="setHintRead(cselMark.s.id, !cselMark.read)">{{cselMark.read ? 'Marquer non lue' : 'Marquer lue'}}</button></div>
         </template>
       </div>
-      <div v-if="selMark" class="zmap-pop">
+      <div v-if="selMark && !compact" class="zmap-pop">
         <div v-for="k in selMark.keys" :key="k" class="zp-row">
           <div class="zp-name"><b>{{EXIT[k].label}}</b><small v-if="dest(k)">→ {{dest(k)}}</small><small v-else class="zp-unk">destination inconnue</small></div>
           <div class="zp-btns"><button type="button" class="btn" @click="$emit('start', k)">Partir d’ici</button>
@@ -746,16 +747,16 @@ const ZoneMap = {
             <button type="button" class="linklike" @click="unplace(x.c.id)">retirer</button></div></div>
       </div>
     </div></div>
-    <div v-if="offList.noPos.length || offList.hidden.length" class="zmap-off">
+    <div v-if="!compact && (offList.noPos.length || offList.hidden.length)" class="zmap-off">
       <button type="button" class="link" @click="showOff = !showOff">{{offList.noPos.length ? offList.noPos.length + ' check' + (offList.noPos.length > 1 ? 's' : '') + ' sans position' : ''}}{{offList.noPos.length && offList.hidden.length ? ' · ' : ''}}{{offList.hidden.length ? offList.hidden.length + ' derrière une entrée pas encore notée' : ''}}</button>
       <ul v-if="showOff"><li v-for="x in [...offList.noPos, ...offList.hidden]" :key="x.c.id" :class="{done:x.done, now:x.now}">
         <button type="button" class="zp-tick" v-html="x.done ? ICONS.check : ICONS.circleO" @click="toggleCheck(x.c)"></button><span>{{x.c.label}}</span></li></ul>
     </div>
-    <div class="zmap-legend"><b>Checks</b><span><i class="lg-c now"></i>faisable</span><span><i class="lg-c"></i>pas encore faisable</span><span><i class="lg-c done"></i>fait</span>
+    <div v-if="!compact" class="zmap-legend"><b>Checks</b><span><i class="lg-c now"></i>faisable</span><span><i class="lg-c"></i>pas encore faisable</span><span><i class="lg-c done"></i>fait</span>
       <span><i class="lg-p"></i>checks d’un intérieur, d’une grotte ou d’un donjon (à faire)</span><span><i class="lg-s"></i>pierre à potins (pleine : lue)</span></div>
-    <div class="zmap-legend"><b>Sorties</b><span v-for="t in [['overworld','changement de zone'],['interior','intérieur'],['grotto','grotte'],['dungeon','donjon'],['owl','hibou']]" :key="t[0]">
+    <div v-if="!compact" class="zmap-legend"><b>Sorties</b><span v-for="t in [['overworld','changement de zone'],['interior','intérieur'],['grotto','grotte'],['dungeon','donjon'],['owl','hibou']]" :key="t[0]">
       <svg class="lg-mark zm" :class="'t-' + t[0]" viewBox="-1.45 -1.45 2.9 2.9" v-html="markSvg(t[0], 0, 0, 1)"></svg>{{t[1]}}</span></div>
-    <div class="zmap-legend"><b>Repères</b><span v-if="liveOn"><i class="lg-link"></i>Link (temps réel)</span><span><i class="lg-here" :class="{live:liveOn}"></i>{{liveOn ? 'dernière entrée' : 'vous êtes ici'}}</span><span><i class="lg-next"></i>prochaine sortie</span><span><i class="lg-goal"></i>arrivée du Routeur</span>
+    <div v-if="!compact" class="zmap-legend"><b>Repères</b><span v-if="liveOn"><i class="lg-link"></i>Link (temps réel)</span><span><i class="lg-here" :class="{live:liveOn}"></i>{{liveOn ? 'dernière entrée' : 'vous êtes ici'}}</span><span><i class="lg-next"></i>prochaine sortie</span><span><i class="lg-goal"></i>arrivée du Routeur</span>
       <span><i class="lg-ground"></i>terrain : du plus bas (foncé) au plus haut (clair)</span><span>Clic sur un repère : partir d’ici ou y aller.</span></div>
   </div>`,
   mounted(){ this.$nextTick(this.fitHeight); this.onResize = () => this.fitHeight(); window.addEventListener('resize', this.onResize); },

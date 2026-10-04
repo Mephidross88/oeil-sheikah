@@ -79,6 +79,7 @@ if (!STREAM_MODE) watch(mapEdits, () => { try { localStorage.setItem(POS_KEY, JS
 const STREAM_TYPES = {
   items:{ label:'Objets', base:426, base2:870, init:{ cols:2 } }, progress:{ label:'Progression', base:560 }, next:{ label:'Prochaine étape', base:420 },
   where:{ label:'Où aller maintenant ?', base:420 }, loot:{ label:'Trouvailles', base:426 }, graph:{ label:'Connexions', base:1000 },
+  zonemap:{ label:'Carte (zone de Link)', free:true, w:640, h:480 },   // (« map » : ancien nom du bloc Connexions)
   game:{ label:'Espace vide (jeu)', free:true, w:960, h:540, init:{ frame:true } },
   image:{ label:'Image', free:true, w:300, h:200, init:{ src:'', fit:'contain' } },
   text:{ label:'Texte', free:true, w:500, h:60, init:{ text:'L’Œil Sheikah', size:32 } },

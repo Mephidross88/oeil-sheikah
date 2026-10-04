@@ -172,6 +172,7 @@ const STREAM_TPL = `
           <li v-for="x in nextC.list.slice(0, 5)" :key="x.c.id"><img :src="CHECK_CAT[x.c.cat].icon" alt=""><span><b>{{x.c.label}}</b><small>{{CHECK_AREA[x.c.area].label}} · {{stepsLabel(x.steps)}}</small></span></li></ul>
         <div v-else class="sw-muted">Aucun check faisable à portée</div></div>
       <entrance-graph v-else-if="w.type==='graph'"></entrance-graph>
+      <zone-map v-else-if="w.type==='zonemap' && MAPS_OK && followArea" class="sw-map" :compact="true" :area="followArea"></zone-map>
       <img v-else-if="w.type==='image' && w.src" class="sw-img" :src="w.src" alt="" :style="{objectFit:w.fit || 'contain'}">
       <div v-else-if="w.type==='text'" class="sw-text" :style="{fontSize:(w.size || 32) + 'px'}">{{w.text}}</div>
     </div>
@@ -1080,14 +1081,16 @@ const App = {
       return rest.length ? out.concat([{ label:'Autres', areas:rest }]) : out;
     })();
     const mapFocus = ref(null);
+    // zone de Link : celle de sa scène (position en temps réel, si elle est dessinée), sinon de sa dernière entrée ou du
+    // départ du Routeur — zone par défaut de la Carte, et celle du bloc Carte du stream
+    const followArea = computed(() => {
+      const L = ui.link.live && link.live, live = L && mapAreas.find(a => MAP_SCENES[a.id].includes(L.scene));
+      if (live) return live.id;
+      const k = link.position?.key || ui.router.fromExit;
+      return k && EXIT[k] && MAP_SCENES[EXIT[k].areaId] ? EXIT[k].areaId : mapAreas[0]?.id;
+    });
     const mapArea = computed({
-      get(){
-        if (ui.map.area) return ui.map.area;
-        // position en temps réel : la zone de la scène où est Link (s'il est dans une scène dessinée)
-        const L = ui.link.live && link.live, live = L && mapAreas.find(a => MAP_SCENES[a.id].includes(L.scene));
-        if (live) return live.id;
-        const k = link.position?.key || ui.router.fromExit; return k && EXIT[k] && MAP_SCENES[EXIT[k].areaId] ? EXIT[k].areaId : mapAreas[0]?.id;
-      },
+      get(){ return ui.map.area || followArea.value; },
       set(v){ ui.map.area = v; mapFocus.value = null; },
     });
     function openMap(key){
@@ -1113,7 +1116,7 @@ const App = {
       itemVisible, tierLabel, iconSrc, checklistModal, openChecklist, setChecklist, checklistStats,
       tradeModal, openTrade, tradeStats, counterClass,
       TRIALS, trialStatus, cycleTrial, setDungeonFlag, addDungeonKeys, dungeonQuest, dungeonMaxKeys, cycleDungeonQuest, questLabel, questClass, questTitle, keysLabel, dungeonKeyRing, setKeyRing, dungeonKeysDone, keysTitle, brokenIcons,
-      setTheme, startHere, prevStart, backToPrev, liveStart, pickAreas, pickExits, zoneExcludeMode, zoneExclude, hintGroups, hintEdit, hintsC, setHintRead, GOSSIP_STONES, HINT_TYPES, CHECK_AREAS, MAP_SCENES, MAPS_OK, mapAreas, mapGroups, mapFocus, mapArea, openMap, mapHere, mapStart, mapGoal, fmtDur, stFilter, statsC, statsRows, STREAM, STREAM_TYPES, sl, swEdit, swSel, swAdd, swHint, swSelW, streamBg, swBodyStyle, swDown, swMove, swUp, swNew, swDelete, swReset, swImage, openStream, nextStep, dockCheck, dockRoute, dockTarget, pickDock, swap, route, edgeLabel, edgeIcon, WARP_SONGS, ageLabel, openBackup, copyBackup, importBackup, resetAll, declineSpoiler, savedAt, TYPE_LABEL };
+      setTheme, startHere, prevStart, backToPrev, liveStart, pickAreas, pickExits, zoneExcludeMode, zoneExclude, hintGroups, hintEdit, hintsC, setHintRead, GOSSIP_STONES, HINT_TYPES, CHECK_AREAS, MAP_SCENES, MAPS_OK, mapAreas, mapGroups, followArea, mapFocus, mapArea, openMap, mapHere, mapStart, mapGoal, fmtDur, stFilter, statsC, statsRows, STREAM, STREAM_TYPES, sl, swEdit, swSel, swAdd, swHint, swSelW, streamBg, swBodyStyle, swDown, swMove, swUp, swNew, swDelete, swReset, swImage, openStream, nextStep, dockCheck, dockRoute, dockTarget, pickDock, swap, route, edgeLabel, edgeIcon, WARP_SONGS, ageLabel, openBackup, copyBackup, importBackup, resetAll, declineSpoiler, savedAt, TYPE_LABEL };
   },
   template:`
 ${STREAM_TPL}

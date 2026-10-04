@@ -699,6 +699,18 @@ function linkPlayTick(){
 }
 if (!STREAM_MODE) setInterval(linkPlayTick, 10000);
 
+/* Fenêtre de stream (pas de relais) : la fenêtre principale lui passe la position (en temps réel et dernière entrée) par
+   le navigateur (localStorage LIVE_KEY, événement « storage »), pour son bloc Carte. */
+const LIVE_KEY = 'oeil-sheikah-live';
+if (!STREAM_MODE) watch(() => [link.live, link.position], ([live, position]) => {
+  try { localStorage.setItem(LIVE_KEY, JSON.stringify({ live, position })); } catch (e) {}
+});
+else {
+  const take = raw => { try { const v = JSON.parse(raw); link.live = v.live || null; link.position = v.position || null; } catch (e) {} };
+  try { const raw = localStorage.getItem(LIVE_KEY); if (raw) take(raw); } catch (e) {}
+  window.addEventListener('storage', ev => { if (ev.key === LIVE_KEY && ev.newValue) take(ev.newValue); });
+}
+
 linkLoadSpoiler();
 // (Re)connexion selon l'option, au chargement et quand elle change.
 // (pas dans la fenêtre de stream : la fenêtre principale suit le jeu, sinon les trouvailles seraient comptées deux fois)
