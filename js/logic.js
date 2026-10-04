@@ -1054,6 +1054,10 @@ function blueWarpTargets(eff, settings){
 const CHECK_REGIONS = {};
 for (const [rr, r] of Object.entries(SOH.regions)) for (const [rc] of r.checks || []) (CHECK_REGIONS[rc] ||= []).push(rr);
 const ENTRANCE_EDGES = new Set(SOH.entrances.map(([, , from, to]) => from + '>' + to));
+// Passages de la logique SoH qu'on ne peut pas faire à pied en jeu : exclus des trajets du Routeur (pas de l'accessibilité
+// des checks, qui reste celle de SoH). Double cellule du Repaire → abords de la Forteresse : ni porte (ses deux portes sont
+// des entrées) ni capture possible (la Gerudo vaincue ; capturé adulte, on revient au début de la zone) — vérifié en jeu.
+const ROUTE_NO_WALK = new Set(['RR_TH_DOUBLE_CELL>RR_GF_OUTSKIRTS']);
 const TIME_DOOR = 'RR_TOT_BEYOND_DOOR_OF_TIME';
 // Coûts de marche d'areas-data.js : plus court chemin entre deux sorties d'une zone (conditions ignorées, c'est la logique
 // SoH qui décide si le passage est possible). WALK_COST suit le sens des données ; WALK_COST_ANY les prend dans les deux
@@ -1197,7 +1201,7 @@ function routeGraph(settings, game, links, eff, costs){
     while (q.length){
       const rr = q.shift();
       for (const [to] of SOH.regions[rr]?.exits || []){
-        if (depth.has(to) || ENTRANCE_EDGES.has(rr + '>' + to) || !pass(rr, to, age)) continue;
+        if (depth.has(to) || ENTRANCE_EDGES.has(rr + '>' + to) || ROUTE_NO_WALK.has(rr + '>' + to) || !pass(rr, to, age)) continue;
         depth.set(to, depth.get(rr) + 1); via.set(to, rr); q.push(to);
       }
     }

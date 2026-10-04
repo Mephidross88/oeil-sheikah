@@ -26,7 +26,7 @@ function loadApp(){
   for (const f of ['data/areas-data.js', 'data/checks-data.js', 'data/logic-data.js', 'js/icons.js', 'js/data.js', 'js/config.js', 'js/entrances.js',
     'js/items.js', 'js/checks.js', 'js/logic.js', 'js/state.js'])
     vm.runInContext(fs.readFileSync(path.join(APP, f), 'utf8'), ctx, { filename:f });
-  vm.runInContext('globalThis.__T = { store, defaults, computeSoh, SETTING_BY_SOH, TRICKS, DUNGEONS, CHECK_BY_SOH, CHECK_BY_ID, checkShuffled, checkQuestActive, applyStartingItems, configQuest, CHECKLISTS, ITEM_BY_KEY, itemLevels, SOH, L, sohWarned, TRIALS, configTrials, routeGraph, blueWarpTargets, exitRegions, ALL_EXITS, EXIT, SPAWN_AREA, sohStartingAge, entranceLinks, computeEff, EXIT_BY_ENTR, SOH_ENTRANCE, BOSS_DOORS };', ctx);
+  vm.runInContext('globalThis.__T = { store, defaults, computeSoh, SETTING_BY_SOH, TRICKS, DUNGEONS, CHECK_BY_SOH, CHECK_BY_ID, checkShuffled, checkQuestActive, applyStartingItems, configQuest, CHECKLISTS, ITEM_BY_KEY, itemLevels, SOH, L, sohWarned, TRIALS, configTrials, routeGraph, blueWarpTargets, exitRegions, ALL_EXITS, EXIT, SPAWN_AREA, sohStartingAge, entranceLinks, computeEff, EXIT_BY_ENTR, SOH_ENTRANCE, BOSS_DOORS, ROUTE_NO_WALK };', ctx);
   return ctx.__T;
 }
 const T = loadApp();
@@ -183,7 +183,8 @@ function checkLinks(data, links){
 // Routeur avec l'inventaire courant et les destinations notées par checkLinks : régions traversées à pied depuis les nœuds
 // atteints à partir de l'apparition de l'âge de départ, comparées aux régions que la logique déclare accessibles. Les
 // sauvegardes dans un donjon (retour à son entrée, Entrance_SetSavewarpEntrance), que la logique SoH ne modélise pas, sont
-// ignorées ; celles qui ramènent à l'apparition de l'âge correspondent à RR_ROOT.
+// ignorées ; celles qui ramènent à l'apparition de l'âge correspondent à RR_ROOT. Les passages de la logique impossibles à
+// pied en jeu (ROUTE_NO_WALK), que le Routeur ne prend pas, sont aussi coupés dans la logique comparée.
 function checkRouter(){
   const st = T.store, eff = T.computeEff(st);
   Object.assign(eff, T.blueWarpTargets(eff, st.settings));
@@ -197,7 +198,7 @@ function checkRouter(){
     for (const r of g.regions(k, a, m).keys()) routed.add(r);
     for (const e of g.edges(k, a, m)) if (e.kind !== 'reset' || e.to === eff['spawns::spawn_' + e.age]) q.push([e.to, e.age, e.mode]);
   }
-  const res = T.computeSoh(st.settings, st.game, links);
+  const res = T.computeSoh(st.settings, st.game, { ...links, ...Object.fromEntries([...T.ROUTE_NO_WALK].map(k => [k, null])) });
   // régions de passage que le Routeur saute (apparitions, plateformes des chants, sorties de salle de boss)
   const transit = r => /^RR_ROOT|^RR_(CHILD|ADULT)_SPAWN$|_OF_[A-Z]+_WARP$|_BOSS_EXIT$/.test(r);
   const logic = new Set(Object.keys(res.access).filter(r => res.access[r] && !transit(r)));

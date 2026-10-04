@@ -582,7 +582,8 @@ arrivé à pied (région de départ de son entrée), ou c'est le départ choisi 
 pas toujours (ex. on ressort du Gymnase Gerudo sur un rebord d'où l'on ne peut pas y rentrer ; les deux fontaines de
 Grande Fée du Château ont la même région d'arrivée).
 - **Marche** : depuis la région de la position, on rejoint toute sortie dont la région de départ est atteignable par
-  les sorties internes des régions (tout passage qui n'est pas une entrée mélangeable), conditions évaluées à l'âge du
+  les sorties internes des régions (tout passage qui n'est pas une entrée mélangeable, ni impossible à pied en jeu :
+  `ROUTE_NO_WALK`, double cellule du Repaire → abords de la Forteresse — exclu des trajets seulement), conditions évaluées à l'âge du
   trajet, de jour ou de nuit. Coût : celui d'`areas-data.js` (plus court chemin dans la zone, dans le sens des données, sinon dans les deux
   sens), à défaut nombre de régions traversées × « marche estimée ». Deux passages à pied changent de zone, notés dans
   les données comme liaisons `"zone::sortie"` et enchaînés avec la marche de part et d'autre : fin de la course d'Igor
