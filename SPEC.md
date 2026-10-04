@@ -906,7 +906,9 @@ Suivi en direct d'une partie de Ship of Harkinian, sans modifier le jeu.
   transmet la position (`live` : scène, x, y, z, orientation, âge) au plus 10 fois par seconde, quand elle change ; sans
   appli connectée, il retire le joueur fictif. Carte : flèche bleue orientée sur un halo, à l'étage de sa hauteur ; la
   carte suit la zone (menu sur sa position), la scène et l'étage de Link tant qu'on n'en choisit pas d'autres ; l'anneau
-  « vous êtes ici » (dernière entrée prise) devient continu, « dernière entrée ». Noms des scènes : `LINK_DATA.scenes`.
+  « vous êtes ici » (dernière entrée prise) devient continu, « dernière entrée ». Noms des scènes : `LINK_DATA.scenes` ;
+  variantes de nuit et en ruines (Bourg, entrée du bourg, ruelle, parvis du temple) rattachées à la version de jour, celle
+  qui est dessinée (`SCENE_DRAWN`). « Ma position » remet aussi l'onglet et l'étage sur ceux de Link.
   Âge en direct (envoyé avec la position) : il l'emporte sur l'âge déduit (position et départ du Routeur). Départ du
   Routeur (avec l'option « la position ») : la sortie la plus proche de Link dans sa scène (`linkLiveStart` : à moins de
   250 unités de hauteur et 800 de distance, pas les sorties placées à leur porte ni les apparitions ; changement

@@ -44,6 +44,10 @@ function linkStop(){
 /* Position en temps réel (option ui.link.live) : le relais déclare au jeu un second joueur fictif, ce qui lui fait envoyer
    la position de Link (voir relay.mjs) ; l'appli dit au relais si l'option est active, à chaque connexion et à chaque
    changement, et garde la dernière position reçue (link.live, scène nommée d'après LINK_DATA.scenes). */
+// variantes d'une même scène (nuit, ruines de l'adulte) → la version dessinée sur la Carte (jour)
+const SCENE_DRAWN = { MARKET_ENTRANCE_NIGHT:'MARKET_ENTRANCE_DAY', MARKET_ENTRANCE_RUINS:'MARKET_ENTRANCE_DAY', MARKET_NIGHT:'MARKET_DAY',
+  MARKET_RUINS:'MARKET_DAY', BACK_ALLEY_NIGHT:'BACK_ALLEY_DAY', TEMPLE_OF_TIME_EXTERIOR_NIGHT:'TEMPLE_OF_TIME_EXTERIOR_DAY',
+  TEMPLE_OF_TIME_EXTERIOR_RUINS:'TEMPLE_OF_TIME_EXTERIOR_DAY' };
 function linkSyncLive(){
   if (!linkSource) return;
   fetch(store.ui.link.url.replace(/\/+$/, '') + '/live?on=' + (store.ui.link.live ? 1 : 0), { method:'POST' }).catch(() => {});
@@ -112,7 +116,8 @@ function linkHandle(m){
   if (m.type === 'live'){
     const L = m.live;
     if (!store.ui.link.live || link.foreign) return;
-    link.live = { ...L, scene:LINK_DATA.scenes[L.sceneNum] || String(L.sceneNum), at:Date.now() };
+    const name = LINK_DATA.scenes[L.sceneNum] || String(L.sceneNum);
+    link.live = { ...L, scene:SCENE_DRAWN[name] || name, sceneRaw:name, at:Date.now() };
     // âge en direct (le jeu l'envoie avec la position : 0 adulte, 1 enfant) : il l'emporte sur l'âge déduit
     const age = L.age === 1 ? 'child' : L.age === 0 ? 'adult' : null;
     if (age && link.position && link.position.age !== age) linkSetPosition(link.position.key, age);

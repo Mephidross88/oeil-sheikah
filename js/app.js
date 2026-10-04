@@ -1081,7 +1081,9 @@ const App = {
       nextTick(() => { mapFocus.value = key; });
       go('map');
     }
-    const mapHere = () => { ui.map.area = ''; mapFocus.value = null; };
+    // « Ma position » : zone de Link, et (même zone déjà affichée) son onglet et son étage — mapHereTick prévient la carte
+    const mapHereTick = ref(0);
+    const mapHere = () => { ui.map.area = ''; mapFocus.value = null; mapHereTick.value++; };
     const mapStart = key => setStart(key, ui.router.fromAge);
     function mapGoal(key){ const r = ui.router; r.toArea = EXIT[key].areaId; nextTick(() => { r.toExit = key; }); }
     /* Indices (pierres à potins) : pierres groupées par zone, édition du texte à la demande */
@@ -1098,7 +1100,7 @@ const App = {
       itemVisible, tierLabel, iconSrc, checklistModal, openChecklist, setChecklist, checklistStats,
       tradeModal, openTrade, tradeStats, counterClass,
       TRIALS, trialStatus, cycleTrial, setDungeonFlag, addDungeonKeys, dungeonQuest, dungeonMaxKeys, cycleDungeonQuest, questLabel, questClass, questTitle, keysLabel, dungeonKeyRing, setKeyRing, dungeonKeysDone, keysTitle, brokenIcons,
-      setTheme, startHere, prevStart, backToPrev, liveStart, pickAreas, pickExits, zoneExcludeMode, zoneExclude, hintGroups, hintEdit, hintsC, setHintRead, GOSSIP_STONES, HINT_TYPES, CHECK_AREAS, MAP_SCENES, MAPS_OK, mapAreas, mapGroups, followArea, mapFocus, mapArea, openMap, mapHere, mapStart, mapGoal, fmtDur, stFilter, statsC, statsRows, playNow, STREAM, STREAM_TYPES, sl, swEdit, swSel, swAdd, swHint, swSelW, streamBg, swBodyStyle, swDown, swMove, swUp, swNew, swDelete, swReset, swImage, openStream, dockCheck, dockRoute, dockTarget, pickDock, swap, route, edgeLabel, edgeIcon, WARP_SONGS, ageLabel, openBackup, copyBackup, importBackup, resetAll, declineSpoiler, savedAt, TYPE_LABEL };
+      setTheme, startHere, prevStart, backToPrev, liveStart, pickAreas, pickExits, zoneExcludeMode, zoneExclude, hintGroups, hintEdit, hintsC, setHintRead, GOSSIP_STONES, HINT_TYPES, CHECK_AREAS, MAP_SCENES, MAPS_OK, mapAreas, mapGroups, followArea, mapFocus, mapArea, openMap, mapHere, mapHereTick, mapStart, mapGoal, fmtDur, stFilter, statsC, statsRows, playNow, STREAM, STREAM_TYPES, sl, swEdit, swSel, swAdd, swHint, swSelW, streamBg, swBodyStyle, swDown, swMove, swUp, swNew, swDelete, swReset, swImage, openStream, dockCheck, dockRoute, dockTarget, pickDock, swap, route, edgeLabel, edgeIcon, WARP_SONGS, ageLabel, openBackup, copyBackup, importBackup, resetAll, declineSpoiler, savedAt, TYPE_LABEL };
   },
   template:`
 ${STREAM_TPL}
@@ -1499,11 +1501,11 @@ ${STREAM_TPL}
         <div class="zmap-bar"><label class="field"><span class="lbl">Zone</span>
           <select class="sel" v-model="mapArea"><optgroup v-for="g in mapGroups" :key="g.label" :label="g.label">
             <option v-for="a in g.areas" :key="a.id" :value="a.id">{{a.name}}</option></optgroup></select></label>
-          <button v-if="ui.map.area" type="button" class="btn" @click="mapHere" title="Afficher la zone où vous êtes (position en direct, sinon départ du Routeur)">Ma position</button>
+          <button type="button" class="btn" @click="mapHere" title="Afficher la zone où vous êtes (position en direct, sinon départ du Routeur)">Ma position</button>
           <div class="field" title="Comme la page Checks : ses filtres (catégories, âge, checks faits masqués, seulement les faisables, recherche). Tous : tous les checks mélangés et non exclus, faits compris. Les checks non mélangés et exclus n’apparaissent jamais."><span class="lbl">Checks</span>
             <seg v-model="ui.map.checks" :options="[['filters','Comme la page Checks'],['all','Tous'],['off','Aucun']]"></seg></div>
           <div class="field"><span class="lbl">Pierres à potins</span><seg v-model="ui.map.stones" :options="[[true,'Affichées'],[false,'Masquées']]"></seg></div></div>
-        <zone-map :area="mapArea" :focus="mapFocus" @start="mapStart" @goal="mapGoal" @go-check="goToCheck"></zone-map>
+        <zone-map :here-tick="mapHereTick" :area="mapArea" :focus="mapFocus" @start="mapStart" @goal="mapGoal" @go-check="goToCheck"></zone-map>
       </template>
     </section>
 

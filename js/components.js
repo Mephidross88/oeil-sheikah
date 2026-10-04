@@ -336,7 +336,7 @@ function mapScene(name, li){
     unit:Math.max(x1 - x0, z1 - z0) / 110 });
 }
 const ZoneMap = {
-  props:['area', 'focus', 'compact'],   // focus : sortie à mettre en évidence (« Voir sur la carte ») ; compact : carte seule (stream)
+  props:['area', 'focus', 'compact', 'hereTick'],   // focus : sortie à mettre en évidence (« Voir sur la carte ») ; compact : carte seule (stream)
   emits:['start', 'goal', 'go-check'],
   data:() => ({ scene:null, level:null, sel:null, hover:null, view:null, drag:null, maxH:null, csel:null, showOff:false,
     edit:false, pick:{} }),   // edit : mode « Placer les checks » ; pick : checks cochés, à placer au prochain clic
@@ -556,6 +556,7 @@ const ZoneMap = {
       this.scene = at[0]; this.level = mapLevelOf(MAPS.scenes[at[0]]?.levels, at[3]); this.sel = at[1] + ',' + at[2];
     } },
     area(){ this.scene = null; this.level = null; this.sel = null; this.view = null; },
+    hereTick(){ this.scene = null; this.level = null; this.view = null; },   // « Ma position » : onglet et étage de Link
     cur(){ this.view = null; },
     lvl(){ this.view = null; this.csel = null; },
     editTool(on){ if (!on){ this.edit = false; this.pick = {}; } },
