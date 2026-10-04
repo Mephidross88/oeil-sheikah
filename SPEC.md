@@ -719,7 +719,8 @@ du jeu vu de dessus (nord en haut).
   d'abord). Étages des dix donjons de la carte du menu pause (`z_map_data.c` de SoH : `sFloorCoordY`, hauteur au-dessus
   de laquelle on est à un étage, et `sFloorID`, son nom) : sélecteur à droite de la carte (du plus haut au plus bas,
   pastille verte : checks à faire à cet étage, point : vous êtes ici), un étage à la fois — sol dont la hauteur est dans
-  sa tranche, murs qui la traversent, cadrage sur l'étage ; repères (sorties, checks) à l'étage de leur hauteur. Étage
+  sa tranche (teintes claires), murs qui la traversent, cadrage sur l'étage ; sol des autres étages en fond, gris neutre
+  très atténué (contours des salles autour des fosses et passerelles) ; repères (sorties, checks) à l'étage de leur hauteur. Étage
   affiché par défaut : celui de la position, sinon celui de l'entrée. Tour de Ganon (pas d'étages dans le jeu) : étages
   d'après le sol (paliers : hauteurs où il y a beaucoup de sol, limite à mi-hauteur), 1F à 6F depuis le bas.
   - Décors mobiles : leur sol n'est pas dans la collision de la scène. Couloirs tordus du Temple de la Forêt

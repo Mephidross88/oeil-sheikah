@@ -303,8 +303,15 @@ function mapScene(name, li){
   // étage : sol dont la hauteur est dans sa tranche, murs qui la traversent
   const lv = s.levels && li != null ? s.levels[li] : null, top = lv && li > 0 ? s.levels[li - 1].min : Infinity;
   const inLevel = y => !lv || y > lv.min && y <= top;
-  let f = f0;
-  if (lv){ f = []; for (let i = 0; i < f0.length; i += 7) if (inLevel(f0[i + 6])) f.push(...f0.slice(i, i + 7)); }
+  let f = f0, ghost = '';
+  // étage : son sol ; celui des autres étages en fond atténué (contours des salles, fosses)
+  if (lv){
+    f = [];
+    for (let i = 0; i < f0.length; i += 7){
+      if (inLevel(f0[i + 6])) f.push(...f0.slice(i, i + 7));
+      else ghost += `M${f0[i]} ${f0[i + 1]}L${f0[i + 2]} ${f0[i + 3]}L${f0[i + 4]} ${f0[i + 5]}Z`;
+    }
+  }
   // tranches de hauteur par quantiles (autant de sol dans chacune) : contraste là où il y a du terrain
   const hs = []; for (let i = 6; i < f.length; i += 7) hs.push(f[i]);
   hs.sort((a, c) => a - c);
@@ -312,6 +319,7 @@ function mapScene(name, li){
   let x0 = Infinity, z0 = Infinity, x1 = -Infinity, z1 = -Infinity;
   for (let i = 0; i < f.length; i += 7){
     let b = 0; while (b < cuts.length && f[i + 6] > cuts[b]) b++;
+    if (lv) b = 3 + Math.floor(b * 7 / MAP_BANDS);   // étage : teintes claires, pour se détacher du fond des autres étages
     paths[b].push(`M${f[i]} ${f[i + 1]}L${f[i + 2]} ${f[i + 3]}L${f[i + 4]} ${f[i + 5]}Z`);
     for (let k = 0; k < 6; k += 2){ x0 = Math.min(x0, f[i + k]); x1 = Math.max(x1, f[i + k]); z0 = Math.min(z0, f[i + k + 1]); z1 = Math.max(z1, f[i + k + 1]); }
   }
@@ -322,7 +330,7 @@ function mapScene(name, li){
   }
   if (!lv || !isFinite(x0)) [x0, z0, x1, z1] = s.bounds;
   const pad = Math.max(x1 - x0, z1 - z0) * 0.03;
-  return (mapSceneCache[key] = { bands:paths.map(p => p.join('')), walls, view:[x0 - pad, z0 - pad, x1 - x0 + 2 * pad, z1 - z0 + 2 * pad],
+  return (mapSceneCache[key] = { bands:paths.map(p => p.join('')), walls, ghost, view:[x0 - pad, z0 - pad, x1 - x0 + 2 * pad, z1 - z0 + 2 * pad],
     unit:Math.max(x1 - x0, z1 - z0) / 110 });
 }
 const ZoneMap = {
@@ -610,6 +618,7 @@ const ZoneMap = {
         :title="'Étage ' + l.n + (levelTodo[i] ? ' — ' + levelTodo[i] + ' check' + (levelTodo[i] > 1 ? 's' : '') + ' à faire' : '') + (i===hereLevel ? ' — vous êtes ici' : '')">{{l.n}}<i v-if="levelTodo[i]">{{levelTodo[i]}}</i></button></div>
       <svg ref="svg" :viewBox="vb.join(' ')" :style="maxH ? { maxHeight:maxH + 'px' } : null" class="zmap-svg" :class="{dragging:drag && drag.moved, placing:edit && picked.length}" @wheel.prevent="wheel"
         @pointerdown="down" @pointermove="move" @pointerup="up($event)" @pointerleave="drag=null">
+        <path v-if="geo.ghost" :d="geo.ghost" class="zmap-ghost" :stroke-width="unit * 0.12"></path>
         <path v-for="(d,i) in geo.bands" :key="i" :d="d" :fill="bandColor(i)" :stroke="bandColor(i)" :stroke-width="unit * 0.12"></path>
         <path :d="geo.walls" class="zmap-walls" :stroke-width="unit * 0.35"></path>
         <g v-for="m in checkMarks" :key="m.id" class="zc" :class="[m.t === 'p' ? 'zc-place' : 'zc-check', {done:m.t === 'c' ? m.done : !m.todo, now:m.now, sel:csel===m.id}]"
