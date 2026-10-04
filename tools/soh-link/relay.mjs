@@ -13,9 +13,10 @@
 // applique à la sauvegarde.
 //
 // Position en temps réel (option de l'appli, POST /live, ou --live) : le jeu n'envoie la position de Link (PLAYER_UPDATE,
-// à chaque image) qu'aux autres joueurs de sa scène ; le relais déclare alors un second joueur, « L'Œil Sheikah », qui
+// à chaque image) qu'aux autres joueurs de sa scène ; le relais déclare alors un second joueur, « L'Oeil Sheikah » (sans
+// « Œ » : absent de la police du jeu), qui
 // suit Link de scène en scène, caché sous le sol, et transmet la position à l'appli (au plus 10 fois par seconde, quand
-// elle change). Le jeu affiche « L'Œil Sheikah : Connected » à l'activation.
+// elle change). Le jeu affiche « L'Oeil Sheikah : Connected » à l'activation.
 //
 // Usage : node tools/soh-link/relay.mjs [--game=43383] [--web=43390] [--verbose] [--dump[=fichier.jsonl]] [--live]
 //   (sous Windows : double-clic sur lancer-relais.bat, à la racine du projet)
@@ -56,7 +57,7 @@ function sendToGame(payload){
   if (VERBOSE) log('→ jeu', payload.type);
 }
 /* ---------- second joueur fictif (position en temps réel) ---------- */
-const ghost = () => ({ clientId:GHOST_ID, name:'L\'Œil Sheikah', color:{ r:120, g:120, b:120 }, clientVersion:clientState?.clientVersion || '',
+const ghost = () => ({ clientId:GHOST_ID, name:'L\'Oeil Sheikah', color:{ r:120, g:120, b:120 }, clientVersion:clientState?.clientVersion || '',
   teamId:'oeil-sheikah', online:true, seed:clientState?.seed || 0, isSaveLoaded:true, isGameComplete:false,
   sceneNum:clientState?.sceneNum ?? 0, entranceIndex:0, self:false });
 function sendClients(){

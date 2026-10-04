@@ -1781,7 +1781,7 @@ ${ITEMS_TPL}${LOOT_TPL}    </div>
             <label class="check" title="Le départ du Routeur suit l'endroit où vous apparaissez dans le jeu"><input type="checkbox" v-model="ui.link.position">la position (départ du Routeur)</label>
             <label class="check" title="Destination de chaque entrée prise, notée dans Entrées"><input type="checkbox" v-model="ui.link.entrances">les entrées</label>
             <label class="check" title="Pièges de glace, rubis et munitions reçus, affichés en bas du panneau Objets"><input type="checkbox" v-model="ui.link.loot">les trouvailles (pour le fun)</label>
-            <label class="check" title="Position de Link sur la Carte, en continu. Le relais déclare au jeu un second joueur fictif « L'Œil Sheikah », invisible (le jeu affiche « Connected ») : c'est la seule façon d'obtenir la position du jeu."><input type="checkbox" v-model="ui.link.live">la position en temps réel (Carte)</label></div>
+            <label class="check" title="Position de Link sur la Carte, en continu. Le relais déclare au jeu un second joueur fictif « L'Oeil Sheikah », invisible (le jeu affiche « Connected ») : c'est la seule façon d'obtenir la position du jeu."><input type="checkbox" v-model="ui.link.live">la position en temps réel (Carte)</label></div>
           <label class="link-url">Adresse du relais <input class="sel" v-model.lazy="ui.link.url" spellcheck="false"></label>
           <div class="link-status" :class="link.status"><i></i><b>{{LINK_LABEL[link.status]}}</b>
             <span v-if="link.status==='game' && link.client">— {{link.client.name || 'joueur sans nom'}}, sauvegarde {{link.client.isSaveLoaded ? 'chargée' : 'non chargée'}}</span>

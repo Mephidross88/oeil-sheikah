@@ -41,7 +41,7 @@ L'appli peut suivre votre partie en direct : checks faits, objets, entrées pris
 
 Le relais ne modifie jamais votre partie : il lit seulement ce que le jeu envoie. Options dans la fenêtre
 Auto-tracking : ce qu'il faut suivre, et **la position en temps réel** (la position de Link sur la Carte ; le jeu
-affiche alors un joueur « L'Œil Sheikah : Connected », invisible).
+affiche alors un joueur « L'Oeil Sheikah : Connected », invisible).
 
 Le spoiler log de la seed peut aussi être gardé « caché » : l'appli s'en sert seulement pour révéler ce que le jeu vous
 a déjà montré (objet d'un check ramassé, boutiques vues, destination des entrées prises).

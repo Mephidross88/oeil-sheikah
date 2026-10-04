@@ -898,7 +898,7 @@ Suivi en direct d'une partie de Ship of Harkinian, sans modifier le jeu.
 - **Position en temps réel** (option « la position en temps réel (Carte) », `ui.link.live`, désactivée par défaut) : le
   jeu n'envoie la position de Link (PLAYER_UPDATE, à chaque image) qu'aux autres joueurs de sa scène ; l'appli demande
   au relais (`POST /live?on=1|0`, à chaque connexion et à chaque changement de l'option) de déclarer un second joueur
-  fictif « L'Œil Sheikah », qui suit Link de scène en scène, caché sous le sol (le jeu affiche « Connected »). Le relais
+  fictif « L'Oeil Sheikah » (sans « Œ », absent de la police du jeu), qui suit Link de scène en scène, caché sous le sol (le jeu affiche « Connected »). Le relais
   transmet la position (`live` : scène, x, y, z, orientation, âge) au plus 10 fois par seconde, quand elle change ; sans
   appli connectée, il retire le joueur fictif. Carte : flèche bleue orientée sur un halo, à l'étage de sa hauteur ; la
   carte suit la zone (menu sur sa position), la scène et l'étage de Link tant qu'on n'en choisit pas d'autres ; l'anneau
