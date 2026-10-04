@@ -3,6 +3,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { fixSource, SHORT_FIX } from './fixes.mjs';   // correctifs vérifiés des sources de SoH
 const SRC = fileURLToPath(new URL('./src/', import.meta.url));
 
 // --- zones (ordre de l'enum RandomizerCheckArea = ordre de rcAreaNames) ---
@@ -43,8 +44,8 @@ for (const f of files){
     const scene = (args.match(/\b(SCENE_[A-Z0-9_]+)/) || [])[1];
     const area = (args.match(/RCAREA_([A-Z_]+)/) || [])[1] || sceneArea[scene];
     if (!type || !area || !quest || !strings.length) { console.warn('incomplet', rc, factory, type, area, quest); continue; }
-    const short = strings[0];
-    const spoiler = strings.length > 1 && ['Base', 'OtherHint'].includes(factory) ? strings[1] : `${PREFIX[area]} ${short}`;
+    const spoiler = strings.length > 1 && ['Base', 'OtherHint'].includes(factory) ? strings[1] : `${PREFIX[area]} ${strings[0]}`;
+    const short = SHORT_FIX[rc.replace(/^RC_/, '')] || strings[0];   // le nom du spoiler reste celui de SoH
     const pond = factory === 'Fish' && scene === 'SCENE_FISHING_POND' ? parseInt(args.split(',')[4], 10) - 100 : undefined;
     checks.push({ id:rc.replace(/^RC_/, ''), factory, type, quest, area, scene, short, spoiler, file:f, pond });
   }
@@ -56,7 +57,7 @@ function walk(dir){ for (const e of fs.readdirSync(dir, { withFileTypes:true }))
   const p = path.join(dir, e.name);
   if (e.isDirectory()) walk(p);
   else if (p.endsWith('.cpp')){
-    const t = fs.readFileSync(p, 'utf8');
+    const t = fixSource(p, fs.readFileSync(p, 'utf8'));
     for (const block of t.split(/areaTable\[/).slice(1)){
       const rr = block.match(/^(RR_[A-Z0-9_]+)\]/); if (!rr) continue;
       for (const l of block.matchAll(/LOCATION\((RC_[A-Z0-9_]+)\s*,/g)) regionOf[l[1].replace(/^RC_/, '')] = rr[1].replace(/^RR_/, '');

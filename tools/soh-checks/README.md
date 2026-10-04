@@ -17,9 +17,13 @@ node gen_checks.mjs              # -> ../../data/checks-data.js (libellés fran�
   (objet en tête, qualificatifs accordés, lieu avec articles) à partir des tables `W` (mots) et `PHRASES`
   (expressions). Pour corriger un libellé : ajouter une entrée dans `FULL`, ou compléter `W` / `PHRASES`
   si la correction vaut pour plusieurs checks, puis relancer `gen_checks.mjs`.
+- `fixes.mjs` : correctifs des sources de SoH 9.2.3 (erreurs vérifiées en jeu, corrigées depuis dans SoH), appliqués
+  en mémoire par `extract_checks.mjs` et `../soh-logic/extract_logic.mjs` ; `src/` reste intact. Chaque correctif
+  vérifie que l'erreur est toujours dans les sources et arrête sinon : à retirer quand SoH l'a corrigée.
 - `gen_checks.mjs` : écarte les checks jamais affichés par le tracker de SoH (indices, coffres intermédiaires
   de la chasse au trésor…), ajoute les libellés français des zones et écrit le fichier.
 
-Après une montée de version de SoH : relancer les trois scripts avec le nouveau commit, puis vérifier
+Après une montée de version de SoH : relancer les trois scripts avec le nouveau commit (si `fixes.mjs` s'arrête,
+retirer le correctif devenu inutile), puis vérifier
 `js/checks.js` (règles d'affichage reprises de `IsCheckShuffled` dans `randomizer_check_tracker.cpp`) et
 `js/config.js` (noms et valeurs des options).

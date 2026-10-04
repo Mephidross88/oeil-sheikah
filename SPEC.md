@@ -416,6 +416,14 @@ Liste des checks de la seed, par zone, pour les cocher au fil de la partie. Donn
 `Shuffle*.cpp`, `fishsanity.cpp` pour les métadonnées, `location_access/**` pour la région de logique de chaque
 check) ; règles dans `js/checks.js`.
 
+- **Correctifs des sources de SoH** (`tools/soh-checks/fixes.mjs`, appliqués en mémoire par `extract_checks.mjs` et
+  `extract_logic.mjs`) : seulement des erreurs de SoH 9.2.3 vérifiées en jeu et corrigées depuis dans SoH. Les numéros
+  et noms SoH (auto-tracking, spoiler) restent ceux du jeu ; la région de logique et le libellé suivent le lieu réel.
+  - Charpentiers du Repaire : SoH 9.2.3 inverse les drapeaux de la double cellule et de la cellule de la pente
+    (`TH_STEEP_SLOPE_CARPENTER`, « Steep Slope Carpenter », est la garde de la double cellule, et inversement).
+  Un garde-fou arrête la génération si les sources de SoH ne contiennent plus l'erreur (nouvelle version corrigée) :
+  retirer alors le correctif, sinon il réinverserait tout.
+
 - **Contenu** : 2 447 checks (sur 2 513 dans SoH : sont écartés ceux que le tracker de SoH n'affiche jamais —
   pierres à potins, indices fixes, coffres intermédiaires de la chasse au trésor, Lettre de Zelda, Triforce
   complète, Ganon). Chaque check : id SoH (`RC_…` sans préfixe), zone (32 zones SoH, dont les 12 donjons),

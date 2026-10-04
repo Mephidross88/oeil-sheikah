@@ -4,6 +4,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { fixSource } from '../soh-checks/fixes.mjs';   // correctifs vérifiés des sources de SoH
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const SRC = path.join(HERE, '../soh-checks/src');
@@ -156,7 +157,7 @@ function walk(dir){
   for (const e of fs.readdirSync(dir, { withFileTypes:true })){
     const p = path.join(dir, e.name);
     if (e.isDirectory()) walk(p);
-    else if (p.endsWith('.cpp')) parseRegionFile(stripComments(fs.readFileSync(p, 'utf8')));
+    else if (p.endsWith('.cpp')) parseRegionFile(stripComments(fixSource(p, fs.readFileSync(p, 'utf8'))));
   }
 }
 function parseRegionFile(src){
