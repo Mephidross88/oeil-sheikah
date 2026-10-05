@@ -1210,6 +1210,15 @@ select.sel:hover{border-color:var(--gold)}
 .si-txt{display:flex;flex-direction:column;min-width:0}
 .si-txt b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .si-txt small{color:var(--muted);font-size:13px}
+.si-clash{margin-top:14px}
+.si-clash p{margin:0}
+.si-clash p b{display:inline;margin:0;font-size:inherit;font-variant-numeric:tabular-nums}
+.si-clash-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+/* seed de la partie (Configuration, Statistiques) */
+.seed-pill{font-size:13px;color:var(--muted);white-space:nowrap}
+.seed-pill b{font-variant-numeric:tabular-nums;color:var(--text);letter-spacing:.02em}
+.seed-pill.none{font-style:italic}
+.stats-seed{margin-left:auto;align-self:flex-start}
 .spoiler-notes{margin:8px 0;padding-left:18px;color:var(--muted);font-size:14px}
 .modal h4{font-family:var(--serif);font-size:16.5px;color:var(--muted);margin:14px 0 8px}
 .modal h4:first-child{margin-top:0}

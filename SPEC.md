@@ -102,6 +102,14 @@ l'utilisateur ; ne pas se fier à la branche `develop`, qui a d'autres options).
   mémorisées — puis le fichier, à choisir ou à glisser dans la zone prévue ; « Importer » (actif une fois un fichier
   choisi) lance l'import et la fenêtre affiche le résumé (ou l'erreur, en restant ouverte). Une nouvelle option
   d'import = une entrée de `IMPORT_OPTS` + sa clé dans `ui` (`defaults()`).
+- **Seed de la partie** (`game.seed` : `hash` = `file_hash` du spoiler joint par des tirets, « 21-31-61-87-38 » — les 5
+  icônes de l'écran de sélection de SoH, qui nomment aussi le fichier —, `final` = `finalSeed`, le numéro envoyé par le
+  jeu, `file` = nom du fichier) : retenue à chaque import, remise à zéro avec la partie. Affichée sous le bouton
+  d'import de la Configuration (« Seed 21-31-61-87-38 », ou « Seed inconnue ») et en tête des Statistiques ; infobulle :
+  finalSeed et fichier. **Contrôle au réimport** : si le spoiler a une autre seed que la partie en cours (`game.seed`)
+  ou que la sauvegarde suivie par l'auto-tracking (`game.save.seed`), rien n'est importé et la fenêtre l'explique (les
+  deux seeds) avec trois choix : « Annuler », « Importer quand même », « Nouvelle partie : tout remettre à zéro et
+  importer » (comme « Tout remettre à zéro », puis l'import du même fichier). Résumé de l'import précédé de la seed.
 - **Proposition d'import** : au premier chargement et après « Tout remettre à zéro » (nouvelle seed, la
   configuration étant conservée), la fenêtre d'import s'ouvre d'elle-même (avec « Non, merci » au lieu
   d'« Annuler »), puis affiche le résumé. Elle revient à chaque chargement (`ui.spoilerPrompt`) tant qu'on n'a ni importé un

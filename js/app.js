@@ -887,17 +887,36 @@ const App = {
         help:'Gardé à part, il ne révèle que ce que le jeu vous a déjà montré : objet d’un check ramassé, boutiques vues, destination des entrées prises.' },
     ];
     const importFile = ref(null), importDrag = ref(false);
-    function openImport(){ importReport.value = null; importFile.value = null; modal.value = 'spoiler'; }
-    function pickImport(ev){ importFile.value = ev.target.files[0] || null; ev.target.value = ''; importReport.value = null; }
-    function dropImport(ev){ importDrag.value = false; const f = ev.dataTransfer?.files?.[0]; if (f){ importFile.value = f; importReport.value = null; } }
-    function runImport(){ if (importFile.value) importSpoiler(importFile.value); }
-    function importSpoiler(file){
+    function openImport(){ importReport.value = null; importFile.value = null; importClash.value = null; modal.value = 'spoiler'; }
+    function pickImport(ev){ importFile.value = ev.target.files[0] || null; ev.target.value = ''; importReport.value = null; importClash.value = null; }
+    function dropImport(ev){ importDrag.value = false; const f = ev.dataTransfer?.files?.[0]; if (f){ importFile.value = f; importReport.value = null; importClash.value = null; } }
+    function runImport(force){ if (importFile.value) importSpoiler(importFile.value, force === true); }
+    /* Seed d'un spoiler (file_hash : les 5 icônes de l'écran de sélection de SoH, qui nomment aussi le fichier ; finalSeed :
+       le numéro envoyé par le jeu) et contrôle au réimport : la partie en cours (game.seed) ou la sauvegarde suivie par
+       l'auto-tracking (game.save.seed) ont-elles une autre seed ? → { spoiler, other, what } | null */
+    const seedLabel = x => x.hash || (x.final ? String(x.final) : '?');
+    const seedOfSpoiler = (data, name) => ({ hash:Array.isArray(data.file_hash) ? data.file_hash.join('-') : '',
+      final:+data.finalSeed || 0, file:name || '' });
+    function seedClash(sd){
+      if (!sd.final) return null;
+      const g = store.game.seed;
+      if (g.final && g.final !== sd.final) return { spoiler:sd, other:seedLabel(g), what:'la partie en cours' };
+      if (store.game.save.seed && store.game.save.seed !== sd.final) return { spoiler:sd, other:String(store.game.save.seed), what:'la sauvegarde suivie par l’auto-tracking' };
+      return null;
+    }
+    const importClash = ref(null);
+    // nouvelle partie : tout remettre à zéro (comme « Tout remettre à zéro »), puis importer le fichier choisi
+    function resetThenImport(){ const f = importFile.value; resetAll(); importFile.value = f; importSpoiler(f, true); }
+    function importSpoiler(file, force){
       const reader = new FileReader();
       reader.onload = () => {
         let data;
         try { data = JSON.parse(reader.result); } catch (e) { importReport.value = { ok:false, title:'Fichier illisible : ce n’est pas un JSON valide.', notes:[] }; return; }
         const settings = data && data.settings;
         if (!settings || typeof settings !== 'object'){ importReport.value = { ok:false, title:'Aucune section « settings » : ce n’est pas un spoiler SoH.', notes:[] }; return; }
+        const seed = seedOfSpoiler(data, file.name), clash = force ? null : seedClash(seed);
+        importClash.value = clash;
+        if (clash) return;
         const notes = [];
         if (typeof data.version === 'string' && !data.version.includes('9.2.3'))
           notes.push(`Version « ${data.version} » : l'appli suit SoH 9.2.3, certaines options peuvent différer.`);
@@ -973,12 +992,13 @@ const App = {
             if (!c || !PRICE_TYPES.has(c.type) || !(p >= 0)) continue;
             store.game.prices[c.id] = p; prices++;
           }
+        if (seed.final) store.game.seed = seed;
         ui.spoilerPrompt = false;
         // le même fichier sert aussi de spoiler caché à l'auto-tracking (ne révèle que ce que le jeu a déjà montré)
         const linked = ui.importLinkSpoiler && data.locations && typeof data.locations === 'object';
         if (linked) linkSetSpoiler(data, file.name);
         importReport.value = { ok:true, notes,
-          title:`Configuration importée : ${count} option${count>1?'s':''}, ${tricks} astuce${tricks>1?'s':''} activée${tricks>1?'s':''}`
+          title:(seed.final ? `Seed ${seedLabel(seed)} — c` : 'C') + `onfiguration importée : ${count} option${count>1?'s':''}, ${tricks} astuce${tricks>1?'s':''} activée${tricks>1?'s':''}`
             + (started ? `, ${started} objet${started>1?'s':''} de départ coché${started>1?'s':''}` : '')
             + (quests ? `, version de ${quests} donjon${quests>1?'s':''} renseignée` : '')
             + (rings ? `, trousseaux de ${rings} donjon${rings>1?'s':''} renseignés` : '')
@@ -1009,7 +1029,7 @@ const App = {
     function resetAll(){
       const d = defaults();
       store.mappings = {}; store.game = d.game; ui.collapsed = {}; ui.router = d.ui.router;
-      importReport.value = null; importFile.value = null; ui.spoilerPrompt = true; modal.value = 'spoiler';
+      importReport.value = null; importFile.value = null; importClash.value = null; ui.spoilerPrompt = true; modal.value = 'spoiler';
     }
     // Proposition d'import d'un spoiler au premier chargement et après une remise à zéro (nouvelle seed) ;
     // elle revient à chaque chargement tant qu'on n'a ni importé un spoiler ni répondu « Non ».
@@ -1165,7 +1185,7 @@ const App = {
       CHECK_CATS, CHECK_CAT, catCounts, toggleCat, zoneTitle, soloCat, allCats, CHECK_AGES, ageLabelShort, ageKnown, checkGroups,
       lg, canNow, timeOf, checkLogicTitle, CHILD, ADULT,
       panelSkills, panelChecklists, cells, dungeonRows, skeletonShown, atStart, visibleKeys,
-      CONFIG_TABS, TRICK_LEVELS, decoupled, configCards, trickFilter, tricksOn, trickGroups, setTricks, importReport, IMPORT_OPTS, importFile, importDrag, openImport, pickImport, dropImport, runImport,
+      CONFIG_TABS, TRICK_LEVELS, decoupled, configCards, trickFilter, tricksOn, trickGroups, setTricks, importReport, IMPORT_OPTS, importFile, importDrag, openImport, pickImport, dropImport, runImport, importClash, resetThenImport, seedLabel,
       itemVisible, tierLabel, iconSrc, checklistModal, openChecklist, setChecklist, checklistStats,
       tradeModal, openTrade, tradeStats, counterClass,
       TRIALS, trialStatus, cycleTrial, setDungeonFlag, addDungeonKeys, dungeonQuest, dungeonMaxKeys, cycleDungeonQuest, questLabel, questClass, questTitle, keysLabel, dungeonKeyRing, setKeyRing, dungeonKeysDone, keysTitle, brokenIcons,
@@ -1605,7 +1625,8 @@ ${STREAM_TPL}
       <div v-if="paneOf('stats')==='side'" class="pane-bar">
         <button type="button" title="Échanger les deux panneaux" v-html="ICONS.swapH" @click="swapPanes"></button>
         <button type="button" title="Fermer ce panneau" v-html="ICONS.close" @click="closeSide"></button></div>
-      <div class="page-head"><h1>Statistiques</h1><p class="lede">Chronologie de la partie : objets, chants et checks, à l'heure où ils ont été notés (en direct avec l'auto-tracking).</p></div>
+      <div class="page-head"><h1>Statistiques</h1><p class="lede">Chronologie de la partie : objets, chants et checks, à l'heure où ils ont été notés (en direct avec l'auto-tracking).</p>
+        <span v-if="store.game.seed.final" class="seed-pill stats-seed" :title="'finalSeed ' + store.game.seed.final + (store.game.seed.file ? ', fichier ' + store.game.seed.file : '')">Seed <b>{{seedLabel(store.game.seed)}}</b></span></div>
       <div class="rsum st-tiles">
         <div class="rstat" title="Temps passé avec le jeu connecté au relais et la partie chargée (le jeu n'envoie pas son propre compteur) : seulement les sessions jouées avec l'auto-tracking"><div><b>{{playNow ? fmtDur(playNow) : '—'}}</b><span>temps de jeu (auto-tracking)</span></div></div>
         <div class="rstat"><div><b>{{checkStats.got}} / {{checkStats.total}}</b><span>checks faits</span></div></div>
@@ -1631,7 +1652,9 @@ ${STREAM_TPL}
         <button type="button" title="Fermer ce panneau" v-html="ICONS.close" @click="closeSide"></button></div>
       <div class="page-head"><h1>Configuration</h1><p class="lede">Réglages du randomizer de Ship of Harkinian 9.2.3 « Ackbar Delta ».</p>
         <div class="import-box">
-          <button type="button" class="btn primary" @click="openImport"><span class="btn-ic" v-html="ICONS.file"></span>Importer depuis un spoiler SoH…</button></div></div>
+          <button type="button" class="btn primary" @click="openImport"><span class="btn-ic" v-html="ICONS.file"></span>Importer depuis un spoiler SoH…</button>
+          <span v-if="store.game.seed.final" class="seed-pill" :title="'Seed de la partie (icônes de l’écran de sélection de SoH) — finalSeed ' + store.game.seed.final + (store.game.seed.file ? ', fichier ' + store.game.seed.file : '')">Seed <b>{{seedLabel(store.game.seed)}}</b></span>
+          <span v-else class="seed-pill none" title="Importez le spoiler de la seed pour la retenir (vérifiée à chaque réimport)">Seed inconnue</span></div></div>
       <div v-if="importReport" class="import-report" :class="importReport.ok ? 'ok' : 'ko'">
         <b>{{importReport.title}}</b>
         <ul v-if="importReport.notes.length"><li v-for="(n,i) in importReport.notes" :key="i">{{n}}</li></ul>
@@ -1919,8 +1942,17 @@ ${ITEMS_TPL}${LOOT_TPL}    </div>
               <span v-if="importFile" class="si-txt"><b>{{importFile.name}}</b><small>Cliquer pour choisir un autre fichier</small></span>
               <span v-else class="si-txt"><b>Choisir le fichier spoiler…</b><small>ou le glisser ici (.json)</small></span>
             </label>
+            <div v-if="importClash" class="warn-box si-clash">
+              <span class="warn-box-ic" v-html="ICONS.warn"></span>
+              <div><b>Ce spoiler est celui d'une autre seed.</b><p>Fichier : seed <b>{{seedLabel(importClash.spoiler)}}</b> ;
+                {{importClash.what}} : seed <b>{{importClash.other}}</b>. Les checks, objets et entrées notés appartiennent à
+                l'autre seed : pour une nouvelle partie, remettez tout à zéro.</p>
+                <div class="si-clash-actions"><button class="btn" @click="importClash = null">Annuler</button>
+                  <button class="btn" @click="runImport(true)">Importer quand même</button>
+                  <button class="btn red" @click="resetThenImport">Nouvelle partie : tout remettre à zéro et importer</button></div></div>
+            </div>
             <div v-if="importReport" class="msg ko">{{importReport.title}}</div>
-            <div class="mactions">
+            <div v-if="!importClash" class="mactions">
               <button v-if="ui.spoilerPrompt" class="btn" @click="declineSpoiler">Non, merci</button>
               <button v-else class="btn" @click="modal=null">Annuler</button>
               <button class="btn primary" :disabled="!importFile" @click="runImport">Importer</button></div>

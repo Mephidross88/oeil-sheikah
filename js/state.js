@@ -14,6 +14,8 @@ function defaults(){
     runStart:0,   // runStart : début de la partie dans le jeu (ship.stats.firstInput de la sauvegarde, ms), 0 si inconnu
     play:[],      // play : périodes de jeu suivies par l'auto-tracking [[début, fin], …] (heure réelle, ms) — temps de jeu
     save:{ seed:0, created:0 },   // save : sauvegarde suivie par l'auto-tracking (seed, ship.stats.fileCreatedAt), 0 si inconnu
+    seed:{ hash:'', final:0, file:'' },   // seed : seed de la partie, d'après le spoiler importé (file_hash « 21-31-61-87-38 »,
+                                          // finalSeed, nom du fichier) — vérifiée au réimport, affichée (Configuration, Statistiques)
     keepDrift:{} }; // keepDrift : écarts avec la sauvegarde du jeu gardés tels quels { clé: 'ici>jeu' } (voir js/link.js)
   ITEM_GROUPS.forEach(g => g.items.forEach(it => { game[g.path][it.key] = it.locked ? true : it.kind === 'bool' ? false : 0; }));
   DUNGEONS.forEach(d => { game.dungeons[d.id] = { map:false, compass:false, keys:0, bossKey:false, soul:false, quest:'', keyRing:'', ringGot:false }; });
