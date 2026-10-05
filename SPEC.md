@@ -436,10 +436,15 @@ Liste des checks de la seed, par zone, pour les cocher au fil de la partie. Donn
 check) ; règles dans `js/checks.js`.
 
 - **Correctifs des sources de SoH** (`tools/soh-checks/fixes.mjs`, appliqués en mémoire par `extract_checks.mjs` et
-  `extract_logic.mjs`) : seulement des erreurs de SoH 9.2.3 vérifiées en jeu et corrigées depuis dans SoH. Les numéros
+  `extract_logic.mjs`) : seulement des erreurs de SoH 9.2.3 vérifiées en jeu (corrigées depuis dans SoH, ou signalées). Les numéros
   et noms SoH (auto-tracking, spoiler) restent ceux du jeu ; la région de logique et le libellé suivent le lieu réel.
   - Charpentiers du Repaire : SoH 9.2.3 inverse les drapeaux de la double cellule et de la cellule de la pente
     (`TH_STEEP_SLOPE_CARPENTER`, « Steep Slope Carpenter », est la garde de la double cellule, et inversement).
+  - Temple de l'Eau (Vanilla) : le passage sous l'eau depuis la salle centrale (mur fissuré du niveau bas) mène à la
+    plateforme du bas de la salle de la Skulltula derrière la grille (`RR_WATER_TEMPLE_NEAR_CAGE_STEPS`), pas à la
+    corniche de la grille (`…_NEAR_CAGE`) : il faut ensuite le grappin, les Bottes des airs ou une astuce de saut pour
+    la Skulltula et les 4 jarres (vérifié en jeu ; pas corrigé dans SoH, signalé). Le générateur de SoH, lui, peut y
+    placer un objet en le croyant accessible sans.
   Un garde-fou arrête la génération si les sources de SoH ne contiennent plus l'erreur (nouvelle version corrigée) :
   retirer alors le correctif, sinon il réinverserait tout.
 

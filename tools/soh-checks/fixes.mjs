@@ -1,5 +1,6 @@
 // Correctifs des sources de SoH 9.2.3 (cb71e22), appliqués en mémoire par extract_checks.mjs et extract_logic.mjs
-// (les fichiers de src/ restent ceux de SoH). Seulement des erreurs vérifiées en jeu, et corrigées depuis dans SoH.
+// (les fichiers de src/ restent ceux de SoH). Seulement des erreurs vérifiées en jeu (corrigées depuis dans SoH, ou à
+// signaler). Chaque correctif vérifie que le texte à corriger est toujours là, sinon arrête : SoH l'a changé, revoir.
 import fs from 'fs';
 
 /* Repaire des voleurs : location_list.cpp donne le drapeau 0x0E à « Double Cell Carpenter » et 0x0F à « Steep Slope
@@ -21,8 +22,20 @@ const SWAP = [['RC_TH_DOUBLE_CELL_CARPENTER', 'RC_TH_STEEP_SLOPE_CARPENTER']];
       + 'son bogue, retirer le correctif (SWAP, SHORT_FIX) avant de régénérer.');
 }
 
+/* Temple de l'Eau (Vanilla) : depuis la salle centrale, le passage sous l'eau (mur fissuré du niveau bas, Bottes de plomb
+   ou Écaille d'argent) mène à la plateforme du bas de la salle de la Skulltula derrière la grille (« Near Cage Steps »),
+   pas à la corniche de la grille (« Near Cage ») : il n'y a pas d'autre entrée dans cette salle, et de la plateforme il
+   faut le grappin, les Bottes des airs ou une astuce de saut pour monter (vérifié en jeu, 2026-10-05 ; même condition
+   dans OoT Randomizer). Pas corrigé dans SoH (develop, octobre 2026) : à signaler. */
+const RETARGET = [{ file:/water_temple\.cpp$/, from:'ENTRANCE(RR_WATER_TEMPLE_NEAR_CAGE,      AnyAgeTime([]{return logic->WaterLevel(WL_LOW) && logic->HasExplosives();})',
+  to:'ENTRANCE(RR_WATER_TEMPLE_NEAR_CAGE_STEPS, AnyAgeTime([]{return logic->WaterLevel(WL_LOW) && logic->HasExplosives();})' }];
+
 // texte d'un fichier source de location_access, corrigé
 export function fixSource(file, text){
+  for (const r of RETARGET) if (r.file.test(file)){
+    if (text.split(r.from).length !== 2) throw new Error(`fixes.mjs : « ${r.from.slice(0, 60)}… » introuvable une seule fois dans ${file} — SoH a changé ce passage, revoir le correctif (RETARGET)`);
+    text = text.replace(r.from, r.to);
+  }
   if (!/thieves_hideout\.cpp$/.test(file)) return text;
   for (const [a, b] of SWAP){
     const n = text.split('LOCATION(' + a + ',').length + text.split('LOCATION(' + b + ',').length;

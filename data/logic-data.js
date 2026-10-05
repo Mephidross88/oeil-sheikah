@@ -6996,7 +6996,7 @@ window.SOH_LOGIC = {
       ["RR_WATER_TEMPLE_PILLAR_1F", () => (L.WaterLevel("WL_LOW") && L.SmallKeys("SCENE_WATER_TEMPLE", 5))],
       ["RR_WATER_TEMPLE_SPIKE_MOAT", () => (((L.WaterLevel("WL_LOW") && L.HasItem("RG_BRONZE_SCALE")) || (L.CanUse("RG_IRON_BOOTS") && L.WaterTimer() >= 16 && (L.CanUse("RG_HOOKSHOT") || L.HasItem("RG_BRONZE_SCALE")))))],
       ["RR_WATER_TEMPLE_BLOCK_U_BEND", () => (L.Get("LOGIC_WATER_PUSHED_1F_BLOCK") && ((L.CanUse("RG_IRON_BOOTS") && L.HasItem("RG_BRONZE_SCALE") && L.WaterTimer() >= 16) || (L.WaterLevel("WL_LOW") && L.HasItem("RG_SILVER_SCALE"))))],
-      ["RR_WATER_TEMPLE_NEAR_CAGE", () => (L.AnyAgeTime((() => (L.WaterLevel("WL_LOW") && L.HasExplosives()))) && (L.WaterLevel("WL_LOW") && L.HasItem("RG_SILVER_SCALE") || (L.CanUse("RG_IRON_BOOTS") && L.HasItem("RG_BRONZE_SCALE") && L.WaterTimer() >= 16)))]
+      ["RR_WATER_TEMPLE_NEAR_CAGE_STEPS", () => (L.AnyAgeTime((() => (L.WaterLevel("WL_LOW") && L.HasExplosives()))) && (L.WaterLevel("WL_LOW") && L.HasItem("RG_SILVER_SCALE") || (L.CanUse("RG_IRON_BOOTS") && L.HasItem("RG_BRONZE_SCALE") && L.WaterTimer() >= 16)))]
     ] },
     RR_WATER_TEMPLE_3F_CENTRAL_A:{ name:"Water Temple 3F Central Any Water", scene:"SCENE_WATER_TEMPLE", time:false,
       events:[],
