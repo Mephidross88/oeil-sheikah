@@ -9,8 +9,9 @@ Ouvrez `index.html` dans un navigateur récent (Chrome, Edge, Firefox). Rien à 
 est sauvegardée automatiquement dans le navigateur.
 
 Pour commencer une partie :
-1. **Configuration** › « Importer depuis un spoiler SoH » : choisissez le spoiler log (`.json`) de votre seed. Les
-   réglages et les astuces sont repris ; l'emplacement des objets n'est jamais lu.
+1. **Configuration** › « Importer depuis un spoiler SoH… » : choisissez les options d'import (tirages du seed, prix des
+   boutiques, spoiler caché pour l'auto-tracking), puis le spoiler log (`.json`) de votre seed. Les réglages et les
+   astuces sont repris ; l'emplacement des objets n'est jamais lu.
 2. Notez vos objets dans le panneau **Objets** (à droite), vos checks dans **Checks**, vos entrées dans **Entrées** —
    ou laissez l'auto-tracking le faire (ci-dessous).
 

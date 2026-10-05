@@ -95,13 +95,20 @@ l'utilisateur ; ne pas se fier à la branche `develop`, qui a d'autres options).
 - **Import depuis un spoiler SoH** (fichier `.json`) : lit **uniquement** `settings` et `enabledTricks` (et, sur
   demande, les tirages du seed et les prix ci-dessous), jamais l'emplacement des objets. Signale les options ou valeurs inconnues et une version autre que 9.2.3 ;
   les options ignorées volontairement passent en silence. Résumé « N options, M astuces ».
+  **Fenêtre d'import** (bouton « Importer depuis un spoiler SoH… » de la Configuration, ou proposée d'elle-même, voir
+  ci-dessous) : ce qui est lu, puis « Importer aussi » — une ligne par option (`IMPORT_OPTS` dans `js/app.js`) avec un
+  interrupteur Non / Oui comme les réglages et son explication (badge « peut spoiler » pour les tirages) : tirages du
+  seed (`ui.importQuests`), prix (`ui.importPrices`), spoiler caché pour l'auto-tracking (`ui.importLinkSpoiler`),
+  mémorisées — puis le fichier, à choisir ou à glisser dans la zone prévue ; « Importer » (actif une fois un fichier
+  choisi) lance l'import et la fenêtre affiche le résumé (ou l'erreur, en restant ouverte). Une nouvelle option
+  d'import = une entrée de `IMPORT_OPTS` + sa clé dans `ui` (`defaults()`).
 - **Proposition d'import** : au premier chargement et après « Tout remettre à zéro » (nouvelle seed, la
-  configuration étant conservée), une fenêtre propose d'importer un spoiler (même case « tirages du seed »),
-  puis affiche le résumé. Elle revient à chaque chargement (`ui.spoilerPrompt`) tant qu'on n'a ni importé un
+  configuration étant conservée), la fenêtre d'import s'ouvre d'elle-même (avec « Non, merci » au lieu
+  d'« Annuler »), puis affiche le résumé. Elle revient à chaque chargement (`ui.spoilerPrompt`) tant qu'on n'a ni importé un
   spoiler (depuis cette fenêtre ou la Configuration) ni répondu « Non, merci » ; la fermer (croix, Échap) ne
   fait que la reporter au prochain chargement.
-- **Tirages du seed à l'import** (case « Importer aussi les tirages du seed : donjons MQ, trousseaux et épreuves de Ganon (peut
-  spoiler) », décochée par défaut, mémorisée dans `ui.importQuests`), seulement pour ce que la configuration
+- **Tirages du seed à l'import** (option « Tirages du seed », « peut spoiler », Non par défaut, mémorisée dans
+  `ui.importQuests`), seulement pour ce que la configuration
   laisse au hasard :
   - version des donjons : liste `masterQuestDungeons` du spoiler (absente s'il n'y a aucun donjon MQ) ;
   - trousseaux en « Aléatoire » / « Nombre » : SoH écrit le tirage réel dans les réglages par donjon du spoiler.
@@ -111,9 +118,8 @@ l'utilisateur ; ne pas se fier à la branche `develop`, qui a d'autres options).
   - épreuves de Ganon (« Nombre aléatoire », ou « Nombre fixe » entre 1 et 5) : liste `requiredTrials` du spoiler
     (noms localisés : « l'épreuve de la Forêt » / « Forest Trial »…), gardée dans la partie (`game.trials`). En
     « Nombre aléatoire », SoH écrit aussi le nombre tiré dans « Ganon's Trials Count », remis à sa valeur par défaut.
-  Case décochée : ces informations restent inconnues (ou ce que le joueur a noté).
-- **Prix à l'import** (case « Importer aussi les prix des boutiques, pestes Mojo et marchands (sans révéler les objets) »,
-  décochée par défaut, `ui.importPrices`, dans la Configuration et la fenêtre d'accueil) : lit seulement le champ
+  Option à Non : ces informations restent inconnues (ou ce que le joueur a noté).
+- **Prix à l'import** (option « Prix des boutiques, pestes Mojo et marchands », Non par défaut, `ui.importPrices`) : lit seulement le champ
   `price` des lieux du spoiler de type boutique / peste / marchand, jamais l'objet → `game.prices` (remplace les prix
   déjà notés ; voir Checks > Prix). Résumé « prix de N checks ».
 - **Objets de départ** (« Start with… » : ocarina, bouclier Mojo, épées Kokiri et de Légende, bâtons, noix,
@@ -980,7 +986,7 @@ Suivi en direct d'une partie de Ship of Harkinian, sans modifier le jeu.
   nom du panneau Objets, sinon nom français de SoH (`rgFr`, `item_list.cpp`). Seulement pour les checks faits pendant
   que l'auto-tracking tourne (le jeu ne dit pas ce que contenaient les checks faits avant).
 - **Spoiler caché** (facultatif, fenêtre Auto-tracking : « Charger le spoiler… », ou en même temps que l'import de la
-  Configuration : case « Le garder aussi pour l'auto-tracking », `ui.importLinkSpoiler`, cochée par défaut) : le fichier spoiler de la seed est
+  Configuration : option « Spoiler caché pour l’auto-tracking » de la fenêtre d'import, `ui.importLinkSpoiler`, Oui par défaut) : le fichier spoiler de la seed est
   gardé à part (localStorage `oeil-sheikah-spoiler`, jamais affiché tel quel) et ne sert qu'à révéler ce que le jeu a
   déjà montré, seulement si son `finalSeed` est le seed envoyé par le jeu : objet de chaque check ramassé (statut SoH 4+,
   y compris ceux faits avant de lancer le relais, d'après la sauvegarde complète) ; objets des boutiques, pestes et

@@ -876,10 +876,22 @@ const App = {
 
     // Import depuis un spoiler SoH : ne lit QUE `settings` et `enabledTricks` (jamais l'emplacement des objets).
     const importReport = ref(null);
-    function importSpoiler(ev){
-      const file = ev.target.files[0];
-      ev.target.value = '';
-      if (!file) return;
+    /* Fenêtre d'import (Configuration, ou proposée au premier chargement) : options en interrupteurs avec leur explication,
+       puis le fichier (choisi ou glissé), importé au clic sur « Importer ». Options mémorisées dans ui. */
+    const IMPORT_OPTS = [
+      { key:'importQuests', label:'Tirages du seed', spoil:true,
+        help:'Donjons en Master Quest, trousseaux de clés et épreuves de Ganon requises, quand la configuration les laisse au hasard.' },
+      { key:'importPrices', label:'Prix des boutiques, pestes Mojo et marchands',
+        help:'Seulement les prix, jamais les objets vendus : la logique les compare à votre bourse.' },
+      { key:'importLinkSpoiler', label:'Spoiler caché pour l’auto-tracking',
+        help:'Gardé à part, il ne révèle que ce que le jeu vous a déjà montré : objet d’un check ramassé, boutiques vues, destination des entrées prises.' },
+    ];
+    const importFile = ref(null), importDrag = ref(false);
+    function openImport(){ importReport.value = null; importFile.value = null; modal.value = 'spoiler'; }
+    function pickImport(ev){ importFile.value = ev.target.files[0] || null; ev.target.value = ''; importReport.value = null; }
+    function dropImport(ev){ importDrag.value = false; const f = ev.dataTransfer?.files?.[0]; if (f){ importFile.value = f; importReport.value = null; } }
+    function runImport(){ if (importFile.value) importSpoiler(importFile.value); }
+    function importSpoiler(file){
       const reader = new FileReader();
       reader.onload = () => {
         let data;
@@ -997,7 +1009,7 @@ const App = {
     function resetAll(){
       const d = defaults();
       store.mappings = {}; store.game = d.game; ui.collapsed = {}; ui.router = d.ui.router;
-      importReport.value = null; ui.spoilerPrompt = true; modal.value = 'spoiler';
+      importReport.value = null; importFile.value = null; ui.spoilerPrompt = true; modal.value = 'spoiler';
     }
     // Proposition d'import d'un spoiler au premier chargement et après une remise à zéro (nouvelle seed) ;
     // elle revient à chaque chargement tant qu'on n'a ni importé un spoiler ni répondu « Non ».
@@ -1153,7 +1165,7 @@ const App = {
       CHECK_CATS, CHECK_CAT, catCounts, toggleCat, zoneTitle, soloCat, allCats, CHECK_AGES, ageLabelShort, ageKnown, checkGroups,
       lg, canNow, timeOf, checkLogicTitle, CHILD, ADULT,
       panelSkills, panelChecklists, cells, dungeonRows, skeletonShown, atStart, visibleKeys,
-      CONFIG_TABS, TRICK_LEVELS, decoupled, configCards, trickFilter, tricksOn, trickGroups, setTricks, importReport, importSpoiler,
+      CONFIG_TABS, TRICK_LEVELS, decoupled, configCards, trickFilter, tricksOn, trickGroups, setTricks, importReport, IMPORT_OPTS, importFile, importDrag, openImport, pickImport, dropImport, runImport,
       itemVisible, tierLabel, iconSrc, checklistModal, openChecklist, setChecklist, checklistStats,
       tradeModal, openTrade, tradeStats, counterClass,
       TRIALS, trialStatus, cycleTrial, setDungeonFlag, addDungeonKeys, dungeonQuest, dungeonMaxKeys, cycleDungeonQuest, questLabel, questClass, questTitle, keysLabel, dungeonKeyRing, setKeyRing, dungeonKeysDone, keysTitle, brokenIcons,
@@ -1619,12 +1631,7 @@ ${STREAM_TPL}
         <button type="button" title="Fermer ce panneau" v-html="ICONS.close" @click="closeSide"></button></div>
       <div class="page-head"><h1>Configuration</h1><p class="lede">Réglages du randomizer de Ship of Harkinian 9.2.3 « Ackbar Delta ».</p>
         <div class="import-box">
-          <label class="btn primary import-btn">Importer depuis un spoiler SoH
-            <input type="file" accept=".json,application/json" @change="importSpoiler" hidden></label>
-          <label class="check import-opt" title="Révèle ce que le seed a tiré au sort : quels donjons sont en Master Quest (liste « masterQuestDungeons »), lesquels ont un trousseau de clés et quelles épreuves de Ganon sont requises.">
-            <input type="checkbox" v-model="ui.importQuests">Importer aussi les tirages du seed : donjons MQ, trousseaux et épreuves de Ganon (peut spoiler)</label>
-            <label class="check import-opt" title="Lit seulement le prix de chaque boutique, peste Mojo et marchand (jamais l'objet vendu) : la logique les compare à votre bourse."><input type="checkbox" v-model="ui.importPrices">Importer aussi les prix des boutiques, pestes Mojo et marchands (sans révéler les objets)</label>
-            <label class="check import-opt" title="Spoiler caché : il ne sert qu'à révéler ce que le jeu a déjà montré (objet de chaque check ramassé, boutiques vues, entrées prises)"><input type="checkbox" v-model="ui.importLinkSpoiler">Le garder aussi pour l'auto-tracking (spoiler caché, ne révèle que ce que le jeu a montré)</label></div></div>
+          <button type="button" class="btn primary" @click="openImport"><span class="btn-ic" v-html="ICONS.file"></span>Importer depuis un spoiler SoH…</button></div></div>
       <div v-if="importReport" class="import-report" :class="importReport.ok ? 'ok' : 'ko'">
         <b>{{importReport.title}}</b>
         <ul v-if="importReport.notes.length"><li v-for="(n,i) in importReport.notes" :key="i">{{n}}</li></ul>
@@ -1893,18 +1900,30 @@ ${ITEMS_TPL}${LOOT_TPL}    </div>
         </div>
       </template>
       <template v-else-if="modal==='spoiler'">
-        <header><h3>Importer un spoiler log ?</h3><button @click="modal=null" aria-label="Fermer" v-html="ICONS.close"></button></header>
-        <div class="body spoiler-prompt">
+        <header><h3>Importer un spoiler SoH</h3><button @click="modal=null" aria-label="Fermer" v-html="ICONS.close"></button></header>
+        <div class="body spoiler-import">
           <template v-if="!importReport || !importReport.ok">
-            <p style="margin-top:0">Importez le spoiler log (.json) généré par Ship of Harkinian pour régler la Configuration automatiquement.
-              Seuls les réglages et les astuces sont lus, jamais l'emplacement des objets.</p>
-            <label class="check import-opt"><input type="checkbox" v-model="ui.importQuests">Importer aussi les tirages du seed : donjons MQ, trousseaux et épreuves de Ganon (peut spoiler)</label>
-            <label class="check import-opt" title="Lit seulement le prix de chaque boutique, peste Mojo et marchand (jamais l'objet vendu) : la logique les compare à votre bourse."><input type="checkbox" v-model="ui.importPrices">Importer aussi les prix des boutiques, pestes Mojo et marchands (sans révéler les objets)</label>
-            <label class="check import-opt" title="Spoiler caché : il ne sert qu'à révéler ce que le jeu a déjà montré (objet de chaque check ramassé, boutiques vues, entrées prises)"><input type="checkbox" v-model="ui.importLinkSpoiler">Le garder aussi pour l'auto-tracking (spoiler caché, ne révèle que ce que le jeu a montré)</label>
+            <p class="si-lede">Le spoiler log (.json) généré par Ship of Harkinian règle la Configuration : réglages, astuces, checks
+              exclus et objets de départ. L'emplacement des objets n'est jamais lu.</p>
+            <h4>Importer aussi</h4>
+            <div class="si-opts">
+              <div v-for="o in IMPORT_OPTS" :key="o.key" class="copt">
+                <div><div class="t">{{o.label}}<span v-if="o.spoil" class="si-spoil">peut spoiler</span></div><div class="h">{{o.help}}</div></div>
+                <seg v-model="ui[o.key]" :options="[[false,'Non'],[true,'Oui']]"></seg>
+              </div>
+            </div>
+            <h4>Fichier</h4>
+            <label class="si-drop" :class="{drag:importDrag, has:importFile}" @dragover.prevent="importDrag = true" @dragleave="importDrag = false" @drop.prevent="dropImport">
+              <input type="file" accept=".json,application/json" @change="pickImport" hidden>
+              <span class="si-ic" v-html="ICONS.file"></span>
+              <span v-if="importFile" class="si-txt"><b>{{importFile.name}}</b><small>Cliquer pour choisir un autre fichier</small></span>
+              <span v-else class="si-txt"><b>Choisir le fichier spoiler…</b><small>ou le glisser ici (.json)</small></span>
+            </label>
             <div v-if="importReport" class="msg ko">{{importReport.title}}</div>
-            <div class="mactions"><button class="btn" @click="declineSpoiler">Non, merci</button>
-              <label class="btn primary import-btn">Importer un spoiler…
-                <input type="file" accept=".json,application/json" @change="importSpoiler" hidden></label></div>
+            <div class="mactions">
+              <button v-if="ui.spoilerPrompt" class="btn" @click="declineSpoiler">Non, merci</button>
+              <button v-else class="btn" @click="modal=null">Annuler</button>
+              <button class="btn primary" :disabled="!importFile" @click="runImport">Importer</button></div>
           </template>
           <template v-else>
             <div class="msg ok"><b>{{importReport.title}}</b></div>

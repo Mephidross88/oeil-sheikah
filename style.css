@@ -1013,6 +1013,9 @@ select.sel{width:100%;min-height:42px;padding:8px 36px 8px 12px;border:1px solid
 select.sel:hover{border-color:var(--gold)}
 .btn{border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:8px 14px}
 .btn:hover{border-color:var(--gold)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn:disabled:hover{border-color:var(--line)}
+.btn.primary:disabled:hover{border-color:var(--gold)}
 .btn.primary{background:var(--gold);border-color:var(--gold);color:#1c1a12;font-weight:700}
 .btn.red{background:var(--red);border-color:var(--red);color:#fff;font-weight:700}
 .btn-wide{display:block;width:100%;margin-top:16px;border:0;border-radius:10px;padding:13px;background:var(--ink-2);color:#fff;font-weight:700;font-size:15.5px}
@@ -1150,7 +1153,8 @@ select.sel:hover{border-color:var(--gold)}
 /* Onglets de configuration, import d'un spoiler, options */
 .import-box{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
 .import-btn{cursor:pointer}
-.import-opt{font-size:13px;color:var(--muted)}
+.btn-ic{display:inline-flex;width:17px;height:17px;margin-right:7px;vertical-align:-3px}
+.btn-ic svg{width:17px;height:17px}
 .import-report{max-width:1240px;border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:14.5px;background:var(--surface);
   display:grid;grid-template-columns:1fr auto;align-items:baseline;gap:4px 20px}
 .import-report.ok{border-color:var(--green);background:var(--green-soft)}
@@ -1191,7 +1195,21 @@ select.sel:hover{border-color:var(--gold)}
 .modal header button:hover{background:rgba(255,255,255,.15)}
 .modal header svg{width:18px;height:18px}
 .modal .body{padding:16px 20px 20px;overflow-y:auto}
-.spoiler-prompt .import-opt{display:flex;margin:4px 0 12px}
+/* fenêtre d'import d'un spoiler : options (interrupteurs + explication), puis le fichier */
+.spoiler-import .si-lede{margin:0 0 6px;font-size:14.5px}
+.spoiler-import h4{margin:16px 0 4px}
+.si-opts{border:1px solid var(--line);border-radius:12px;padding:0 14px;background:var(--surface-2)}
+.si-opts .copt .h{max-width:none}
+.si-spoil{margin-left:8px;padding:1px 7px;border-radius:999px;font-size:11.5px;font-weight:600;color:var(--red);background:var(--red-soft);vertical-align:1px}
+.si-drop{display:flex;align-items:center;gap:14px;padding:14px 16px;border:1.5px dashed var(--line);border-radius:12px;cursor:pointer;
+  background:var(--surface-2);transition:border-color .15s,background .15s}
+.si-drop:hover,.si-drop.drag{border-color:var(--gold);background:var(--gold-soft)}
+.si-drop.has{border-style:solid;border-color:var(--green)}
+.si-ic{display:grid;place-items:center;width:40px;height:40px;flex:none;border-radius:10px;background:var(--surface);color:var(--ocarina)}
+.si-ic svg{width:22px;height:22px}
+.si-txt{display:flex;flex-direction:column;min-width:0}
+.si-txt b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.si-txt small{color:var(--muted);font-size:13px}
 .spoiler-notes{margin:8px 0;padding-left:18px;color:var(--muted);font-size:14px}
 .modal h4{font-family:var(--serif);font-size:16.5px;color:var(--muted);margin:14px 0 8px}
 .modal h4:first-child{margin-top:0}
