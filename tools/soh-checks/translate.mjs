@@ -65,7 +65,7 @@ export const FULL = {
   'Frogs Song of Time': 'Grenouilles : Chant du Temps', 'Near Open Grotto Freestanding PoH': 'Quart de cœur près de la grotte ouverte',
   'Near Domain Freestanding PoH': 'Quart de cœur près du domaine', 'Diving Minigame': 'Jeu de plongée',
   'King Zora Thawed': 'Roi Zora dégelé', 'Iceberg Freestanding PoH': 'Quart de cœur de l\'iceberg',
-  'Bottom Freestanding PoH': 'Quart de cœur au fond', 'Sheik in Ice Cavern': 'Sheik dans la Caverne de Glace',
+  'Bottom Freestanding PoH': 'Quart de cœur du fond', 'Sheik in Ice Cavern': 'Sheik dans la Caverne de Glace',
   // Vaches
   'Cow': 'Vache', 'Cow Grotto Cow': 'Vache de la grotte', 'Impas House Cow': 'Vache de la maison d\'Impa',
   'Links House Cow': 'Vache de la maison de Link', 'Stables Left Cow': 'Vache gauche des écuries', 'Stables Right Cow': 'Vache droite des écuries',

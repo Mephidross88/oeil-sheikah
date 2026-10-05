@@ -140,7 +140,7 @@ window.CHECKS_DATA = {
     ["ZD_KING_ZORA_THAWED","ZORAS_DOMAIN","STANDARD","B","Roi Zora dégelé","ZD King Zora Thawed","ZORAS_DOMAIN","npc"],
     ["ZD_TRADE_PRESCRIPTION","ZORAS_DOMAIN","ADULT_TRADE","B","Échange : Ordonnance","ZD Trade Prescription","ZORAS_DOMAIN","npc"],
     ["ZF_ICEBERG_FREESTANDING_POH","ZORAS_FOUNTAIN","STANDARD","B","Quart de cœur de l'iceberg","ZF Iceberg Freestanding PoH","ZF_ICEBERGS","freestanding"],
-    ["ZF_BOTTOM_FREESTANDING_POH","ZORAS_FOUNTAIN","STANDARD","B","Quart de cœur au fond","ZF Bottom Freestanding PoH","ZF_LAKEBED","freestanding"],
+    ["ZF_BOTTOM_FREESTANDING_POH","ZORAS_FOUNTAIN","STANDARD","B","Quart de cœur du fond","ZF Bottom Freestanding PoH","ZF_LAKEBED","freestanding"],
     ["LLR_TALONS_CHICKENS","LON_LON_RANCH","STANDARD","B","Cocottes de Talon","LLR Talons Chickens","LLR_TALONS_HOUSE","npc"],
     ["LLR_FREESTANDING_POH","LON_LON_RANCH","STANDARD","B","Quart de cœur","LLR Freestanding PoH","LLR_TOWER","freestanding"],
     ["LLR_DEKU_SCRUB_GROTTO_LEFT","LON_LON_RANCH","SCRUB","B","Peste Mojo gauche de la grotte","LLR Deku Scrub Grotto Left","LLR_GROTTO","scrub"],
