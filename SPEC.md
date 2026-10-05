@@ -534,6 +534,10 @@ check) ; règles dans `js/checks.js`.
   logique au survol » (« Show Logic » de SoH : condition SoH du check dans l'infobulle, par région), « Suivre
   aussi les Skulltulas non mélangées », zones groupées Overworld / Donjons avec « faits | accessibles | total » et le
   code couleur des zones (voir Zones).
+- **Zone en cours** (auto-tracking, jeu connecté) : la zone où se trouve Link (scène de la position en temps réel si
+  elle est active et les cartes présentes, sinon dernière sortie prise) passe en tête de liste, sous « Vous êtes ici »,
+  cadre mis en évidence, séparée des autres par « Autres zones ». Toujours affichée, même si les filtres la masqueraient
+  (zone terminée, aucun check faisable) ; ailleurs, l'ordre habituel.
 - **Entrées mélangées** : les destinations notées dans Entrées sont prises en compte ; une entrée pas encore notée ne
   mène nulle part pour la logique (pas d'avertissement sur la page Checks).
 - **Progression globale** : cadre « Checks » de la bande de progression (voir plus haut) — anneau de pourcentage,

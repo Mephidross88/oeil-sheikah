@@ -569,6 +569,18 @@ const App = {
       });
     });
     // zone ignorée (tout ce qui reste à faire est exclu) : listée seulement avec « Afficher les checks exclus », pour la réintégrer
+    /* Zone de Link (auto-tracking, jeu connecté : position en temps réel, sinon dernière entrée prise) : placée en tête de
+       la page Checks, à part (même si les filtres la masqueraient : zone terminée…) ; null sans suivi. */
+    const hereCheckArea = computed(() => {
+      if (!ui.link.enabled || link.status !== 'game') return null;
+      const L = ui.link.live && link.live, live = L && MAPS_OK && mapAreas.find(a => MAP_SCENES[a.id].includes(L.scene));
+      const id = (live ? live.id : link.position?.key && EXIT[link.position.key]?.areaId || '').toUpperCase();
+      return CHECK_AREA[id] ? id : null;
+    });
+    const checkList = computed(() => {
+      const here = hereCheckArea.value, hx = here && allCheckAreasC.value.find(x => x.area.id === here);
+      return hx ? [{ ...hx, isHere:true }, ...checkAreasC.value.filter(x => x.area.id !== here)] : checkAreasC.value;
+    });
     const checkAreasC = computed(() => { const q = cf.q.trim();
       return allCheckAreasC.value.filter(x => (cf.showExcluded || !(x.excluded && x.got === x.total))
         && (q || cf.onlyAvailable ? x.checks.length : (x.total || x.hiddenQuest || x.excluded) && !(cf.hideDoneZones && x.complete))); });
@@ -1112,7 +1124,7 @@ const App = {
     return { LANG, LANGS, I18N_LANGS, setLang, removeLang, pickLang, langMsg, store, ui, s, views, navGroups, link, LINK_LABEL, linkRequestState, linkAdoptSave, driftSel, driftList, driftGroups, openDrift, driftCount, driftAll, driftApply, driftVal, driftIcon, driftLabel, linkAsks, linkAnswer, askFrom, askLabel, canSplit, splitOn, shown, paneOf, swapPanes, openSide, closeSide, navOpen, itemsOpen, modal, tip, tipData, backup, stats, missingSpawns, visibleAreas,
       ICONS, ITEMS_PAGE, ITEM_BY_KEY, DUNGEONS, DUNGEON_BY_ID, CHECKLISTS, AREA, EXIT, DATA_ERRORS,
       iconKey, exitIcon, areaName, toggleArea, setAll, jump, go, showTip, hideTip, toggleTip, setMapping, clearMapping,
-      checkAreasC, checkStats, toggleCheckArea, PRICE_TYPES, priceEdit, setPrice, priceOver, priceTitle, focusEl, lastCheck, toggleCheck, toggleExcluded, undoCheck, foundInfo, seenInfo, loadSpoilerFile, linkClearSpoiler, linkSpoilerOk, goToCheck, goToZone, why, openWhy, nextC, stepsLabel, goMsg, setAllChecks, jumpCheck, setCheck, setExcluded, CHECK_AREA,
+      checkAreasC, checkList, hereCheckArea, checkStats, toggleCheckArea, PRICE_TYPES, priceEdit, setPrice, priceOver, priceTitle, focusEl, lastCheck, toggleCheck, toggleExcluded, undoCheck, foundInfo, seenInfo, loadSpoilerFile, linkClearSpoiler, linkSpoilerOk, goToCheck, goToZone, why, openWhy, nextC, stepsLabel, goMsg, setAllChecks, jumpCheck, setCheck, setExcluded, CHECK_AREA,
       CHECK_CATS, CHECK_CAT, catCounts, toggleCat, zoneTitle, soloCat, allCats, CHECK_AGES, ageLabelShort, ageKnown, checkGroups,
       lg, canNow, timeOf, checkLogicTitle, CHILD, ADULT,
       panelSkills, panelChecklists, cells, dungeonRows, skeletonShown, atStart, visibleKeys,
@@ -1300,10 +1312,12 @@ ${STREAM_TPL}
         </div>
       </div>
 
-      <div v-if="!checkAreasC.length" class="empty"><b>Aucun check à afficher.</b>
+      <div v-if="!checkList.length" class="empty"><b>Aucun check à afficher.</b>
         {{ui.checks.q ? 'Aucun résultat pour cette recherche.' : 'Vérifiez la Configuration ou les filtres.'}}</div>
-      <article v-for="x in checkAreasC" :key="x.area.id" class="area check-area" :id="'carea-'+x.area.id"
-        :class="['st-' + x.state, {collapsed:ui.checks.collapsed[x.area.id], complete:x.complete, 'hint-woth':hintsC.woth[x.area.id], 'hint-foolish':hintsC.foolish[x.area.id]}]">
+      <template v-for="x in checkList" :key="x.area.id">
+      <div v-if="x.isHere" class="here-label" title="Zone de Link, d’après l’auto-tracking"><span v-html="ICONS.live"></span>Vous êtes ici</div>
+      <article class="area check-area" :id="'carea-'+x.area.id"
+        :class="['st-' + x.state, {'here-zone':x.isHere, collapsed:ui.checks.collapsed[x.area.id], complete:x.complete, 'hint-woth':hintsC.woth[x.area.id], 'hint-foolish':hintsC.foolish[x.area.id]}]">
         <button class="area-head" @click="toggleCheckArea(x.area.id)" :aria-expanded="!ui.checks.collapsed[x.area.id]">
           <span class="chev" v-html="ICONS.chevron"></span>
           <h2>{{x.area.label}}</h2>
@@ -1360,6 +1374,8 @@ ${STREAM_TPL}
           <p v-else class="quest-note">{{x.total ? 'Tous les checks affichés de cette zone sont faits.' : x.state === 'ignored' ? tn(x.excluded, 'Zone ignorée : {n} check exclu (↺ pour la réintégrer).', 'Zone ignorée : {n} checks exclus (↺ pour la réintégrer).') : 'Aucun check avec les filtres actuels.'}}</p>
         </div>
       </article>
+      <div v-if="x.isHere && checkList.length > 1" class="here-sep"><span>Autres zones</span></div>
+      </template>
       <div v-if="lastCheck || goMsg" class="toast" role="status">
         <template v-if="goMsg">{{goMsg}}</template>
         <template v-else>{{lastCheck.text}}
