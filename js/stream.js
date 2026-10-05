@@ -675,6 +675,8 @@ function useStream(STREAM, app = {}){
 
   if (STREAM){
     document.documentElement.classList.add('stream-mode');
+    // langue changée dans la fenêtre principale : rechargement
+    window.addEventListener('storage', ev => { if (ev.key === LANG_KEY) location.reload(); });
     window.addEventListener('keydown', ev => {
       if (/^(INPUT|SELECT|TEXTAREA)$/.test(ev.target.tagName)) return;
       const k = ev.key, ctrl = ev.ctrlKey || ev.metaKey, w = swSelW.value;

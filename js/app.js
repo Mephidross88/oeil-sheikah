@@ -1099,7 +1099,7 @@ const App = {
     /* Indices (pierres à potins) : pierres groupées par zone, édition du texte à la demande */
     const hintGroups = CHECK_AREAS.map(a => ({ area:a.id, stones:GOSSIP_STONES.filter(s => s.area === a.id) })).filter(g => g.stones.length);
     const hintEdit = reactive({});
-    return { store, ui, s, views, navGroups, link, LINK_LABEL, linkRequestState, linkAdoptSave, driftSel, driftList, driftGroups, openDrift, driftCount, driftAll, driftApply, driftVal, driftIcon, driftLabel, linkAsks, linkAnswer, askFrom, askLabel, canSplit, splitOn, shown, paneOf, swapPanes, openSide, closeSide, navOpen, itemsOpen, modal, tip, tipData, backup, stats, missingSpawns, visibleAreas,
+    return { LANG, LANGS, setLang, store, ui, s, views, navGroups, link, LINK_LABEL, linkRequestState, linkAdoptSave, driftSel, driftList, driftGroups, openDrift, driftCount, driftAll, driftApply, driftVal, driftIcon, driftLabel, linkAsks, linkAnswer, askFrom, askLabel, canSplit, splitOn, shown, paneOf, swapPanes, openSide, closeSide, navOpen, itemsOpen, modal, tip, tipData, backup, stats, missingSpawns, visibleAreas,
       ICONS, ITEMS_PAGE, ITEM_BY_KEY, DUNGEONS, DUNGEON_BY_ID, CHECKLISTS, AREA, EXIT, DATA_ERRORS,
       iconKey, exitIcon, areaName, toggleArea, setAll, jump, go, showTip, hideTip, toggleTip, setMapping, clearMapping,
       checkAreasC, checkStats, toggleCheckArea, PRICE_TYPES, priceEdit, setPrice, priceOver, priceTitle, focusEl, lastCheck, toggleCheck, toggleExcluded, undoCheck, foundInfo, seenInfo, loadSpoilerFile, linkClearSpoiler, linkSpoilerOk, goToCheck, goToZone, why, openWhy, nextC, stepsLabel, goMsg, setAllChecks, jumpCheck, setCheck, setExcluded, CHECK_AREA,
@@ -1573,6 +1573,8 @@ ${STREAM_TPL}
         <button type="button" title="Fermer ce panneau" v-html="ICONS.close" @click="closeSide"></button></div>
       <div class="page-head"><h1>Configuration</h1><p class="lede">Réglages du randomizer de Ship of Harkinian 9.2.3 « Ackbar Delta ».</p>
         <div class="import-box">
+          <label class="lang-pick" title="Langue de l’interface (recharge la page)"><span>Langue</span>
+            <select class="sel" :value="LANG" @change="setLang($event.target.value)"><option v-for="l in LANGS" :key="l[0]" :value="l[0]">{{l[1]}}</option></select></label>
           <button type="button" class="btn primary" @click="openImport"><span class="btn-ic" v-html="ICONS.file"></span>Importer depuis un spoiler SoH…</button>
           <span v-if="store.game.seed.final" class="seed-pill" :title="'Seed de la partie (icônes de l’écran de sélection de SoH) — finalSeed ' + store.game.seed.final + (store.game.seed.file ? ', fichier ' + store.game.seed.file : '')">Seed <b>{{seedLabel(store.game.seed)}}</b></span>
           <span v-else class="seed-pill none" title="Importez le spoiler de la seed pour la retenir (vérifiée à chaque réimport)">Seed inconnue</span></div></div>
@@ -1897,7 +1899,11 @@ ${ITEMS_TPL}${LOOT_TPL}    </div>
 </div>`,
 };
 
+// langue : gabarits traduits au chargement (js/i18n.js), t() et tn() utilisables dans tous les gabarits
+[App, TypeIcon, Seg, DestPicker, ItemTile, ProgressCard, EntranceGraph, ZoneMap].forEach(c => { c.template = tpl(c.template); });
 const app = createApp(App);
+app.config.globalProperties.t = t;
+app.config.globalProperties.tn = tn;
 app.mount('#app');
 document.addEventListener('click', ev => { /* ferme l'infobulle en tactile */ if (!ev.target.closest('.globe')) { const t = document.querySelector('.tip'); if (t) window.dispatchEvent(new Event('scroll')); } });
-window.__PF = { store, effC, linksC, reachC, agesC, routeC, shortest, candidatesFor, setMapping, EXIT, sohC, sohFullC, computeSoh, entranceLinks, L, SOH };
+window.__PF = { I18N_MISSING, store, effC, linksC, reachC, agesC, routeC, shortest, candidatesFor, setMapping, EXIT, sohC, sohFullC, computeSoh, entranceLinks, L, SOH };

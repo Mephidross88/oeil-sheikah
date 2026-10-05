@@ -1,7 +1,8 @@
 # L'Œil Sheikah
 
 Tracker et routeur pour le randomizer de **Ship of Harkinian 9.2.3** (Ocarina of Time) : objets, checks, entrées,
-indices des pierres à potins, et trajets vers ce qui est faisable. Tout se passe dans le navigateur, en français.
+indices des pierres à potins, et trajets vers ce qui est faisable. Tout se passe dans le navigateur, en français ou en
+anglais (Configuration › Langue).
 
 ## Lancer l'appli
 

@@ -16,7 +16,19 @@ Référence du rando : https://wiki.ootrandomizer.com/index.php?title=Entrance_R
 - Application légère, 100 % navigateur, simple à installer, maintenir et déployer (hébergement statique).
 - Sessions transparentes : sauvegarde automatique à chaque modification, reprise à l'ouverture.
 - Export / import de la partie par copier-coller (texte JSON) pour changer de navigateur.
-- Interface claire, graphique, en français, utilisable sur mobile.
+- Interface claire, graphique, en français ou en anglais, utilisable sur mobile.
+
+## Langue
+Interface en français (langue source) ou en anglais (`js/i18n.js`, dictionnaire `data/i18n-en.js`).
+- Langue : choisie dans la Configuration (« Langue », en tête de page ; localStorage `oeil-sheikah-lang`, à part de la
+  partie), sinon celle du navigateur (français s'il est en français, sinon anglais). Changer de langue recharge la page ;
+  la fenêtre de stream se recharge aussi.
+- Traduction : dictionnaire « texte français → texte anglais ». Gabarits Vue traduits au chargement (`tpl` : textes
+  entre balises, attributs title / placeholder / aria-label / label / alt, chaînes des expressions qui ont une
+  traduction) ; textes calculés en JS par `t(texte, { paramètres })`, pluriels par `tn(n, singulier, pluriel)` (aussi
+  utilisables dans les gabarits). Texte sans traduction : affiché en français (et relevé dans `I18N_MISSING`).
+- Contrôle : `node tools/i18n/check.mjs` liste les textes sans traduction et les traductions inutilisées (`--js` : les
+  manquants au format du dictionnaire). À relancer après toute modification de l'interface.
 
 ## Progression globale (en tête de toutes les pages)
 Bande de deux cadres de progression (composant `ProgressCard`) au-dessus du titre de chaque page : **Checks** et,

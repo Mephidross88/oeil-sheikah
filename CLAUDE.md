@@ -10,10 +10,15 @@ et le mettre à jour quand une règle change.
 
 ## Fichiers
 - `index.html` : squelette, charge Vue 3 (CDN jsDelivr, build global), puis `data/areas-data.js`, `data/checks-data.js`
-  et `data/logic-data.js`, puis les fichiers
+  et `data/logic-data.js` (et les autres données, dont `data/i18n-en.js`), puis les fichiers
   de `js/` **dans l'ordre listé ci-dessous** (scripts classiques, pas de modules ES : chaque fichier partage
   le même scope global de haut niveau, comme s'il s'agissait d'un seul fichier — un `const`/`function` déclaré
   dans un fichier est directement utilisable dans les suivants ; ne pas redéclarer un identifiant existant).
+  0. `js/i18n.js` : langue de l'interface — `LANG` ('fr' / 'en', localStorage `oeil-sheikah-lang`, sinon le navigateur),
+     `t(texte, paramètres)`, `tn(n, singulier, pluriel)` (aussi dans les gabarits : `globalProperties`), `tpl(gabarit)`
+     (gabarits traduits au chargement, appliqué aux composants dans `app.js`), `setLang`. Le français est la langue
+     source ; dictionnaire `data/i18n-en.js` (`window.I18N_EN`, texte français → anglais). Tout nouveau texte de
+     l'interface : en français, puis sa traduction dans `data/i18n-en.js` ; contrôle `node tools/i18n/check.mjs`.
   1. `js/icons.js` : destructuration de l'API Vue globale, icônes SVG inline (`ICONS`), icônes de types de
      sortie personnalisables (`CUSTOM_ICONS`), libellés de types (`TYPE_LABEL`).
   2. `js/data.js` : transforme `window.AREAS_DATA` (fourni par `areas-data.js`) en structures internes
