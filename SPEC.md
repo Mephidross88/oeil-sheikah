@@ -733,7 +733,13 @@ a son propre stockage et ne verrait pas la partie).
   quarts de cœur, réceptacles, morceaux de Triforce (chasse à la Triforce seulement), pièges de glace, rubis trouvés ;
   icônes en option ; les Compteurs d'avant gardent leurs trois cases), Jauge (barre d'un compteur « obtenu / total »,
   libellé en option ; `gauge`), Temps de jeu (grand chronomètre, taille, libellé ; `timer`), Seed (empreinte de la seed
-  de la partie, « Seed » devant en option ; `seed`). Le temps de jeu défile à la seconde dans la fenêtre de stream
+  de la partie, « Seed » devant en option ; `seed`) ; rubrique En direct : Dernière trouvaille (dernière ligne de la
+  chronologie : objets et chants, checks ou tout, avec l'objet trouvé dans le check et le temps de jeu ; animée à chaque
+  nouveauté ; `last`), Prochaine étape (cible du bandeau « Où aller ? » — check le plus proche ou destination du Routeur
+  suivie — et les premières étapes de sa route, nombre réglable ; « À pied, dans la zone » ou « Aucun trajet connu » ;
+  `next`), Indices (zones sur la voie du héros, terminées barrées, et zones futiles, d'après les pierres marquées lues ;
+  `hints`), Position de Link (zone, sortie la plus proche et âge, d'après la position en temps réel ou la dernière
+  entrée ; `where`). Ces quatre widgets ont un cadre en option (case « Cadre »). Le temps de jeu défile à la seconde dans la fenêtre de stream
   tant que la fenêtre principale prolonge la période de jeu (toutes les 10 s). Contenus à leur largeur naturelle, mis à l'échelle de la largeur du bloc
   (`zoom`) ; Espace vide, Image et Texte à la taille du bloc.
 - **Dispositions** (profils) : plusieurs dispositions nommées, une seule affichée ; chacune a son fond, sa toile, son thème et ses widgets.

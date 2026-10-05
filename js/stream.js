@@ -20,6 +20,11 @@ const STREAM_TYPES = {
   progress:{ label:'Progression', cat:'Partie', base:1100 },
   loot:{ label:'Trouvailles', cat:'Partie', base:426 },
   seed:{ label:'Seed', cat:'Partie', free:true, w:440, h:56, init:{ size:28, prefix:true } },
+  // en direct : dernière trouvaille, prochaine étape (bandeau « Où aller ? »), indices lus, position de Link
+  last:{ label:'Dernière trouvaille', cat:'En direct', free:true, w:520, h:110, init:{ what:'items', at:true, frame:true } },
+  next:{ label:'Prochaine étape', cat:'En direct', free:true, w:600, h:210, init:{ n:4, frame:true } },
+  hints:{ label:'Indices', cat:'En direct', free:true, w:420, h:300, init:{ woth:true, foolish:true, frame:true } },
+  where:{ label:'Position de Link', cat:'En direct', free:true, w:460, h:96, init:{ exit:true, age:true, frame:true } },
   zonemap:{ label:'Carte (zone de Link)', cat:'Cartes', free:true, w:640, h:480 },
   graph:{ label:'Connexions', cat:'Cartes', base:1000 },
   // page Statistiques : tuiles (temps de jeu, checks faits, entrées trouvées), courbe des checks, chronologie
@@ -194,7 +199,7 @@ function streamTemplate(parts){ return `
   <div class="sw-stage" :class="{'show-grid':swEdit && ss.ed.showGrid}" @pointerdown.self="swSel = null"
     :style="{width:sp.canvas.w + 'px', height:sp.canvas.h + 'px', transform:'scale(' + swScale + ')', '--sw-grid':ss.ed.grid + 'px', ...swThemeVars}">
   <div v-for="w in sp.widgets" v-show="swEdit || !w.hidden" :key="w.id" :data-sw="w.id" class="sw"
-    :class="['sw-' + w.type, {sel:swEdit && swSel===w.id, framed:w.frame, locked:w.locked, ghost:w.hidden}]"
+    :class="['sw-' + w.type, {'sw-free':STREAM_TYPES[w.type].free, sel:swEdit && swSel===w.id, framed:w.frame, locked:w.locked, ghost:w.hidden}]"
     :style="{left:w.x + 'px', top:w.y + 'px', width:w.w + 'px', height:STREAM_TYPES[w.type].free ? w.h + 'px' : null, ...(w.style ? swWidgetVars(w) : {})}">
     <div class="sw-body" :style="swBodyStyle(w)">
       <div v-if="w.type==='items'" class="sw-items" :class="{cols2:w.cols===2}">${parts.items}</div>
@@ -207,14 +212,14 @@ function streamTemplate(parts){ return `
         <div v-for="k in w.tiles.filter(swMetricShown)" :key="k" class="rstat">
           <span v-if="w.icons && STREAM_METRICS[k].icon" class="rstat-ic"><img :src="STREAM_METRICS[k].icon" alt=""></span>
           <div><b>{{swMetric(k)}}</b><span>{{STREAM_METRICS[k].short}}</span></div></div></div>
-      <div v-else-if="w.type==='pick'" class="sw-pick" :class="{framed:w.frame}" :style="{gridTemplateColumns:'repeat(' + (w.cols || 6) + ', minmax(0, 1fr))'}">
+      <div v-else-if="w.type==='pick'" class="swc-pick" :class="{framed:w.frame}" :style="{gridTemplateColumns:'repeat(' + (w.cols || 6) + ', minmax(0, 1fr))'}">
         <item-tile v-for="k in swPickKeys(w)" :key="k" :k="k"></item-tile></div>
       <div v-else-if="w.type==='dungeons'" class="sw-items">${parts.dungeons}</div>
-      <div v-else-if="w.type==='gauge'" class="sw-gauge">
+      <div v-else-if="w.type==='gauge'" class="swc-gauge">
         <div v-if="w.label" class="sw-g-top"><span>{{STREAM_METRICS[w.metric].label}}</span><b>{{swMetric(w.metric)}}</b></div>
         <div class="sw-g-bar"><i :style="{width:swGaugePct(w.metric) + '%'}"></i></div></div>
-      <div v-else-if="w.type==='timer'" class="sw-timer"><b :style="{fontSize:(w.size || 64) + 'px'}">{{playNow ? fmtDur(playNow) : '0:00:00'}}</b><span v-if="w.label">temps de jeu</span></div>
-      <div v-else-if="w.type==='seed'" class="sw-text sw-seed" :style="{fontSize:(w.size || 28) + 'px'}"><span>{{w.prefix ? 'Seed ' : ''}}<b>{{store.game.seed.final ? seedLabel(store.game.seed) : 'inconnue'}}</b></span></div>
+      <div v-else-if="w.type==='timer'" class="swc-timer"><b :style="{fontSize:(w.size || 64) + 'px'}">{{playNow ? fmtDur(playNow) : '0:00:00'}}</b><span v-if="w.label">temps de jeu</span></div>
+      <div v-else-if="w.type==='seed'" class="sw-text swc-seed" :style="{fontSize:(w.size || 28) + 'px'}"><span>{{w.prefix ? 'Seed ' : ''}}<b>{{store.game.seed.final ? seedLabel(store.game.seed) : 'inconnue'}}</b></span></div>
       <div v-else-if="w.type==='statcurve'" class="st-chart sw-chart">
         <div v-if="w.title" class="st-chart-title">Checks faits au fil du temps de jeu<small v-if="statsC.curve"> (jusqu'à {{statsC.curve.max}})</small></div>
         <template v-if="statsC.curve"><svg viewBox="0 0 600 150" preserveAspectRatio="none"><path class="st-area" :d="statsC.curve.area"></path><path class="st-line" :d="statsC.curve.d"></path></svg>
@@ -226,6 +231,35 @@ function streamTemplate(parts){ return `
           <img v-if="r.icon" :src="r.icon" alt=""><span v-else class="st-noic"></span>
           <span class="st-lab">{{r.label}}<small v-if="r.found"> · {{r.found}}</small></span></li>
         <li v-if="!statsC.rows.length" class="sw-empty">Rien de noté pour l'instant.</li></ul>
+      <div v-else-if="w.type==='last'" class="swc-last" :class="{'sw-card':w.frame}">
+        <div v-if="swLast(w)" :key="swLast(w).i" class="sw-last-in">
+          <img v-if="swLast(w).icon" :src="swLast(w).icon" alt="">
+          <div class="sw-last-txt"><small>{{w.what === 'checks' ? 'Dernier check' : 'Dernière trouvaille'}}<template v-if="w.at && swLast(w).at"> · {{swLast(w).at}}</template></small>
+            <b>{{swLast(w).label}}</b><span v-if="swLast(w).found">{{swLast(w).found}}</span></div></div>
+        <p v-else class="sw-empty">Rien de noté pour l'instant.</p></div>
+      <div v-else-if="w.type==='next'" class="swc-next" :class="{'sw-card':w.frame}">
+        <template v-if="swRoute()">
+          <small>Prochaine étape</small>
+          <b class="sw-next-t">{{swRoute().check ? swRoute().check.label + ' · ' + CHECK_AREA[swRoute().check.area].label : areaName(swRoute().exit) + ' · ' + EXIT[swRoute().exit].label}}</b>
+          <ol v-if="swRoute().steps.length" class="sw-steps">
+            <li v-for="(st, i) in swRoute().steps.slice(0, w.n || 4)" :key="i"><img v-if="st.icon" :src="st.icon" alt=""><span v-else class="sw-step-ic" v-html="ICONS.uturn"></span>
+              <span>{{st.label}} → <b>{{areaName(st.key)}}</b> · {{EXIT[st.key].label}}</span></li>
+            <li v-if="swRoute().steps.length > (w.n || 4)" class="sw-more">… et {{swRoute().steps.length - (w.n || 4)}} de plus</li></ol>
+          <span v-else-if="swRoute().none" class="sw-muted">Aucun trajet connu</span>
+          <span v-else class="sw-muted">À pied, dans la zone</span>
+        </template>
+        <p v-else class="sw-empty">Aucun check faisable à portée.</p></div>
+      <div v-else-if="w.type==='hints'" class="swc-hints" :class="{'sw-card':w.frame}">
+        <div v-if="w.woth" class="sw-hsec woth"><h5>Voie du héros</h5>
+          <ul v-if="Object.keys(hintsC.woth).length"><li v-for="a in Object.keys(hintsC.woth)" :key="a" :class="{done:swZoneDone(a)}">{{CHECK_AREA[a] ? CHECK_AREA[a].label : a}}</li></ul>
+          <p v-else class="sw-muted">Aucune zone indiquée</p></div>
+        <div v-if="w.foolish" class="sw-hsec foolish"><h5>Zones futiles</h5>
+          <ul v-if="Object.keys(hintsC.foolish).length"><li v-for="a in Object.keys(hintsC.foolish)" :key="a">{{CHECK_AREA[a] ? CHECK_AREA[a].label : a}}</li></ul>
+          <p v-else class="sw-muted">Aucune zone indiquée</p></div></div>
+      <div v-else-if="w.type==='where'" class="swc-where" :class="{'sw-card':w.frame}">
+        <template v-if="myPos"><small>Link est à</small><b>{{areaName(myPos.key)}}</b>
+          <span v-if="w.exit || w.age" class="sw-muted"><template v-if="w.exit">{{EXIT[myPos.key].label}}</template><template v-if="w.exit && w.age"> · </template><template v-if="w.age">{{myPos.age === 'child' ? 'enfant' : 'adulte'}}</template></span></template>
+        <p v-else class="sw-empty">Position inconnue (auto-tracking).</p></div>
       <zone-map v-else-if="w.type==='zonemap' && MAPS_OK && followArea" class="sw-map" :compact="true" :area="followArea"></zone-map>
       <img v-else-if="w.type==='image' && w.src" class="sw-img" :src="w.src" alt="" :style="{objectFit:w.fit || 'contain'}">
       <div v-else-if="w.type==='text'" class="sw-text" :style="{fontSize:(w.size || 32) + 'px'}">{{w.text}}</div>
@@ -322,6 +356,17 @@ function streamTemplate(parts){ return `
             <button type="button" class="btn" :disabled="!swSelW.keys.length" @click="swSelW.keys.splice(0)">Tout retirer</button></div>
           <seg v-model="swSelW.off" :options="[['dim','Non obtenus estompés'],['hide','Masqués']]"></seg>
           <label class="check"><input type="checkbox" v-model="swSelW.frame">Cadre</label></template>
+        <template v-else-if="swSelW.type==='last'">
+          <seg v-model="swSelW.what" :options="[['items','Objets et chants'],['checks','Checks'],['all','Tout']]"></seg>
+          <label class="check"><input type="checkbox" v-model="swSelW.at">Temps de jeu</label></template>
+        <label v-else-if="swSelW.type==='next'" class="swp-row">Étapes affichées <input type="number" class="swp-num swp-small" v-model.number="swSelW.n" min="1" max="12"></label>
+        <template v-else-if="swSelW.type==='hints'">
+          <label class="check"><input type="checkbox" v-model="swSelW.woth">Voie du héros (zones terminées barrées)</label>
+          <label class="check"><input type="checkbox" v-model="swSelW.foolish">Zones futiles</label>
+          <p class="swp-note">Indices des pierres marquées lues (page Indices).</p></template>
+        <template v-else-if="swSelW.type==='where'">
+          <label class="check"><input type="checkbox" v-model="swSelW.exit">Sortie la plus proche</label>
+          <label class="check"><input type="checkbox" v-model="swSelW.age">Âge</label></template>
         <template v-else-if="swSelW.type==='gauge'">
           <select v-model="swSelW.metric" class="sel" aria-label="Compteur de la jauge"><option v-for="[k, m] in Object.entries(STREAM_METRICS).filter(e => e[1].num)" :key="k" :value="k">{{m.label}}</option></select>
           <label class="check"><input type="checkbox" v-model="swSelW.label">Libellé et nombre</label></template>
@@ -343,6 +388,7 @@ function streamTemplate(parts){ return `
           <label>Y<input type="number" class="swp-num" v-model.number="swSelW.y" :disabled="swSelW.locked"></label>
           <label>Larg.<input type="number" class="swp-num" v-model.number="swSelW.w" min="40" :disabled="swSelW.locked"></label>
           <label v-if="STREAM_TYPES[swSelW.type].free">Haut.<input type="number" class="swp-num" v-model.number="swSelW.h" min="20" :disabled="swSelW.locked"></label></div>
+        <label v-if="'frame' in swSelW && !['game', 'pick'].includes(swSelW.type)" class="check"><input type="checkbox" v-model="swSelW.frame">Cadre</label>
         <label class="check" title="Réglages d'apparence de ce widget seul, à la place du thème de la disposition"><input type="checkbox" :checked="!!swSelW.style" @change="swOwnStyle(swSelW, $event.target.checked)">Apparence propre à ce widget</label>
         <template v-if="swSelW.style">${streamThemeFields('swSelW.style')}</template>
         <div class="swp-row swp-btns">
@@ -470,6 +516,10 @@ function useStream(STREAM, app = {}){
     const add = v.startsWith('group:') ? STREAM_ITEM_GROUPS[+v.slice(6)].items.map(it => it.key) : [v];
     add.forEach(k => { if (!w.keys.includes(k)) w.keys.push(k); });
   }
+  // En direct : dernière ligne de la chronologie (filtre du widget), route du bandeau « Où aller ? », zone terminée
+  const swLast = w => (app.statsC?.().rows || []).find(r => w.what === 'all' || (w.what === 'checks' ? r.k === 'checks' : r.k !== 'checks')) || null;
+  const swRoute = () => app.dockRoute?.() || null;
+  const swZoneDone = a => { const l = CHECKS.filter(c => c.area === a && !store.settings.excluded[c.id] && checkListed(c)); return l.length > 0 && l.every(c => store.game.checks[c.id]); };
   function swArrMove(a, i, d){ const j = i + d; if (j < 0 || j >= a.length) return; const [x] = a.splice(i, 1); a.splice(j, 0, x); }
   const nextId = () => Math.max(0, ...sp.value.widgets.map(w => w.id)) + 1;
 
@@ -641,7 +691,7 @@ function useStream(STREAM, app = {}){
     });
     window.addEventListener('dblclick', ev => { if (!swEdit.value && !ev.target.closest('input')) swEdit.value = true; });
   }
-  return { STREAM_METRICS, STREAM_ITEM_GROUPS, ITEM_BY_KEY, iconSrc, swMetric, swMetricShown, swGaugePct, swPickKeys, swPickAdd, swArrMove,
+  return { swLast, swRoute, swZoneDone, STREAM_METRICS, STREAM_ITEM_GROUPS, ITEM_BY_KEY, iconSrc, swMetric, swMetricShown, swGaugePct, swPickKeys, swPickAdd, swArrMove,
     STREAM_THEMES, STREAM_FONTS, swTheme, swChroma, swThemeVars, swWidgetVars, swThemeFrom, swOwnStyle,
     STREAM, STREAM_TYPES, STREAM_CATS, STREAM_CANVAS, swScale, swPreset, swSetPreset, swFitWindow, swFitMsg, ss, sp, swEdit, swSel, swHint, swGuides, swMsg, swSelW, swLayers, streamBg, swBodyStyle,
     swDown, swMove, swUp, swNew, swDup, swDelete, swLayer, swReset, swImage, swUndo, swRedo, swCanUndo, swCanRedo,

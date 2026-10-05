@@ -1003,7 +1003,8 @@ const App = {
     const askLabel = a => exitName(EXIT_BY_ARRIVAL[a]);
     // Fenêtre de stream (index.html?stream) : widgets, dispositions et éditeur (js/stream.js)
     // (valeurs de l'appli lues par les widgets : appelées plus tard, quand elles sont définies)
-    const streamCtx = useStream(STREAM_MODE, { checkStats:() => checkStats.value, stats:() => stats.value, playNow:() => playNow.value, fmtDur:ms => fmtDur(ms) });
+    const streamCtx = useStream(STREAM_MODE, { checkStats:() => checkStats.value, stats:() => stats.value, playNow:() => playNow.value,
+      fmtDur:ms => fmtDur(ms), statsC:() => statsC.value, dockRoute:() => dockRoute.value });
     // fenêtre ouverte à la taille de la toile de la disposition affichée (le navigateur la limite à l'écran)
     const openStream = () => { const c = streamCtx.sp.value.canvas;
       window.open('index.html?stream', 'oeil-sheikah-stream', `width=${c.w},height=${c.h}`); };
