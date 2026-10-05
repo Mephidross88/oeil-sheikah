@@ -718,7 +718,7 @@ Page « Statistiques » (`ui.view` = `stats`) : chronologie de la partie.
 Bouton « Fenêtre de stream ↗ » (barre de gauche) : ouvre `index.html?stream` dans une fenêtre à part (`STREAM_MODE`), à
 capturer dans OBS (« Capture de fenêtre » + filtre d'incrustation sur le fond vert ; une source « Navigateur » d'OBS
 a son propre stockage et ne verrait pas la partie).
-- Widgets (code : `js/stream.js`) disposés librement sur un fond uni (vert d'incrustation par défaut, magenta, transparent, fond de l'appli ou
+- Widgets (code : `js/stream.js`) disposés librement sur un fond uni (vert d'incrustation par défaut, magenta, transparent, fond du thème ou
   couleur au choix) : Objets (le panneau Objets, sur 1 ou 2 colonnes), Progression (cadres Checks et Entrées côte à côte ;
   Checks seul, centré, sans entrées mélangées), Trouvailles, Connexions, Carte (zone de Link : celle de sa scène en temps réel, sinon de sa dernière
   entrée ; carte seule, sans boutons ni légende, flèche de Link comprise ; type `zonemap`), Espace vide (emplacement du jeu, cadre doré en option), Image (chemin, adresse ou
@@ -728,7 +728,7 @@ a son propre stockage et ne verrait pas la partie).
   temps de jeu de chaque ligne en option ; `timeline`). Le temps de jeu défile à la seconde dans la fenêtre de stream
   tant que la fenêtre principale prolonge la période de jeu (toutes les 10 s). Contenus à leur largeur naturelle, mis à l'échelle de la largeur du bloc
   (`zoom`) ; Espace vide, Image et Texte à la taille du bloc.
-- **Dispositions** (profils) : plusieurs dispositions nommées, une seule affichée ; chacune a son fond, sa toile et ses widgets.
+- **Dispositions** (profils) : plusieurs dispositions nommées, une seule affichée ; chacune a son fond, sa toile, son thème et ses widgets.
   Gardées à part (localStorage `oeil-sheikah-stream`, `{ v:2, active, profiles:[{ id, name, bg, color, widgets }], ed }`).
   Ancienne disposition unique (fond + blocs) reprise comme « Disposition 1 » : blocs de types disparus (Prochaine
   étape, Où aller) retirés, « map » = Connexions, Progression et Trouvailles encore à leur toute première place mises à
@@ -741,6 +741,18 @@ a son propre stockage et ne verrait pas la partie).
   entourée d'un pointillé. « Fenêtre à la taille de la toile » redimensionne la fenêtre de stream à la taille exacte
   (capture OBS la plus nette ; message si le navigateur ou l'écran la limite) ; le bouton « Fenêtre de stream » de
   l'appli l'ouvre déjà à la taille de la toile de la disposition affichée. Positions et aimantation en px de la toile.
+- **Thème** (par disposition : `theme`, `custom`) : Appli (couleurs de l'appli, claire ou sombre selon son réglage, sinon
+  le système : par défaut, et pour les dispositions d'avant), Appli sombre, Appli clair, Verre fumé, Sheikah, Hyrule,
+  Minimal (sans cadres, texte contouré), ou Personnalisé (« Partir de » un thème, puis réglages). Réglages d'un thème
+  (`STREAM_THEMES`, `streamVars`) : fond des cadres et son opacité, texte, accent, bordure (couleur, épaisseur, ou
+  aucune), arrondi, ombre, contour du texte (lisible sur le jeu), polices du texte et des titres (`STREAM_FONTS`) —
+  traduits en variables CSS de l'appli (`--surface`, `--text`, `--muted`, `--gold`…, plus `--sw-radius`, `--sw-bw`,
+  `--sw-tshadow`) posées sur la toile, avec la palette claire ou sombre des autres couleurs de l'appli (encre, couleurs
+  douces, chants, carte) selon que le thème est clair ou sombre (fond des cadres, ou texte si ce fond est presque
+  transparent). Fond « Fond du thème » de la disposition : celui du thème (réglage `bg` des thèmes de l'appli, sinon
+  dérivé du fond des cadres), pas celui de la fenêtre principale. **Apparence propre à un widget** (`style`, case dans les réglages du widget) : mêmes
+  réglages, partant du thème, posés sur ce seul widget. Fond des cadres semi-transparent sur un fond d'incrustation :
+  avertissement (teinté par le fond, que l'incrustation d'OBS ne rend pas transparent).
 - **Édition** : touche E (ou double-clic) ouvre l'éditeur, panneau latéral (à droite, ⇆ pour le passer à gauche) :
   - Disposition : choix de la disposition affichée, nom, Nouvelle (widgets par défaut), Dupliquer, Supprimer (confirmé ;
     pas la dernière), Exporter… (fichier JSON de la disposition affichée), Importer… (ajoutée comme nouvelle disposition,

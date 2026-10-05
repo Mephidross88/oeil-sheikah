@@ -1,9 +1,11 @@
 /* ---------- Fenêtre de stream (index.html?stream, STREAM_MODE de state.js) ----------
    Widgets disposés librement sur une toile, à capturer dans OBS. Dispositions (profils) gardées à part dans
    localStorage STREAM_KEY : { v:2, active: id du profil affiché, profiles:[{ id, name, bg, color, canvas:{ w, h }
-   (taille de la toile, en px), fit (toile mise à l'échelle de la fenêtre), widgets:[…] }],
+   (taille de la toile, en px), fit (toile mise à l'échelle de la fenêtre), theme (thème : clé de STREAM_THEMES ou
+   'custom'), custom (thème personnalisé), widgets:[…] }],
    ed:{ snap, grid, showGrid, side } (préférences de l'éditeur) }. Widget : { id, type, x, y, w, h?, locked?, hidden?,
-   …options du type } ; ordre du tableau = ordre des calques (le dernier au premier plan).
+   style? (apparence propre au widget : réglages d'un thème), …options du type } ; ordre du tableau = ordre des calques
+   (le dernier au premier plan).
    Ce fichier : types de widgets (STREAM_TYPES), modèle et migration (loadStream), gabarit (streamTemplate, appelé par
    app.js avec les fragments partagés ITEMS_TPL / LOOT_TPL) et éditeur (useStream, appelé dans le setup d'App). */
 const STREAM_KEY = 'oeil-sheikah-stream';
@@ -31,15 +33,94 @@ const streamWidgetsDefault = () => [   // pour un écran 1920 × 1080
   { id:3, type:'progress', x:620, y:760, w:1280 },
   { id:6, type:'loot', x:100, y:850, w:420 },
 ];
+/* Thèmes : réglages d'apparence traduits en variables CSS de l'appli (--surface, --text, --gold…) posées sur la toile, et
+   sur un widget qui a sa propre apparence. panel : fond des cadres (opacity en %), text, accent, line (bordure, border
+   en px, 0 = aucune), radius (px), shadow, tshadow (contour du texte), font / title (polices : STREAM_FONTS).
+   « app » : les couleurs de l'appli (thème clair ou sombre selon son réglage). */
+const STREAM_FONTS = { app:['Appli (Alegreya)', null, null], georgia:['Georgia', 'Georgia,serif', 'Georgia,serif'],
+  system:['Système', "'Segoe UI',system-ui,sans-serif", "'Segoe UI',system-ui,sans-serif"],
+  trebuchet:['Trebuchet', "'Trebuchet MS',sans-serif", "'Trebuchet MS',sans-serif"],
+  mono:['Monospace', "Consolas,'Courier New',monospace", "Consolas,'Courier New',monospace"],
+  impact:['Impact', "Impact,'Arial Black',sans-serif", "Impact,'Arial Black',sans-serif"] };
+const STREAM_THEME_BASE = { opacity:100, border:1, radius:14, shadow:true, tshadow:false, font:'app', title:'app' };
+const STREAM_THEMES = {
+  app:{ label:'Appli (suit son thème clair / sombre)' },
+  dark:{ label:'Appli sombre', panel:'#1f1810', text:'#ecdfc2', accent:'#c9962e', line:'#3c3018', bg:'#161009' },
+  light:{ label:'Appli clair', panel:'#faf5e6', text:'#3a2f1d', accent:'#c9962e', line:'#ddcfa9', bg:'#ece2c8' },
+  glass:{ label:'Verre fumé', panel:'#0b0b10', opacity:62, text:'#f4f4f6', accent:'#f2c94c', line:'#ffffff', border:0, radius:16, shadow:false, font:'system' },
+  sheikah:{ label:'Sheikah', panel:'#0a1824', opacity:88, text:'#dff4ff', accent:'#3fd0ff', line:'#1f5878', radius:6 },
+  hyrule:{ label:'Hyrule', panel:'#13251a', opacity:92, text:'#f3efd6', accent:'#d9b54a', line:'#3d6b48', radius:12 },
+  minimal:{ label:'Minimal (sans cadres)', panel:'#000000', opacity:0, text:'#ffffff', accent:'#ffd75e', line:'#000000', border:0, radius:0, shadow:false, tshadow:true },
+};
+// réglages complets d'un thème prédéfini (« app » : clair ou sombre selon l'appli)
+function streamThemeTokens(key, appDark){
+  const k = key === 'app' ? (appDark ? 'dark' : 'light') : STREAM_THEMES[key] ? key : 'dark';
+  const { label, ...t } = STREAM_THEMES[k];
+  return { ...STREAM_THEME_BASE, ...t };
+}
+const hexLum = h => { const n = parseInt(String(h).slice(1, 7), 16) || 0; return (0.2126 * (n >> 16) + 0.7152 * (n >> 8 & 255) + 0.0722 * (n & 255)) / 255; };
+/* Thème sombre ou clair : d'après le fond des cadres, ou d'après le texte quand ce fond est presque transparent (texte
+   clair = thème sombre). Il choisit la palette des autres couleurs de l'appli (comme ses modes clair et sombre, style.css) :
+   encre, couleurs douces, couleurs des chants, carte. */
+const streamThemeDark = t => (t.opacity ?? 100) >= 30 ? hexLum(t.panel) < 0.5 : hexLum(t.text) > 0.5;
+const STREAM_PALETTE_LIGHT = { '--ink':'#241c11', '--ink-2':'#33281a', '--ink-line':'#4a3c26', '--ocarina-soft':'#e2eeee',
+  '--green':'#4f7a3a', '--green-soft':'#e6efdd', '--red':'#a84330', '--red-soft':'#f6e2da', '--blue':'#3d6fb0', '--purple':'#7a3fa5', '--brown':'#8a5a2b',
+  '--song-minuet':'#3f8a2c', '--song-bolero':'#b8392a', '--song-serenade':'#1d7fae', '--song-requiem':'#b8701a', '--song-nocturne':'#7a3fa5', '--song-prelude':'#c99a00',
+  '--map-0':'#4f6b3a', '--map-1':'#5a7a40', '--map-2':'#668946', '--map-3':'#73974d', '--map-4':'#81a455', '--map-5':'#90b05f',
+  '--map-6':'#a0bb6b', '--map-7':'#b1c67a', '--map-8':'#c2d18c', '--map-9':'#d4dca1', '--map-wall':'#1d2414', '--map-bg':'#efe7d2' };
+const STREAM_PALETTE_DARK = { '--ink':'#100c07', '--ink-2':'#231b10', '--ink-line':'#3a2e1b', '--ocarina-soft':'#132a2c',
+  '--green':'#8ec36e', '--green-soft':'#1c2916', '--red':'#e08a6f', '--red-soft':'#341811', '--blue':'#8db4e8', '--purple':'#c49be0', '--brown':'#d2a46e',
+  '--song-minuet':'#8fd07a', '--song-bolero':'#f08a7a', '--song-serenade':'#7cc8ec', '--song-requiem':'#f0b25e', '--song-nocturne':'#c49be0', '--song-prelude':'#e8d36a',
+  '--map-0':'#2c4129', '--map-1':'#344b2f', '--map-2':'#3d5636', '--map-3':'#47613d', '--map-4':'#526d45', '--map-5':'#5e794e',
+  '--map-6':'#6b8657', '--map-7':'#799361', '--map-8':'#88a06c', '--map-9':'#98ae79', '--map-wall':'#0d120a', '--map-bg':'#15120d' };
+// fond du thème (fond « Fond du thème » de la disposition, fond des cartes) : réglage bg, sinon dérivé du fond des cadres
+const streamThemeBg = t => t.bg || `color-mix(in srgb, ${t.panel} 82%, ${streamThemeDark(t) ? '#000000' : t.text})`;
+// variables CSS d'un jeu de réglages
+function streamVars(t){
+  const mix = (a, p, b) => `color-mix(in srgb, ${a} ${p}%, ${b})`, op = t.opacity ?? 100, dark = streamThemeDark(t);
+  const v = {
+    ...(dark ? STREAM_PALETTE_DARK : STREAM_PALETTE_LIGHT),
+    '--surface':mix(t.panel, op, 'transparent'), '--surface-2':mix(mix(t.panel, 90, t.text), op, 'transparent'),
+    // fond presque transparent : texte secondaire mélangé à la transparence (lisible sur le fond)
+    '--text':t.text, '--muted':op >= 50 ? mix(t.text, 62, t.panel) : mix(t.text, 78, 'transparent'),
+    '--gold':t.accent, '--gold-soft':mix(t.accent, 24, 'transparent'), '--bg':streamThemeBg(t),
+    '--gold-deep':dark ? mix(t.accent, 78, '#ffffff') : mix(t.accent, 62, '#000000'),
+    '--line':t.border > 0 ? t.line : 'transparent', '--sw-bw':(t.border > 0 ? t.border : 0) + 'px', '--sw-radius':(t.radius ?? 14) + 'px',
+    '--shadow':t.shadow ? (dark ? '0 4px 18px rgba(0,0,0,.45)' : '0 1px 2px rgba(50,36,10,.08),0 6px 18px rgba(50,36,10,.12)') : 'none',
+    '--sw-tshadow':t.tshadow ? '0 0 2px #000,0 1px 3px rgba(0,0,0,.9),0 0 8px rgba(0,0,0,.6)' : 'none',
+  };
+  const f = STREAM_FONTS[t.font], ti = STREAM_FONTS[t.title];
+  if (f && f[1]) v['--sans'] = f[1];
+  if (ti && ti[2]) v['--serif'] = ti[2];
+  return v;
+}
+
+/* Réglages d'apparence (thème personnalisé, ou apparence propre à un widget) ; m : expression de l'objet réglé. */
+const streamThemeFields = m => `
+  <div class="swp-theme">
+    <label class="swp-row">Fond des cadres <input type="color" v-model="${m}.panel"><input type="range" min="0" max="100" v-model.number="${m}.opacity" class="swp-grow" aria-label="Opacité du fond"><small class="swp-val">{{${m}.opacity}} %</small></label>
+    <label class="swp-row">Texte <input type="color" v-model="${m}.text"><span class="swp-sp"></span>Accent <input type="color" v-model="${m}.accent"></label>
+    <label class="swp-row"><input type="checkbox" :checked="${m}.border > 0" @change="${m}.border = $event.target.checked ? 1 : 0">Bordure
+      <input v-if="${m}.border > 0" type="color" v-model="${m}.line"><input v-if="${m}.border > 0" type="number" min="1" max="8" v-model.number="${m}.border" class="swp-num swp-small" aria-label="Épaisseur de la bordure"><small v-if="${m}.border > 0" class="swp-val">px</small></label>
+    <label class="swp-row">Arrondi <input type="range" min="0" max="32" v-model.number="${m}.radius" class="swp-grow"><small class="swp-val">{{${m}.radius}} px</small></label>
+    <div class="swp-row"><label class="check"><input type="checkbox" v-model="${m}.shadow">Ombre</label>
+      <label class="check" title="Contour sombre autour du texte : lisible sur l'image du jeu, sans cadre"><input type="checkbox" v-model="${m}.tshadow">Contour du texte</label></div>
+    <label class="swp-row">Police <select v-model="${m}.font" class="sel swp-grow"><option v-for="(f, k) in STREAM_FONTS" :key="k" :value="k">{{f[0]}}</option></select></label>
+    <label class="swp-row">Titres <select v-model="${m}.title" class="sel swp-grow"><option v-for="(f, k) in STREAM_FONTS" :key="k" :value="k">{{f[0]}}</option></select></label>
+  </div>`;
+
 // tailles de toile proposées (la toile est mise à l'échelle de la fenêtre, sauf « fit » à false : 100 %)
 const STREAM_CANVAS = [['1920x1080', 'Full HD — 1920 × 1080'], ['1280x720', 'HD — 1280 × 720'], ['2560x1440', 'QHD — 2560 × 1440'],
   ['3840x2160', '4K — 3840 × 2160'], ['1080x1920', 'Vertical — 1080 × 1920'], ['custom', 'Personnalisée']];
-const streamProfile = (id, name) => ({ id, name, bg:'#00b140', color:'#00b140', canvas:{ w:1920, h:1080 }, fit:true, widgets:streamWidgetsDefault() });
+const streamProfile = (id, name) => ({ id, name, bg:'#00b140', color:'#00b140', canvas:{ w:1920, h:1080 }, fit:true,
+  theme:'app', custom:streamThemeTokens('dark'), widgets:streamWidgetsDefault() });
 // disposition complétée (toile : 1920 × 1080 mise à l'échelle pour celles d'avant) et widgets nettoyés
 function streamCleanProfile(p){
   const c = p.canvas || {};
   p.canvas = { w:Math.min(7680, Math.max(200, +c.w || 1920)), h:Math.min(7680, Math.max(200, +c.h || 1080)) };
   if (typeof p.fit !== 'boolean') p.fit = true;
+  if (p.theme !== 'custom' && !STREAM_THEMES[p.theme]) p.theme = 'app';   // dispositions d'avant : couleurs de l'appli
+  p.custom = { ...streamThemeTokens('dark'), ...(p.custom || {}) };
   p.widgets = streamCleanWidgets(p.widgets);
   return p;
 }
@@ -78,10 +159,10 @@ function streamTemplate(parts){ return `
   @pointermove="swMove" @pointerup="swUp" @pointercancel="swUp" @pointerdown.self="swSel = null">
   <!-- toile : taille de la disposition, mise à l'échelle de la fenêtre (swScale) -->
   <div class="sw-stage" :class="{'show-grid':swEdit && ss.ed.showGrid}" @pointerdown.self="swSel = null"
-    :style="{width:sp.canvas.w + 'px', height:sp.canvas.h + 'px', transform:'scale(' + swScale + ')', '--sw-grid':ss.ed.grid + 'px'}">
+    :style="{width:sp.canvas.w + 'px', height:sp.canvas.h + 'px', transform:'scale(' + swScale + ')', '--sw-grid':ss.ed.grid + 'px', ...swThemeVars}">
   <div v-for="w in sp.widgets" v-show="swEdit || !w.hidden" :key="w.id" :data-sw="w.id" class="sw"
     :class="['sw-' + w.type, {sel:swEdit && swSel===w.id, framed:w.frame, locked:w.locked, ghost:w.hidden}]"
-    :style="{left:w.x + 'px', top:w.y + 'px', width:w.w + 'px', height:STREAM_TYPES[w.type].free ? w.h + 'px' : null}">
+    :style="{left:w.x + 'px', top:w.y + 'px', width:w.w + 'px', height:STREAM_TYPES[w.type].free ? w.h + 'px' : null, ...(w.style ? swWidgetVars(w) : {})}">
     <div class="sw-body" :style="swBodyStyle(w)">
       <div v-if="w.type==='items'" class="sw-items" :class="{cols2:w.cols===2}">${parts.items}</div>
       <div v-else-if="w.type==='loot'" class="sw-items">${parts.loot}</div>
@@ -136,7 +217,7 @@ function streamTemplate(parts){ return `
           <button type="button" class="btn" title="Remettre les widgets par défaut dans cette disposition (pensés pour 1920 × 1080)" @click="swReset">Par défaut</button></div>
         <div v-if="swMsg" class="msg" :class="swMsg.ok ? 'ok' : 'ko'">{{swMsg.text}}</div>
         <label class="swp-row">Fond <select v-model="sp.bg" class="sel swp-grow"><option value="transparent">Transparent</option><option value="#00b140">Vert d’incrustation</option>
-          <option value="#ff00ff">Magenta</option><option value="theme">Fond de l’appli</option><option value="custom">Autre couleur</option></select>
+          <option value="#ff00ff">Magenta</option><option value="theme">Fond du thème</option><option value="custom">Autre couleur</option></select>
           <input v-if="sp.bg==='custom'" type="color" v-model="sp.color" aria-label="Couleur du fond"></label>
       </section>
 
@@ -150,6 +231,20 @@ function streamTemplate(parts){ return `
         <label class="check"><input type="checkbox" v-model="sp.fit">Ajuster à la fenêtre (affichée à {{Math.round(swScale * 100)}} %)</label>
         <div class="swp-row"><button type="button" class="btn" title="Pour une capture OBS la plus nette : la fenêtre à la taille exacte de la toile (100 %)" @click="swFitWindow">Fenêtre à la taille de la toile</button></div>
         <p v-if="swFitMsg" class="swp-note">{{swFitMsg}}</p>
+      </section>
+
+      <section class="swp-sec">
+        <h4>Thème</h4>
+        <select v-model="sp.theme" class="sel" aria-label="Thème de la disposition">
+          <option v-for="(t, k) in STREAM_THEMES" :key="k" :value="k">{{t.label}}</option><option value="custom">Personnalisé</option></select>
+        <p v-if="swTheme.opacity > 0 && swTheme.opacity < 100 && swChroma" class="swp-note swp-warn">Fond des cadres semi-transparent sur un fond
+          d'incrustation : il se teinte de la couleur du fond, que l'incrustation d'OBS ne rend pas transparente. Préférez un
+          fond opaque (100 %) ou sans fond (0 %).</p>
+        <template v-if="sp.theme === 'custom'">
+          <label class="swp-row">Partir de <select class="sel swp-grow" value="" @change="swThemeFrom($event.target.value); $event.target.value = ''">
+            <option value="" disabled>un thème…</option><option v-for="(t, k) in STREAM_THEMES" :key="k" :value="k">{{t.label}}</option></select></label>
+          ${streamThemeFields('sp.custom')}
+        </template>
       </section>
 
       <section class="swp-sec">
@@ -183,6 +278,8 @@ function streamTemplate(parts){ return `
           <label>Y<input type="number" class="swp-num" v-model.number="swSelW.y" :disabled="swSelW.locked"></label>
           <label>Larg.<input type="number" class="swp-num" v-model.number="swSelW.w" min="40" :disabled="swSelW.locked"></label>
           <label v-if="STREAM_TYPES[swSelW.type].free">Haut.<input type="number" class="swp-num" v-model.number="swSelW.h" min="20" :disabled="swSelW.locked"></label></div>
+        <label class="check" title="Réglages d'apparence de ce widget seul, à la place du thème de la disposition"><input type="checkbox" :checked="!!swSelW.style" @change="swOwnStyle(swSelW, $event.target.checked)">Apparence propre à ce widget</label>
+        <template v-if="swSelW.style">${streamThemeFields('swSelW.style')}</template>
         <div class="swp-row swp-btns">
           <button type="button" class="btn" title="Ctrl+D" @click="swDup(swSelW)">Dupliquer</button>
           <button type="button" class="btn" @click="swLayer(swSelW, 'top')">Premier plan</button>
@@ -231,6 +328,20 @@ function useStream(STREAM){
   const swEdit = ref(false), swSel = ref(null), swHint = ref(true), swGuides = ref([]), swMsg = ref(null);
   setTimeout(() => { swHint.value = false; }, 6000);
   const swSelW = computed(() => sp.value.widgets.find(w => w.id === swSel.value) || null);
+  /* Thème : réglages de la disposition (prédéfini, ou personnalisé) → variables CSS de la toile ; un widget à apparence
+     propre a les siennes. « app » suit le thème de l'appli (réglage de la fenêtre principale, sinon le système). */
+  const mqDark = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null, sysDark = ref(!!mqDark?.matches);
+  mqDark?.addEventListener?.('change', e => { sysDark.value = e.matches; });
+  const appDark = computed(() => store.ui.theme === 'dark' || store.ui.theme !== 'light' && sysDark.value);
+  const swTheme = computed(() => sp.value.theme === 'custom' ? { ...STREAM_THEME_BASE, ...sp.value.custom } : streamThemeTokens(sp.value.theme, appDark.value));
+  const swThemeVars = computed(() => streamVars(swTheme.value));
+  const swWidgetVars = w => streamVars({ ...swTheme.value, ...w.style });
+  // « Fond du thème » : celui du thème de la disposition (pas celui de la fenêtre principale)
+  const streamBg = computed(() => sp.value.bg === 'theme' ? streamThemeBg(swTheme.value) : sp.value.bg === 'custom' ? sp.value.color : sp.value.bg);
+  const swChroma = computed(() => sp.value.bg === '#00b140' || sp.value.bg === '#ff00ff');   // fond d'incrustation
+  function swThemeFrom(k){ if (STREAM_THEMES[k]) sp.value.custom = streamThemeTokens(k, appDark.value); }
+  // apparence propre : part du thème de la disposition ; décochée : le widget reprend le thème
+  function swOwnStyle(w, on){ if (on) w.style = { ...swTheme.value }; else delete w.style; }
   /* Toile : taille de la disposition, affichée à l'échelle de la fenêtre (fit) ou à 100 % ; « Fenêtre à la taille de la
      toile » redimensionne la fenêtre de stream (ouverte par window.open : le navigateur l'autorise) */
   const winSize = reactive({ w:window.innerWidth, h:window.innerHeight }), swFitMsg = ref('');
@@ -253,7 +364,6 @@ function useStream(STREAM){
     }, 400);
   }
   const swLayers = computed(() => [...sp.value.widgets].reverse());
-  const streamBg = computed(() => sp.value.bg === 'theme' ? 'var(--bg)' : sp.value.bg === 'custom' ? sp.value.color : sp.value.bg);
   // contenu à sa largeur naturelle, agrandi ou réduit (zoom) à la largeur du widget ; image, texte, espace : à sa taille
   const swBase = w => w.cols === 2 && STREAM_TYPES[w.type].base2 || STREAM_TYPES[w.type].base;
   const swBodyStyle = w => STREAM_TYPES[w.type].free ? null : { width:swBase(w) + 'px', zoom:w.w / swBase(w) };
@@ -393,7 +503,7 @@ function useStream(STREAM){
         if (!p || !Array.isArray(p.widgets)) throw new Error();
         const id = newProfileId();
         ss.profiles.push(streamCleanProfile({ ...streamProfile(id, ''), bg:p.bg || '#00b140', color:p.color || '#00b140',
-          canvas:p.canvas, fit:p.fit, name:freeName(p.name || f.name.replace(/\.json$/i, '')), widgets:p.widgets }));
+          canvas:p.canvas, fit:p.fit, theme:p.theme, custom:p.custom, name:freeName(p.name || f.name.replace(/\.json$/i, '')), widgets:p.widgets }));
         ss.active = id;
         swMsg.value = { ok:true, text:'Disposition importée.' };
       } catch (e){ swMsg.value = { ok:false, text:'Ce fichier n’est pas une disposition de stream.' }; }
@@ -427,7 +537,8 @@ function useStream(STREAM){
     });
     window.addEventListener('dblclick', ev => { if (!swEdit.value && !ev.target.closest('input')) swEdit.value = true; });
   }
-  return { STREAM, STREAM_TYPES, STREAM_CATS, STREAM_CANVAS, swScale, swPreset, swSetPreset, swFitWindow, swFitMsg, ss, sp, swEdit, swSel, swHint, swGuides, swMsg, swSelW, swLayers, streamBg, swBodyStyle,
+  return { STREAM_THEMES, STREAM_FONTS, swTheme, swChroma, swThemeVars, swWidgetVars, swThemeFrom, swOwnStyle,
+    STREAM, STREAM_TYPES, STREAM_CATS, STREAM_CANVAS, swScale, swPreset, swSetPreset, swFitWindow, swFitMsg, ss, sp, swEdit, swSel, swHint, swGuides, swMsg, swSelW, swLayers, streamBg, swBodyStyle,
     swDown, swMove, swUp, swNew, swDup, swDelete, swLayer, swReset, swImage, swUndo, swRedo, swCanUndo, swCanRedo,
     swProfileNew, swProfileDup, swProfileDel, swExport, swImport };
 }
