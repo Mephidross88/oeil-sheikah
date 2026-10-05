@@ -92,8 +92,8 @@ l'utilisateur ; ne pas se fier à la branche `develop`, qui a d'autres options).
   quête (Vanilla / MQ / les deux) ; libellés français (`TRICK_FR`, sans répéter la zone ni « MQ »), nom SoH exact au
   survol et dans la recherche ; recherche, filtres difficulté et quête, « Tout cocher / décocher » par
   zone ; nombre d'astuces actives dans l'onglet. Stockées dans `settings.tricks` (clé `RT_…`).
-- **Import depuis un spoiler SoH** (fichier `.json`) : lit **uniquement** `settings` et `enabledTricks`,
-  jamais l'emplacement des objets. Signale les options ou valeurs inconnues et une version autre que 9.2.3 ;
+- **Import depuis un spoiler SoH** (fichier `.json`) : lit **uniquement** `settings` et `enabledTricks` (et, sur
+  demande, les tirages du seed et les prix ci-dessous), jamais l'emplacement des objets. Signale les options ou valeurs inconnues et une version autre que 9.2.3 ;
   les options ignorées volontairement passent en silence. Résumé « N options, M astuces ».
 - **Proposition d'import** : au premier chargement et après « Tout remettre à zéro » (nouvelle seed, la
   configuration étant conservée), une fenêtre propose d'importer un spoiler (même case « tirages du seed »),
@@ -112,6 +112,10 @@ l'utilisateur ; ne pas se fier à la branche `develop`, qui a d'autres options).
     (noms localisés : « l'épreuve de la Forêt » / « Forest Trial »…), gardée dans la partie (`game.trials`). En
     « Nombre aléatoire », SoH écrit aussi le nombre tiré dans « Ganon's Trials Count », remis à sa valeur par défaut.
   Case décochée : ces informations restent inconnues (ou ce que le joueur a noté).
+- **Prix à l'import** (case « Importer aussi les prix des boutiques, pestes Mojo et marchands (sans révéler les objets) »,
+  décochée par défaut, `ui.importPrices`, dans la Configuration et la fenêtre d'accueil) : lit seulement le champ
+  `price` des lieux du spoiler de type boutique / peste / marchand, jamais l'objet → `game.prices` (remplace les prix
+  déjà notés ; voir Checks > Prix). Résumé « prix de N checks ».
 - **Objets de départ** (« Start with… » : ocarina, bouclier Mojo, épées Kokiri et de Légende, bâtons, noix,
   haricots, 12 chants, symboles de Skulltula) : réglages stockés mais sans onglet (onglet `starting` marqué
   `hidden`) ; à l'import, ils sont cochés dans le panneau Objets (`applyStartingItems`), sans jamais

@@ -953,6 +953,14 @@ const App = {
             quests++;
           });
         }
+        // Prix (facultatif) : seulement « price » de chaque lieu de boutique / peste / marchand, jamais l'objet → game.prices
+        let prices = 0;
+        if (ui.importPrices && data.locations && typeof data.locations === 'object')
+          for (const [name, v] of Object.entries(data.locations)){
+            const c = CHECK_BY_SOH[name], p = v && typeof v === 'object' ? parseInt(v.price, 10) : NaN;
+            if (!c || !PRICE_TYPES.has(c.type) || !(p >= 0)) continue;
+            store.game.prices[c.id] = p; prices++;
+          }
         ui.spoilerPrompt = false;
         // le même fichier sert aussi de spoiler caché à l'auto-tracking (ne révèle que ce que le jeu a déjà montré)
         const linked = ui.importLinkSpoiler && data.locations && typeof data.locations === 'object';
@@ -964,6 +972,7 @@ const App = {
             + (rings ? `, trousseaux de ${rings} donjon${rings>1?'s':''} renseignés` : '')
             + (ui.importQuests && configTrials(s) === null && Array.isArray(data.requiredTrials) ? `, ${trials} épreuve${trials>1?'s':''} de Ganon requise${trials>1?'s':''}` : '')
             + (excl ? `, ${excl} check${excl>1?'s':''} exclu${excl>1?'s':''}` : '')
+            + (prices ? `, prix de ${prices} check${prices>1?'s':''}` : '')
             + (linked ? ', spoiler gardé pour l’auto-tracking' : '') + '.' };
       };
       reader.readAsText(file);
@@ -1612,6 +1621,7 @@ ${STREAM_TPL}
             <input type="file" accept=".json,application/json" @change="importSpoiler" hidden></label>
           <label class="check import-opt" title="Révèle ce que le seed a tiré au sort : quels donjons sont en Master Quest (liste « masterQuestDungeons »), lesquels ont un trousseau de clés et quelles épreuves de Ganon sont requises.">
             <input type="checkbox" v-model="ui.importQuests">Importer aussi les tirages du seed : donjons MQ, trousseaux et épreuves de Ganon (peut spoiler)</label>
+            <label class="check import-opt" title="Lit seulement le prix de chaque boutique, peste Mojo et marchand (jamais l'objet vendu) : la logique les compare à votre bourse."><input type="checkbox" v-model="ui.importPrices">Importer aussi les prix des boutiques, pestes Mojo et marchands (sans révéler les objets)</label>
             <label class="check import-opt" title="Spoiler caché : il ne sert qu'à révéler ce que le jeu a déjà montré (objet de chaque check ramassé, boutiques vues, entrées prises)"><input type="checkbox" v-model="ui.importLinkSpoiler">Le garder aussi pour l'auto-tracking (spoiler caché, ne révèle que ce que le jeu a montré)</label></div></div>
       <div v-if="importReport" class="import-report" :class="importReport.ok ? 'ok' : 'ko'">
         <b>{{importReport.title}}</b>
@@ -1887,6 +1897,7 @@ ${ITEMS_TPL}${LOOT_TPL}    </div>
             <p style="margin-top:0">Importez le spoiler log (.json) généré par Ship of Harkinian pour régler la Configuration automatiquement.
               Seuls les réglages et les astuces sont lus, jamais l'emplacement des objets.</p>
             <label class="check import-opt"><input type="checkbox" v-model="ui.importQuests">Importer aussi les tirages du seed : donjons MQ, trousseaux et épreuves de Ganon (peut spoiler)</label>
+            <label class="check import-opt" title="Lit seulement le prix de chaque boutique, peste Mojo et marchand (jamais l'objet vendu) : la logique les compare à votre bourse."><input type="checkbox" v-model="ui.importPrices">Importer aussi les prix des boutiques, pestes Mojo et marchands (sans révéler les objets)</label>
             <label class="check import-opt" title="Spoiler caché : il ne sert qu'à révéler ce que le jeu a déjà montré (objet de chaque check ramassé, boutiques vues, entrées prises)"><input type="checkbox" v-model="ui.importLinkSpoiler">Le garder aussi pour l'auto-tracking (spoiler caché, ne révèle que ce que le jeu a montré)</label>
             <div v-if="importReport" class="msg ko">{{importReport.title}}</div>
             <div class="mactions"><button class="btn" @click="declineSpoiler">Non, merci</button>
