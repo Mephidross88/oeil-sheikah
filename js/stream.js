@@ -14,6 +14,10 @@ const STREAM_TYPES = {
   loot:{ label:'Trouvailles', cat:'Partie', base:426 },
   zonemap:{ label:'Carte (zone de Link)', cat:'Cartes', free:true, w:640, h:480 },
   graph:{ label:'Connexions', cat:'Cartes', base:1000 },
+  // page Statistiques : tuiles (temps de jeu, checks faits, entrées trouvées), courbe des checks, chronologie
+  stattiles:{ label:'Compteurs', cat:'Statistiques', base:620, init:{ play:true, checks:true, entr:true } },
+  statcurve:{ label:'Courbe des checks', cat:'Statistiques', free:true, w:600, h:220, init:{ title:true } },
+  timeline:{ label:'Chronologie', cat:'Statistiques', free:true, w:520, h:360, init:{ filter:'all', n:8, at:true } },
   game:{ label:'Espace vide (jeu)', cat:'Décor', free:true, w:960, h:540, init:{ frame:true } },
   image:{ label:'Image', cat:'Décor', free:true, w:300, h:200, init:{ src:'', fit:'contain' } },
   text:{ label:'Texte', cat:'Décor', free:true, w:500, h:60, init:{ text:'L’Œil Sheikah', size:32 } },
@@ -70,6 +74,21 @@ function streamTemplate(parts){ return `
         <progress-card :stats="checkStats" unit="checks" title="Checks"></progress-card>
         <progress-card v-if="stats.editable" :stats="stats" unit="sorties" title="Entrées"></progress-card></div>
       <entrance-graph v-else-if="w.type==='graph'"></entrance-graph>
+      <div v-else-if="w.type==='stattiles'" class="rsum sw-stattiles">
+        <div v-if="w.play" class="rstat"><div><b>{{playNow ? fmtDur(playNow) : '—'}}</b><span>temps de jeu</span></div></div>
+        <div v-if="w.checks" class="rstat"><div><b>{{checkStats.got}} / {{checkStats.total}}</b><span>checks faits</span></div></div>
+        <div v-if="w.entr && stats.editable" class="rstat"><div><b>{{stats.mapped}} / {{stats.editable}}</b><span>entrées trouvées</span></div></div></div>
+      <div v-else-if="w.type==='statcurve'" class="st-chart sw-chart">
+        <div v-if="w.title" class="st-chart-title">Checks faits au fil du temps de jeu<small v-if="statsC.curve"> (jusqu'à {{statsC.curve.max}})</small></div>
+        <template v-if="statsC.curve"><svg viewBox="0 0 600 150" preserveAspectRatio="none"><path class="st-area" :d="statsC.curve.area"></path><path class="st-line" :d="statsC.curve.d"></path></svg>
+          <div class="st-axis"><span>0:00:00</span><span>{{statsC.curve.end}}</span></div></template>
+        <p v-else class="sw-empty">La courbe apparaît avec le temps de jeu (auto-tracking).</p></div>
+      <ul v-else-if="w.type==='timeline'" class="st-list sw-tl">
+        <li v-for="r in statsC.rows.filter(r => w.filter === 'all' || (w.filter === 'checks' ? r.k === 'checks' : r.k !== 'checks')).slice(0, w.n || 8)" :key="r.i">
+          <span v-if="w.at" class="st-at">{{r.at || '—'}}</span>
+          <img v-if="r.icon" :src="r.icon" alt=""><span v-else class="st-noic"></span>
+          <span class="st-lab">{{r.label}}<small v-if="r.found"> · {{r.found}}</small></span></li>
+        <li v-if="!statsC.rows.length" class="sw-empty">Rien de noté pour l'instant.</li></ul>
       <zone-map v-else-if="w.type==='zonemap' && MAPS_OK && followArea" class="sw-map" :compact="true" :area="followArea"></zone-map>
       <img v-else-if="w.type==='image' && w.src" class="sw-img" :src="w.src" alt="" :style="{objectFit:w.fit || 'contain'}">
       <div v-else-if="w.type==='text'" class="sw-text" :style="{fontSize:(w.size || 32) + 'px'}">{{w.text}}</div>
@@ -121,6 +140,15 @@ function streamTemplate(parts){ return `
           <input type="text" class="swp-in" v-model="swSelW.text" placeholder="Texte">
           <label class="swp-row">Taille <input type="number" class="swp-num" v-model.number="swSelW.size" min="10" max="200"> px</label></template>
         <label v-else-if="swSelW.type==='game'" class="check"><input type="checkbox" v-model="swSelW.frame">Cadre doré</label>
+        <template v-else-if="swSelW.type==='stattiles'">
+          <label class="check"><input type="checkbox" v-model="swSelW.play">Temps de jeu</label>
+          <label class="check"><input type="checkbox" v-model="swSelW.checks">Checks faits</label>
+          <label class="check"><input type="checkbox" v-model="swSelW.entr">Entrées trouvées (entrées mélangées)</label></template>
+        <label v-else-if="swSelW.type==='statcurve'" class="check"><input type="checkbox" v-model="swSelW.title">Titre</label>
+        <template v-else-if="swSelW.type==='timeline'">
+          <seg v-model="swSelW.filter" :options="[['items','Objets et chants'],['checks','Checks'],['all','Tout']]"></seg>
+          <label class="swp-row">Lignes <input type="number" class="swp-num" v-model.number="swSelW.n" min="1" max="50"></label>
+          <label class="check"><input type="checkbox" v-model="swSelW.at">Temps de jeu de chaque ligne</label></template>
         <label v-else-if="swSelW.type==='items'" class="check"><input type="checkbox" :checked="swSelW.cols===2" @change="swSelW.cols = $event.target.checked ? 2 : 1">2 colonnes</label>
         <div class="swp-geo">
           <label>X<input type="number" class="swp-num" v-model.number="swSelW.x" :disabled="swSelW.locked"></label>

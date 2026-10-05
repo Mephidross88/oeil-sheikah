@@ -722,7 +722,11 @@ a son propre stockage et ne verrait pas la partie).
   couleur au choix) : Objets (le panneau Objets, sur 1 ou 2 colonnes), Progression (cadres Checks et Entrées côte à côte ;
   Checks seul, centré, sans entrées mélangées), Trouvailles, Connexions, Carte (zone de Link : celle de sa scène en temps réel, sinon de sa dernière
   entrée ; carte seule, sans boutons ni légende, flèche de Link comprise ; type `zonemap`), Espace vide (emplacement du jeu, cadre doré en option), Image (chemin, adresse ou
-  fichier choisi, gardé en data URL), Texte. Contenus à leur largeur naturelle, mis à l'échelle de la largeur du bloc
+  fichier choisi, gardé en data URL), Texte ; widgets de la page Statistiques : Compteurs (tuiles au choix : temps de
+  jeu, checks faits, entrées trouvées ; `stattiles`), Courbe des checks (au fil du temps de jeu, titre en option ;
+  `statcurve`), Chronologie (dernières lignes de la chronologie : objets et chants, checks ou tout, nombre de lignes,
+  temps de jeu de chaque ligne en option ; `timeline`). Le temps de jeu défile à la seconde dans la fenêtre de stream
+  tant que la fenêtre principale prolonge la période de jeu (toutes les 10 s). Contenus à leur largeur naturelle, mis à l'échelle de la largeur du bloc
   (`zoom`) ; Espace vide, Image et Texte à la taille du bloc.
 - **Dispositions** (profils) : plusieurs dispositions nommées, une seule affichée ; chacune a son fond et ses widgets.
   Gardées à part (localStorage `oeil-sheikah-stream`, `{ v:2, active, profiles:[{ id, name, bg, color, widgets }], ed }`).

@@ -1008,7 +1008,9 @@ const App = {
     const playNow = computed(() => {
       const play = Array.isArray(store.game.play) ? store.game.play : [], last = play[play.length - 1];
       const total = play.reduce((n, [a, b]) => n + b - a, 0), now = secTick.value;
-      const playing = link.status === 'game' && link.client?.isSaveLoaded && !link.foreign && last && now - last[1] <= 30000;
+      // fenêtre de stream (pas de relais) : on joue tant que la fenêtre principale prolonge la période (toutes les 10 s)
+      const playing = STREAM_MODE ? last && now - last[1] <= 12000
+        : link.status === 'game' && link.client?.isSaveLoaded && !link.foreign && last && now - last[1] <= 30000;
       return total + (playing ? Math.max(0, now - last[1]) : 0);
     });
     const fmtDur = ms => { const t = Math.max(0, Math.round(ms / 1000)); return Math.floor(t / 3600) + ':' + String(Math.floor(t % 3600 / 60)).padStart(2, '0') + ':' + String(t % 60).padStart(2, '0'); };
