@@ -42,6 +42,14 @@ const rcEnumSrc = fs.readFileSync(new URL('./src/randomizerEnums/RandomizerCheck
 const RC_NUM = {};
 [...rcEnumSrc.slice(rcEnumSrc.indexOf('RANDO_ENUM_BEGIN(RandomizerCheck')).matchAll(/RANDO_ENUM_ITEM\((RC_[A-Z0-9_]+)\)/g)]
   .forEach((m, i) => { if (!('RC_MAX' in RC_NUM)) RC_NUM[m[1]] = i; });
+/* Place des objets d'une boutique sur les présentoirs, vus face au vendeur (z_en_ossan.c, sShopkeeperStores : mêmes
+   décalages dans les 11 boutiques ; vérifié en jeu à l'apothicaire de Cocorico) : objets 1-4 sur le présentoir de droite,
+   5-8 sur celui de gauche ; par paires, la colonne près du vendeur puis l'extérieure ; dans une paire, le bas puis le haut. */
+const SHELF = [null,
+  ['présentoir droit, en bas à gauche', 'right shelf, bottom left'], ['présentoir droit, en haut à gauche', 'right shelf, top left'],
+  ['présentoir droit, en bas à droite', 'right shelf, bottom right'], ['présentoir droit, en haut à droite', 'right shelf, top right'],
+  ['présentoir gauche, en bas à droite', 'left shelf, bottom right'], ['présentoir gauche, en haut à droite', 'left shelf, top right'],
+  ['présentoir gauche, en bas à gauche', 'left shelf, bottom left'], ['présentoir gauche, en haut à gauche', 'left shelf, top left']];
 const checks = [], en = [];
 for (const c of raw.checks){
   if (NEVER_TYPES.has(c.type) || NEVER_IDS.has(c.id)) continue;
@@ -49,10 +57,17 @@ for (const c of raw.checks){
   const shop = c.type === 'SHOP' && c.id.match(/_ITEM_(\d)$/); if (shop) extra.slot = +shop[1];
   if (c.pond !== undefined) extra.pond = c.pond;
   if (c.type === 'FISH' && c.pond === undefined) extra.overworldFish = 1;
-  const row = [c.id, c.area, c.type, Q[c.quest], translate(c.short, c.type), c.spoiler, c.region, category(c)];
+  let label = translate(c.short, c.type), short = c.short;
+  // objet de boutique : sa place sur les présentoirs plutôt que son numéro (SHELF)
+  if (extra.slot){
+    const shop = label.replace(/^Objet \d+ (?:de la |de l'|du |des )?/, '');
+    label = shop[0].toUpperCase() + shop.slice(1) + ' : ' + SHELF[extra.slot][0];
+    short = c.short.replace(/ Item \d+$/, '') + ': ' + SHELF[extra.slot][1];
+  }
+  const row = [c.id, c.area, c.type, Q[c.quest], label, c.spoiler, c.region, category(c)];
   if (Object.keys(extra).length) row.push(extra);
   checks.push(row);
-  en.push(c.short);   // nom court anglais (celui du tracker de SoH) : libellé de l'interface en anglais
+  en.push(short);   // nom court anglais (celui du tracker de SoH) : libellé de l'interface en anglais
 }
 
 const header = `/* Checks du randomizer de Ship of Harkinian 9.2.3 (commit cb71e22) — FICHIER GÉNÉRÉ.

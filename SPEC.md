@@ -485,7 +485,11 @@ check) ; règles dans `js/checks.js`.
 - **Libellés français** générés : table écrite à la main pour les checks importants (PNJ, récompenses, chants,
   objets uniques), sinon règles — objet en tête (Coffre, Jarre, Herbe, Caisse, Skulltula, Peste Mojo, Fée…),
   numéro, qualificatifs accordés (« Coffre gauche », « Jarre droite »), lieu avec articles et contractions
-  (« de la salle du boss », « près de l'entrée »), âge en suffixe « (enfant) ».
+  (« de la salle du boss », « près de l'entrée »), âge en suffixe « (enfant) ». Objets de boutique : leur place sur les présentoirs
+  vus face au vendeur plutôt que leur numéro (« Apothicaire : présentoir gauche, en haut à gauche » ; anglais « Potion
+  Shop: left shelf, top left ») — objets 1-4 sur le présentoir de droite, 5-8 sur celui de gauche, par paires la colonne
+  près du vendeur puis l'extérieure, dans une paire le bas puis le haut (mêmes positions dans les 11 boutiques du jeu,
+  `z_en_ossan.c`) ; le nom SoH (« … Item 8 ») reste au survol.
 - **Checks listés** (reprise de `IsCheckShuffled` du tracker de SoH, `checkShuffled`) : seulement ceux que la
   configuration mélange — jarres / herbes / caisses / objets au sol / Skulltulas selon Overworld / Donjons /
   Partout, arbres, buissons, ruches, vaches, fées (4 options), grenouilles, pestes Mojo (« Uniques » = les 3
