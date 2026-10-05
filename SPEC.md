@@ -728,12 +728,19 @@ a son propre stockage et ne verrait pas la partie).
   temps de jeu de chaque ligne en option ; `timeline`). Le temps de jeu défile à la seconde dans la fenêtre de stream
   tant que la fenêtre principale prolonge la période de jeu (toutes les 10 s). Contenus à leur largeur naturelle, mis à l'échelle de la largeur du bloc
   (`zoom`) ; Espace vide, Image et Texte à la taille du bloc.
-- **Dispositions** (profils) : plusieurs dispositions nommées, une seule affichée ; chacune a son fond et ses widgets.
+- **Dispositions** (profils) : plusieurs dispositions nommées, une seule affichée ; chacune a son fond, sa toile et ses widgets.
   Gardées à part (localStorage `oeil-sheikah-stream`, `{ v:2, active, profiles:[{ id, name, bg, color, widgets }], ed }`).
   Ancienne disposition unique (fond + blocs) reprise comme « Disposition 1 » : blocs de types disparus (Prochaine
   étape, Où aller) retirés, « map » = Connexions, Progression et Trouvailles encore à leur toute première place mises à
   la nouvelle. Disposition par défaut (1920 × 1080) : Objets à gauche, Trouvailles en dessous ; emplacement du jeu à
   droite, Progression sous lui sur toute sa largeur.
+- **Toile** (par disposition : `canvas { w, h }`, `fit`) : taille de la disposition — Full HD 1920 × 1080 (par défaut, et
+  pour les dispositions d'avant), HD 1280 × 720, QHD, 4K, vertical 1080 × 1920 ou personnalisée (200 à 7680 px) ;
+  affichée à l'échelle de la fenêtre (« Ajuster à la fenêtre », par défaut : la disposition est toujours entière,
+  pourcentage affiché) ou à 100 %. Hors édition, ce qui dépasse de la toile est coupé ; en édition, la toile est
+  entourée d'un pointillé. « Fenêtre à la taille de la toile » redimensionne la fenêtre de stream à la taille exacte
+  (capture OBS la plus nette ; message si le navigateur ou l'écran la limite) ; le bouton « Fenêtre de stream » de
+  l'appli l'ouvre déjà à la taille de la toile de la disposition affichée. Positions et aimantation en px de la toile.
 - **Édition** : touche E (ou double-clic) ouvre l'éditeur, panneau latéral (à droite, ⇆ pour le passer à gauche) :
   - Disposition : choix de la disposition affichée, nom, Nouvelle (widgets par défaut), Dupliquer, Supprimer (confirmé ;
     pas la dernière), Exporter… (fichier JSON de la disposition affichée), Importer… (ajoutée comme nouvelle disposition,

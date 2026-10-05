@@ -380,6 +380,9 @@ svg{display:block}
 /* Fenêtre de stream (index.html?stream) : blocs disposés librement sur un fond uni ou transparent */
 html.stream-mode,html.stream-mode body{background:transparent;overflow:hidden}
 .stream{position:fixed;inset:0;overflow:hidden}
+.sw-stage{position:absolute;left:0;top:0;transform-origin:0 0}
+.stream:not(.editing) .sw-stage{overflow:hidden}
+.stream.editing .sw-stage{outline:1px dashed rgba(255,255,255,.55);box-shadow:0 0 0 1px rgba(0,0,0,.35)}
 .sw{position:absolute}
 .sw-body{pointer-events:none}
 .sw-game .sw-body,.sw-image .sw-body,.sw-text .sw-body{width:100%;height:100%}
@@ -394,7 +397,7 @@ html.stream-mode,html.stream-mode body{background:transparent;overflow:hidden}
 .global-progress.sw-progress{margin:0;display:flex;flex-direction:row;justify-content:center;gap:14px;max-width:none}
 .global-progress.sw-progress > *{flex:0 1 540px;min-width:0}
 /* édition de la disposition (js/stream.js) : grille, contours, poignées, repères d'aimantation, panneau latéral */
-.stream.show-grid{background-image:linear-gradient(rgba(127,127,127,.14) 1px,transparent 1px),linear-gradient(90deg,rgba(127,127,127,.14) 1px,transparent 1px);
+.sw-stage.show-grid{background-image:linear-gradient(rgba(127,127,127,.14) 1px,transparent 1px),linear-gradient(90deg,rgba(127,127,127,.14) 1px,transparent 1px);
   background-size:var(--sw-grid,20px) var(--sw-grid,20px)}
 .stream.editing .sw{outline:1px dashed color-mix(in srgb,var(--gold) 70%,transparent);outline-offset:2px}
 .stream.editing .sw-game,.stream.editing .sw-image{background:color-mix(in srgb,var(--gold) 10%,transparent)}

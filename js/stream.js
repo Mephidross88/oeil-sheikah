@@ -1,6 +1,7 @@
 /* ---------- Fenêtre de stream (index.html?stream, STREAM_MODE de state.js) ----------
    Widgets disposés librement sur une toile, à capturer dans OBS. Dispositions (profils) gardées à part dans
-   localStorage STREAM_KEY : { v:2, active: id du profil affiché, profiles:[{ id, name, bg, color, widgets:[…] }],
+   localStorage STREAM_KEY : { v:2, active: id du profil affiché, profiles:[{ id, name, bg, color, canvas:{ w, h }
+   (taille de la toile, en px), fit (toile mise à l'échelle de la fenêtre), widgets:[…] }],
    ed:{ snap, grid, showGrid, side } (préférences de l'éditeur) }. Widget : { id, type, x, y, w, h?, locked?, hidden?,
    …options du type } ; ordre du tableau = ordre des calques (le dernier au premier plan).
    Ce fichier : types de widgets (STREAM_TYPES), modèle et migration (loadStream), gabarit (streamTemplate, appelé par
@@ -30,7 +31,18 @@ const streamWidgetsDefault = () => [   // pour un écran 1920 × 1080
   { id:3, type:'progress', x:620, y:760, w:1280 },
   { id:6, type:'loot', x:100, y:850, w:420 },
 ];
-const streamProfile = (id, name) => ({ id, name, bg:'#00b140', color:'#00b140', widgets:streamWidgetsDefault() });
+// tailles de toile proposées (la toile est mise à l'échelle de la fenêtre, sauf « fit » à false : 100 %)
+const STREAM_CANVAS = [['1920x1080', 'Full HD — 1920 × 1080'], ['1280x720', 'HD — 1280 × 720'], ['2560x1440', 'QHD — 2560 × 1440'],
+  ['3840x2160', '4K — 3840 × 2160'], ['1080x1920', 'Vertical — 1080 × 1920'], ['custom', 'Personnalisée']];
+const streamProfile = (id, name) => ({ id, name, bg:'#00b140', color:'#00b140', canvas:{ w:1920, h:1080 }, fit:true, widgets:streamWidgetsDefault() });
+// disposition complétée (toile : 1920 × 1080 mise à l'échelle pour celles d'avant) et widgets nettoyés
+function streamCleanProfile(p){
+  const c = p.canvas || {};
+  p.canvas = { w:Math.min(7680, Math.max(200, +c.w || 1920)), h:Math.min(7680, Math.max(200, +c.h || 1080)) };
+  if (typeof p.fit !== 'boolean') p.fit = true;
+  p.widgets = streamCleanWidgets(p.widgets);
+  return p;
+}
 const streamDefaults = () => ({ v:2, active:1, profiles:[streamProfile(1, 'Disposition 1')],
   ed:{ snap:true, grid:20, showGrid:true, side:'right' } });
 // widgets d'une disposition : types inconnus retirés (anciens blocs Prochaine étape et Où aller ; « map » = Connexions),
@@ -45,7 +57,7 @@ function loadStream(){
   try {
     const v = JSON.parse(localStorage.getItem(STREAM_KEY) || 'null');
     if (v && v.v === 2 && Array.isArray(v.profiles) && v.profiles.length){
-      v.profiles.forEach(p => { p.widgets = streamCleanWidgets(p.widgets); });
+      v.profiles.forEach(streamCleanProfile);
       return { ...d, ...v, ed:{ ...d.ed, ...(v.ed || {}) },
         active:v.profiles.some(p => p.id === v.active) ? v.active : v.profiles[0].id };
     }
@@ -62,8 +74,11 @@ function loadStream(){
 /* Gabarit de la fenêtre de stream ; parts : fragments du gabarit d'App (items : panneau Objets, loot : trouvailles). */
 function streamTemplate(parts){ return `
 <!-- ================= FENÊTRE DE STREAM (index.html?stream) : widgets disposés librement, à capturer dans OBS ================= -->
-<div v-if="STREAM" class="stream" :class="{editing:swEdit, 'show-grid':swEdit && ss.ed.showGrid}" :style="{background:streamBg, '--sw-grid':ss.ed.grid + 'px'}"
+<div v-if="STREAM" class="stream" :class="{editing:swEdit}" :style="{background:streamBg}"
   @pointermove="swMove" @pointerup="swUp" @pointercancel="swUp" @pointerdown.self="swSel = null">
+  <!-- toile : taille de la disposition, mise à l'échelle de la fenêtre (swScale) -->
+  <div class="sw-stage" :class="{'show-grid':swEdit && ss.ed.showGrid}" @pointerdown.self="swSel = null"
+    :style="{width:sp.canvas.w + 'px', height:sp.canvas.h + 'px', transform:'scale(' + swScale + ')', '--sw-grid':ss.ed.grid + 'px'}">
   <div v-for="w in sp.widgets" v-show="swEdit || !w.hidden" :key="w.id" :data-sw="w.id" class="sw"
     :class="['sw-' + w.type, {sel:swEdit && swSel===w.id, framed:w.frame, locked:w.locked, ghost:w.hidden}]"
     :style="{left:w.x + 'px', top:w.y + 'px', width:w.w + 'px', height:STREAM_TYPES[w.type].free ? w.h + 'px' : null}">
@@ -99,6 +114,7 @@ function streamTemplate(parts){ return `
     </template>
   </div>
   <div v-for="(g, i) in swGuides" :key="'g' + i" class="sw-guide" :class="g.axis" :style="g.axis === 'v' ? {left:g.at + 'px'} : {top:g.at + 'px'}"></div>
+  </div>
 
   <!-- éditeur : panneau latéral -->
   <aside v-if="swEdit" class="sw-panel" :class="'side-' + ss.ed.side" @pointerdown.stop @keydown.stop>
@@ -122,6 +138,18 @@ function streamTemplate(parts){ return `
         <label class="swp-row">Fond <select v-model="sp.bg" class="sel swp-grow"><option value="transparent">Transparent</option><option value="#00b140">Vert d’incrustation</option>
           <option value="#ff00ff">Magenta</option><option value="theme">Fond de l’appli</option><option value="custom">Autre couleur</option></select>
           <input v-if="sp.bg==='custom'" type="color" v-model="sp.color" aria-label="Couleur du fond"></label>
+      </section>
+
+      <section class="swp-sec">
+        <h4>Taille de la toile</h4>
+        <select class="sel" :value="swPreset" @change="swSetPreset($event.target.value)" aria-label="Taille de la toile">
+          <option v-for="c in STREAM_CANVAS" :key="c[0]" :value="c[0]">{{c[1]}}</option></select>
+        <div v-if="swPreset === 'custom'" class="swp-geo">
+          <label>Larg.<input type="number" class="swp-num" min="200" max="7680" :value="sp.canvas.w" @change="sp.canvas.w = Math.min(7680, Math.max(200, +$event.target.value || 1920))"></label>
+          <label>Haut.<input type="number" class="swp-num" min="200" max="7680" :value="sp.canvas.h" @change="sp.canvas.h = Math.min(7680, Math.max(200, +$event.target.value || 1080))"></label></div>
+        <label class="check"><input type="checkbox" v-model="sp.fit">Ajuster à la fenêtre (affichée à {{Math.round(swScale * 100)}} %)</label>
+        <div class="swp-row"><button type="button" class="btn" title="Pour une capture OBS la plus nette : la fenêtre à la taille exacte de la toile (100 %)" @click="swFitWindow">Fenêtre à la taille de la toile</button></div>
+        <p v-if="swFitMsg" class="swp-note">{{swFitMsg}}</p>
       </section>
 
       <section class="swp-sec">
@@ -203,6 +231,27 @@ function useStream(STREAM){
   const swEdit = ref(false), swSel = ref(null), swHint = ref(true), swGuides = ref([]), swMsg = ref(null);
   setTimeout(() => { swHint.value = false; }, 6000);
   const swSelW = computed(() => sp.value.widgets.find(w => w.id === swSel.value) || null);
+  /* Toile : taille de la disposition, affichée à l'échelle de la fenêtre (fit) ou à 100 % ; « Fenêtre à la taille de la
+     toile » redimensionne la fenêtre de stream (ouverte par window.open : le navigateur l'autorise) */
+  const winSize = reactive({ w:window.innerWidth, h:window.innerHeight }), swFitMsg = ref('');
+  if (STREAM) window.addEventListener('resize', () => { winSize.w = window.innerWidth; winSize.h = window.innerHeight; });
+  const swScale = computed(() => sp.value.fit ? Math.min(winSize.w / sp.value.canvas.w, winSize.h / sp.value.canvas.h) : 1);
+  const swCustom = ref(false);   // « Personnalisée » choisie (champs de taille affichés même sur une taille proposée)
+  watch(() => ss.active, () => { swCustom.value = false; });
+  const swPreset = computed(() => { const k = sp.value.canvas.w + 'x' + sp.value.canvas.h;
+    return !swCustom.value && STREAM_CANVAS.some(c => c[0] === k) ? k : 'custom'; });
+  function swSetPreset(k){
+    swCustom.value = k === 'custom';
+    if (k !== 'custom'){ const [w, h] = k.split('x').map(Number); sp.value.canvas = { w, h }; }
+  }
+  function swFitWindow(){
+    const c = sp.value.canvas;
+    window.resizeTo(c.w + window.outerWidth - window.innerWidth, c.h + window.outerHeight - window.innerHeight);
+    setTimeout(() => {
+      swFitMsg.value = window.innerWidth === c.w && window.innerHeight === c.h ? ''
+        : `La fenêtre fait ${window.innerWidth} × ${window.innerHeight} : le navigateur ou l'écran limite sa taille (ouvrez-la depuis le bouton « Fenêtre de stream » de l'appli).`;
+    }, 400);
+  }
   const swLayers = computed(() => [...sp.value.widgets].reverse());
   const streamBg = computed(() => sp.value.bg === 'theme' ? 'var(--bg)' : sp.value.bg === 'custom' ? sp.value.color : sp.value.bg);
   // contenu à sa largeur naturelle, agrandi ou réduit (zoom) à la largeur du widget ; image, texte, espace : à sa taille
@@ -252,7 +301,7 @@ function useStream(STREAM){
     swSel.value = w.id;
     if (w.locked) return;
     const others = sp.value.widgets.filter(o => o.id !== w.id && !o.hidden).map(o => rectOf(o.id)).filter(Boolean);
-    const W = window.innerWidth, H = window.innerHeight;
+    const W = sp.value.canvas.w, H = sp.value.canvas.h;
     drag = { w, mode, x0:ev.clientX, y0:ev.clientY, a:mode === 'move' ? [w.x, w.y] : [w.w, w.h], self:rectOf(w.id),
       xs:[0, W / 2, W, ...others.flatMap(r => [r.x, r.x + r.w / 2, r.x + r.w])],
       ys:[0, H / 2, H, ...others.flatMap(r => [r.y, r.y + r.h / 2, r.y + r.h])] };
@@ -266,7 +315,7 @@ function useStream(STREAM){
   function swMove(ev){
     if (!drag) return;
     const d = drag, w = d.w, free = ev.altKey, g = ss.ed.grid || 1, grid = v => Math.round(v / g) * g;
-    const dx = ev.clientX - d.x0, dy = ev.clientY - d.y0, guides = [];
+    const k = swScale.value || 1, dx = (ev.clientX - d.x0) / k, dy = (ev.clientY - d.y0) / k, guides = [];
     const h = d.self ? d.self.h : (w.h || 0);
     if (d.mode === 'move'){
       let x = d.a[0] + dx, y = d.a[1] + dy;
@@ -343,8 +392,8 @@ function useStream(STREAM){
         const v = JSON.parse(r.result), p = v.profile || (Array.isArray(v.widgets) ? v : null);
         if (!p || !Array.isArray(p.widgets)) throw new Error();
         const id = newProfileId();
-        ss.profiles.push({ ...streamProfile(id, ''), bg:p.bg || '#00b140', color:p.color || '#00b140',
-          name:freeName(p.name || f.name.replace(/\.json$/i, '')), widgets:streamCleanWidgets(p.widgets) });
+        ss.profiles.push(streamCleanProfile({ ...streamProfile(id, ''), bg:p.bg || '#00b140', color:p.color || '#00b140',
+          canvas:p.canvas, fit:p.fit, name:freeName(p.name || f.name.replace(/\.json$/i, '')), widgets:p.widgets }));
         ss.active = id;
         swMsg.value = { ok:true, text:'Disposition importée.' };
       } catch (e){ swMsg.value = { ok:false, text:'Ce fichier n’est pas une disposition de stream.' }; }
@@ -378,7 +427,7 @@ function useStream(STREAM){
     });
     window.addEventListener('dblclick', ev => { if (!swEdit.value && !ev.target.closest('input')) swEdit.value = true; });
   }
-  return { STREAM, STREAM_TYPES, STREAM_CATS, ss, sp, swEdit, swSel, swHint, swGuides, swMsg, swSelW, swLayers, streamBg, swBodyStyle,
+  return { STREAM, STREAM_TYPES, STREAM_CATS, STREAM_CANVAS, swScale, swPreset, swSetPreset, swFitWindow, swFitMsg, ss, sp, swEdit, swSel, swHint, swGuides, swMsg, swSelW, swLayers, streamBg, swBodyStyle,
     swDown, swMove, swUp, swNew, swDup, swDelete, swLayer, swReset, swImage, swUndo, swRedo, swCanUndo, swCanRedo,
     swProfileNew, swProfileDup, swProfileDel, swExport, swImport };
 }

@@ -1000,7 +1000,9 @@ const App = {
     const askLabel = a => exitName(EXIT_BY_ARRIVAL[a]);
     // Fenêtre de stream (index.html?stream) : widgets, dispositions et éditeur (js/stream.js)
     const streamCtx = useStream(STREAM_MODE);
-    const openStream = () => window.open('index.html?stream', 'oeil-sheikah-stream', 'width=1600,height=900');
+    // fenêtre ouverte à la taille de la toile de la disposition affichée (le navigateur la limite à l'écran)
+    const openStream = () => { const c = streamCtx.sp.value.canvas;
+      window.open('index.html?stream', 'oeil-sheikah-stream', `width=${c.w},height=${c.h}`); };
     /* Statistiques : chronologie de la partie (game.timeline, js/state.js) et compteurs */
     // temps de jeu affiché, qui défile à la seconde pendant qu'on joue (game.play n'est mis à jour que toutes les 10 s)
     const secTick = ref(Date.now());
