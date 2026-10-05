@@ -718,18 +718,32 @@ Page « Statistiques » (`ui.view` = `stats`) : chronologie de la partie.
 Bouton « Fenêtre de stream ↗ » (barre de gauche) : ouvre `index.html?stream` dans une fenêtre à part (`STREAM_MODE`), à
 capturer dans OBS (« Capture de fenêtre » + filtre d'incrustation sur le fond vert ; une source « Navigateur » d'OBS
 a son propre stockage et ne verrait pas la partie).
-- Blocs disposés librement sur un fond uni (vert d'incrustation par défaut, magenta, transparent, fond de l'appli ou
+- Widgets (code : `js/stream.js`) disposés librement sur un fond uni (vert d'incrustation par défaut, magenta, transparent, fond de l'appli ou
   couleur au choix) : Objets (le panneau Objets, sur 1 ou 2 colonnes), Progression (cadres Checks et Entrées côte à côte ;
   Checks seul, centré, sans entrées mélangées), Trouvailles, Connexions, Carte (zone de Link : celle de sa scène en temps réel, sinon de sa dernière
   entrée ; carte seule, sans boutons ni légende, flèche de Link comprise ; type `zonemap`), Espace vide (emplacement du jeu, cadre doré en option), Image (chemin, adresse ou
   fichier choisi, gardé en data URL), Texte. Contenus à leur largeur naturelle, mis à l'échelle de la largeur du bloc
   (`zoom`) ; Espace vide, Image et Texte à la taille du bloc.
-- Disposition par défaut (1920 × 1080) : Objets à gauche, Trouvailles en dessous ; emplacement du jeu à droite,
-  Progression sous lui sur toute sa largeur. Disposition gardée d'avant : blocs Prochaine étape et Où aller retirés
-  (types disparus) ; Progression et Trouvailles encore à leur ancienne place par défaut mises à la nouvelle.
-- Édition : touche E (ou double-clic) : grille, glisser un bloc pour le déplacer, coin bas-droit pour le redimensionner
-  (pas de 10 px), × pour le retirer ; barre d'outils : ajouter un bloc, fond, options du bloc choisi, disposition par
-  défaut (pensée pour 1920 × 1080). Disposition gardée à part (localStorage `oeil-sheikah-stream`).
+- **Dispositions** (profils) : plusieurs dispositions nommées, une seule affichée ; chacune a son fond et ses widgets.
+  Gardées à part (localStorage `oeil-sheikah-stream`, `{ v:2, active, profiles:[{ id, name, bg, color, widgets }], ed }`).
+  Ancienne disposition unique (fond + blocs) reprise comme « Disposition 1 » : blocs de types disparus (Prochaine
+  étape, Où aller) retirés, « map » = Connexions, Progression et Trouvailles encore à leur toute première place mises à
+  la nouvelle. Disposition par défaut (1920 × 1080) : Objets à gauche, Trouvailles en dessous ; emplacement du jeu à
+  droite, Progression sous lui sur toute sa largeur.
+- **Édition** : touche E (ou double-clic) ouvre l'éditeur, panneau latéral (à droite, ⇆ pour le passer à gauche) :
+  - Disposition : choix de la disposition affichée, nom, Nouvelle (widgets par défaut), Dupliquer, Supprimer (confirmé ;
+    pas la dernière), Exporter… (fichier JSON de la disposition affichée), Importer… (ajoutée comme nouvelle disposition,
+    aussi l'ancien format), Par défaut (widgets par défaut dans la disposition affichée), fond.
+  - Ajouter un widget : bibliothèque par rubrique (Partie, Cartes, Décor) ; le nouveau widget est sélectionné.
+  - Widget choisi : ses options, position et taille au pixel, Dupliquer, Premier plan, Arrière-plan, Retirer.
+  - Calques, du premier plan à l'arrière (ordre du tableau `widgets`, le dernier devant) : sélection, masquer (estompé
+    en édition, absent sinon), verrouiller (ni déplacé, ni redimensionné, ni retiré), monter / descendre d'un cran.
+  - Aimantation (préférences `ed`) : bords et centres des autres widgets visibles et de l'écran, à 8 px près, repère
+    rose affiché ; sinon grille (aucune, 10, 20 ou 40 px ; affichable) ; Alt pendant le glissement : sans aimantation.
+  - Annuler / Rétablir (Ctrl+Z, Ctrl+Y ou Ctrl+Maj+Z) : instantanés de la disposition 300 ms après la dernière
+    modification (un glissement = une étape), 60 au plus, remis à zéro en changeant de disposition.
+  - Clavier : flèches (1 px, Maj : 10 px), Suppr, Ctrl+D (dupliquer), Échap (désélectionner) ; clic dans le vide :
+    désélectionner. Glisser un widget le déplace, son coin bas-droit le redimensionne.
 - La partie vient de la fenêtre principale : la fenêtre de stream relit le `store` à chaque sauvegarde de celle-ci
   (événement `storage`, même navigateur), ne sauvegarde rien et ne se connecte pas au relais (trouvailles comptées
   une seule fois) ; la position (en temps réel et dernière entrée) lui vient de même (localStorage `oeil-sheikah-live`). Blocs non cliquables (affichage seul).

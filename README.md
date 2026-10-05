@@ -61,9 +61,10 @@ GameCube) ; la ROM Master Quest, facultative, donne les cartes des donjons Maste
 
 ## Fenêtre de stream
 
-Bouton « Fenêtre de stream » (barre de gauche) : une page à capturer dans OBS, avec des blocs à disposer librement
-(objets, progression, prochaine étape, carte de la zone de Link, trouvailles, image, texte…). Touche **E** pour modifier
-la disposition. Elle suit la fenêtre principale, qui doit rester ouverte dans le même navigateur.
+Bouton « Fenêtre de stream » (barre de gauche) : une page à capturer dans OBS, avec des widgets à disposer librement
+(objets, progression, carte de la zone de Link, trouvailles, image, texte…). Touche **E** pour l'éditeur : bibliothèque
+de widgets, aimantation, calques, plusieurs dispositions (exportables). Elle suit la fenêtre principale, qui doit
+rester ouverte dans le même navigateur.
 
 ## Pour les curieux
 

@@ -78,11 +78,15 @@ et le mettre à jour quand une règle change.
      `ProgressCard` — cadre de progression des pages Checks et Entrées, `EntranceGraph` — page Connexions : graphe des
      entrées connues, positions des zones `GRAPH_POS`, `ZoneMap` — page Carte : terrain vu de dessus et repères des
      sorties, données `window.MAPS_DATA`).
+  9b. `js/stream.js` : fenêtre de stream — types de widgets (`STREAM_TYPES`, rubriques `STREAM_CATS`), dispositions
+     (profils) et leur migration (`loadStream`, clé `oeil-sheikah-stream`), gabarit (`streamTemplate(parts)`, appelé par
+     `app.js` avec `ITEMS_TPL` / `LOOT_TPL`) et éditeur (`useStream(STREAM_MODE)` dans le setup d'App : panneau latéral,
+     aimantation, calques, annuler / rétablir, export / import).
   10. `js/app.js` : le composant racine `App` (template complet, dont le panneau Objets et ses modales de
      pointage) + `createApp(...).mount('#app')`. Fragments de gabarit partagés en constantes (`ITEMS_TPL`, `LOOT_TPL`,
      `STREAM_TPL`) insérés par `${…}` dans le gabarit d'App (évalués par JS, pas par Vue) : la fenêtre de stream
      (`index.html?stream`, `STREAM_MODE` de `state.js` : relit le store via l'événement `storage`, ne sauvegarde pas, pas
-     de relais ; disposition `STREAM_TYPES`/`streamDefaults`, clé `oeil-sheikah-stream`) réutilise le panneau Objets.
+     de relais ; widgets et éditeur dans `js/stream.js`) réutilise le panneau Objets.
 - `README.md` : mode d'emploi pour les joueurs (lancer l'appli, auto-tracking, cartes, stream) — à tenir à jour quand une
   de ces étapes change.
 - `style.css` : styles, variables de thème dans `:root` (clair + sombre).

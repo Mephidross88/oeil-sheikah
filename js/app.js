@@ -147,55 +147,7 @@ const LOOT_TPL = `
       </section>
 `;
 // Fenêtre de stream
-const STREAM_TPL = `
-<!-- ================= FENÊTRE DE STREAM (index.html?stream) : blocs disposés librement, à capturer dans OBS ================= -->
-<div v-if="STREAM" class="stream" :class="{editing:swEdit}" :style="{background:streamBg}" @pointermove="swMove" @pointerup="swUp" @pointercancel="swUp">
-  <div v-for="w in sl.widgets" :key="w.id" class="sw" :class="['sw-' + w.type, {sel:swEdit && swSel===w.id, framed:w.frame}]"
-    :style="{left:w.x + 'px', top:w.y + 'px', width:w.w + 'px', height:STREAM_TYPES[w.type].free ? w.h + 'px' : null}">
-    <div class="sw-body" :style="swBodyStyle(w)">
-      <div v-if="w.type==='items'" class="sw-items" :class="{cols2:w.cols===2}">${ITEMS_TPL}</div>
-      <div v-else-if="w.type==='loot'" class="sw-items">${LOOT_TPL}</div>
-      <div v-else-if="w.type==='progress'" class="global-progress sw-progress">
-        <progress-card :stats="checkStats" unit="checks" title="Checks"></progress-card>
-        <progress-card v-if="stats.editable" :stats="stats" unit="sorties" title="Entrées"></progress-card></div>
-      <entrance-graph v-else-if="w.type==='graph'"></entrance-graph>
-      <zone-map v-else-if="w.type==='zonemap' && MAPS_OK && followArea" class="sw-map" :compact="true" :area="followArea"></zone-map>
-      <img v-else-if="w.type==='image' && w.src" class="sw-img" :src="w.src" alt="" :style="{objectFit:w.fit || 'contain'}">
-      <div v-else-if="w.type==='text'" class="sw-text" :style="{fontSize:(w.size || 32) + 'px'}">{{w.text}}</div>
-    </div>
-    <template v-if="swEdit">
-      <div class="sw-hit" @pointerdown.prevent="swDown($event, w, 'move')"><span class="sw-name">{{STREAM_TYPES[w.type].label}}</span></div>
-      <div class="sw-grip" title="Redimensionner" @pointerdown.prevent.stop="swDown($event, w, 'size')"></div>
-      <button type="button" class="sw-del" title="Retirer ce bloc" @pointerdown.stop @click.stop="swDelete(w)">×</button>
-    </template>
-  </div>
-  <div v-if="swEdit" class="sw-tools">
-    <b>Disposition du stream</b>
-    <span class="sw-group"><select v-model="swAdd" class="sel" aria-label="Bloc à ajouter"><option v-for="(t,k) in STREAM_TYPES" :key="k" :value="k">{{t.label}}</option></select>
-      <button type="button" class="btn" @click="swNew">Ajouter</button></span>
-    <label class="sw-group">Fond <select v-model="sl.bg" class="sel"><option value="transparent">Transparent</option><option value="#00b140">Vert d’incrustation</option>
-      <option value="#ff00ff">Magenta</option><option value="theme">Fond de l’appli</option><option value="custom">Autre couleur</option></select>
-      <input v-if="sl.bg==='custom'" type="color" v-model="sl.color" aria-label="Couleur du fond"></label>
-    <span v-if="swSelW" class="sw-group sw-opts">
-      <b>{{STREAM_TYPES[swSelW.type].label}}</b>
-      <template v-if="swSelW.type==='image'">
-        <input type="text" class="sw-in" v-model="swSelW.src" placeholder="Chemin ou adresse de l’image">
-        <label class="btn">Fichier…<input type="file" accept="image/*" hidden @change="swImage($event, swSelW)"></label>
-        <select v-model="swSelW.fit" class="sel"><option value="contain">Entière</option><option value="cover">Remplir</option></select></template>
-      <template v-else-if="swSelW.type==='text'">
-        <input type="text" class="sw-in" v-model="swSelW.text" placeholder="Texte">
-        <input type="number" class="sw-num" v-model.number="swSelW.size" min="10" max="200" aria-label="Taille du texte"></template>
-      <label v-else-if="swSelW.type==='game'" class="check"><input type="checkbox" v-model="swSelW.frame">Cadre doré</label>
-      <label v-else-if="swSelW.type==='items'" class="check"><input type="checkbox" :checked="swSelW.cols===2" @change="swSelW.cols = $event.target.checked ? 2 : 1">2 colonnes</label>
-      <span class="sw-pos">{{swSelW.x}}, {{swSelW.y}} · {{swSelW.w}}{{STREAM_TYPES[swSelW.type].free ? ' × ' + swSelW.h : ''}} px</span>
-    </span>
-    <span class="sw-group sw-end"><button type="button" class="btn" @click="swReset">Disposition par défaut</button>
-      <button type="button" class="btn primary" @click="swEdit=false">Terminer</button></span>
-    <span class="sw-tip">Glisser un bloc pour le déplacer, son coin bas-droit pour le redimensionner. Touche E : modifier ou terminer.</span>
-  </div>
-  <div v-else-if="swHint" class="sw-hint">Touche E (ou double-clic) : modifier la disposition</div>
-</div>
-`;
+const STREAM_TPL = streamTemplate({ items:ITEMS_TPL, loot:LOOT_TPL });   // fenêtre de stream (js/stream.js)
 
 const App = {
   components:{ TypeIcon, Seg, DestPicker, ItemTile, ProgressCard, EntranceGraph, ZoneMap },
@@ -1046,48 +998,8 @@ const App = {
     const exitName = k => k && EXIT[k] ? areaName(k) + ' · ' + EXIT[k].label : '?';
     const askFrom = q => exitName(EXIT_BY_ENTR[q.d]?.key);
     const askLabel = a => exitName(EXIT_BY_ARRIVAL[a]);
-    /* Fenêtre de stream (index.html?stream, STREAM_MODE) : blocs disposés librement (ui de stream gardée à part,
-       localStorage STREAM_KEY), fond uni ou transparent ; la partie vient de la fenêtre principale (state.js). */
-    const STREAM = STREAM_MODE;
-    const sl = reactive(loadStream());
-    watch(sl, () => { try { localStorage.setItem(STREAM_KEY, JSON.stringify(sl)); } catch (e) {} }, { deep:true });
-    const swEdit = ref(false), swSel = ref(null), swAdd = ref('items'), swHint = ref(true);
-    setTimeout(() => { swHint.value = false; }, 6000);
-    const swSelW = computed(() => sl.widgets.find(w => w.id === swSel.value) || null);
-    const streamBg = computed(() => sl.bg === 'theme' ? 'var(--bg)' : sl.bg === 'custom' ? sl.color : sl.bg);
-    // contenu à sa largeur naturelle, agrandi ou réduit (zoom) à la largeur du bloc ; image, texte, espace : à la taille du bloc
-    const swBase = w => w.cols === 2 && STREAM_TYPES[w.type].base2 || STREAM_TYPES[w.type].base;
-    const swBodyStyle = w => STREAM_TYPES[w.type].free ? null : { width:swBase(w) + 'px', zoom:w.w / swBase(w) };
-    let swDrag = null;
-    function swDown(ev, w, mode){ swSel.value = w.id; swDrag = { w, mode, x0:ev.clientX, y0:ev.clientY, a:mode === 'move' ? [w.x, w.y] : [w.w, w.h] }; }
-    function swMove(ev){
-      if (!swDrag) return;
-      const d = swDrag, snap = v => Math.round(v / 10) * 10, dx = ev.clientX - d.x0, dy = ev.clientY - d.y0;
-      if (d.mode === 'move'){ d.w.x = Math.max(0, snap(d.a[0] + dx)); d.w.y = Math.max(0, snap(d.a[1] + dy)); }
-      else { d.w.w = Math.max(80, snap(d.a[0] + dx)); if (STREAM_TYPES[d.w.type].free) d.w.h = Math.max(40, snap(d.a[1] + dy)); }
-    }
-    const swUp = () => { swDrag = null; };
-    function swNew(){
-      const t = STREAM_TYPES[swAdd.value], id = Math.max(0, ...sl.widgets.map(w => w.id)) + 1;
-      sl.widgets.push({ id, type:swAdd.value, x:40, y:40, w:t.w || t.base, h:t.h || 200, ...(t.init || {}) });
-      swSel.value = id;
-    }
-    const swDelete = w => { sl.widgets.splice(sl.widgets.indexOf(w), 1); if (swSel.value === w.id) swSel.value = null; };
-    const swReset = () => { Object.assign(sl, streamDefaults()); swSel.value = null; };
-    function swImage(ev, w){
-      const f = ev.target.files[0];
-      if (!f) return;
-      const r = new FileReader();
-      r.onload = () => { w.src = r.result; };
-      r.readAsDataURL(f);
-    }
-    if (STREAM){
-      document.documentElement.classList.add('stream-mode');
-      window.addEventListener('keydown', ev => {
-        if (ev.key.toLowerCase() === 'e' && !/^(INPUT|SELECT|TEXTAREA)$/.test(ev.target.tagName)) swEdit.value = !swEdit.value;
-      });
-      window.addEventListener('dblclick', ev => { if (!swEdit.value && !ev.target.closest('input')) swEdit.value = true; });
-    }
+    // Fenêtre de stream (index.html?stream) : widgets, dispositions et éditeur (js/stream.js)
+    const streamCtx = useStream(STREAM_MODE);
     const openStream = () => window.open('index.html?stream', 'oeil-sheikah-stream', 'width=1600,height=900');
     /* Statistiques : chronologie de la partie (game.timeline, js/state.js) et compteurs */
     // temps de jeu affiché, qui défile à la seconde pendant qu'on joue (game.play n'est mis à jour que toutes les 10 s)
@@ -1189,7 +1101,7 @@ const App = {
       itemVisible, tierLabel, iconSrc, checklistModal, openChecklist, setChecklist, checklistStats,
       tradeModal, openTrade, tradeStats, counterClass,
       TRIALS, trialStatus, cycleTrial, setDungeonFlag, addDungeonKeys, dungeonQuest, dungeonMaxKeys, cycleDungeonQuest, questLabel, questClass, questTitle, keysLabel, dungeonKeyRing, setKeyRing, dungeonKeysDone, keysTitle, brokenIcons,
-      setTheme, startHere, prevStart, backToPrev, liveStart, myPos, startAtMe, goExit, pickAreas, pickExits, zoneExcludeMode, zoneExclude, hintGroups, hintEdit, hintsC, setHintRead, GOSSIP_STONES, HINT_TYPES, CHECK_AREAS, MAP_SCENES, MAPS_OK, mapAreas, mapGroups, followArea, mapFocus, mapArea, openMap, mapHere, mapHereTick, mapStart, mapGoal, fmtDur, stFilter, statsC, statsRows, playNow, STREAM, STREAM_TYPES, sl, swEdit, swSel, swAdd, swHint, swSelW, streamBg, swBodyStyle, swDown, swMove, swUp, swNew, swDelete, swReset, swImage, openStream, dockCheck, dockRoute, dockTarget, pickDock, dockFollowsRouter, dockAuto, go, swap, route, edgeLabel, edgeIcon, WARP_SONGS, ageLabel, openBackup, copyBackup, importBackup, resetAll, declineSpoiler, savedAt, TYPE_LABEL };
+      setTheme, startHere, prevStart, backToPrev, liveStart, myPos, startAtMe, goExit, pickAreas, pickExits, zoneExcludeMode, zoneExclude, hintGroups, hintEdit, hintsC, setHintRead, GOSSIP_STONES, HINT_TYPES, CHECK_AREAS, MAP_SCENES, MAPS_OK, mapAreas, mapGroups, followArea, mapFocus, mapArea, openMap, mapHere, mapHereTick, mapStart, mapGoal, fmtDur, stFilter, statsC, statsRows, playNow, ...streamCtx, openStream, dockCheck, dockRoute, dockTarget, pickDock, dockFollowsRouter, dockAuto, go, swap, route, edgeLabel, edgeIcon, WARP_SONGS, ageLabel, openBackup, copyBackup, importBackup, resetAll, declineSpoiler, savedAt, TYPE_LABEL };
   },
   template:`
 ${STREAM_TPL}

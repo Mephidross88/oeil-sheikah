@@ -71,42 +71,12 @@ else watch(store, () => {
   try { localStorage.setItem(STORE_KEY, JSON.stringify(store)); lastSaved.value = new Date(); } catch (e) {}
 }, { deep:true });
 
-/* Disposition de la fenêtre de stream, gardée à part (STREAM_KEY) : fond et blocs { id, type, x, y, w, h?, … } (px).
-   base : largeur naturelle du contenu (agrandi ou réduit à la largeur du bloc) ; free : bloc à la taille choisie. */
-const STREAM_KEY = 'oeil-sheikah-stream';
 /* Positions de checks placées à la main sur la Carte (mode « Placer les checks »), gardées à part de la partie (POS_KEY) :
    { id: { scene: scène affichée (« …_MQ » : Master Quest), x, y, z } } ; exportées en positions-manuelles.json pour
    tools/soh-maps/extract_maps.mjs. */
 const POS_KEY = 'oeil-sheikah-positions';
 const mapEdits = reactive((() => { try { return JSON.parse(localStorage.getItem(POS_KEY)) || {}; } catch (e) { return {}; } })());
 if (!STREAM_MODE) watch(mapEdits, () => { try { localStorage.setItem(POS_KEY, JSON.stringify(mapEdits)); } catch (e) {} }, { deep:true });
-const STREAM_TYPES = {
-  items:{ label:'Objets', base:426, base2:870, init:{ cols:2 } }, progress:{ label:'Progression', base:1100 },
-  loot:{ label:'Trouvailles', base:426 }, graph:{ label:'Connexions', base:1000 },
-  zonemap:{ label:'Carte (zone de Link)', free:true, w:640, h:480 },   // (« map » : ancien nom du bloc Connexions)
-  game:{ label:'Espace vide (jeu)', free:true, w:960, h:540, init:{ frame:true } },
-  image:{ label:'Image', free:true, w:300, h:200, init:{ src:'', fit:'contain' } },
-  text:{ label:'Texte', free:true, w:500, h:60, init:{ text:'L’Œil Sheikah', size:32 } },
-};
-const streamDefaults = () => ({ bg:'#00b140', color:'#00b140', widgets:[   // pour un écran 1920 × 1080
-  { id:1, type:'items', x:20, y:20, w:580, cols:2 },
-  { id:2, type:'game', x:620, y:20, w:1280, h:720, frame:true },
-  { id:3, type:'progress', x:620, y:760, w:1280 },
-  { id:6, type:'loot', x:100, y:850, w:420 },
-] });
-function loadStream(){
-  try { const raw = localStorage.getItem(STREAM_KEY); if (raw){ const v = JSON.parse(raw); if (Array.isArray(v.widgets)){
-    // ancien nom du bloc Connexions (« map ») ; blocs de types inconnus retirés (dont Prochaine étape et Où aller) ;
-    // Progression et Trouvailles encore à leur place d'origine : à leur nouvelle place (Progression élargie, compteurs côte
-    // à côte ; Trouvailles réduites, sous les Objets)
-    const at = (w, x, y, ww) => w.x === x && w.y === y && w.w === ww;
-    v.widgets = v.widgets.map(w => w.type === 'map' ? { ...w, type:'graph' } : w).filter(w => STREAM_TYPES[w.type])
-      .map(w => w.type === 'progress' && at(w, 620, 760, 420) ? { ...w, w:1280 } : w.type === 'loot' && at(w, 20, 760, 580) ? { ...w, x:100, y:850, w:420 } : w);
-    return { ...streamDefaults(), ...v };
-  } } } catch (e) {}
-  return streamDefaults();
-}
-
 /* Chronologie (page Statistiques) : chaque hausse d'un objet ou d'un chant et chaque check coché est daté (game.timeline) ;
    une baisse ou un check décoché retire ses entrées. Observateur synchrone : `timelineQuiet` (rattrapage à la connexion
    de l'auto-tracking : ce que la sauvegarde contenait déjà) donne des entrées sans heure. Pas dans la fenêtre de stream. */
