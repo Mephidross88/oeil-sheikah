@@ -1,6 +1,55 @@
 /* ---------- Application ---------- */
 /* Fragments du gabarit partagés par la page et la fenêtre de stream (insérés dans le gabarit d'App). */
 // Panneau Objets (cartes du panneau de droite)
+// Grille des donjons (panneau Objets, et widget Donjons de la fenêtre de stream)
+const DUNGEONS_TPL = `
+      <section v-if="dungeonRows.length || skeletonShown" class="panel-card">
+      <div class="dungeon-grid">
+        <div v-for="row in dungeonRows" :key="row[0]" class="dg-row" :class="{final:row.length===1}">
+          <div v-if="row.length===1" class="dg-side"></div>
+          <div v-for="id in row" :key="id" class="dungeon-block" :class="{'quest-edit':cells(id).quest}" :style="{'--dg':DUNGEON_BY_ID[id].color}"
+            :role="cells(id).quest ? 'button' : null" :tabindex="cells(id).quest ? 0 : null" :title="questTitle(id)"
+            @click="cycleDungeonQuest(id)" @contextmenu.prevent="cycleDungeonQuest(id,true)" @keydown.enter.self="cycleDungeonQuest(id)">
+            <span v-if="DUNGEON_BY_ID[id].quest" class="dg-badge" :class="questClass(id)">{{questLabel(id)}}</span>
+            <div class="dg-name">{{DUNGEON_BY_ID[id].title}}</div>
+            <div class="dg-cells">
+              <!-- 1re ligne : carte, boussole et âme du boss ; 2e ligne : toutes les clés (et la Carte Gerudo) -->
+              <div v-if="cells(id).map || cells(id).compass || cells(id).soul" class="dg-line">
+                <button v-if="cells(id).map" type="button" class="dg-flag" :title="atStart(id).maps ? 'Carte (dès le départ)' : 'Carte'" :class="{on:atStart(id).maps || store.game.dungeons[id].map, fixed:atStart(id).maps}" :disabled="atStart(id).maps" @click.stop="setDungeonFlag(id,'map',true)" @contextmenu.stop.prevent="setDungeonFlag(id,'map',false)"><img src="icons/dungeons/map.png" alt=""></button>
+                <button v-if="cells(id).compass" type="button" class="dg-flag" :title="atStart(id).maps ? 'Boussole (dès le départ)' : 'Boussole'" :class="{on:atStart(id).maps || store.game.dungeons[id].compass, fixed:atStart(id).maps}" :disabled="atStart(id).maps" @click.stop="setDungeonFlag(id,'compass',true)" @contextmenu.stop.prevent="setDungeonFlag(id,'compass',false)"><img src="icons/dungeons/compass.png" alt=""></button>
+                <button v-if="cells(id).soul" type="button" class="dg-flag" :title="'Âme de ' + DUNGEON_BY_ID[id].boss" :class="{on:store.game.dungeons[id].soul}"
+                  @click.stop="setDungeonFlag(id,'soul',true)" @contextmenu.stop.prevent="setDungeonFlag(id,'soul',false)"><img src="icons/dungeons/boss_soul.png" alt=""></button>
+              </div>
+              <div v-if="cells(id).keys || cells(id).bossKey || cells(id).card" class="dg-line">
+                <button v-if="cells(id).keys && dungeonKeyRing(id)!==true" type="button" class="dg-keys" :title="keysTitle(id)" @click.stop="addDungeonKeys(id,1)" @contextmenu.stop.prevent="addDungeonKeys(id,-1)"
+                  :class="{none:!store.game.dungeons[id].keys && !dungeonKeysDone(id), done:dungeonKeysDone(id), fixed:atStart(id).keys}" :disabled="atStart(id).keys">
+                  <img src="icons/dungeons/key.png" alt="">{{keysLabel(id)}}</button>
+                <button v-if="cells(id).keys && dungeonKeyRing(id)!==false" type="button" class="dg-flag" :class="{on:store.game.dungeons[id].ringGot || store.game.items.skeletonKey}"
+                  :title="dungeonKeyRing(id) ? 'Trousseau de clés' : 'Trousseau de clés (peut-être) — le noter indique que ce donjon en a un'"
+                  @click.stop="setKeyRing(id,true)" @contextmenu.stop.prevent="setKeyRing(id,false)">
+                  <img v-if="!brokenIcons['icons/dungeons/keyring.png']" src="icons/dungeons/keyring.png" alt="" @error="brokenIcons['icons/dungeons/keyring.png']=true">
+                  <span v-else class="dg-ring-fallback"><img src="icons/dungeons/key.png" alt=""><img src="icons/dungeons/key.png" alt=""></span></button>
+                <button v-if="cells(id).bossKey" type="button" class="dg-flag" :title="atStart(id).bossKey ? 'Clé de boss (dès le départ)' : 'Clé de boss'" :class="{on:atStart(id).bossKey || store.game.dungeons[id].bossKey, fixed:atStart(id).bossKey}" :disabled="atStart(id).bossKey" @click.stop="setDungeonFlag(id,'bossKey',true)" @contextmenu.stop.prevent="setDungeonFlag(id,'bossKey',false)"><img src="icons/dungeons/boss.png" alt=""></button>
+                <button v-if="cells(id).card" type="button" class="dg-flag" :class="{on:store.game.items[DUNGEON_BY_ID[id].card]}"
+                  :title="ITEM_BY_KEY[DUNGEON_BY_ID[id].card].label" @click.stop="store.game.items[DUNGEON_BY_ID[id].card]=true" @contextmenu.stop.prevent="store.game.items[DUNGEON_BY_ID[id].card]=false">
+                  <img :src="iconSrc('items', ITEM_BY_KEY[DUNGEON_BY_ID[id].card])" alt=""></button>
+              </div>
+              <!-- épreuves de Ganon tirées au sort : inconnue (?) / requise / dissipée (✓) -->
+              <div v-if="cells(id).trials" class="dg-line dg-trials">
+                <button v-for="t in TRIALS" :key="t.id" type="button" class="dg-trial" :class="trialStatus(t.id) || 'unknown'" :style="{'--tr':t.color}"
+                  :title="'Épreuve ' + t.label + ' — ' + ({required:'requise', skipped:'dissipée'}[trialStatus(t.id)] || 'inconnue (comptée comme requise)') + ' — clic : suivant, clic droit : précédent'"
+                  @click.stop="cycleTrial(t.id)" @contextmenu.stop.prevent="cycleTrial(t.id,true)">{{trialStatus(t.id)==='skipped' ? '✓' : trialStatus(t.id) ? t.label[0] : '?'}}</button>
+              </div>
+            </div>
+          </div>
+          <div v-if="row.length===1" class="dg-side"><ItemTile v-if="skeletonShown && row[0]==='ganonsCastle'" k="skeletonKey"/></div>
+        </div>
+        <div v-if="skeletonShown && !dungeonRows.some(r => r.includes('ganonsCastle'))" class="dg-row final">
+          <div class="dg-side"></div><div class="dg-side"><ItemTile k="skeletonKey"/></div><div class="dg-side"></div>
+        </div>
+      </div>
+      </section>
+`;
 const ITEMS_TPL = `
       <section class="panel-card">
       <div class="quest-row">
@@ -86,53 +135,7 @@ const ITEMS_TPL = `
         </section>
       </div>
 
-      <section v-if="dungeonRows.length || skeletonShown" class="panel-card">
-      <div class="dungeon-grid">
-        <div v-for="row in dungeonRows" :key="row[0]" class="dg-row" :class="{final:row.length===1}">
-          <div v-if="row.length===1" class="dg-side"></div>
-          <div v-for="id in row" :key="id" class="dungeon-block" :class="{'quest-edit':cells(id).quest}" :style="{'--dg':DUNGEON_BY_ID[id].color}"
-            :role="cells(id).quest ? 'button' : null" :tabindex="cells(id).quest ? 0 : null" :title="questTitle(id)"
-            @click="cycleDungeonQuest(id)" @contextmenu.prevent="cycleDungeonQuest(id,true)" @keydown.enter.self="cycleDungeonQuest(id)">
-            <span v-if="DUNGEON_BY_ID[id].quest" class="dg-badge" :class="questClass(id)">{{questLabel(id)}}</span>
-            <div class="dg-name">{{DUNGEON_BY_ID[id].title}}</div>
-            <div class="dg-cells">
-              <!-- 1re ligne : carte, boussole et âme du boss ; 2e ligne : toutes les clés (et la Carte Gerudo) -->
-              <div v-if="cells(id).map || cells(id).compass || cells(id).soul" class="dg-line">
-                <button v-if="cells(id).map" type="button" class="dg-flag" :title="atStart(id).maps ? 'Carte (dès le départ)' : 'Carte'" :class="{on:atStart(id).maps || store.game.dungeons[id].map, fixed:atStart(id).maps}" :disabled="atStart(id).maps" @click.stop="setDungeonFlag(id,'map',true)" @contextmenu.stop.prevent="setDungeonFlag(id,'map',false)"><img src="icons/dungeons/map.png" alt=""></button>
-                <button v-if="cells(id).compass" type="button" class="dg-flag" :title="atStart(id).maps ? 'Boussole (dès le départ)' : 'Boussole'" :class="{on:atStart(id).maps || store.game.dungeons[id].compass, fixed:atStart(id).maps}" :disabled="atStart(id).maps" @click.stop="setDungeonFlag(id,'compass',true)" @contextmenu.stop.prevent="setDungeonFlag(id,'compass',false)"><img src="icons/dungeons/compass.png" alt=""></button>
-                <button v-if="cells(id).soul" type="button" class="dg-flag" :title="'Âme de ' + DUNGEON_BY_ID[id].boss" :class="{on:store.game.dungeons[id].soul}"
-                  @click.stop="setDungeonFlag(id,'soul',true)" @contextmenu.stop.prevent="setDungeonFlag(id,'soul',false)"><img src="icons/dungeons/boss_soul.png" alt=""></button>
-              </div>
-              <div v-if="cells(id).keys || cells(id).bossKey || cells(id).card" class="dg-line">
-                <button v-if="cells(id).keys && dungeonKeyRing(id)!==true" type="button" class="dg-keys" :title="keysTitle(id)" @click.stop="addDungeonKeys(id,1)" @contextmenu.stop.prevent="addDungeonKeys(id,-1)"
-                  :class="{none:!store.game.dungeons[id].keys && !dungeonKeysDone(id), done:dungeonKeysDone(id), fixed:atStart(id).keys}" :disabled="atStart(id).keys">
-                  <img src="icons/dungeons/key.png" alt="">{{keysLabel(id)}}</button>
-                <button v-if="cells(id).keys && dungeonKeyRing(id)!==false" type="button" class="dg-flag" :class="{on:store.game.dungeons[id].ringGot || store.game.items.skeletonKey}"
-                  :title="dungeonKeyRing(id) ? 'Trousseau de clés' : 'Trousseau de clés (peut-être) — le noter indique que ce donjon en a un'"
-                  @click.stop="setKeyRing(id,true)" @contextmenu.stop.prevent="setKeyRing(id,false)">
-                  <img v-if="!brokenIcons['icons/dungeons/keyring.png']" src="icons/dungeons/keyring.png" alt="" @error="brokenIcons['icons/dungeons/keyring.png']=true">
-                  <span v-else class="dg-ring-fallback"><img src="icons/dungeons/key.png" alt=""><img src="icons/dungeons/key.png" alt=""></span></button>
-                <button v-if="cells(id).bossKey" type="button" class="dg-flag" :title="atStart(id).bossKey ? 'Clé de boss (dès le départ)' : 'Clé de boss'" :class="{on:atStart(id).bossKey || store.game.dungeons[id].bossKey, fixed:atStart(id).bossKey}" :disabled="atStart(id).bossKey" @click.stop="setDungeonFlag(id,'bossKey',true)" @contextmenu.stop.prevent="setDungeonFlag(id,'bossKey',false)"><img src="icons/dungeons/boss.png" alt=""></button>
-                <button v-if="cells(id).card" type="button" class="dg-flag" :class="{on:store.game.items[DUNGEON_BY_ID[id].card]}"
-                  :title="ITEM_BY_KEY[DUNGEON_BY_ID[id].card].label" @click.stop="store.game.items[DUNGEON_BY_ID[id].card]=true" @contextmenu.stop.prevent="store.game.items[DUNGEON_BY_ID[id].card]=false">
-                  <img :src="iconSrc('items', ITEM_BY_KEY[DUNGEON_BY_ID[id].card])" alt=""></button>
-              </div>
-              <!-- épreuves de Ganon tirées au sort : inconnue (?) / requise / dissipée (✓) -->
-              <div v-if="cells(id).trials" class="dg-line dg-trials">
-                <button v-for="t in TRIALS" :key="t.id" type="button" class="dg-trial" :class="trialStatus(t.id) || 'unknown'" :style="{'--tr':t.color}"
-                  :title="'Épreuve ' + t.label + ' — ' + ({required:'requise', skipped:'dissipée'}[trialStatus(t.id)] || 'inconnue (comptée comme requise)') + ' — clic : suivant, clic droit : précédent'"
-                  @click.stop="cycleTrial(t.id)" @contextmenu.stop.prevent="cycleTrial(t.id,true)">{{trialStatus(t.id)==='skipped' ? '✓' : trialStatus(t.id) ? t.label[0] : '?'}}</button>
-              </div>
-            </div>
-          </div>
-          <div v-if="row.length===1" class="dg-side"><ItemTile v-if="skeletonShown && row[0]==='ganonsCastle'" k="skeletonKey"/></div>
-        </div>
-        <div v-if="skeletonShown && !dungeonRows.some(r => r.includes('ganonsCastle'))" class="dg-row final">
-          <div class="dg-side"></div><div class="dg-side"><ItemTile k="skeletonKey"/></div><div class="dg-side"></div>
-        </div>
-      </div>
-      </section>
-
+${DUNGEONS_TPL}
       <!-- Trouvailles comptées par l'auto-tracking (option) -->
 `;
 // Trouvailles de l'auto-tracking
@@ -147,7 +150,7 @@ const LOOT_TPL = `
       </section>
 `;
 // Fenêtre de stream
-const STREAM_TPL = streamTemplate({ items:ITEMS_TPL, loot:LOOT_TPL });   // fenêtre de stream (js/stream.js)
+const STREAM_TPL = streamTemplate({ items:ITEMS_TPL, loot:LOOT_TPL, dungeons:DUNGEONS_TPL });   // fenêtre de stream (js/stream.js)
 
 const App = {
   components:{ TypeIcon, Seg, DestPicker, ItemTile, ProgressCard, EntranceGraph, ZoneMap },
@@ -583,7 +586,7 @@ const App = {
       }
       const zl = Object.values(zones), got = ow.got + dg.got, total = ow.total + dg.total;
       const zonesDone = zl.filter(z => z.got === z.total).length, left = total - got;
-      return { got, total, groups:[['Overworld', ow.got, ow.total], ['Donjons', dg.got, dg.total]].filter(g => g[2]),
+      return { got, total, avail, groups:[['Overworld', ow.got, ow.total], ['Donjons', dg.got, dg.total]].filter(g => g[2]),
         sub:`${left} restant${left > 1 ? 's' : ''} · ${avail} faisable${avail > 1 ? 's' : ''} · ${zonesDone} / ${zl.length} zones terminées` };
     });
     // Compteurs des pastilles de catégorie : restants / total parmi les checks listés (hors filtre de catégorie).
@@ -999,7 +1002,8 @@ const App = {
     const askFrom = q => exitName(EXIT_BY_ENTR[q.d]?.key);
     const askLabel = a => exitName(EXIT_BY_ARRIVAL[a]);
     // Fenêtre de stream (index.html?stream) : widgets, dispositions et éditeur (js/stream.js)
-    const streamCtx = useStream(STREAM_MODE);
+    // (valeurs de l'appli lues par les widgets : appelées plus tard, quand elles sont définies)
+    const streamCtx = useStream(STREAM_MODE, { checkStats:() => checkStats.value, stats:() => stats.value, playNow:() => playNow.value, fmtDur:ms => fmtDur(ms) });
     // fenêtre ouverte à la taille de la toile de la disposition affichée (le navigateur la limite à l'écran)
     const openStream = () => { const c = streamCtx.sp.value.canvas;
       window.open('index.html?stream', 'oeil-sheikah-stream', `width=${c.w},height=${c.h}`); };

@@ -562,6 +562,25 @@ html.stream-mode,html.stream-mode body{background:transparent;overflow:hidden}
 .st-list.sw-tl li:last-child{border-bottom:0}
 .sw-tl .st-at{width:auto;min-width:64px}
 .sw-empty{margin:auto 0;color:var(--muted);font-size:14px;padding:8px 0}
+.sw-stattiles .rstat-ic img{width:30px;height:30px}
+/* Objets à la carte, Jauge, Temps de jeu, Seed */
+.sw-pick{display:grid;gap:6px}
+.sw-pick.framed{background:var(--surface);border:var(--sw-bw,1px) solid var(--line);border-radius:var(--sw-radius,14px);box-shadow:var(--shadow);padding:10px}
+.sw-gauge,.sw-timer,.sw-seed{height:100%}
+.sw-gauge{display:flex;flex-direction:column;justify-content:center;gap:6px}
+.sw-g-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:15px;color:var(--muted)}
+.sw-g-top b{font-family:var(--serif);font-size:20px;color:var(--text);font-variant-numeric:tabular-nums}
+.sw-g-bar{flex:1;max-height:22px;min-height:8px;border-radius:999px;background:var(--surface);border:var(--sw-bw,1px) solid var(--line);overflow:hidden;box-shadow:var(--shadow)}
+.sw-g-bar i{display:block;height:100%;background:var(--gold);border-radius:inherit;transition:width .6s}
+.sw-timer{display:flex;flex-direction:column;align-items:center;justify-content:center}
+.sw-timer b{font-family:var(--serif);line-height:1;color:var(--text);font-variant-numeric:tabular-nums}
+.sw-timer span{color:var(--muted);font-size:15px}
+.sw-seed b{font-variant-numeric:tabular-nums;letter-spacing:.03em}
+.swp-chips{display:flex;flex-wrap:wrap;gap:4px}
+.swp-chip{display:inline-flex;align-items:center;gap:3px;padding:2px 2px 2px 6px;border:1px solid var(--line);border-radius:999px;background:var(--surface-2);font-size:12.5px}
+.swp-chip img{width:18px;height:18px;object-fit:contain}
+.swp-chip button{border:0;background:none;color:var(--muted);padding:0 4px;font-size:13px;line-height:1.2;border-radius:6px}
+.swp-chip button:hover{background:var(--surface);color:var(--text)}
 .sw-zonemap .sw-body{height:100%}
 .ze-mark rect{fill:#e9b949;stroke:#1c1a12;stroke-width:1.5;vector-effect:non-scaling-stroke}
 .ze-mark.moving rect{fill:var(--ocarina)}

@@ -10,21 +10,51 @@
    app.js avec les fragments partagés ITEMS_TPL / LOOT_TPL) et éditeur (useStream, appelé dans le setup d'App). */
 const STREAM_KEY = 'oeil-sheikah-stream';
 /* Types de widgets. base : largeur naturelle du contenu (mis à l'échelle de la largeur du widget) ; free : widget à la
-   taille choisie (largeur et hauteur) ; init : options d'un nouveau widget ; cat : rubrique de la bibliothèque. */
+   taille choisie (largeur et hauteur) ; auto : à la largeur choisie, hauteur selon le contenu (sans mise à l'échelle) ;
+   init : options d'un nouveau widget ; cat : rubrique de la bibliothèque. */
 const STREAM_TYPES = {
-  items:{ label:'Objets', cat:'Partie', base:426, base2:870, init:{ cols:2 } },
+  items:{ label:'Objets (panneau)', cat:'Partie', base:426, base2:870, init:{ cols:2 } },
+  pick:{ label:'Objets à la carte', cat:'Partie', auto:true, w:540, init:{ keys:['kokiriEmerald', 'goronRuby', 'zoraSapphire', 'forestMedallion',
+    'fireMedallion', 'waterMedallion', 'spiritMedallion', 'shadowMedallion', 'lightMedallion'], cols:9, off:'dim', frame:true } },
+  dungeons:{ label:'Donjons', cat:'Partie', base:426 },
   progress:{ label:'Progression', cat:'Partie', base:1100 },
   loot:{ label:'Trouvailles', cat:'Partie', base:426 },
+  seed:{ label:'Seed', cat:'Partie', free:true, w:440, h:56, init:{ size:28, prefix:true } },
   zonemap:{ label:'Carte (zone de Link)', cat:'Cartes', free:true, w:640, h:480 },
   graph:{ label:'Connexions', cat:'Cartes', base:1000 },
   // page Statistiques : tuiles (temps de jeu, checks faits, entrées trouvées), courbe des checks, chronologie
-  stattiles:{ label:'Compteurs', cat:'Statistiques', base:620, init:{ play:true, checks:true, entr:true } },
+  stattiles:{ label:'Compteurs', cat:'Statistiques', base:620, init:{ tiles:['play', 'checks', 'entr'], icons:true } },
+  gauge:{ label:'Jauge', cat:'Statistiques', free:true, w:600, h:64, init:{ metric:'checks', label:true } },
+  timer:{ label:'Temps de jeu', cat:'Statistiques', free:true, w:340, h:110, init:{ size:64, label:true } },
   statcurve:{ label:'Courbe des checks', cat:'Statistiques', free:true, w:600, h:220, init:{ title:true } },
   timeline:{ label:'Chronologie', cat:'Statistiques', free:true, w:520, h:360, init:{ filter:'all', n:8, at:true } },
   game:{ label:'Espace vide (jeu)', cat:'Décor', free:true, w:960, h:540, init:{ frame:true } },
   image:{ label:'Image', cat:'Décor', free:true, w:300, h:200, init:{ src:'', fit:'contain' } },
   text:{ label:'Texte', cat:'Décor', free:true, w:500, h:60, init:{ text:'L’Œil Sheikah', size:32 } },
 };
+/* Compteurs (widgets Compteurs et Jauge). icon : image ; num : compteur « got / total » (jauge possible) ; shown : affiché
+   seulement si (entrées mélangées, chasse à la Triforce…). Valeurs : useStream (swMetric). */
+const STREAM_REWARDS = ['kokiriEmerald', 'goronRuby', 'zoraSapphire', 'forestMedallion', 'fireMedallion', 'waterMedallion',
+  'spiritMedallion', 'shadowMedallion', 'lightMedallion'];
+const STREAM_METRICS = {
+  play:{ label:'Temps de jeu', short:'temps de jeu' },
+  checks:{ label:'Checks faits', short:'checks faits', num:true },
+  left:{ label:'Checks restants', short:'checks restants' },
+  avail:{ label:'Checks faisables', short:'faisables maintenant' },
+  pct:{ label:'Progression des checks (%)', short:'des checks' },
+  entr:{ label:'Entrées trouvées', short:'entrées trouvées', num:true },
+  rewards:{ label:'Pierres et médaillons', short:'récompenses', icon:'icons/rewards/medallions/light.png', num:true },
+  skulls:{ label:"Skulltulas d'or", short:'Skulltulas', icon:'icons/rewards/skulltula.png', num:true },
+  hearts:{ label:'Cœurs', short:'cœurs', icon:'icons/statistics/heart_container.png' },
+  pieces:{ label:'Quarts de cœur', short:'quarts de cœur', icon:'icons/statistics/heart_piece.png', num:true },
+  containers:{ label:'Réceptacles de cœur', short:'réceptacles', icon:'icons/statistics/heart_container.png', num:true },
+  triforce:{ label:'Morceaux de Triforce', short:'Triforce', icon:'icons/rewards/triforce.png', num:true },
+  ice:{ label:'Pièges de glace', short:'pièges de glace', icon:'icons/loots/ice_trap.png' },
+  rupees:{ label:'Rubis trouvés', short:'rubis trouvés', icon:'icons/loots/rupee.png' },
+};
+// groupes d'objets proposés au widget Objets à la carte (catalogue du panneau Objets)
+const STREAM_ITEM_GROUPS = ITEM_GROUPS.map(g => ({ title:g.title, items:g.items.filter(it => !it.locked).map(it => ({ key:it.key, label:it.label })) }))
+  .filter(g => g.items.length);
 const STREAM_CATS = [...new Set(Object.values(STREAM_TYPES).map(t => t.cat))]
   .map(cat => ({ cat, types:Object.entries(STREAM_TYPES).filter(([, t]) => t.cat === cat).map(([k, t]) => ({ key:k, label:t.label })) }));
 const streamWidgetsDefault = () => [   // pour un écran 1920 × 1080
@@ -131,7 +161,10 @@ const streamDefaults = () => ({ v:2, active:1, profiles:[streamProfile(1, 'Dispo
 function streamCleanWidgets(list){
   let n = 0;
   return (Array.isArray(list) ? list : []).map(w => w && w.type === 'map' ? { ...w, type:'graph' } : w)
-    .filter(w => w && STREAM_TYPES[w.type]).map(w => ({ ...w, id:+w.id || 1000 + ++n }));
+    .filter(w => w && STREAM_TYPES[w.type]).map(w => ({ ...w, id:+w.id || 1000 + ++n }))
+    // Compteurs d'avant : trois cases (temps de jeu, checks, entrées) → liste ordonnée
+    .map(w => w.type === 'stattiles' && !Array.isArray(w.tiles)
+      ? { ...w, tiles:['play', 'checks', 'entr'].filter(k => w[k] !== false), icons:false } : w);
 }
 function loadStream(){
   const d = streamDefaults();
@@ -171,9 +204,17 @@ function streamTemplate(parts){ return `
         <progress-card v-if="stats.editable" :stats="stats" unit="sorties" title="Entrées"></progress-card></div>
       <entrance-graph v-else-if="w.type==='graph'"></entrance-graph>
       <div v-else-if="w.type==='stattiles'" class="rsum sw-stattiles">
-        <div v-if="w.play" class="rstat"><div><b>{{playNow ? fmtDur(playNow) : '—'}}</b><span>temps de jeu</span></div></div>
-        <div v-if="w.checks" class="rstat"><div><b>{{checkStats.got}} / {{checkStats.total}}</b><span>checks faits</span></div></div>
-        <div v-if="w.entr && stats.editable" class="rstat"><div><b>{{stats.mapped}} / {{stats.editable}}</b><span>entrées trouvées</span></div></div></div>
+        <div v-for="k in w.tiles.filter(swMetricShown)" :key="k" class="rstat">
+          <span v-if="w.icons && STREAM_METRICS[k].icon" class="rstat-ic"><img :src="STREAM_METRICS[k].icon" alt=""></span>
+          <div><b>{{swMetric(k)}}</b><span>{{STREAM_METRICS[k].short}}</span></div></div></div>
+      <div v-else-if="w.type==='pick'" class="sw-pick" :class="{framed:w.frame}" :style="{gridTemplateColumns:'repeat(' + (w.cols || 6) + ', minmax(0, 1fr))'}">
+        <item-tile v-for="k in swPickKeys(w)" :key="k" :k="k"></item-tile></div>
+      <div v-else-if="w.type==='dungeons'" class="sw-items">${parts.dungeons}</div>
+      <div v-else-if="w.type==='gauge'" class="sw-gauge">
+        <div v-if="w.label" class="sw-g-top"><span>{{STREAM_METRICS[w.metric].label}}</span><b>{{swMetric(w.metric)}}</b></div>
+        <div class="sw-g-bar"><i :style="{width:swGaugePct(w.metric) + '%'}"></i></div></div>
+      <div v-else-if="w.type==='timer'" class="sw-timer"><b :style="{fontSize:(w.size || 64) + 'px'}">{{playNow ? fmtDur(playNow) : '0:00:00'}}</b><span v-if="w.label">temps de jeu</span></div>
+      <div v-else-if="w.type==='seed'" class="sw-text sw-seed" :style="{fontSize:(w.size || 28) + 'px'}"><span>{{w.prefix ? 'Seed ' : ''}}<b>{{store.game.seed.final ? seedLabel(store.game.seed) : 'inconnue'}}</b></span></div>
       <div v-else-if="w.type==='statcurve'" class="st-chart sw-chart">
         <div v-if="w.title" class="st-chart-title">Checks faits au fil du temps de jeu<small v-if="statsC.curve"> (jusqu'à {{statsC.curve.max}})</small></div>
         <template v-if="statsC.curve"><svg viewBox="0 0 600 150" preserveAspectRatio="none"><path class="st-area" :d="statsC.curve.area"></path><path class="st-line" :d="statsC.curve.d"></path></svg>
@@ -264,9 +305,33 @@ function streamTemplate(parts){ return `
           <label class="swp-row">Taille <input type="number" class="swp-num" v-model.number="swSelW.size" min="10" max="200"> px</label></template>
         <label v-else-if="swSelW.type==='game'" class="check"><input type="checkbox" v-model="swSelW.frame">Cadre doré</label>
         <template v-else-if="swSelW.type==='stattiles'">
-          <label class="check"><input type="checkbox" v-model="swSelW.play">Temps de jeu</label>
-          <label class="check"><input type="checkbox" v-model="swSelW.checks">Checks faits</label>
-          <label class="check"><input type="checkbox" v-model="swSelW.entr">Entrées trouvées (entrées mélangées)</label></template>
+          <div class="swp-chips"><span v-for="(k, i) in swSelW.tiles" :key="k" class="swp-chip"><img v-if="STREAM_METRICS[k].icon" :src="STREAM_METRICS[k].icon" alt="">{{STREAM_METRICS[k].label}}
+            <button type="button" title="Avant" @click="swArrMove(swSelW.tiles, i, -1)">‹</button><button type="button" title="Après" @click="swArrMove(swSelW.tiles, i, 1)">›</button><button type="button" title="Retirer" @click="swSelW.tiles.splice(i, 1)">×</button></span></div>
+          <select class="sel" value="" @change="$event.target.value && swSelW.tiles.push($event.target.value); $event.target.value = ''" aria-label="Ajouter un compteur">
+            <option value="">Ajouter un compteur…</option><option v-for="(m, k) in STREAM_METRICS" :key="k" :value="k" :disabled="swSelW.tiles.includes(k)">{{m.label}}</option></select>
+          <label class="check"><input type="checkbox" v-model="swSelW.icons">Icônes</label>
+          <p class="swp-note">Entrées : seulement avec des entrées mélangées ; Triforce : avec la chasse à la Triforce.</p></template>
+        <template v-else-if="swSelW.type==='pick'">
+          <div class="swp-chips"><span v-for="(k, i) in swSelW.keys" :key="k" class="swp-chip"><img :src="iconSrc(ITEM_BY_KEY[k].path, ITEM_BY_KEY[k])" alt="">{{ITEM_BY_KEY[k].label}}
+            <button type="button" title="Avant" @click="swArrMove(swSelW.keys, i, -1)">‹</button><button type="button" title="Après" @click="swArrMove(swSelW.keys, i, 1)">›</button><button type="button" title="Retirer" @click="swSelW.keys.splice(i, 1)">×</button></span></div>
+          <select class="sel" value="" @change="swPickAdd(swSelW, $event.target.value); $event.target.value = ''" aria-label="Ajouter des objets">
+            <option value="">Ajouter un objet ou un groupe…</option>
+            <optgroup v-for="(g, gi) in STREAM_ITEM_GROUPS" :key="g.title" :label="g.title"><option :value="'group:' + gi">— Tout le groupe « {{g.title}} »</option>
+              <option v-for="it in g.items" :key="it.key" :value="it.key" :disabled="swSelW.keys.includes(it.key)">{{it.label}}</option></optgroup></select>
+          <div class="swp-row"><label class="swp-row">Colonnes <input type="number" class="swp-num swp-small" v-model.number="swSelW.cols" min="1" max="24"></label>
+            <button type="button" class="btn" :disabled="!swSelW.keys.length" @click="swSelW.keys.splice(0)">Tout retirer</button></div>
+          <seg v-model="swSelW.off" :options="[['dim','Non obtenus estompés'],['hide','Masqués']]"></seg>
+          <label class="check"><input type="checkbox" v-model="swSelW.frame">Cadre</label></template>
+        <template v-else-if="swSelW.type==='gauge'">
+          <select v-model="swSelW.metric" class="sel" aria-label="Compteur de la jauge"><option v-for="[k, m] in Object.entries(STREAM_METRICS).filter(e => e[1].num)" :key="k" :value="k">{{m.label}}</option></select>
+          <label class="check"><input type="checkbox" v-model="swSelW.label">Libellé et nombre</label></template>
+        <template v-else-if="swSelW.type==='timer'">
+          <label class="swp-row">Taille <input type="number" class="swp-num" v-model.number="swSelW.size" min="10" max="300"> px</label>
+          <label class="check"><input type="checkbox" v-model="swSelW.label">Libellé « temps de jeu »</label></template>
+        <template v-else-if="swSelW.type==='seed'">
+          <label class="swp-row">Taille <input type="number" class="swp-num" v-model.number="swSelW.size" min="10" max="200"> px</label>
+          <label class="check"><input type="checkbox" v-model="swSelW.prefix">Mot « Seed » devant</label>
+          <p class="swp-note">Seed de la partie, retenue à l'import du spoiler (Configuration).</p></template>
         <label v-else-if="swSelW.type==='statcurve'" class="check"><input type="checkbox" v-model="swSelW.title">Titre</label>
         <template v-else-if="swSelW.type==='timeline'">
           <seg v-model="swSelW.filter" :options="[['items','Objets et chants'],['checks','Checks'],['all','Tout']]"></seg>
@@ -321,7 +386,7 @@ function streamTemplate(parts){ return `
 
 /* Éditeur de la fenêtre de stream, dans le setup d'App (STREAM : fenêtre de stream ou non). Renvoie ce que le gabarit
    utilise. */
-function useStream(STREAM){
+function useStream(STREAM, app = {}){
   const ss = reactive(loadStream());
   if (STREAM) watch(ss, () => { try { localStorage.setItem(STREAM_KEY, JSON.stringify(ss)); } catch (e) {} }, { deep:true });
   const sp = computed(() => ss.profiles.find(p => p.id === ss.active) || ss.profiles[0]);
@@ -366,7 +431,46 @@ function useStream(STREAM){
   const swLayers = computed(() => [...sp.value.widgets].reverse());
   // contenu à sa largeur naturelle, agrandi ou réduit (zoom) à la largeur du widget ; image, texte, espace : à sa taille
   const swBase = w => w.cols === 2 && STREAM_TYPES[w.type].base2 || STREAM_TYPES[w.type].base;
-  const swBodyStyle = w => STREAM_TYPES[w.type].free ? null : { width:swBase(w) + 'px', zoom:w.w / swBase(w) };
+  const swBodyStyle = w => STREAM_TYPES[w.type].free || STREAM_TYPES[w.type].auto ? null : { width:swBase(w) + 'px', zoom:w.w / swBase(w) };
+  /* Compteurs : valeur affichée (texte) et, pour une jauge, nombre obtenu / total. app : valeurs de l'appli (checkStats,
+     stats, playNow, fmtDur). */
+  function swMetricNum(k){
+    const it = store.game.items, cs = app.checkStats?.() || {}, st = app.stats?.() || {}, s = store.settings;
+    switch (k){
+      case 'checks': return [cs.got || 0, cs.total || 0];
+      case 'entr': return [st.mapped || 0, st.editable || 0];
+      case 'rewards': return [STREAM_REWARDS.filter(r => it[r]).length, 9];
+      case 'skulls': return [it.skulltulaTokens || 0, 100];
+      case 'pieces': return [it.heartPieces || 0, 36];
+      case 'containers': return [it.heartContainers || 0, 8];
+      case 'triforce': return [it.triforcePieces || 0, s.triforceHuntRequired || 0];
+    }
+    return [0, 0];
+  }
+  function swMetric(k){
+    const it = store.game.items, cs = app.checkStats?.() || {}, loot = store.game.loot;
+    if (STREAM_METRICS[k]?.num){ const [a, b] = swMetricNum(k); return a + ' / ' + b; }
+    switch (k){
+      case 'play': { const t = app.playNow?.() || 0; return t ? app.fmtDur(t) : '—'; }
+      case 'left': return String((cs.total || 0) - (cs.got || 0));
+      case 'avail': return String(cs.avail || 0);
+      case 'pct': return (cs.total ? Math.floor(cs.got * 100 / cs.total) : 0) + ' %';
+      case 'hearts': return String((store.settings.startingHearts || 3) + (it.heartContainers || 0) + Math.floor((it.heartPieces || 0) / 4));
+      case 'ice': return String(loot.iceTraps || 0);
+      case 'rupees': return (loot.rupeeValue || 0) + ' ₹';
+    }
+    return '';
+  }
+  const swMetricShown = k => !!STREAM_METRICS[k] && (k !== 'entr' || !!app.stats?.().editable) && (k !== 'triforce' || store.settings.triforceHunt !== 'Off');
+  const swGaugePct = k => { const [a, b] = swMetricNum(k); return b ? Math.min(100, a * 100 / b) : 0; };
+  // Objets à la carte : objets choisis (non obtenus masqués en option) ; ajout d'un objet ou de tout un groupe
+  const swPickKeys = w => (w.keys || []).filter(k => ITEM_BY_KEY[k] && (w.off !== 'hide' || itemActive(ITEM_BY_KEY[k], store.game[ITEM_BY_KEY[k].path][k])));
+  function swPickAdd(w, v){
+    if (!v) return;
+    const add = v.startsWith('group:') ? STREAM_ITEM_GROUPS[+v.slice(6)].items.map(it => it.key) : [v];
+    add.forEach(k => { if (!w.keys.includes(k)) w.keys.push(k); });
+  }
+  function swArrMove(a, i, d){ const j = i + d; if (j < 0 || j >= a.length) return; const [x] = a.splice(i, 1); a.splice(j, 0, x); }
   const nextId = () => Math.max(0, ...sp.value.widgets.map(w => w.id)) + 1;
 
   /* Historique (annuler / rétablir) : instantanés de la disposition affichée, pris 300 ms après la dernière modification
@@ -537,7 +641,8 @@ function useStream(STREAM){
     });
     window.addEventListener('dblclick', ev => { if (!swEdit.value && !ev.target.closest('input')) swEdit.value = true; });
   }
-  return { STREAM_THEMES, STREAM_FONTS, swTheme, swChroma, swThemeVars, swWidgetVars, swThemeFrom, swOwnStyle,
+  return { STREAM_METRICS, STREAM_ITEM_GROUPS, ITEM_BY_KEY, iconSrc, swMetric, swMetricShown, swGaugePct, swPickKeys, swPickAdd, swArrMove,
+    STREAM_THEMES, STREAM_FONTS, swTheme, swChroma, swThemeVars, swWidgetVars, swThemeFrom, swOwnStyle,
     STREAM, STREAM_TYPES, STREAM_CATS, STREAM_CANVAS, swScale, swPreset, swSetPreset, swFitWindow, swFitMsg, ss, sp, swEdit, swSel, swHint, swGuides, swMsg, swSelW, swLayers, streamBg, swBodyStyle,
     swDown, swMove, swUp, swNew, swDup, swDelete, swLayer, swReset, swImage, swUndo, swRedo, swCanUndo, swCanRedo,
     swProfileNew, swProfileDup, swProfileDel, swExport, swImport };

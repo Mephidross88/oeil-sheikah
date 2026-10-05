@@ -725,7 +725,15 @@ a son propre stockage et ne verrait pas la partie).
   fichier choisi, gardé en data URL), Texte ; widgets de la page Statistiques : Compteurs (tuiles au choix : temps de
   jeu, checks faits, entrées trouvées ; `stattiles`), Courbe des checks (au fil du temps de jeu, titre en option ;
   `statcurve`), Chronologie (dernières lignes de la chronologie : objets et chants, checks ou tout, nombre de lignes,
-  temps de jeu de chaque ligne en option ; `timeline`). Le temps de jeu défile à la seconde dans la fenêtre de stream
+  temps de jeu de chaque ligne en option ; `timeline`) ; Objets à la carte (`pick` : objets choisis un à un ou par groupe
+  du catalogue du panneau Objets, dans l'ordre voulu, nombre de colonnes, non obtenus estompés ou masqués, cadre en
+  option ; largeur choisie, hauteur selon le contenu), Donjons (grille des donjons du panneau Objets, `dungeons`),
+  Compteurs à la carte (`stattiles` : liste ordonnée de compteurs `STREAM_METRICS` — temps de jeu, checks faits /
+  restants / faisables / %, entrées trouvées (entrées mélangées seulement), pierres et médaillons, Skulltulas, cœurs,
+  quarts de cœur, réceptacles, morceaux de Triforce (chasse à la Triforce seulement), pièges de glace, rubis trouvés ;
+  icônes en option ; les Compteurs d'avant gardent leurs trois cases), Jauge (barre d'un compteur « obtenu / total »,
+  libellé en option ; `gauge`), Temps de jeu (grand chronomètre, taille, libellé ; `timer`), Seed (empreinte de la seed
+  de la partie, « Seed » devant en option ; `seed`). Le temps de jeu défile à la seconde dans la fenêtre de stream
   tant que la fenêtre principale prolonge la période de jeu (toutes les 10 s). Contenus à leur largeur naturelle, mis à l'échelle de la largeur du bloc
   (`zoom`) ; Espace vide, Image et Texte à la taille du bloc.
 - **Dispositions** (profils) : plusieurs dispositions nommées, une seule affichée ; chacune a son fond, sa toile, son thème et ses widgets.
