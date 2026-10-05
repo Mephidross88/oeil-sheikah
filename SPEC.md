@@ -641,8 +641,9 @@ Règles d'interface :
     restent toujours seuls sur leur carte : une marche qui part du départ ou mène à la sortie visée est affichée
     comme une pastille « À pied » entre deux cartes ; la carte d'arrivée (sortie visée) est mise en évidence. Départ
     suivi d'une transition par la sortie de départ elle-même (on reprend la sortie par laquelle on vient d'apparaître,
-    en entrées découplées) : bloc dédié « Reprendre cette sortie » (« Prendre cette sortie » pour un départ choisi à la
-    main ; icône de demi-tour, zone et sortie en dessous) entre la carte de départ et la transition — seulement au
+    en entrées découplées) : bloc dédié « Reprendre cette sortie » quand le départ suit le jeu et que c'est l'entrée par
+    laquelle on vient d'arriver (`link.position`), sinon « Prendre cette sortie » (départ choisi à la main, ou sortie la
+    plus proche de Link en temps réel ; icône de demi-tour, zone et sortie en dessous) entre la carte de départ et la transition — seulement au
     départ, pour la lisibilité ;
   - entre deux cartes, un simple trait pour une transition (avec ses objets éventuels, et son coût si affiché), et une
     pastille pour les déplacements « actifs » (téléporteur bleu, vol du hibou, chant, sauvegarder-recharger, et marche
@@ -955,11 +956,12 @@ Suivi en direct d'une partie de Ship of Harkinian, sans modifier le jeu.
   position devient le Temple du Temps). Âge connu = celui du départ du Routeur quand il suit la position (une correction
   à la main est donc reprise), sinon le dernier déduit. L'état répété à la connexion de l'appli ne compte pas comme un
   nouveau voyage dans le temps. Position affichée dans la fenêtre Auto-tracking, et le départ du Routeur la suit
-  (mention « Départ suivi en direct »).
+  (mention « Départ suivi en direct » ; le bloc « Départ » du formulaire et la carte de départ du trajet s'appellent
+  alors « Position actuelle »).
   Tant que le départ est suivi en direct (jeu connecté), la prochaine étape du trajet est mise en lumière : trait doré
   depuis le départ, déplacement et éventuel changement d'âge, et carte suivante marquée « Prochaine destination » (ou
   « Arrivée »), entourée d'un anneau doré qui respire (fixe si l'utilisateur réduit les animations). Si la prochaine
-  étape est de reprendre la sortie par laquelle on vient d'apparaître, c'est le bloc « Reprendre cette sortie » qui est
+  étape est de prendre la sortie de départ, c'est le bloc « Reprendre cette sortie » (ou « Prendre », voir Trajet) qui est
   mis en lumière (« Prochaine étape »), et la carte suivante reste normale.
   Entrée d'arrivée inconnue (grotte non reconnue, zones non mélangées, écran titre) : position inchangée. Entrée
   d'arrivée partagée par plusieurs grottes (voir Entrées) : la position retient la seule de ces grottes où mène une

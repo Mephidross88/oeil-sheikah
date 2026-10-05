@@ -1411,7 +1411,7 @@ ${STREAM_TPL}
       <div class="page-head"><h1>Routeur</h1><p class="lede">Chemin le plus court entre deux sorties, selon ce que vous avez découvert et l'état de la partie.</p></div>
       <div class="rform">
         <div class="rline">
-          <div class="rtag">Départ</div>
+          <div class="rtag" :class="{live:liveStart}" :title="liveStart ? 'Départ suivi en direct : la sortie où vous êtes, d’après le jeu' : null">{{liveStart ? 'Position actuelle' : 'Départ'}}</div>
           <div class="field"><label for="fa">Zone</label>
             <select id="fa" class="sel" v-model="ui.router.fromArea"><option value="" disabled>Choisir une zone</option>
               <option v-for="a in pickAreas(ui.router.fromArea)" :key="a.id" :value="a.id">{{a.name}}</option></select></div>
@@ -1465,7 +1465,7 @@ ${STREAM_TPL}
               <type-icon :type="iconKey(EXIT[it.key0])" :src="exitIcon(EXIT[it.key0])"></type-icon>
               <button v-if="MAPS_OK && MAP_SCENES[EXIT[it.key0].areaId]" type="button" class="node-map" title="Voir sur la carte" v-html="ICONS.map"
                 @click.stop="openMap(it.rows[it.rows.length - 1].key)"></button>
-              <div class="role" v-if="it.start || it.end || liveStart && it.next">{{it.start && it.end ? 'Départ et arrivée' : it.start ? 'Départ' : it.end ? 'Arrivée' : 'Prochaine destination'}}</div>
+              <div class="role" v-if="it.start || it.end || liveStart && it.next">{{it.start && it.end ? (liveStart ? 'Position actuelle et arrivée' : 'Départ et arrivée') : it.start ? (liveStart ? 'Position actuelle' : 'Départ') : it.end ? 'Arrivée' : 'Prochaine destination'}}</div>
               <b>{{areaName(it.key0)}}</b>
               <template v-for="(row, j) in it.rows" :key="j">
                 <div v-if="j" class="node-walk">
@@ -1484,7 +1484,9 @@ ${STREAM_TPL}
               <div class="node retake" :class="{next:liveStart && it.next}" :title="EXIT[it.key].soh">
                 <span class="ticon" v-html="ICONS.uturn"></span>
                 <div class="role" v-if="liveStart">Prochaine étape</div>
-                <b>{{liveStart ? 'Reprendre' : 'Prendre'}} cette sortie</b>
+                <!-- « Reprendre » seulement pour l'entrée par laquelle on vient d'arriver (position suivie) : sinon, en direct, le
+                     départ n'est que la sortie la plus proche de Link -->
+                <b>{{liveStart && link.position && link.position.key === it.key ? 'Reprendre' : 'Prendre'}} cette sortie</b>
                 <div class="sub">{{areaName(it.key)}} · {{EXIT[it.key].label}}</div>
               </div>
             </template>

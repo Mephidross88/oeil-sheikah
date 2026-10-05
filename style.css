@@ -1023,6 +1023,7 @@ select.sel:hover{border-color:var(--gold)}
   container-type:inline-size}
 .rline{display:grid;grid-template-columns:92px minmax(0,1fr) minmax(0,1.2fr) auto;gap:14px;align-items:end}
 .rline .rtag{font-family:var(--serif);font-size:19px;padding-bottom:9px}
+.rline .rtag.live{font-size:16px;line-height:1.15}
 /* ligne Départ : bouton « Ma position » en dernière colonne */
 :where(.rline):has(> .rme){grid-template-columns:92px minmax(0,1fr) minmax(0,1.2fr) auto auto}
 .rme{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;margin-bottom:1px}
