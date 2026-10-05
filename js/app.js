@@ -779,6 +779,24 @@ const App = {
     watch(() => ui.router.toExit, (to, old) => { if (to && to !== old && EXIT[to]) ui.next.follow = 'router'; });
     watch(() => [ui.router.fromExit, ui.router.toExit], ([from, to]) => { if (ui.next.follow === 'router' && from && from === to) ui.next.follow = 'auto'; });
     const dockAuto = () => { ui.next.follow = 'auto'; };
+    /* Prix des boutiques, pestes Mojo et marchands (game.prices) : connu quand le jeu identifie l'objet (curseur en boutique ;
+       pestes et marchands avec « Scrub / Merchant Hint Text », spoiler caché), ou noté à la main ; la logique le compare
+       à la bourse. Champ de saisie : Entrée ou clic ailleurs enregistre, vide efface, Échap annule. */
+    const PRICE_TYPES = new Set(['SHOP', 'SCRUB', 'MERCHANT']), WALLET_CAP = [0, 99, 200, 500, 999, 999];
+    const priceEdit = ref(null);
+    function setPrice(c, v){
+      const n = parseInt(v, 10);
+      if (Number.isFinite(n) && n >= 0) store.game.prices[c.id] = Math.min(n, 999); else delete store.game.prices[c.id];
+      priceEdit.value = null;
+    }
+    const priceOver = c => store.game.prices[c.id] > (WALLET_CAP[store.game.items.wallet] ?? 999);
+    function priceTitle(c){
+      const p = store.game.prices[c.id];
+      return p == null ? 'Prix inconnu : cliquer pour noter le prix lu en jeu (la logique le comparera à votre bourse)'
+        : 'Prix : ' + p + ' rubis' + (priceOver(c) ? ' — votre bourse ne suffit pas' : '') + ' (cliquer pour modifier)';
+    }
+    // focus à l'ouverture du champ seulement (une ref fonction est rappelée à chaque rendu)
+    const focused = new WeakSet(), focusEl = el => { if (el && !focused.has(el)){ focused.add(el); nextTick(() => { el.focus(); el.select(); }); } };
     // « Pourquoi ? » : ce qui manque pour un check pas encore faisable (whyLocked, calcul de ~1 s, lancé après affichage)
     const why = reactive({ check:null, res:null });
     function openWhy(c){
@@ -1122,7 +1140,7 @@ const App = {
     return { store, ui, s, views, navGroups, link, LINK_LABEL, linkRequestState, linkAdoptSave, driftSel, driftList, driftGroups, openDrift, driftCount, driftAll, driftApply, driftVal, driftIcon, driftLabel, linkAsks, linkAnswer, askFrom, askLabel, canSplit, splitOn, shown, paneOf, swapPanes, openSide, closeSide, navOpen, itemsOpen, modal, tip, tipData, backup, stats, missingSpawns, visibleAreas,
       ICONS, ITEMS_PAGE, ITEM_BY_KEY, DUNGEONS, DUNGEON_BY_ID, CHECKLISTS, AREA, EXIT, DATA_ERRORS,
       iconKey, exitIcon, areaName, toggleArea, setAll, jump, go, showTip, hideTip, toggleTip, setMapping, clearMapping,
-      checkAreasC, checkStats, toggleCheckArea, lastCheck, toggleCheck, toggleExcluded, undoCheck, foundInfo, seenInfo, loadSpoilerFile, linkClearSpoiler, linkSpoilerOk, goToCheck, goToZone, why, openWhy, nextC, stepsLabel, goMsg, setAllChecks, jumpCheck, setCheck, setExcluded, CHECK_AREA,
+      checkAreasC, checkStats, toggleCheckArea, PRICE_TYPES, priceEdit, setPrice, priceOver, priceTitle, focusEl, lastCheck, toggleCheck, toggleExcluded, undoCheck, foundInfo, seenInfo, loadSpoilerFile, linkClearSpoiler, linkSpoilerOk, goToCheck, goToZone, why, openWhy, nextC, stepsLabel, goMsg, setAllChecks, jumpCheck, setCheck, setExcluded, CHECK_AREA,
       CHECK_CATS, CHECK_CAT, catCounts, toggleCat, zoneTitle, soloCat, allCats, CHECK_AGES, ageLabelShort, ageKnown, checkGroups,
       lg, canNow, timeOf, checkLogicTitle, CHILD, ADULT,
       panelSkills, panelChecklists, cells, dungeonRows, skeletonShown, atStart, visibleKeys,
@@ -1347,13 +1365,20 @@ ${STREAM_TPL}
                 <span class="ci-cat"><img v-if="!brokenIcons[CHECK_CAT[c.cat].icon]" :src="CHECK_CAT[c.cat].icon" alt="" @error="brokenIcons[CHECK_CAT[c.cat].icon]=true"><span v-else class="cat-fallback" :style="{'--cc':CHECK_CAT[c.cat].color}">{{CHECK_CAT[c.cat].label[0]}}</span></span>
                 <span class="ci-label">{{c.label}}<span v-if="hintsC.checks[c.id]" class="ci-hint" :title="'Indice : ' + hintsC.checks[c.id].join(' · ')" v-html="ICONS.hint"></span><span v-if="ui.checks.showFound && store.game.found[c.id] !== undefined" class="ci-found"
                   :title="'Objet trouvé : ' + foundInfo(store.game.found[c.id]).title"><img v-if="foundInfo(store.game.found[c.id]).src" :src="foundInfo(store.game.found[c.id]).src" alt="">{{foundInfo(store.game.found[c.id]).title}}</span><span
-                  v-else-if="ui.checks.showFound && store.game.seen[c.id]" class="ci-found seen" :title="'En vente : ' + seenInfo(store.game.seen[c.id]).title + (store.game.seen[c.id][1] != null ? ' — ' + store.game.seen[c.id][1] + ' rubis' : '')"><img
-                  v-if="seenInfo(store.game.seen[c.id]).src" :src="seenInfo(store.game.seen[c.id]).src" alt="">{{seenInfo(store.game.seen[c.id]).title}}<b v-if="store.game.seen[c.id][1] != null">{{store.game.seen[c.id][1]}} ₹</b></span></span>
+                  v-else-if="ui.checks.showFound && store.game.seen[c.id]" class="ci-found seen" :title="'En vente : ' + seenInfo(store.game.seen[c.id]).title"><img
+                  v-if="seenInfo(store.game.seen[c.id]).src" :src="seenInfo(store.game.seen[c.id]).src" alt="">{{seenInfo(store.game.seen[c.id]).title}}</span></span>
                 <span v-if="timeOf(lg(c).ever)" class="time-mark" :class="timeOf(lg(c).ever)">{{timeOf(lg(c).ever) === 'night' ? '☾' : '☀'}}</span>
                 <span v-if="lg(c).age" class="age-pill" :class="lg(c).age">
                   <i v-if="lg(c).age !== 'adult'" :class="{now:lg(c).now & CHILD}">E</i><i v-if="lg(c).age !== 'child'" :class="{now:lg(c).now & ADULT}">A</i></span>
                 <span v-else class="age-pill never">—</span>
                 <span class="cr-mark" v-html="store.game.checks[c.id] ? ICONS.check : ICONS.circleO"></span></button>
+              <template v-if="PRICE_TYPES.has(c.type) && !store.game.checks[c.id]">
+                <input v-if="priceEdit === c.id" :ref="focusEl" class="ci-price-in" type="number" min="0" max="999" step="5" placeholder="Prix"
+                  :value="store.game.prices[c.id] ?? ''" aria-label="Prix en rubis" @keydown.enter="$event.target.dataset.cancel = '1'; setPrice(c, $event.target.value)"
+                  @keydown.esc="$event.target.dataset.cancel = '1'; priceEdit = null" @blur="$event.target.dataset.cancel || setPrice(c, $event.target.value)">
+                <button v-else type="button" class="ci-ex ci-price" :class="{known:store.game.prices[c.id] != null, over:priceOver(c)}" :title="priceTitle(c)"
+                  @click="priceEdit = c.id">{{store.game.prices[c.id] != null ? store.game.prices[c.id] : '?'}}<small>₹</small></button>
+              </template>
               <button v-if="!store.game.checks[c.id] && !canNow(c)" type="button" class="ci-ex ci-go" title="Pourquoi ce check n’est pas faisable ?" v-html="ICONS.why" @click="openWhy(c)"></button>
               <button v-if="!store.game.checks[c.id]" type="button" class="ci-ex ci-go" title="Y aller (Routeur, depuis le départ actuel)" v-html="ICONS.router" @click="goToCheck(c)"></button>
               <button type="button" class="ci-ex" :title="s.excluded[c.id] ? 'Réintégrer ce check' : 'Exclure ce check (ne compte plus)'"

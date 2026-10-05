@@ -361,7 +361,10 @@ function linkReveal(rc){
   const c = CHECK_BY_NUM[rc], st = linkStatuses[rc] || 0, loc = c && linkSpoiler.locations[c.id];
   if (!loc || !loc[0]) return;
   if (st >= CHECK_DONE && store.game.found[c.id] === undefined) store.game.found[c.id] = RG_BY_FR[loc[0]] ?? loc[0];
-  if (st >= 1 && SEEN_TYPES.has(c.type) && !store.game.seen[c.id]) store.game.seen[c.id] = [loc[2] || loc[0], loc[1]];
+  if (st >= 1 && SEEN_TYPES.has(c.type) && !store.game.seen[c.id]) store.game.seen[c.id] = [loc[2] || loc[0], null];
+  // prix : seulement une fois l'objet identifié (curseur en boutique ; pestes et marchands avec « Scrub / Merchant Hint
+  // Text »), comme le tracker de SoH ; un prix noté à la main n'est pas remplacé
+  if (st >= 2 && SEEN_TYPES.has(c.type) && loc[1] != null && store.game.prices[c.id] == null) store.game.prices[c.id] = loc[1];
 }
 function linkRevealAll(){ if (linkSpoilerOk()) Object.keys(linkStatuses).forEach(rc => linkReveal(+rc)); }
 

@@ -7,6 +7,8 @@ function defaults(){
     loot:{ iceTraps:0, rupees:0, rupeeValue:0, junk:0 },
     found:{},     // found : objet trouvé dans chaque check { id: numéro RandomizerGet, ou nom du spoiler } (auto-tracking)
     seen:{},      // seen : objets vus en boutique / chez les pestes et marchands { id: [nom affiché, prix] } (spoiler caché)
+    prices:{},    // prices : prix connus des boutiques, pestes Mojo et marchands { id: rubis } — objet identifié en jeu (spoiler
+                  // caché) ou noté à la main ; la logique les compare à la bourse (GetCheckPrice)
     hints:{},     // hints : indices des pierres lues { id de la pierre: { t: type (HINT_TYPES), text, area: zone, check } }
     timeline:[],  // timeline : objets, chants et checks obtenus { t: heure (ms) ou null (avant le suivi), k: items | songs | checks, id, v }
     runStart:0,   // runStart : début de la partie dans le jeu (ship.stats.firstInput de la sauvegarde, ms), 0 si inconnu
@@ -194,6 +196,7 @@ function fullGame(s){
   DUNGEONS.forEach(d => Object.assign(g.dungeons[d.id], { map:true, compass:true, bossKey:true, soul:true, ringGot:true,
     keys:Math.max(d.maxKeys || 0, d.mqKeys || 0), quest:store.game.dungeons[d.id].quest }));
   Object.assign(g.trials, store.game.trials);   // tirage du seed, comme la version des donjons
+  Object.assign(g.prices, store.game.prices);   // prix connus : propres à la seed
   Object.values(g.checklists).forEach(c => Object.keys(c).forEach(k => { c[k] = true; }));
   return g;
 }

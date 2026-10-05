@@ -68,7 +68,7 @@ l'utilisateur ; ne pas se fier à la branche `develop`, qui a d'autres options).
 
 - **Périmètre** : seulement les options qui changent la logique, les checks ou les objets suivis (184 sur
   231). Les prix des boutiques, pestes Mojo et marchands en font partie : la logique de SoH exige de pouvoir
-  payer le prix **minimal** d'un check non identifié, qui dépend du réglage (Vanilla → prix vanilla ; Équilibrés
+  payer le prix **minimal** d'un check non identifié (le vrai prix une fois connu : page Checks > Prix), qui dépend du réglage (Vanilla → prix vanilla ; Équilibrés
   → 0 ; Fixes → le prix fixé ; Fourchette → le minimum ; Selon la bourse → 0, 1, 100, 201 ou 501 selon la
   première bourse de poids non nul). Affichés seulement si le type de lieu est mélangé (comme SoH), mais
   toujours utilisés. Ignorées (`SETTINGS_IGNORED`) : bornes hautes, poids « magnat » et « prix abordables »
@@ -227,7 +227,8 @@ passages SoH, 5. Routeur sur le graphe SoH — **faits**).
   les téléporteurs bleus empruntés) ; épreuve de Ganon tirée au sort et pas encore notée (panneau Objets) =
   requise ; haricots plantés
   seulement avec « Haricots déjà plantés » + haricots au départ ; version de donjon inconnue → branches Vanilla et
-  MQ toutes deux explorées ; prix vus en jeu non suivis (prix minimal).
+  MQ toutes deux explorées ; prix d'un check identifié = celui de `game.prices` (identifié en jeu avec le spoiler caché,
+  ou noté à la main), sinon le prix minimal — comme SoH, qui ne prend le vrai prix qu'une fois l'objet identifié.
 - **Validation** (outil de test, jamais dans l'appli) : `node tools/soh-logic/replay_spoilers.mjs <dossier>`
   rejoue chaque spoiler sphère par sphère en ramassant tous les objets accessibles, avec les entrées du spoiler
   (`entrances` : l'entrée `index` mène là où mène normalement l'entrée `override`) ; tous les lieux du playthrough
@@ -494,6 +495,13 @@ check) ; règles dans `js/checks.js`.
   défaut) : dans chaque zone, faisables maintenant, puis pas encore faisables, puis faits.
 - **Annuler** : cocher / décocher ou exclure / réintégrer un check affiche quelques secondes un bandeau en bas
   d'écran (« … coché · Annuler », « … exclu · Annuler ») pour revenir en arrière (clic malencontreux).
+- **Prix** (boutiques, pestes Mojo, marchands à faire) : puce à droite du check, le prix en rubis quand il est connu
+  (doré ; rouge si la bourse notée ne suffit pas), « ? » au survol sinon. Clic : champ pour noter le prix lu en jeu
+  (Entrée ou clic ailleurs enregistre, vide efface, Échap annule) — indispensable pour les pestes et marchands quand
+  « Scrub / Merchant Hint Text » est désactivé (le jeu ne les identifie pas). Rempli tout seul par l'auto-tracking avec
+  le spoiler caché quand le jeu identifie l'objet (Auto-tracking > Spoiler caché). `game.prices` { id: rubis } ; la
+  logique (`GetCheckPrice`) compare ce prix à la bourse, au lieu du prix minimal : « Pourquoi ? » demande alors la
+  bourse qui suffit.
 - **Pourquoi pas encore ?** : bouton « ? » au survol d'un check pas encore faisable. Fenêtre qui dit pourquoi
   (`whyLocked` dans `state.js`, calculé au clic) : jamais faisable (configuration) ; derrière une entrée pas encore
   découverte (pas faisable même avec tous les objets et les entrées notées) ; sinon les objets qui manquent, au plus
@@ -969,9 +977,12 @@ Suivi en direct d'une partie de Ship of Harkinian, sans modifier le jeu.
   Configuration : case « Le garder aussi pour l'auto-tracking », `ui.importLinkSpoiler`, cochée par défaut) : le fichier spoiler de la seed est
   gardé à part (localStorage `oeil-sheikah-spoiler`, jamais affiché tel quel) et ne sert qu'à révéler ce que le jeu a
   déjà montré, seulement si son `finalSeed` est le seed envoyé par le jeu : objet de chaque check ramassé (statut SoH 4+,
-  y compris ceux faits avant de lancer le relais, d'après la sauvegarde complète) ; objets et prix des boutiques, pestes
-  et marchands vus (statut 1+ : `game.seen`, l'apparence de l'objet, comme en jeu, pour ne pas trahir un piège de glace
-  déguisé ; affichés en pointillés avec le prix). « Oublier » efface le spoiler gardé.
+  y compris ceux faits avant de lancer le relais, d'après la sauvegarde complète) ; objets des boutiques, pestes et
+  marchands vus (statut 1+ : `game.seen`, l'apparence de l'objet, comme en jeu, pour ne pas trahir un piège de glace
+  déguisé ; affichés en pointillés) ; leur prix une fois identifiés (statut 2+ : curseur sur l'objet en boutique ;
+  pestes et marchands en leur parlant, seulement avec « Scrub / Merchant Hint Text » — comme le tracker de SoH, qui ne
+  montre le prix qu'à ce moment) → `game.prices`, sans remplacer un prix noté à la main. « Oublier » efface le spoiler
+  gardé.
 - **Entrées** (option « les entrées », `ui.link.entrances`) : le jeu signale l'entrée prise la première fois
   (`ENTRANCE_DISCOVERED`, même numéro que nos sorties), puis l'entrée par laquelle on apparaît (~1 s après, état du
   client) ; la destination est notée dans Entrées (`setMapping`, sens inverse compris en entrées couplées ; en

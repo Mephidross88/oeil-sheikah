@@ -883,7 +883,12 @@ html.stream-mode,html.stream-mode body{background:transparent;overflow:hidden}
   color:var(--ocarina);background:var(--ocarina-soft);text-decoration:none;font-style:normal;vertical-align:1px;white-space:nowrap}
 .ci-found img{width:16px;height:16px;object-fit:contain}
 .ci-found.seen{background:none;border:1px dashed color-mix(in srgb,var(--ocarina) 55%,var(--line))}
-.ci-found.seen b{margin-left:4px;color:var(--gold-deep)}
+/* prix d'une boutique / peste Mojo / marchand : connu (toujours visible), inconnu « ? » (au survol), trop cher pour la bourse */
+.ci-price{width:auto;min-width:28px;padding:0 6px;font-size:13px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.ci-price small{margin-left:2px;font-size:11px}
+.ci-price.known{opacity:1;color:var(--gold-deep);font-weight:600}
+.ci-price.over{color:var(--red)}
+.ci-price-in{flex:none;width:64px;height:26px;padding:0 6px;border:1px solid var(--line);border-radius:7px;background:var(--surface);color:var(--text);font:inherit;font-size:13px}
 .link-spoiler{border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px}
 .link-spoiler p{margin:4px 0 8px;color:var(--muted);font-size:13.5px}
 .link-spoiler-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px}

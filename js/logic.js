@@ -6,8 +6,8 @@
    contexte global « L » ci-dessous (âge et moment courants, objets, options, événements).
    Écarts assumés avec le tracker in-game (documentés dans SPEC.md > Logique) :
    - DungeonCount compte les donjons terminables en logique (événements LOGIC_*_CLEAR), comme le générateur ;
-   - GetCheckPrice : prix minimal selon le réglage de prix (comme un check non identifié en jeu) ; les prix vus en jeu
-     ne sont pas suivis ;
+   - GetCheckPrice : prix connu (game.prices : identifié en jeu, ou noté à la main), sinon prix minimal selon le réglage
+     de prix (comme un check non identifié en jeu) ;
    - épreuves de Ganon : seules « aucune » (ou 0) sont connues comme passées ;
    - haricots plantés : seulement « Haricots déjà plantés » + haricots au départ ;
    - version de donjon inconnue : les branches Vanilla et MQ sont toutes deux explorées. */
@@ -156,9 +156,13 @@ const L = {
     if (!this.HasItem(bean)) return false;
     return this.s.skipPlantingBeans === 'On' && this.s.startingBeans === 'Yes';
   },
-  // Prix d'un check non identifié en jeu : le minimum possible selon le réglage de prix (GetMinimumPrice).
+  // Prix d'un check : connu (identifié en jeu, ou noté à la main : game.prices), sinon le minimum possible selon le
+  // réglage de prix (GetMinimumPrice, comme SoH pour un check non identifié).
   GetCheckPrice(rc){
-    const p = SOH.prices[rc || this.curCheck];
+    rc = rc || this.curCheck;
+    const known = this.g.prices?.[rc.replace(/^RC_/, '')];
+    if (known != null) return known;
+    const p = SOH.prices[rc];
     if (!p) return 0;
     const [vanilla, , type] = p, s = this.s, k = type === 'SHOP' ? 'shops' : type === 'SCRUB' ? 'scrubs' : 'merchant';
     switch (s[k + 'Prices']){
