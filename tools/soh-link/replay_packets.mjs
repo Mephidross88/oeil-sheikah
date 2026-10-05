@@ -52,7 +52,7 @@ if (args[0] === '--make-fixture'){
 /* ---------- Rejeu ---------- */
 const fixture = JSON.parse(fs.readFileSync(args[0] || DEFAULT_FIXTURE, 'utf8'));
 const SP = fixture.spoiler, P = fixture.packets;
-const FILES = ['data/areas-data.js', 'data/checks-data.js', 'data/logic-data.js', 'data/link-data.js', 'js/icons.js', 'js/data.js',
+const FILES = ['data/areas-data.js', 'data/checks-data.js', 'data/logic-data.js', 'data/link-data.js', 'js/i18n.js', 'js/icons.js', 'js/data.js',
   'js/config.js', 'js/entrances.js', 'js/items.js', 'js/checks.js', 'js/logic.js', 'js/state.js', 'js/link.js'];
 const SOURCES = FILES.map(f => [f, fs.readFileSync(path.join(APP, f), 'utf8')]);
 

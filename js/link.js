@@ -29,7 +29,7 @@ function linkStart(){
   linkSource = es;
   es.onmessage = ev => { let m; try { m = JSON.parse(ev.data); } catch (e){ return; } linkHandle(m); };
   es.onerror = () => {
-    if (link.status !== 'connecting') linkLog('Relais injoignable, nouvelle tentative…');
+    if (link.status !== 'connecting') linkLog(t('Relais injoignable, nouvelle tentative…'));
     link.status = 'connecting';
     // le navigateur réessaie seul après une coupure, mais abandonne sur une réponse anormale : on relance alors
     if (es.readyState === 2 && linkSource === es){ clearTimeout(linkRetry); linkRetry = setTimeout(() => { if (store.ui.link.enabled && linkSource === es) linkStart(); }, 5000); }
@@ -54,22 +54,22 @@ function linkSyncLive(){
   if (!store.ui.link.live) link.live = null;
 }
 function linkRequestState(){
-  fetch(store.ui.link.url.replace(/\/+$/, '') + '/request-state', { method:'POST' }).catch(() => linkLog('Relais injoignable'));
+  fetch(store.ui.link.url.replace(/\/+$/, '') + '/request-state', { method:'POST' }).catch(() => linkLog(t('Relais injoignable')));
 }
 
 // Noms des objets du jeu de base reçus le plus souvent (GetItemID), pour le journal.
-const GI_NAMES = { 0x3E:'quart de cœur', 0x48:'cœur', 0x4C:'rubis vert', 0x4D:'rubis bleu', 0x4E:'rubis rouge', 0x55:'rubis pourpre',
-  0x56:'rubis d’or', 0x7C:'piège de glace', 0x49:'flèches', 0x4A:'flèches', 0x4B:'flèches', 0x01:'bombes', 0x66:'bombes', 0x02:'noix Mojo',
-  0x07:'bâton Mojo', 0x3C:'graines', 0x43:'magie', 0x44:'magie' };
+const GI_NAMES = { 0x3E:t('quart de cœur'), 0x48:t('cœur'), 0x4C:t('rubis vert'), 0x4D:t('rubis bleu'), 0x4E:t('rubis rouge'), 0x55:t('rubis pourpre'),
+  0x56:t('rubis d’or'), 0x7C:t('piège de glace'), 0x49:t('flèches'), 0x4A:t('flèches'), 0x4B:t('flèches'), 0x01:t('bombes'), 0x66:t('bombes'), 0x02:t('noix Mojo'),
+  0x07:t('bâton Mojo'), 0x3C:t('graines'), 0x43:t('magie'), 0x44:t('magie') };
 // Description courte d'un paquet du jeu (journal).
 function linkDescribe(p){
   switch (p.type){
     case 'SET_CHECK_STATUS': { const c = CHECK_BY_NUM[p.rc]; return `${c ? c.label + ' (' + CHECK_AREA[c.area].label + ')' : 'Check ' + p.rc} : ${CHECK_STATUS_FR[p.status] || p.status}${p.skipped ? ' (ignoré)' : ''}`; }
     case 'ENTRANCE_DISCOVERED': { const x = EXIT_BY_ENTR[p.entranceIndex]; return `Entrée découverte : ${x ? AREA[x.areaId].name + ' · ' + x.label : p.entranceIndex}`; }
-    case 'UPDATE_TEAM_STATE': return 'Sauvegarde complète reçue';
-    case 'GIVE_ITEM': return `Objet reçu : ${p.modId ? (LINK_DATA.rg[p.getItemId] || p.getItemId).toLowerCase().replace(/_/g, ' ') : GI_NAMES[p.getItemId] || 'objet du jeu ' + p.getItemId}`;
-    case 'UPDATE_DUNGEON_ITEMS': return 'Objets de donjon mis à jour';
-    case 'GAME_COMPLETE': return 'Ganon vaincu !';
+    case 'UPDATE_TEAM_STATE': return t('Sauvegarde complète reçue');
+    case 'GIVE_ITEM': return t('Objet reçu : {item}', { item:p.modId ? (LINK_DATA.rg[p.getItemId] || p.getItemId).toLowerCase().replace(/_/g, ' ') : GI_NAMES[p.getItemId] || t('objet du jeu {n}', { n:p.getItemId }) });
+    case 'UPDATE_DUNGEON_ITEMS': return t('Objets de donjon mis à jour');
+    case 'GAME_COMPLETE': return t('Ganon vaincu !');
     default: return p.type;
   }
 }
@@ -83,8 +83,8 @@ function linkSaveSeen(){
   if (link.client && !link.client.isSaveLoaded){ linkCreated = 0; return; }   // écran titre : on attend la sauvegarde chargée
   const foreign = !!(seed && s.seed && seed !== s.seed || linkCreated && s.created && linkCreated !== s.created);
   if (!foreign){ if (seed && !s.seed) s.seed = seed; if (linkCreated && !s.created) s.created = linkCreated; }
-  if (foreign && !link.foreign) linkLog('Autre sauvegarde chargée dans le jeu : ignorée (ce n’est pas la partie notée)');
-  if (!foreign && link.foreign) linkLog('Retour à la sauvegarde de la partie notée');
+  if (foreign && !link.foreign) linkLog(t('Autre sauvegarde chargée dans le jeu : ignorée (ce n’est pas la partie notée)'));
+  if (!foreign && link.foreign) linkLog(t('Retour à la sauvegarde de la partie notée'));
   link.foreign = foreign;
 }
 // « Suivre cette sauvegarde » : la sauvegarde chargée devient celle de la partie notée, puis on la relit
@@ -96,7 +96,7 @@ function linkAdoptSave(){
 function linkHandle(m){
   link.lastAt = Date.now();
   if (m.type === 'hello'){
-    linkLog('Relais connecté');
+    linkLog(t('Relais connecté'));
     linkCatchup = true;
     link.status = m.game ? 'game' : 'relay';
     link.client = m.clientState || null; link.player = m.player || null;
@@ -132,7 +132,7 @@ function linkHandle(m){
     if (!m.connected) link.live = null;
     linkSaveSeen();
     linkRevealAll();
-    linkLog(m.connected ? 'Jeu connecté' : 'Jeu déconnecté');
+    linkLog(m.connected ? t('Jeu connecté') : t('Jeu déconnecté'));
     return;
   }
   if (m.type === 'client'){
@@ -154,7 +154,7 @@ function linkHandle(m){
   }
 }
 // Statuts d'un check dans SoH (RandomizerCheckStatus, RandomizerMiscEnums.h) ; ramassé (4) et sauvegardé (5) = fait.
-const CHECK_STATUS_FR = ['non vu', 'vu', 'identifié', 'repéré', 'ramassé', 'sauvegardé'];
+const CHECK_STATUS_FR = [t('non vu'), t('vu'), t('identifié'), t('repéré'), t('ramassé'), t('sauvegardé')];
 const CHECK_DONE = 4;
 // Application des paquets à la partie. Checks : un check fait dans le jeu est coché (jamais décoché : un check coché à
 // la main reste coché). Objets : le panneau reprend la sauvegarde complète (linkSaveToGame). Étapes suivantes :
@@ -175,7 +175,7 @@ function linkApply(p){
       const locs = p.state?.rando?.itemLocations || [];
       let n = 0;
       locs.forEach((x, rc) => { if (x && x[0] >= CHECK_DONE && linkCheckDone(rc)) n++; });
-      if (n) linkLog(`${n} check${n > 1 ? 's' : ''} coché${n > 1 ? 's' : ''} d'après la sauvegarde`);
+      if (n) linkLog(tn(n, '{n} check coché d’après la sauvegarde', '{n} checks cochés d’après la sauvegarde'));
     }
   }
   if (p.type === 'GIVE_ITEM') linkLoot(p);
@@ -348,7 +348,7 @@ function linkSetSpoiler(data, file){
   linkSpoiler = { file, seed:data.finalSeed ?? null, locations, entrances:Array.isArray(data.entrances) ? data.entrances : [], hints };
   try { localStorage.setItem(SPOILER_KEY, JSON.stringify(linkSpoiler)); } catch (e){ linkLog('Spoiler trop gros pour être gardé dans ce navigateur'); }
   linkSpoilerMeta();
-  linkLog(`Spoiler caché chargé (${file})`);
+  linkLog(t('Spoiler caché chargé ({file})', { file }));
   linkRevealAll();
 }
 function linkClearSpoiler(){
@@ -595,7 +595,7 @@ function linkAskEntrance(d, opts){
   link.ask.push({ d, opts, seq:linkSeq + 1 });   // posée avant la mise à jour de la position pour cette arrivée
   if (link.ask.length > 5) link.ask.shift();
   const x = EXIT_BY_ENTR[d];
-  linkLog(`Entrée à préciser : ${AREA[x.areaId].name} · ${x.label} (${opts.length} arrivées possibles)`);
+  linkLog(t('Entrée à préciser : {exit} ({n} arrivées possibles)', { exit:AREA[x.areaId].name + ' · ' + x.label, n:opts.length }));
 }
 function linkUnask(d){ link.ask = link.ask.filter(q => q.d !== d); }
 // Réponse du joueur : note l'entrée ; si c'est l'arrivée courante, la position (et le départ du Routeur) suit.
@@ -616,7 +616,7 @@ function linkNoteEntrance(d, a){
   if (!x || !target || !EXIT[target] || !isRandomized(x, store.settings) && !x.specialTag) return false;
   if (store.mappings[x.key] === target) return false;
   setMapping(x.key, target);
-  linkLog(`Entrée notée : ${AREA[x.areaId].name} · ${x.label} → ${AREA[EXIT[target].areaId].name} · ${EXIT[target].label}`);
+  linkLog(t('Entrée notée : {exit} → {target}', { exit:AREA[x.areaId].name + ' · ' + x.label, target:AREA[EXIT[target].areaId].name + ' · ' + EXIT[target].label }));
   return true;
 }
 // Spoiler caché : destination réelle de l'entrée d (undefined si pas de spoiler valable ou entrée absente).
@@ -633,7 +633,7 @@ function linkSpoilerEntrances(bits){
     const i = e.index >> 5;
     if (i < bits.length && (bits[i] >>> (e.index & 31)) & 1 && linkNoteEntrance(e.index, e.override)) n++;
   }
-  if (n) linkLog(`${n} entrée${n > 1 ? 's' : ''} notée${n > 1 ? 's' : ''} d'après la sauvegarde et le spoiler`);
+  if (n) linkLog(tn(n, '{n} entrée notée d’après la sauvegarde et le spoiler', '{n} entrées notées d’après la sauvegarde et le spoiler'));
 }
 
 // Petites clés en poche vues pour la dernière fois, par index de donjon (ajout de celles ramassées en direct).
@@ -649,7 +649,7 @@ function linkDungeonKeys(index, inHand){
 /* Ce que la sauvegarde dit de la partie : une ligne par donnée suivie { sec, key, obj, field, value, it?, label? } —
    objets et chants, carte / boussole / clé du boss / âme de chaque donjon, clés des portes et haricots ; cœurs : on garde
    les réceptacles notés, les quarts complètent jusqu'au total du jeu. Petites clés à part (linkDungeonKeys). */
-const DUNGEON_FIELDS = { map:'Carte', compass:'Boussole', bossKey:'Clé du boss', soul:'Âme du boss' };
+const DUNGEON_FIELDS = { map:t('Carte'), compass:t('Boussole'), bossKey:t('Clé du boss'), soul:t('Âme du boss') };
 function linkExpected(st){
   const g = linkSaveToGame(st, store.settings), game = store.game, out = [];
   const item = (obj, k, v) => { const it = ITEM_BY_KEY[k]; if (it && !it.locked) out.push({ sec:'items', key:'items:' + k, obj, field:k, value:v, it }); };
@@ -674,7 +674,7 @@ function linkApplyItems(st){
   let changed = 0;
   for (const e of exp.list) if (e.obj[e.field] !== e.value){ e.obj[e.field] = e.value; changed++; }
   for (const [id, d] of Object.entries(exp.dungeons)) linkDungeonKeys(DUNGEON_INDEX[id], d.keysInHand);
-  if (changed) linkLog(`Panneau Objets mis à jour (${changed} changement${changed > 1 ? 's' : ''})`);
+  if (changed) linkLog(tn(changed, 'Panneau Objets mis à jour ({n} changement)', 'Panneau Objets mis à jour ({n} changements)'));
 }
 /* Écart avec la sauvegarde : tout ce qui diffère encore entre la partie notée et la sauvegarde complète, une fois
    appliqué ce que l'auto-tracking suit (options) — checks cochés ici mais pas faits dans le jeu (cochés à la main,

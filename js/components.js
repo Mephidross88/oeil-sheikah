@@ -197,7 +197,7 @@ const EntranceGraph = {
         const c = pos[z], r = GRAPH_DUNGEONS.has(z.slice(2)) ? 26 : 34;
         for (const [n, p] of list) pos[n] = [c[0] + r * Math.cos(p.ang), c[1] + r * Math.sin(p.ang)];
       }
-      const zones = Object.keys(GRAPH_POS).filter(id => AREA[id]).map(id => ({ n:'z:' + id, id, name:id === SPAWN_AREA ? 'Apparitions et chants' : AREA[id].name,
+      const zones = Object.keys(GRAPH_POS).filter(id => AREA[id]).map(id => ({ n:'z:' + id, id, name:id === SPAWN_AREA ? t('Apparitions et chants') : AREA[id].name,
         dungeon:GRAPH_DUNGEONS.has(id), spawns:id === SPAWN_AREA, x:pos['z:' + id][0], y:pos['z:' + id][1] }));
       const dots = Object.keys(places).map(n => ({ n, x:pos[n][0], y:pos[n][1], label:EXIT[n.slice(2)].label }));
       const rad = n => n.startsWith('p:') ? 5 : GRAPH_DUNGEONS.has(n.slice(2)) ? 15 : 21;
@@ -224,7 +224,7 @@ const EntranceGraph = {
       const n = this.sel.slice(2), zone = this.sel.startsWith('z:') ? n : EXIT[n].areaId;
       const rows = this.graph.lines.filter(l => l.a === this.sel || l.b === this.sel).flatMap(l => l.exits)
         .map(([s, t]) => ({ s, t })).sort((x, y) => graphExitName(x.s).localeCompare(graphExitName(y.s)));
-      const title = this.sel.startsWith('z:') ? (n === SPAWN_AREA ? 'Apparitions et chants' : AREA[n].name) : graphExitName(n);
+      const title = this.sel.startsWith('z:') ? (n === SPAWN_AREA ? t('Apparitions et chants') : AREA[n].name) : graphExitName(n);
       return { title, zone, rows };
     },
   },
@@ -285,12 +285,12 @@ if (MAPS) for (const [key, p] of Object.entries(MAPS.exits)){
 // (donjon d'abord, salle du boss ensuite)
 for (const a of Object.keys(MAP_SCENES)) MAP_SCENES[a] = Object.entries(MAP_SCENES[a])
   .sort((x, y) => (MAPS.scenes[x[0]]?.kind === 'boss') - (MAPS.scenes[y[0]]?.kind === 'boss') || y[1] - x[1]).map(x => x[0]);
-const MAP_SCENE_LABEL = { MARKET_ENTRANCE_DAY:'Entrée du bourg', MARKET_DAY:'Place du marché', TEMPLE_OF_TIME_EXTERIOR_DAY:'Parvis du temple',
-  BACK_ALLEY_DAY:'Ruelle', HYRULE_CASTLE:'Château (enfant)', OUTSIDE_GANONS_CASTLE:'Château de Ganon (adulte)',
-  INSIDE_GANONS_CASTLE:'Château', GANONS_TOWER:'Tour', TEMPLE_OF_TIME:'Temple du Temps' };
+const MAP_SCENE_LABEL = { MARKET_ENTRANCE_DAY:t('Entrée du bourg'), MARKET_DAY:t('Place du marché'), TEMPLE_OF_TIME_EXTERIOR_DAY:t('Parvis du temple'),
+  BACK_ALLEY_DAY:t('Ruelle'), HYRULE_CASTLE:t('Château (enfant)'), OUTSIDE_GANONS_CASTLE:t('Château de Ganon (adulte)'),
+  INSIDE_GANONS_CASTLE:t('Château'), GANONS_TOWER:t('Tour'), TEMPLE_OF_TIME:t('Temple du Temps') };
 const mapSceneLabel = (name, both) => {
   const s = MAPS.scenes[name], base = name.replace(/_MQ$/, '');
-  const label = MAP_SCENE_LABEL[base] || (s?.kind === 'boss' ? 'Salle du boss' : s?.kind === 'dungeon' ? 'Donjon' : name);
+  const label = MAP_SCENE_LABEL[base] || (s?.kind === 'boss' ? t('Salle du boss') : s?.kind === 'dungeon' ? t('Donjon') : name);
   return both && s?.kind === 'dungeon' ? label + (s.mq ? ' (Master Quest)' : ' (vanilla)') : label;
 };
 // étage d'une hauteur (index dans levels ; null : scène sans étages ou hauteur inconnue)
@@ -626,7 +626,7 @@ const ZoneMap = {
       a.download = 'positions-manuelles.json'; a.click();
       setTimeout(() => URL.revokeObjectURL(a.href), 1000);
     },
-    clearEdits(){ if (confirm('Effacer toutes les positions placées à la main (toutes zones) ?')) for (const k of Object.keys(mapEdits)) delete mapEdits[k]; },
+    clearEdits(){ if (confirm(t('Effacer toutes les positions placées à la main (toutes zones) ?'))) for (const k of Object.keys(mapEdits)) delete mapEdits[k]; },
     sceneName(s){ const l = mapSceneLabel(s, true); return l === s ? '' : l; },   // (scène d'extérieur sans libellé : rien)
     onLevel(y){ const i = mapLevelOf(this.levels, y); return i == null || i === this.lvl; },
     setScene(s){ this.scene = s; this.level = null; this.sel = null; },
@@ -675,7 +675,7 @@ const ZoneMap = {
     <div v-if="!geo" class="zmap-empty">Pas de carte pour cette zone (intérieur).</div>
     <div v-else class="zmap-body" :class="{editing:edit}"><div class="zmap-frame">
       <div v-if="levels && !compact" class="zmap-levels"><button v-for="(l,i) in levels" :key="i" type="button" :class="{on:i===lvl, here:i===hereLevel}" @click="level=i"
-        :title="'Étage ' + l.n + (levelTodo[i] ? ' — ' + levelTodo[i] + ' check' + (levelTodo[i] > 1 ? 's' : '') + ' à faire' : '') + (i===hereLevel ? ' — vous êtes ici' : '')">{{l.n}}<i v-if="levelTodo[i]">{{levelTodo[i]}}</i></button></div>
+        :title="t('Étage {n}', {n:l.n}) + (levelTodo[i] ? ' — ' + tn(levelTodo[i], '{n} check à faire', '{n} checks à faire') : '') + (i===hereLevel ? ' — vous êtes ici' : '')">{{l.n}}<i v-if="levelTodo[i]">{{levelTodo[i]}}</i></button></div>
       <svg ref="svg" :viewBox="vb.join(' ')" :style="maxH && !compact ? { maxHeight:maxH + 'px' } : null" class="zmap-svg" :class="{dragging:drag && drag.moved, placing:edit && picked.length}" @wheel.prevent="wheel"
         @pointerdown="down" @pointermove="move" @pointerup="up($event)" @pointerleave="drag=null">
         <path v-if="geo.ghost" :d="geo.ghost" class="zmap-ghost" :stroke-width="unit * 0.12"></path>
@@ -687,7 +687,7 @@ const ZoneMap = {
             <title>{{m.c.label}}{{m.done ? ' (fait)' : m.now ? ' — faisable' : ' — pas encore faisable'}}</title></template>
           <template v-else><rect :x="m.x + unit * 1.3" :y="m.z - unit * 3.3" :width="unit * 2.4" :height="unit * 2" :rx="unit * 0.4"></rect>
             <text :x="m.x + unit * 2.5" :y="m.z - unit * 2.3" dominant-baseline="central" :font-size="unit * 1.4">{{m.todo}}</text>
-            <title>{{placeName(m.place)}} : {{m.todo}} check{{m.todo > 1 ? 's' : ''}} à faire sur {{m.list.length}}</title></template>
+            <title>{{placeName(m.place)}} : {{tn(m.todo, '{n} check à faire sur {total}', '{n} checks à faire sur {total}', {total:m.list.length})}}</title></template>
         </g>
         <g v-for="x in editMarks" :key="'e:' + x.c.id" class="ze-mark" :class="{moving:pick[x.c.id]}">
           <rect :x="x.p.x - unit * 0.9" :y="x.p.z - unit * 0.9" :width="unit * 1.8" :height="unit * 1.8" :rx="unit * 0.3"></rect>
@@ -757,14 +757,14 @@ const ZoneMap = {
       </div>
     </div></div>
     <div v-if="!compact && (offList.noPos.length || offList.hidden.length)" class="zmap-off">
-      <button type="button" class="link" @click="showOff = !showOff">{{offList.noPos.length ? offList.noPos.length + ' check' + (offList.noPos.length > 1 ? 's' : '') + ' sans position' : ''}}{{offList.noPos.length && offList.hidden.length ? ' · ' : ''}}{{offList.hidden.length ? offList.hidden.length + ' derrière une entrée pas encore notée' : ''}}</button>
+      <button type="button" class="link" @click="showOff = !showOff">{{offList.noPos.length ? tn(offList.noPos.length, '{n} check sans position', '{n} checks sans position') : ''}}{{offList.noPos.length && offList.hidden.length ? ' · ' : ''}}{{offList.hidden.length ? tn(offList.hidden.length, '{n} derrière une entrée pas encore notée', '{n} derrière des entrées pas encore notées') : ''}}</button>
       <ul v-if="showOff"><li v-for="x in [...offList.noPos, ...offList.hidden]" :key="x.c.id" :class="{done:x.done, now:x.now}">
         <button type="button" class="zp-tick" v-html="x.done ? ICONS.check : ICONS.circleO" @click="toggleCheck(x.c)"></button><span>{{x.c.label}}</span></li></ul>
     </div>
     <div v-if="!compact" class="zmap-legend"><b>Checks</b><span><i class="lg-c now"></i>faisable</span><span><i class="lg-c"></i>pas encore faisable</span><span><i class="lg-c done"></i>fait</span>
       <span><i class="lg-p"></i>checks d’un intérieur, d’une grotte ou d’un donjon (à faire)</span><span><i class="lg-s"></i>pierre à potins (pleine : lue)</span></div>
-    <div v-if="!compact" class="zmap-legend"><b>Sorties</b><span v-for="t in [['overworld','changement de zone'],['interior','intérieur'],['grotto','grotte'],['dungeon','donjon'],['owl','hibou']]" :key="t[0]">
-      <svg class="lg-mark zm" :class="'t-' + t[0]" viewBox="-1.45 -1.45 2.9 2.9" v-html="markSvg(t[0], 0, 0, 1)"></svg>{{t[1]}}</span>
+    <div v-if="!compact" class="zmap-legend"><b>Sorties</b><span v-for="lg in [['overworld','changement de zone'],['interior','intérieur'],['grotto','grotte'],['dungeon','donjon'],['owl','hibou']]" :key="lg[0]">
+      <svg class="lg-mark zm" :class="'t-' + lg[0]" viewBox="-1.45 -1.45 2.9 2.9" v-html="markSvg(lg[0], 0, 0, 1)"></svg>{{lg[1]}}</span>
       <span><svg class="lg-mark zm t-interior" viewBox="-1.45 -1.45 2.9 2.9"><g v-html="markSvg('interior', 0, 0, 1)"></g><text class="zm-q" x="0" y="0" font-size="1.6">?</text></svg>destination inconnue</span>
       <span><svg class="lg-mark zm t-interior locked" viewBox="-1.45 -1.45 2.9 2.9" v-html="markSvg('interior', 0, 0, 1)"></svg>pas encore accessible</span></div>
     <div v-if="!compact" class="zmap-legend"><b>Repères</b><span v-if="liveOn"><i class="lg-link"></i>Link (temps réel)</span><span><i class="lg-here" :class="{live:liveOn}"></i>{{liveOn ? 'dernière entrée' : 'vous êtes ici'}}</span><span><i class="lg-next"></i>prochaine sortie</span><span><i class="lg-goal"></i>arrivée du Routeur</span>

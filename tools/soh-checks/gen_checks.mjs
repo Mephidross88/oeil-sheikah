@@ -42,7 +42,7 @@ const rcEnumSrc = fs.readFileSync(new URL('./src/randomizerEnums/RandomizerCheck
 const RC_NUM = {};
 [...rcEnumSrc.slice(rcEnumSrc.indexOf('RANDO_ENUM_BEGIN(RandomizerCheck')).matchAll(/RANDO_ENUM_ITEM\((RC_[A-Z0-9_]+)\)/g)]
   .forEach((m, i) => { if (!('RC_MAX' in RC_NUM)) RC_NUM[m[1]] = i; });
-const checks = [];
+const checks = [], en = [];
 for (const c of raw.checks){
   if (NEVER_TYPES.has(c.type) || NEVER_IDS.has(c.id)) continue;
   const extra = {};
@@ -52,6 +52,7 @@ for (const c of raw.checks){
   const row = [c.id, c.area, c.type, Q[c.quest], translate(c.short, c.type), c.spoiler, c.region, category(c)];
   if (Object.keys(extra).length) row.push(extra);
   checks.push(row);
+  en.push(c.short);   // nom court anglais (celui du tracker de SoH) : libellé de l'interface en anglais
 }
 
 const header = `/* Checks du randomizer de Ship of Harkinian 9.2.3 (commit cb71e22) — FICHIER GÉNÉRÉ.
@@ -61,10 +62,11 @@ const header = `/* Checks du randomizer de Ship of Harkinian 9.2.3 (commit cb71e
    checks : [id RC, zone, type RCTYPE, quête 'B' (les deux) | 'V' | 'M', libellé FR, nom SoH (spoiler), région RR,
             catégorie (icône / filtre), extra?]
             extra : { slot } (boutique, n° d'objet 1-8), { pond } (poisson de l'étang, index), { overworldFish }
-   nums   : numéro SoH (énumération RandomizerCheck) de chaque check, dans l'ordre de checks — auto-tracking */
+   nums   : numéro SoH (énumération RandomizerCheck) de chaque check, dans l'ordre de checks — auto-tracking
+   en     : nom court anglais de chaque check (tracker de SoH), dans l'ordre de checks — interface en anglais */
 `;
 const nums = checks.map(r => { const n = RC_NUM['RC_' + r[0]]; if (n === undefined) throw new Error('RC inconnu : ' + r[0]); return n; });
 const body = 'window.CHECKS_DATA = {\n  areas:' + JSON.stringify(areas) + ',\n  checks:[\n' +
-  checks.map(r => '    ' + JSON.stringify(r)).join(',\n') + '\n  ],\n  nums:' + JSON.stringify(nums) + ',\n};\n';
+  checks.map(r => '    ' + JSON.stringify(r)).join(',\n') + '\n  ],\n  nums:' + JSON.stringify(nums) + ',\n  en:' + JSON.stringify(en) + ',\n};\n';
 fs.writeFileSync(OUT, header + body);
 console.log(checks.length, 'checks écrits dans', String(OUT), '(' + Math.round((header + body).length / 1024) + ' Ko)');

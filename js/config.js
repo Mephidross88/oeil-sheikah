@@ -516,3 +516,14 @@ const TRICK_FR = {
 };
 TRICKS.forEach(t => { t.label = TRICK_FR[t.key] || t.name; });
 const TRICK_BY_NAME = Object.fromEntries(TRICKS.map(t => [t.name, t]));
+
+/* Langue (js/i18n.js) : options et leurs valeurs = noms exacts de SoH en anglais (sauf traduction du dictionnaire) ;
+   onglets, cartes et niveaux d'astuces par le dictionnaire ; zones des astuces = zones du tracker de checks de SoH. */
+if (I18N){
+  CONFIG_TABS.forEach(tab => { tab.label = t(tab.label); if (tab.cards) tab.cards = tab.cards.map(([id, title]) => [id, t(title)]); });
+  SETTINGS_DEF.forEach(d => { d.label = td(d.label, d.soh); if (d.choices) d.choices = d.choices.map(([v, l]) => [v, td(l, v)]); });
+  const areaEn = Object.fromEntries((window.CHECKS_DATA?.areas || []).map(a => [a[0], a[2]]));
+  for (const k of Object.keys(TRICK_AREAS)) TRICK_AREAS[k] = td(TRICK_AREAS[k], areaEn[k] || areaEn[k.replace(/^THE_|^HAUNTED_/, '')]);
+  TRICKS.forEach(tk => { tk.label = td(tk.label, tk.name); });   // astuces : nom anglais exact de SoH
+  for (const k of Object.keys(TRICK_LEVELS)) TRICK_LEVELS[k] = t(TRICK_LEVELS[k]);
+}

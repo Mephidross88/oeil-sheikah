@@ -179,6 +179,7 @@ const itemVisible = it => !it.visible || it.visible(store.settings);
 // Ne redéfinit aucune métadonnée d'objet : référence les objets d'ITEM_GROUPS par clé, juste pour
 // savoir dans quel bloc visuel chacun s'affiche. ITEM_GROUPS reste la seule source pour defaults()
 // (js/state.js) et les métadonnées (icône, paliers, max, visibilité...).
+tWalk(ITEM_GROUPS, ['title', 'label', 'stages']);   // langue (js/i18n.js)
 const ITEM_BY_KEY = {};
 ITEM_GROUPS.forEach(g => g.items.forEach(it => { ITEM_BY_KEY[it.key] = { ...it, path:g.path }; }));
 
@@ -388,3 +389,6 @@ const CHECKLISTS = {
     'Théâtre Mojo', 'Rivière Zora',
   ]),
 };
+
+// langue (js/i18n.js) : libellés traduits, une fois les identifiants calculés (check-lists : d'après le libellé français)
+tWalk(ITEMS_PAGE, ['title']); tWalk(DUNGEONS, ['title', 'boss']); tWalk(TRIALS, ['label']); tWalk(CHECKLISTS, ['title', 'label']);

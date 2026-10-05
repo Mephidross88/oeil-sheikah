@@ -17,7 +17,7 @@ const DUNGEONS_TPL = `
               <div v-if="cells(id).map || cells(id).compass || cells(id).soul" class="dg-line">
                 <button v-if="cells(id).map" type="button" class="dg-flag" :title="atStart(id).maps ? 'Carte (dès le départ)' : 'Carte'" :class="{on:atStart(id).maps || store.game.dungeons[id].map, fixed:atStart(id).maps}" :disabled="atStart(id).maps" @click.stop="setDungeonFlag(id,'map',true)" @contextmenu.stop.prevent="setDungeonFlag(id,'map',false)"><img src="icons/dungeons/map.png" alt=""></button>
                 <button v-if="cells(id).compass" type="button" class="dg-flag" :title="atStart(id).maps ? 'Boussole (dès le départ)' : 'Boussole'" :class="{on:atStart(id).maps || store.game.dungeons[id].compass, fixed:atStart(id).maps}" :disabled="atStart(id).maps" @click.stop="setDungeonFlag(id,'compass',true)" @contextmenu.stop.prevent="setDungeonFlag(id,'compass',false)"><img src="icons/dungeons/compass.png" alt=""></button>
-                <button v-if="cells(id).soul" type="button" class="dg-flag" :title="'Âme de ' + DUNGEON_BY_ID[id].boss" :class="{on:store.game.dungeons[id].soul}"
+                <button v-if="cells(id).soul" type="button" class="dg-flag" :title="t('Âme de {boss}', {boss:DUNGEON_BY_ID[id].boss})" :class="{on:store.game.dungeons[id].soul}"
                   @click.stop="setDungeonFlag(id,'soul',true)" @contextmenu.stop.prevent="setDungeonFlag(id,'soul',false)"><img src="icons/dungeons/boss_soul.png" alt=""></button>
               </div>
               <div v-if="cells(id).keys || cells(id).bossKey || cells(id).card" class="dg-line">
@@ -36,9 +36,9 @@ const DUNGEONS_TPL = `
               </div>
               <!-- épreuves de Ganon tirées au sort : inconnue (?) / requise / dissipée (✓) -->
               <div v-if="cells(id).trials" class="dg-line dg-trials">
-                <button v-for="t in TRIALS" :key="t.id" type="button" class="dg-trial" :class="trialStatus(t.id) || 'unknown'" :style="{'--tr':t.color}"
-                  :title="'Épreuve ' + t.label + ' — ' + ({required:'requise', skipped:'dissipée'}[trialStatus(t.id)] || 'inconnue (comptée comme requise)') + ' — clic : suivant, clic droit : précédent'"
-                  @click.stop="cycleTrial(t.id)" @contextmenu.stop.prevent="cycleTrial(t.id,true)">{{trialStatus(t.id)==='skipped' ? '✓' : trialStatus(t.id) ? t.label[0] : '?'}}</button>
+                <button v-for="tr in TRIALS" :key="tr.id" type="button" class="dg-trial" :class="trialStatus(tr.id) || 'unknown'" :style="{'--tr':tr.color}"
+                  :title="t('Épreuve {name} — {state} — clic : suivant, clic droit : précédent', {name:tr.label, state:{required:t('requise'), skipped:t('dissipée')}[trialStatus(tr.id)] || t('inconnue (comptée comme requise)')})"
+                  @click.stop="cycleTrial(tr.id)" @contextmenu.stop.prevent="cycleTrial(tr.id,true)">{{trialStatus(tr.id)==='skipped' ? '✓' : trialStatus(tr.id) ? tr.label[0] : '?'}}</button>
               </div>
             </div>
           </div>
@@ -142,9 +142,9 @@ ${DUNGEONS_TPL}
 const LOOT_TPL = `
       <section v-if="ui.link.loot" class="panel-card loot-card" title="Comptées par l'auto-tracking : objets reçus pendant qu'il tourne (pas ceux ramassés par terre sans fenêtre « objet obtenu »)">
         <div class="loot ice"><span class="loot-ic"><img v-if="!brokenIcons['icons/loots/ice_trap.png']" src="icons/loots/ice_trap.png" alt="" @error="brokenIcons['icons/loots/ice_trap.png']=true"><span v-else v-html="ICONS.snow"></span></span>
-          <b>{{store.game.loot.iceTraps}}</b><span>Piège{{store.game.loot.iceTraps>1?'s':''}} de glace</span></div>
+          <b>{{store.game.loot.iceTraps}}</b><span>{{tn(store.game.loot.iceTraps, 'Piège de glace', 'Pièges de glace')}}</span></div>
         <div class="loot rupee"><span class="loot-ic"><img v-if="!brokenIcons['icons/loots/rupee.png']" src="icons/loots/rupee.png" alt="" @error="brokenIcons['icons/loots/rupee.png']=true"><span v-else v-html="ICONS.rupee"></span></span>
-          <b>{{store.game.loot.rupees}}</b><span>Rubis · {{store.game.loot.rupeeValue}} ₹</span></div>
+          <b>{{store.game.loot.rupees}}</b><span>{{t('Rubis · {v} ₹', {v:store.game.loot.rupeeValue})}}</span></div>
         <div class="loot junk"><span class="loot-ic"><img v-if="!brokenIcons['icons/loots/junk.png']" src="icons/loots/junk.png" alt="" @error="brokenIcons['icons/loots/junk.png']=true"><span v-else v-html="ICONS.bag"></span></span>
           <b>{{store.game.loot.junk}}</b><span>Munitions et cœurs</span></div>
       </section>
@@ -165,14 +165,14 @@ const App = {
 
     // Pages du menu, par groupe : la partie en cours (Progression), les vues d'ensemble (Aperçus), puis la Configuration à part.
     const views = [
-      { id:'checks', label:'Checks', icon:ICONS.checks, group:'Progression' },
-      { id:'router', label:'Routeur', icon:ICONS.router, group:'Progression' },
-      { id:'entrances', label:'Entrées', icon:ICONS.entrances, group:'Progression' },
-      { id:'hints', label:'Indices', icon:ICONS.hint, group:'Progression' },
-      { id:'map', label:'Carte', icon:ICONS.map, group:'Aperçus' },
-      { id:'graph', label:'Connexions', icon:ICONS.graph, group:'Aperçus' },
-      { id:'stats', label:'Statistiques', icon:ICONS.stats, group:'Aperçus' },
-      { id:'config', label:'Configuration', icon:ICONS.config, group:'' },
+      { id:'checks', label:t('Checks'), icon:ICONS.checks, group:t('Progression') },
+      { id:'router', label:t('Routeur'), icon:ICONS.router, group:t('Progression') },
+      { id:'entrances', label:t('Entrées'), icon:ICONS.entrances, group:t('Progression') },
+      { id:'hints', label:t('Indices'), icon:ICONS.hint, group:t('Progression') },
+      { id:'map', label:t('Carte'), icon:ICONS.map, group:t('Aperçus') },
+      { id:'graph', label:t('Connexions'), icon:ICONS.graph, group:t('Aperçus') },
+      { id:'stats', label:t('Statistiques'), icon:ICONS.stats, group:t('Aperçus') },
+      { id:'config', label:t('Configuration'), icon:ICONS.config, group:'' },
     ];
     const navGroups = [...new Set(views.map(v => v.group))].map(g => ({ title:g, views:views.filter(v => v.group === g) }));
     // Mise en page côte à côte : second panneau (ui.split), seulement sur un écran assez large (sinon page principale
@@ -200,14 +200,14 @@ const App = {
     // donc rien n'est calculable comme atteignable tant qu'ils ne sont pas notés.
     const missingSpawns = computed(() => {
       const ages = agesC.value, eff = effC.value, out = [];
-      if (ages.child && isRandomized(EXIT['spawns::spawn_child'], store.settings) && !eff['spawns::spawn_child']) out.push('Enfant');
-      if (ages.adult && isRandomized(EXIT['spawns::spawn_adult'], store.settings) && !eff['spawns::spawn_adult']) out.push('Adulte');
+      if (ages.child && isRandomized(EXIT['spawns::spawn_child'], store.settings) && !eff['spawns::spawn_child']) out.push(t('Enfant'));
+      if (ages.adult && isRandomized(EXIT['spawns::spawn_adult'], store.settings) && !eff['spawns::spawn_adult']) out.push(t('Adulte'));
       return out;
     });
 
     // Sorties randomisées (renseignables) et renseignées, au total, par groupe de types et par zone (cadre de progression).
-    const ENTRANCE_GROUPS = [['Overworld', ['overworld']], ['Intérieurs', ['interior']], ['Grottes', ['grotto']],
-      ['Donjons', ['dungeon', 'boss']], ['Sens unique', ['warp', 'owl', 'spawn']]];
+    const ENTRANCE_GROUPS = [[t('Overworld'), ['overworld']], [t('Intérieurs'), ['interior']], [t('Grottes'), ['grotto']],
+      [t('Donjons'), ['dungeon', 'boss']], [t('Sens unique'), ['warp', 'owl', 'spawn']]];
     const stats = computed(() => {
       let editable = 0, mapped = 0;
       const byGroup = ENTRANCE_GROUPS.map(g => [g[0], 0, 0]), zones = {};
@@ -222,7 +222,7 @@ const App = {
       }
       const zl = Object.values(zones), left = editable - mapped, zonesDone = zl.filter(z => z.got === z.total).length;
       return { editable, mapped, got:mapped, total:editable, groups:byGroup.filter(g => g[2]),
-        sub:`${left} à découvrir · ${zonesDone} / ${zl.length} zones complètes` };
+        sub:t('{left} à découvrir · {done} / {n} zones complètes', { left, done:zonesDone, n:zl.length }) };
     });
 
     const visibleAreas = computed(() => {
@@ -397,16 +397,16 @@ const App = {
       return { state:'ok', items, cost:Math.round(res.cost), steps:res.edges.length,
         transitions:count('transition') + count('bluewarp') + count('owl'), ages:count('age'), warps:count('warp'), resets:count('reset') };
     });
-    const edgeLabel = e => ({ walk:'À pied', transition:'Transition', bluewarp:'Téléporteur bleu', owl:'Vol du hibou',
-      warp:EXIT[e.warp]?.label || 'Chant', reset:'Sauvegarder et recharger' }[e.kind]);   // chant : les notes autour suffisent
+    const edgeLabel = e => ({ walk:t('À pied'), transition:t('Transition'), bluewarp:t('Téléporteur bleu'), owl:t('Vol du hibou'),
+      warp:EXIT[e.warp]?.label || t('Chant'), reset:t('Sauvegarder et recharger') }[e.kind]);   // chant : les notes autour suffisent
     // Objets d'une étape (routeGraph.needs) : icônes des objets retenus et alternatives (texte de l'infobulle).
     function reqsOf(e){
       const n = routeC.value.needs(e);
       // chant de téléportation : déjà indiqué par la pastille
       const icons = reqIcons(n.items).filter(r => !(e.kind === 'warp' && r.key === WARP_SONGS[e.warp]));
       const names = rgs => reqIcons(rgs).map(r => r.title).join(' + ');
-      const alts = [...new Set(n.alts.filter(a => names(a.instead) && names(a.alt)).map(a => `${names(a.alt)} (au lieu de ${names(a.instead)})`))];
-      return { icons, alts, altTitle:alts.length ? 'Autres possibilités :\n' + alts.map(a => '• ' + a).join('\n') : '' };
+      const alts = [...new Set(n.alts.filter(a => names(a.instead) && names(a.alt)).map(a => t('{alt} (au lieu de {instead})', { alt:names(a.alt), instead:names(a.instead) })))];
+      return { icons, alts, altTitle:alts.length ? t('Autres possibilités :') + '\n' + alts.map(a => '• ' + a).join('\n') : '' };
     }
     // Objet trouvé dans un check (game.found, numéro RandomizerGet) : nom et icône du panneau Objets quand il y en a un,
     // sinon nom français de SoH (âmes de haricot : nom de la check-list).
@@ -414,8 +414,8 @@ const App = {
       if (typeof n === 'string') return { title:n };   // nom du spoiler sans objet SoH reconnu
       const name = LINK_DATA.rg[n], rg = 'RG_' + name, icon = reqIcons([rg])[0];
       if (icon) return icon;
-      if (SOH_BEAN_SOUL[rg]) return { title:'Âme de haricot : ' + CHECKLISTS.beans.locations.find(l => l.id === SOH_BEAN_SOUL[rg]).label };
-      return { title:LINK_DATA.rgFr[n] || (name || '?').toLowerCase().replace(/_/g, ' ') };
+      if (SOH_BEAN_SOUL[rg]) return { title:t('Âme de haricot : {name}', { name:CHECKLISTS.beans.locations.find(l => l.id === SOH_BEAN_SOUL[rg]).label }) };
+      return { title:td(LINK_DATA.rgFr[n], LINK_DATA.rgEn?.[n]) || (name || '?').toLowerCase().replace(/_/g, ' ') };
     }
     // Objet vu en boutique (game.seen : [nom affiché, prix]) : icône si l'objet est reconnu.
     function seenInfo(v){
@@ -429,8 +429,8 @@ const App = {
       const reader = new FileReader();
       reader.onload = () => {
         let data;
-        try { data = JSON.parse(reader.result); } catch (e){ linkLog('Spoiler illisible : ce n’est pas un JSON valide'); return; }
-        if (!data || typeof data.locations !== 'object'){ linkLog('Ce fichier n’est pas un spoiler SoH (pas de « locations »)'); return; }
+        try { data = JSON.parse(reader.result); } catch (e){ linkLog(t('Spoiler illisible : ce n’est pas un JSON valide')); return; }
+        if (!data || typeof data.locations !== 'object'){ linkLog(t('Ce fichier n’est pas un spoiler SoH (pas de « locations »)')); return; }
         linkSetSpoiler(data, file.name);
       };
       reader.readAsText(file);
@@ -474,17 +474,17 @@ const App = {
       if (atStart(id).keys) return max === null ? '✓' : `${max}/${max}`;
       return `${store.game.dungeons[id].keys}/${max ?? '?'}`;
     };
-    const keysTitle = id => atStart(id).keys ? 'Petites clés (toutes dès le départ)'
-      : store.game.items.skeletonKey ? 'Petites clés — serrures ouvertes par la clé squelette'
+    const keysTitle = id => atStart(id).keys ? t('Petites clés (toutes dès le départ)')
+      : store.game.items.skeletonKey ? t('Petites clés — serrures ouvertes par la clé squelette')
       : id === 'spiritTemple' && s.smallKeys === 'Vanilla' && dungeonQuest(id) === 'MQ'
-        ? 'Petites clés trouvées — les 3 offertes au départ par SoH (Esprit MQ, clés vanilla) sont déjà comptées par la logique'
-      : dungeonKeyRing(id) === null ? 'Petites clés (en noter une indique que ce donjon n’a pas de trousseau)' : 'Petites clés';
+        ? t('Petites clés trouvées — les 3 offertes au départ par SoH (Esprit MQ, clés vanilla) sont déjà comptées par la logique')
+      : dungeonKeyRing(id) === null ? t('Petites clés (en noter une indique que ce donjon n’a pas de trousseau)') : t('Petites clés');
     const questLabel = id => ({ Vanilla:'V', MQ:'MQ' })[dungeonQuest(id)] || '?';
     const questClass = id => ({ Vanilla:'vanilla', MQ:'mq' })[dungeonQuest(id)] || 'unknown';
     const questTitle = id => {
       if (!DUNGEON_BY_ID[id].quest) return null;
-      const name = ({ Vanilla:'Vanilla', MQ:'Master Quest' })[dungeonQuest(id)] || 'version inconnue';
-      return cells(id).quest ? `${name} — clic sur le cadre : version suivante, clic droit : précédente` : `${name} — imposé par la configuration`;
+      const name = ({ Vanilla:'Vanilla', MQ:'Master Quest' })[dungeonQuest(id)] || t('version inconnue');
+      return cells(id).quest ? t('{name} — clic sur le cadre : version suivante, clic droit : précédente', { name }) : t('{name} — imposé par la configuration', { name });
     };
     // Un donjon sans case à suivre disparaît, sauf si sa version (Vanilla / MQ) reste à noter ; une rangée
     // réduite à un seul donjon est centrée. La clé squelette se place à droite du Château de Ganon, ou seule
@@ -513,19 +513,19 @@ const App = {
     const ageOn = c => { const a = lg(c).age; return cf.age === 'all' || !a || a === 'both' || a === cf.age; };
     const ageKnown = true;
     // Pastille d'âge et infobulle : âges possibles, en plein ceux où c'est faisable maintenant ; moment de la journée.
-    const AGE_FR = { child:'enfant', adult:'adulte', both:'enfant ou adulte' };
+    const AGE_FR = { child:t('enfant'), adult:t('adulte'), both:t('enfant ou adulte') };
     function timeOf(bits){
       const day = bits & (CD | AD), night = bits & (CN | AN);
       return day && !night ? 'day' : night && !day ? 'night' : null;
     }
     function checkLogicTitle(c){
       const x = lg(c), lines = [CHECK_CAT[c.cat].label + ' — ' + c.soh];
-      if (!x.ever) lines.push('Jamais faisable selon la logique avec la configuration actuelle.');
+      if (!x.ever) lines.push(t('Jamais faisable selon la logique avec la configuration actuelle.'));
       else {
-        const t = timeOf(x.ever);
-        lines.push('Âge : ' + AGE_FR[x.age] + (t ? (t === 'night' ? ', de nuit' : ', de jour') : ''));
-        lines.push(x.now ? 'Faisable maintenant : ' + AGE_FR[ageOfBits(x.now)] + (timeOf(x.now) === 'night' ? ' (de nuit)' : timeOf(x.now) === 'day' ? ' (de jour)' : '')
-          : 'Pas encore faisable avec l’inventaire actuel.');
+        const tm = timeOf(x.ever);
+        lines.push(t('Âge : {age}', { age:AGE_FR[x.age] }) + (tm ? (tm === 'night' ? t(', de nuit') : t(', de jour')) : ''));
+        lines.push(x.now ? t('Faisable maintenant : {age}', { age:AGE_FR[ageOfBits(x.now)] }) + (timeOf(x.now) === 'night' ? t(' (de nuit)') : timeOf(x.now) === 'day' ? t(' (de jour)') : '')
+          : t('Pas encore faisable avec l’inventaire actuel.'));
       }
       if (cf.showLogic) lines.push(...checkConditions(c));
       return lines.join('\n');
@@ -539,7 +539,7 @@ const App = {
       }
       const pretty = fn => fn.toString().replace(/^\(\)\s*=>\s*/, '').replace(/^\((.*)\)$/s, '$1').replace(/\bL\./g, '')
         .replace(/"(?:RG|RE|RT|ED|RR|LOGIC|RSK|SCENE|RC)_([A-Z0-9_]+)"/g, '$1').replace(/\s+/g, ' ');
-      return (condIndex['RC_' + c.id] || []).map(([name, fn]) => `Logique (${name}) : ${pretty(fn)}`);
+      return (condIndex['RC_' + c.id] || []).map(([name, fn]) => t('Logique ({name}) : {cond}', { name, cond:pretty(fn) }));
     }
     // Toutes les zones (progression globale), puis celles affichées (recherche, zones terminées masquées).
     const allCheckAreasC = computed(() => {
@@ -586,8 +586,8 @@ const App = {
       }
       const zl = Object.values(zones), got = ow.got + dg.got, total = ow.total + dg.total;
       const zonesDone = zl.filter(z => z.got === z.total).length, left = total - got;
-      return { got, total, avail, groups:[['Overworld', ow.got, ow.total], ['Donjons', dg.got, dg.total]].filter(g => g[2]),
-        sub:`${left} restant${left > 1 ? 's' : ''} · ${avail} faisable${avail > 1 ? 's' : ''} · ${zonesDone} / ${zl.length} zones terminées` };
+      return { got, total, avail, groups:[[t('Overworld'), ow.got, ow.total], [t('Donjons'), dg.got, dg.total]].filter(g => g[2]),
+        sub:tn(left, '{n} restant', '{n} restants') + ' · ' + tn(avail, '{n} faisable', '{n} faisables') + ' · ' + t('{done} / {n} zones terminées', { done:zonesDone, n:zl.length }) };
     });
     // Compteurs des pastilles de catégorie : restants / total parmi les checks listés (hors filtre de catégorie).
     const catCounts = computed(() => {
@@ -597,30 +597,29 @@ const App = {
       return r;
     });
     const toggleCat = id => { cf.hiddenCats[id] = !cf.hiddenCats[id]; };
-    const plural = (n, w) => n + ' ' + w + (n > 1 ? 's' : '');
-    const zoneTitle = x => ({ done:'Zone terminée', all:'Tout le reste est accessible', part:'Une partie du reste est accessible',
-      none:x.total ? 'Rien d’accessible pour l’instant' : 'Rien à faire', ignored:'Zone ignorée (checks exclus)' })[x.state]
-      + ` — ${plural(x.got, 'fait')}, ${plural(x.accessible, 'accessible')}, ${x.total} au total`;
+    const zoneTitle = x => ({ done:t('Zone terminée'), all:t('Tout le reste est accessible'), part:t('Une partie du reste est accessible'),
+      none:x.total ? t('Rien d’accessible pour l’instant') : t('Rien à faire'), ignored:t('Zone ignorée (checks exclus)') })[x.state]
+      + ' — ' + tn(x.got, '{n} fait', '{n} faits') + ', ' + tn(x.accessible, '{n} accessible', '{n} accessibles') + ', ' + t('{n} au total', { n:x.total });
     // clic droit sur une pastille : n'afficher que cette catégorie (ou tout réafficher si c'était déjà le cas)
     function soloCat(id){
       const only = CHECK_CATS.every(k => k.id === id ? !cf.hiddenCats[k.id] : cf.hiddenCats[k.id]);
       CHECK_CATS.forEach(k => { cf.hiddenCats[k.id] = only ? false : k.id !== id; });
     }
     const allCats = on => CHECK_CATS.forEach(k => { cf.hiddenCats[k.id] = !on; });
-    const CHECK_AGES = [['all', 'Tous'], ['child', 'Enfant'], ['adult', 'Adulte']];
-    const ageLabelShort = { child:'E', adult:'A', both:'E·A' };
-    const checkGroups = computed(() => [['Overworld', checkAreasC.value.filter(x => !x.area.dungeon)],
-      ['Donjons', checkAreasC.value.filter(x => x.area.dungeon)]].filter(g => g[1].length));
+    const CHECK_AGES = [['all', t('Tous')], ['child', t('Enfant')], ['adult', t('Adulte')]];
+    const ageLabelShort = { child:t('E'), adult:t('A'), both:t('E·A') };
+    const checkGroups = computed(() => [[t('Overworld'), checkAreasC.value.filter(x => !x.area.dungeon)],
+      [t('Donjons'), checkAreasC.value.filter(x => x.area.dungeon)]].filter(g => g[1].length));
     const toggleCheckArea = id => { cf.collapsed[id] = !cf.collapsed[id]; };
     // Cocher / décocher ou exclure / réintégrer un check, avec « Annuler » pendant quelques secondes (clic malencontreux).
     const lastCheck = ref(null);
     let lastCheckTimer = null;
-    const CHECK_ACTIONS = { done:{ set:setCheck, get:id => !!store.game.checks[id], on:'coché', off:'décoché' },
-      excluded:{ set:setExcluded, get:id => !!s.excluded[id], on:'exclu', off:'réintégré' } };
+    const CHECK_ACTIONS = { done:{ set:setCheck, get:id => !!store.game.checks[id], on:'« {name} » coché', off:'« {name} » décoché' },
+      excluded:{ set:setExcluded, get:id => !!s.excluded[id], on:'« {name} » exclu', off:'« {name} » réintégré' } };
     function toggleCheckState(c, kind){
       const a = CHECK_ACTIONS[kind], was = a.get(c.id);
       a.set(c.id, !was);
-      lastCheck.value = { id:c.id, kind, was, text:`« ${c.label} » ${was ? a.off : a.on}` };
+      lastCheck.value = { id:c.id, kind, was, text:t(was ? a.off : a.on, { name:c.label }) };
       clearTimeout(lastCheckTimer);
       lastCheckTimer = setTimeout(() => { lastCheck.value = null; }, 8000);
     }
@@ -643,7 +642,7 @@ const App = {
       if (!mode) return;
       const ids = (CHECKS_BY_AREA[x.area.id] || []).filter(c => checkListed(c) && !store.game.checks[c.id] && !!s.excluded[c.id] === (mode === 'include')).map(c => c.id);
       ids.forEach(id => setExcluded(id, mode === 'exclude'));
-      lastCheck.value = { ids, was:mode === 'include', text:`${x.area.label} : ${ids.length} check${ids.length > 1 ? 's' : ''} ${mode === 'exclude' ? 'exclu' : 'réintégré'}${ids.length > 1 ? 's' : ''}` };
+      lastCheck.value = { ids, was:mode === 'include', text:x.area.label + ' : ' + (mode === 'exclude' ? tn(ids.length, '{n} check exclu', '{n} checks exclus') : tn(ids.length, '{n} check réintégré', '{n} checks réintégrés')) };
       clearTimeout(lastCheckTimer);
       lastCheckTimer = setTimeout(() => { lastCheck.value = null; }, 8000);
     }
@@ -659,7 +658,7 @@ const App = {
       }
       if (!found) for (const e of ALL_EXITS) for (const a of ['child', 'adult'])
         if (!found && e.areaId !== SPAWN_AREA && isGoal(e.key, a, 'start')) found = { key:e.key, age:a };
-      if (!found){ goMsg.value = 'Aucune sortie connue ne mène là pour l’instant.'; setTimeout(() => { goMsg.value = ''; }, 5000); return; }
+      if (!found){ goMsg.value = t('Aucune sortie connue ne mène là pour l’instant.'); setTimeout(() => { goMsg.value = ''; }, 5000); return; }
       r.toArea = EXIT[found.key].areaId; r.toExit = found.key; r.toAge = age || 'any';
       go('router');
     }
@@ -697,7 +696,7 @@ const App = {
       out.sort((x, y) => x.cost - y.cost);
       return { list:out.slice(0, 12), total:out.length };
     });
-    const stepsLabel = n => n ? n + ' étape' + (n > 1 ? 's' : '') : 'à pied';
+    const stepsLabel = n => n ? tn(n, '{n} étape', '{n} étapes') : t('à pied');
     /* Route du bandeau « Où aller ? », calculée par lui-même (sans passer par le Routeur) : vers sa cible — le check
        faisable le plus proche, ou celui choisi dans sa liste (dockTarget, tant qu'il reste faisable) —, depuis le départ
        du Routeur, à l'âge où le check est le plus proche. Étapes : déplacements autres qu'à pied (sortie à prendre,
@@ -721,7 +720,7 @@ const App = {
       }
       if (!res) return target.exit ? { ...target, steps:[], none:true } : null;
       const steps = res.edges.filter(e => e.kind !== 'walk').map(e => {
-        if (e.kind === 'age') return { label:e.age === 'adult' ? 'Devenir adulte' : 'Redevenir enfant', icon:null, key:e.to };
+        if (e.kind === 'age') return { label:e.age === 'adult' ? t('Devenir adulte') : t('Redevenir enfant'), icon:null, key:e.to };
         const take = ['transition', 'bluewarp', 'owl'].includes(e.kind) && EXIT[e.from] ? e.from : null;
         return { label:edgeLabel(e), icon:edgeIcon(e), key:take || e.to, take:!!take, to:e.to };
       });
@@ -747,8 +746,8 @@ const App = {
     const priceOver = c => store.game.prices[c.id] > (WALLET_CAP[store.game.items.wallet] ?? 999);
     function priceTitle(c){
       const p = store.game.prices[c.id];
-      return p == null ? 'Prix inconnu : cliquer pour noter le prix lu en jeu (la logique le comparera à votre bourse)'
-        : 'Prix : ' + p + ' rubis' + (priceOver(c) ? ' — votre bourse ne suffit pas' : '') + ' (cliquer pour modifier)';
+      return p == null ? t('Prix inconnu : cliquer pour noter le prix lu en jeu (la logique le comparera à votre bourse)')
+        : t('Prix : {p} rubis', { p }) + (priceOver(c) ? t(' — votre bourse ne suffit pas') : '') + t(' (cliquer pour modifier)');
     }
     // focus à l'ouverture du champ seulement (une ref fonction est rappelée à chaque rendu)
     const focused = new WeakSet(), focusEl = el => { if (el && !focused.has(el)){ focused.add(el); nextTick(() => { el.focus(); el.select(); }); } };
@@ -762,11 +761,11 @@ const App = {
        révèle un écart (une fois par liste : « Plus tard » la ferme). Ligne cochée = corrigée d'après le jeu, sinon gardée
        telle quelle (game.keepDrift, plus signalée tant que l'écart ne change pas). */
     const DRIFT_SECS = [
-      { id:'checksExtra', title:'Checks cochés ici, pas faits dans le jeu', fix:'décochés' },
-      { id:'checksMissing', title:'Checks faits dans le jeu, pas cochés ici', fix:'cochés' },
-      { id:'items', title:'Objets et chants', fix:'réglés comme dans le jeu' },
-      { id:'dungeons', title:'Donjons', fix:'réglés comme dans le jeu' },
-      { id:'checklists', title:'Clés des portes et haricots', fix:'réglés comme dans le jeu' },
+      { id:'checksExtra', title:t('Checks cochés ici, pas faits dans le jeu'), fix:t('décochés') },
+      { id:'checksMissing', title:t('Checks faits dans le jeu, pas cochés ici'), fix:t('cochés') },
+      { id:'items', title:t('Objets et chants'), fix:t('réglés comme dans le jeu') },
+      { id:'dungeons', title:t('Donjons'), fix:t('réglés comme dans le jeu') },
+      { id:'checklists', title:t('Clés des portes et haricots'), fix:t('réglés comme dans le jeu') },
     ];
     const driftSel = reactive({});
     let driftSeen = '';
@@ -779,9 +778,9 @@ const App = {
       return { ...sec, rows };
     }).filter(g => g.rows.length));
     const driftVal = (r, v) => {
-      if (r.check) return v ? 'coché' : 'pas coché';
+      if (r.check) return v ? t('coché') : t('pas coché');
       const it = r.it;
-      if (!it || it.kind === 'bool' || typeof v === 'boolean') return v ? (it ? 'obtenu' : 'oui') : (it ? 'pas obtenu' : 'non');
+      if (!it || it.kind === 'bool' || typeof v === 'boolean') return v ? (it ? t('obtenu') : t('oui')) : (it ? t('pas obtenu') : t('non'));
       if (it.kind === 'level' && it.stages) return it.stages[v] ?? String(v);
       return String(v ?? 0);
     };
@@ -834,12 +833,12 @@ const App = {
     /* Fenêtre d'import (Configuration, ou proposée au premier chargement) : options en interrupteurs avec leur explication,
        puis le fichier (choisi ou glissé), importé au clic sur « Importer ». Options mémorisées dans ui. */
     const IMPORT_OPTS = [
-      { key:'importQuests', label:'Tirages du seed', spoil:true,
-        help:'Donjons en Master Quest, trousseaux de clés et épreuves de Ganon requises, quand la configuration les laisse au hasard.' },
-      { key:'importPrices', label:'Prix des boutiques, pestes Mojo et marchands',
-        help:'Seulement les prix, jamais les objets vendus : la logique les compare à votre bourse.' },
-      { key:'importLinkSpoiler', label:'Spoiler caché pour l’auto-tracking',
-        help:'Gardé à part, il ne révèle que ce que le jeu vous a déjà montré : objet d’un check ramassé, boutiques vues, destination des entrées prises.' },
+      { key:'importQuests', label:t('Tirages du seed'), spoil:true,
+        help:t('Donjons en Master Quest, trousseaux de clés et épreuves de Ganon requises, quand la configuration les laisse au hasard.') },
+      { key:'importPrices', label:t('Prix des boutiques, pestes Mojo et marchands'),
+        help:t('Seulement les prix, jamais les objets vendus : la logique les compare à votre bourse.') },
+      { key:'importLinkSpoiler', label:t('Spoiler caché pour l’auto-tracking'),
+        help:t('Gardé à part, il ne révèle que ce que le jeu vous a déjà montré : objet d’un check ramassé, boutiques vues, destination des entrées prises.') },
     ];
     const importFile = ref(null), importDrag = ref(false);
     function openImport(){ importReport.value = null; importFile.value = null; importClash.value = null; modal.value = 'spoiler'; }
@@ -855,8 +854,8 @@ const App = {
     function seedClash(sd){
       if (!sd.final) return null;
       const g = store.game.seed;
-      if (g.final && g.final !== sd.final) return { spoiler:sd, other:seedLabel(g), what:'la partie en cours' };
-      if (store.game.save.seed && store.game.save.seed !== sd.final) return { spoiler:sd, other:String(store.game.save.seed), what:'la sauvegarde suivie par l’auto-tracking' };
+      if (g.final && g.final !== sd.final) return { spoiler:sd, other:seedLabel(g), what:t('la partie en cours') };
+      if (store.game.save.seed && store.game.save.seed !== sd.final) return { spoiler:sd, other:String(store.game.save.seed), what:t('la sauvegarde suivie par l’auto-tracking') };
       return null;
     }
     const importClash = ref(null);
@@ -866,36 +865,36 @@ const App = {
       const reader = new FileReader();
       reader.onload = () => {
         let data;
-        try { data = JSON.parse(reader.result); } catch (e) { importReport.value = { ok:false, title:'Fichier illisible : ce n’est pas un JSON valide.', notes:[] }; return; }
+        try { data = JSON.parse(reader.result); } catch (e) { importReport.value = { ok:false, title:t('Fichier illisible : ce n’est pas un JSON valide.'), notes:[] }; return; }
         const settings = data && data.settings;
-        if (!settings || typeof settings !== 'object'){ importReport.value = { ok:false, title:'Aucune section « settings » : ce n’est pas un spoiler SoH.', notes:[] }; return; }
+        if (!settings || typeof settings !== 'object'){ importReport.value = { ok:false, title:t('Aucune section « settings » : ce n’est pas un spoiler SoH.'), notes:[] }; return; }
         const seed = seedOfSpoiler(data, file.name), clash = force ? null : seedClash(seed);
         importClash.value = clash;
         if (clash) return;
         const notes = [];
         if (typeof data.version === 'string' && !data.version.includes('9.2.3'))
-          notes.push(`Version « ${data.version} » : l'appli suit SoH 9.2.3, certaines options peuvent différer.`);
+          notes.push(t('Version « {v} » : l’appli suit SoH 9.2.3, certaines options peuvent différer.', { v:data.version }));
         let count = 0;
         for (const [name, raw] of Object.entries(settings)){
           const d = SETTING_BY_SOH[name];
-          if (!d){ if (!SETTINGS_IGNORED.has(name)) notes.push(`Option inconnue ignorée : « ${name} ».`); continue; }
+          if (!d){ if (!SETTINGS_IGNORED.has(name)) notes.push(t('Option inconnue ignorée : « {name} ».', { name })); continue; }
           const val = String(raw);
           if (d.type === 'number'){
             const n = parseInt(val, 10);
-            if (Number.isNaN(n) || n < d.min || n > d.max){ notes.push(`Valeur inattendue pour « ${name} » : ${val}.`); continue; }
+            if (Number.isNaN(n) || n < d.min || n > d.max){ notes.push(t('Valeur inattendue pour « {name} » : {val}.', { name, val })); continue; }
             s[d.key] = n;
           } else {
-            if (!d.choices.some(c => c[0] === val)){ notes.push(`Valeur inattendue pour « ${name} » : « ${val} ».`); continue; }
+            if (!d.choices.some(c => c[0] === val)){ notes.push(t('Valeur inattendue pour « {name} » : « {val} ».', { name, val })); continue; }
             s[d.key] = val;
           }
           count++;
         }
         const enabled = Array.isArray(data.enabledTricks) ? data.enabledTricks : [];
-        TRICKS.forEach(t => { s.tricks[t.key] = false; });
+        TRICKS.forEach(tk => { s.tricks[tk.key] = false; });
         let tricks = 0;
         for (const name of enabled){
-          const t = TRICK_BY_NAME[name];
-          if (t){ s.tricks[t.key] = true; tricks++; } else notes.push(`Astuce inconnue ignorée : « ${name} ».`);
+          const tk = TRICK_BY_NAME[name];
+          if (tk){ s.tricks[tk.key] = true; tricks++; } else notes.push(t('Astuce inconnue ignorée : « {name} ».', { name }));
         }
         // Trousseaux en « Aléatoire » / « Nombre » : SoH écrit le tirage réel dans les réglages par donjon. On ne
         // le garde que si l'import des tirages est coché (dans la partie, pas dans la configuration), et on remet
@@ -925,7 +924,7 @@ const App = {
         let excl = 0;
         for (const name of Array.isArray(data.excludedLocations) ? data.excludedLocations : []){
           const c = CHECK_BY_SOH[name];
-          if (c){ s.excluded[c.id] = true; excl++; } else notes.push(`Check exclu inconnu ignoré : « ${name} ».`);
+          if (c){ s.excluded[c.id] = true; excl++; } else notes.push(t('Check exclu inconnu ignoré : « {name} ».', { name }));
         }
         const started = applyStartingItems(s);
         // Statut Vanilla / MQ (facultatif) : seulement pour les donjons que la configuration laisse au hasard.
@@ -953,14 +952,16 @@ const App = {
         const linked = ui.importLinkSpoiler && data.locations && typeof data.locations === 'object';
         if (linked) linkSetSpoiler(data, file.name);
         importReport.value = { ok:true, notes,
-          title:(seed.final ? `Seed ${seedLabel(seed)} — c` : 'C') + `onfiguration importée : ${count} option${count>1?'s':''}, ${tricks} astuce${tricks>1?'s':''} activée${tricks>1?'s':''}`
-            + (started ? `, ${started} objet${started>1?'s':''} de départ coché${started>1?'s':''}` : '')
-            + (quests ? `, version de ${quests} donjon${quests>1?'s':''} renseignée` : '')
-            + (rings ? `, trousseaux de ${rings} donjon${rings>1?'s':''} renseignés` : '')
-            + (ui.importQuests && configTrials(s) === null && Array.isArray(data.requiredTrials) ? `, ${trials} épreuve${trials>1?'s':''} de Ganon requise${trials>1?'s':''}` : '')
-            + (excl ? `, ${excl} check${excl>1?'s':''} exclu${excl>1?'s':''}` : '')
-            + (prices ? `, prix de ${prices} check${prices>1?'s':''}` : '')
-            + (linked ? ', spoiler gardé pour l’auto-tracking' : '') + '.' };
+          title:(seed.final ? t('Seed {s}', { s:seedLabel(seed) }) + ' — ' : '') + t('Configuration importée : {parts}.', { parts:[
+            tn(count, '{n} option', '{n} options'), tn(tricks, '{n} astuce activée', '{n} astuces activées'),
+            started && tn(started, '{n} objet de départ coché', '{n} objets de départ cochés'),
+            quests && tn(quests, 'version de {n} donjon renseignée', 'version de {n} donjons renseignée'),
+            rings && tn(rings, 'trousseaux de {n} donjon renseignés', 'trousseaux de {n} donjons renseignés'),
+            ui.importQuests && configTrials(s) === null && Array.isArray(data.requiredTrials) && tn(trials, '{n} épreuve de Ganon requise', '{n} épreuves de Ganon requises'),
+            excl && tn(excl, '{n} check exclu', '{n} checks exclus'),
+            prices && tn(prices, 'prix de {n} check', 'prix de {n} checks'),
+            linked && t('spoiler gardé pour l’auto-tracking'),
+          ].filter(Boolean).join(', ') }) };
       };
       reader.readAsText(file);
     }
@@ -968,8 +969,8 @@ const App = {
     /* Sauvegarde */
     function openBackup(){ backup.text = JSON.stringify({ version:1, settings:store.settings, costs:store.costs, game:store.game, mappings:store.mappings }, null, 1); backup.msg = ''; modal.value = 'backup'; }
     async function copyBackup(){
-      try { await navigator.clipboard.writeText(backup.text); backup.ok = true; backup.msg = 'Copié dans le presse-papiers.'; }
-      catch (e) { backup.ok = false; backup.msg = 'Copie impossible ici : sélectionnez le texte et copiez-le manuellement.'; }
+      try { await navigator.clipboard.writeText(backup.text); backup.ok = true; backup.msg = t('Copié dans le presse-papiers.'); }
+      catch (e) { backup.ok = false; backup.msg = t('Copie impossible ici : sélectionnez le texte et copiez-le manuellement.'); }
     }
     function importBackup(){
       try {
@@ -978,8 +979,8 @@ const App = {
         Object.assign(store.settings, merge(base.settings, d.settings));
         store.costs = merge(base.costs, d.costs); store.game = merge(base.game, d.game);
         store.mappings = Object.fromEntries(Object.entries(d.mappings || {}).filter(([k, v]) => EXIT[k] && EXIT[v]));
-        backup.ok = true; backup.msg = `Partie importée : ${Object.keys(store.mappings).length} sorties renseignées.`;
-      } catch (e) { backup.ok = false; backup.msg = 'Texte invalide : collez le contenu complet d’un export.'; }
+        backup.ok = true; backup.msg = t('Partie importée : {n} sorties renseignées.', { n:Object.keys(store.mappings).length });
+      } catch (e) { backup.ok = false; backup.msg = t('Texte invalide : collez le contenu complet d’un export.'); }
     }
     function resetAll(){
       const d = defaults();
@@ -996,7 +997,7 @@ const App = {
 
     const savedAt = computed(() => lastSaved.value ? lastSaved.value.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit', second:'2-digit' }) : null);
 
-    const LINK_LABEL = { off:'Auto-tracking désactivé', connecting:'Relais introuvable', relay:'Relais prêt, jeu non connecté', game:'Jeu connecté' };
+    const LINK_LABEL = { off:t('Auto-tracking désactivé'), connecting:t('Relais introuvable'), relay:t('Relais prêt, jeu non connecté'), game:t('Jeu connecté') };
     // Question de l'auto-tracking : entrée découverte à destination ambiguë
     const exitName = k => k && EXIT[k] ? areaName(k) + ' · ' + EXIT[k].label : '?';
     const askFrom = q => exitName(EXIT_BY_ENTR[q.d]?.key);
@@ -1058,19 +1059,19 @@ const App = {
     const mapAreas = AREAS.filter(a => MAP_SCENES[a.id]);
     // menu des zones de la Carte : par région, chaque donjon avec la région où il se trouve
     const MAP_REGIONS = [
-      ['Forêt', ['kokiri_forest', 'deku_tree', 'lost_woods', 'sacred_forest_meadow', 'forest_temple']],
-      ['Plaine et château', ['hyrule_field', 'lon_lon_ranch', 'market', 'hyrule_castle', 'ganons_castle']],
-      ['Cocorico', ['kakariko_village', 'bottom_of_the_well', 'graveyard', 'shadow_temple']],
-      ['Montagne du Péril', ['death_mountain_trail', 'dodongos_cavern', 'goron_city', 'death_mountain_crater', 'fire_temple']],
-      ['Zoras', ['zoras_river', 'zoras_domain', 'zoras_fountain', 'jabu_jabus_belly', 'ice_cavern']],
-      ['Lac Hylia', ['lake_hylia', 'water_temple']],
-      ['Désert Gerudo', ['gerudo_valley', 'gerudo_fortress', 'gerudo_training_ground', 'wasteland', 'desert_colossus', 'spirit_temple']],
+      [t('Forêt'), ['kokiri_forest', 'deku_tree', 'lost_woods', 'sacred_forest_meadow', 'forest_temple']],
+      [t('Plaine et château'), ['hyrule_field', 'lon_lon_ranch', 'market', 'hyrule_castle', 'ganons_castle']],
+      [t('Cocorico'), ['kakariko_village', 'bottom_of_the_well', 'graveyard', 'shadow_temple']],
+      [t('Montagne du Péril'), ['death_mountain_trail', 'dodongos_cavern', 'goron_city', 'death_mountain_crater', 'fire_temple']],
+      [t('Zoras'), ['zoras_river', 'zoras_domain', 'zoras_fountain', 'jabu_jabus_belly', 'ice_cavern']],
+      [t('Lac Hylia'), ['lake_hylia', 'water_temple']],
+      [t('Désert Gerudo'), ['gerudo_valley', 'gerudo_fortress', 'gerudo_training_ground', 'wasteland', 'desert_colossus', 'spirit_temple']],
     ];
     const mapGroups = (() => {
       const has = id => mapAreas.some(a => a.id === id), placed = new Set(MAP_REGIONS.flatMap(r => r[1]));
       const out = MAP_REGIONS.map(([label, ids]) => ({ label, areas:ids.filter(has).map(id => AREA[id]) })).filter(g => g.areas.length);
       const rest = mapAreas.filter(a => !placed.has(a.id));
-      return rest.length ? out.concat([{ label:'Autres', areas:rest }]) : out;
+      return rest.length ? out.concat([{ label:t('Autres'), areas:rest }]) : out;
     })();
     const mapFocus = ref(null);
     // zone de Link : celle de sa scène (position en temps réel, si elle est dessinée), sinon de sa dernière entrée ou du
@@ -1099,7 +1100,16 @@ const App = {
     /* Indices (pierres à potins) : pierres groupées par zone, édition du texte à la demande */
     const hintGroups = CHECK_AREAS.map(a => ({ area:a.id, stones:GOSSIP_STONES.filter(s => s.area === a.id) })).filter(g => g.stones.length);
     const hintEdit = reactive({});
-    return { LANG, LANGS, setLang, store, ui, s, views, navGroups, link, LINK_LABEL, linkRequestState, linkAdoptSave, driftSel, driftList, driftGroups, openDrift, driftCount, driftAll, driftApply, driftVal, driftIcon, driftLabel, linkAsks, linkAnswer, askFrom, askLabel, canSplit, splitOn, shown, paneOf, swapPanes, openSide, closeSide, navOpen, itemsOpen, modal, tip, tipData, backup, stats, missingSpawns, visibleAreas,
+    // langue importée (fichier de traduction JSON) : gardée dans le navigateur puis choisie (rechargement)
+    const langMsg = ref('');
+    function pickLang(ev){
+      const f = ev.target.files[0]; ev.target.value = '';
+      if (!f) return;
+      const r = new FileReader();
+      r.onload = () => { langMsg.value = importLang(r.result); };
+      r.readAsText(f);
+    }
+    return { LANG, LANGS, I18N_LANGS, setLang, removeLang, pickLang, langMsg, store, ui, s, views, navGroups, link, LINK_LABEL, linkRequestState, linkAdoptSave, driftSel, driftList, driftGroups, openDrift, driftCount, driftAll, driftApply, driftVal, driftIcon, driftLabel, linkAsks, linkAnswer, askFrom, askLabel, canSplit, splitOn, shown, paneOf, swapPanes, openSide, closeSide, navOpen, itemsOpen, modal, tip, tipData, backup, stats, missingSpawns, visibleAreas,
       ICONS, ITEMS_PAGE, ITEM_BY_KEY, DUNGEONS, DUNGEON_BY_ID, CHECKLISTS, AREA, EXIT, DATA_ERRORS,
       iconKey, exitIcon, areaName, toggleArea, setAll, jump, go, showTip, hideTip, toggleTip, setMapping, clearMapping,
       checkAreasC, checkStats, toggleCheckArea, PRICE_TYPES, priceEdit, setPrice, priceOver, priceTitle, focusEl, lastCheck, toggleCheck, toggleExcluded, undoCheck, foundInfo, seenInfo, loadSpoilerFile, linkClearSpoiler, linkSpoilerOk, goToCheck, goToZone, why, openWhy, nextC, stepsLabel, goMsg, setAllChecks, jumpCheck, setCheck, setExcluded, CHECK_AREA,
@@ -1131,7 +1141,7 @@ ${STREAM_TPL}
       <div class="nav-group" :class="{sep:!g.title}">{{g.title}}</div>
       <button v-for="v in g.views" :key="v.id" class="nav-item" :class="{active:shown(v.id), 'in-side':paneOf(v.id)==='side' && shown(v.id)}" :title="ui.navFolded ? v.label : null" @click="go(v.id)">
         <span v-html="v.icon"></span><span class="nav-label">{{v.label}}</span>
-        <span v-if="canSplit && !shown(v.id)" class="nav-split" role="button" :title="'Ouvrir ' + v.label + ' à côté'" v-html="ICONS.split"
+        <span v-if="canSplit && !shown(v.id)" class="nav-split" role="button" :title="t('Ouvrir {page} à côté', {page:v.label})" v-html="ICONS.split"
           @click.stop="openSide(v.id)"></span></button>
       </template>
     </nav>
@@ -1199,8 +1209,8 @@ ${STREAM_TPL}
   <main class="main">
     <!-- Progression globale, en tête de toutes les pages : checks, et entrées si certaines sont randomisées -->
     <div class="global-progress">
-      <progress-card :stats="checkStats" unit="checks" title="Checks" :active="ui.view==='checks'" @open="go('checks')"></progress-card>
-      <progress-card v-if="stats.editable" :stats="stats" unit="sorties" title="Entrées" :active="ui.view==='entrances'" @open="go('entrances')"></progress-card>
+      <progress-card :stats="checkStats" :unit="t('checks')" title="Checks" :active="ui.view==='checks'" @open="go('checks')"></progress-card>
+      <progress-card v-if="stats.editable" :stats="stats" :unit="t('sorties')" title="Entrées" :active="ui.view==='entrances'" @open="go('entrances')"></progress-card>
     </div>
     <div class="panes" :class="{split:splitOn}">
     <!-- ================= TRACKER ================= -->
@@ -1212,7 +1222,7 @@ ${STREAM_TPL}
       <div class="container">
         <div v-if="missingSpawns.length" class="warn-box">
           <span class="warn-box-ic" v-html="ICONS.warn"></span>
-          <div><b>Spawn {{missingSpawns.join(' et ')}} non renseigné{{missingSpawns.length>1?'s':''}}.</b> Les spawns sont randomisés
+          <div><b>{{tn(missingSpawns.length, 'Spawn {list} non renseigné.', 'Spawns {list} non renseignés.', {list:missingSpawns.join(t(' et '))})}}</b> Les spawns sont randomisés
           (Configuration) mais leur destination n'est pas encore notée dans Entrées : sans point de départ connu,
           rien n'est calculable comme atteignable.</div></div>
         <div v-if="stats.editable===0" class="warn-box">
@@ -1313,12 +1323,12 @@ ${STREAM_TPL}
             @click.stop="goToZone(x.area.id)" @keydown.enter.stop="goToZone(x.area.id)"></span>
           <span class="zone-prog" :title="zoneTitle(x)">
             <span class="zbar"><i class="d" :style="{width:(x.total ? 100*x.got/x.total : 0)+'%'}"></i><i class="a" :style="{width:(x.total ? 100*x.accessible/x.total : 0)+'%'}"></i></span>
-            <span class="zn"><b>{{x.got}}</b><small>fait{{x.got>1?'s':''}}</small></span>
-            <span class="zn acc"><b>{{x.accessible}}</b><small>accessible{{x.accessible>1?'s':''}}</small></span>
+            <span class="zn"><b>{{x.got}}</b><small>{{tn(x.got, 'fait', 'faits')}}</small></span>
+            <span class="zn acc"><b>{{x.accessible}}</b><small>{{tn(x.accessible, 'accessible', 'accessibles')}}</small></span>
             <span class="zn"><b>{{x.total}}</b><small>total</small></span></span>
         </button>
         <div v-if="!ui.checks.collapsed[x.area.id]" class="check-body">
-          <p v-if="x.hiddenQuest" class="quest-note">Version du donjon inconnue : {{x.hiddenQuest}} check{{x.hiddenQuest>1?'s':''}} propre{{x.hiddenQuest>1?'s':''}} à la version Vanilla ou Master Quest {{x.hiddenQuest>1?'sont masqués':'est masqué'}}.
+          <p v-if="x.hiddenQuest" class="quest-note">{{tn(x.hiddenQuest, 'Version du donjon inconnue : {n} check propre à la version Vanilla ou Master Quest est masqué.', 'Version du donjon inconnue : {n} checks propres à la version Vanilla ou Master Quest sont masqués.')}}
             Indiquez la version avec le badge « ? » (ou dans le panneau Objets).</p>
           <ul v-if="x.checks.length" class="check-list-grid">
             <li v-for="c in x.checks" :key="c.id" class="check-item"
@@ -1347,7 +1357,7 @@ ${STREAM_TPL}
                 @click="toggleExcluded(c)">{{s.excluded[c.id] ? '↺' : '⊘'}}</button>
             </li>
           </ul>
-          <p v-else class="quest-note">{{x.total ? 'Tous les checks affichés de cette zone sont faits.' : x.state === 'ignored' ? 'Zone ignorée : ' + x.excluded + ' check' + (x.excluded > 1 ? 's' : '') + ' exclu' + (x.excluded > 1 ? 's' : '') + ' (↺ pour la réintégrer).' : 'Aucun check avec les filtres actuels.'}}</p>
+          <p v-else class="quest-note">{{x.total ? 'Tous les checks affichés de cette zone sont faits.' : x.state === 'ignored' ? tn(x.excluded, 'Zone ignorée : {n} check exclu (↺ pour la réintégrer).', 'Zone ignorée : {n} checks exclus (↺ pour la réintégrer).') : 'Aucun check avec les filtres actuels.'}}</p>
         </div>
       </article>
       <div v-if="lastCheck || goMsg" class="toast" role="status">
@@ -1397,13 +1407,13 @@ ${STREAM_TPL}
       <template v-else>
         <div class="rsum">
           <div class="rstat transition"><span class="rstat-ic"><img src="icons/route/transition.png" alt=""></span>
-            <div><b>{{route.transitions}}</b><span>transition{{route.transitions>1?'s':''}}</span></div></div>
+            <div><b>{{route.transitions}}</b><span>{{tn(route.transitions, 'transition', 'transitions')}}</span></div></div>
           <div class="rstat warp" v-if="route.warps"><span class="rstat-ic"><img src="icons/exits/warp.png" alt=""></span>
-            <div><b>{{route.warps}}</b><span>chant{{route.warps>1?'s':''}} de téléportation</span></div></div>
+            <div><b>{{route.warps}}</b><span>{{tn(route.warps, 'chant de téléportation', 'chants de téléportation')}}</span></div></div>
           <div class="rstat reset" v-if="route.resets"><span class="rstat-ic"><img src="icons/route/reset.png" alt=""></span>
-            <div><b>{{route.resets}}</b><span>rechargement{{route.resets>1?'s':''}}</span></div></div>
+            <div><b>{{route.resets}}</b><span>{{tn(route.resets, 'rechargement', 'rechargements')}}</span></div></div>
           <div class="rstat agechg" v-if="route.ages"><span class="rstat-ic"><img src="icons/route/age_child_to_adult.png" alt=""></span>
-            <div><b>{{route.ages}}</b><span>changement{{route.ages>1?'s':''}} d'âge</span></div></div>
+            <div><b>{{route.ages}}</b><span>{{tn(route.ages, 'changement d’âge', 'changements d’âge')}}</span></div></div>
           <div class="rstat cost" v-if="ui.router.showCost"><span class="rstat-ic" v-html="ICONS.router"></span>
             <div><b>{{route.cost}}</b><span>coût total</span></div></div>
         </div>
@@ -1496,7 +1506,7 @@ ${STREAM_TPL}
               <!-- saisie : indice à compléter (sans spoiler), ou sur demande -->
               <div v-if="hintEdit[s.id] || !store.game.hints[s.id].t" class="hr-edit">
                 <select class="sel" v-model="store.game.hints[s.id].t" aria-label="Type d’indice"><option value="">Type d’indice…</option>
-                  <option v-for="(l, t) in HINT_TYPES" :key="t" :value="t">{{l}}</option></select>
+                  <option v-for="(l, ht) in HINT_TYPES" :key="ht" :value="ht">{{l}}</option></select>
                 <select v-if="['woth','foolish','item','itemArea'].includes(store.game.hints[s.id].t)" class="sel" v-model="store.game.hints[s.id].area" aria-label="Zone">
                   <option value="">Zone…</option><option v-for="a in CHECK_AREAS" :key="a.id" :value="a.id">{{a.label}}</option></select>
                 <input class="hr-input" v-model="store.game.hints[s.id].text" placeholder="Texte de l’indice (facultatif)">
@@ -1573,8 +1583,11 @@ ${STREAM_TPL}
         <button type="button" title="Fermer ce panneau" v-html="ICONS.close" @click="closeSide"></button></div>
       <div class="page-head"><h1>Configuration</h1><p class="lede">Réglages du randomizer de Ship of Harkinian 9.2.3 « Ackbar Delta ».</p>
         <div class="import-box">
-          <label class="lang-pick" title="Langue de l’interface (recharge la page)"><span>Langue</span>
+          <div class="lang-pick"><label title="Langue de l’interface (recharge la page)"><span>Langue</span>
             <select class="sel" :value="LANG" @change="setLang($event.target.value)"><option v-for="l in LANGS" :key="l[0]" :value="l[0]">{{l[1]}}</option></select></label>
+            <label class="linklike" title="Ajouter une langue : fichier de traduction (.json : code, nom, dictionnaire), gardé dans ce navigateur">Ajouter…<input type="file" accept=".json,application/json" hidden @change="pickLang"></label>
+            <button v-if="I18N_LANGS[LANG] && I18N_LANGS[LANG].imported" type="button" class="linklike" title="Retirer cette langue importée de ce navigateur" @click="removeLang(LANG)">Retirer</button></div>
+          <div v-if="langMsg" class="msg ko">{{langMsg}}</div>
           <button type="button" class="btn primary" @click="openImport"><span class="btn-ic" v-html="ICONS.file"></span>Importer depuis un spoiler SoH…</button>
           <span v-if="store.game.seed.final" class="seed-pill" :title="'Seed de la partie (icônes de l’écran de sélection de SoH) — finalSeed ' + store.game.seed.final + (store.game.seed.file ? ', fichier ' + store.game.seed.file : '')">Seed <b>{{seedLabel(store.game.seed)}}</b></span>
           <span v-else class="seed-pill none" title="Importez le spoiler de la seed pour la retenir (vérifiée à chaque réimport)">Seed inconnue</span></div></div>
@@ -1583,12 +1596,12 @@ ${STREAM_TPL}
         <ul v-if="importReport.notes.length"><li v-for="(n,i) in importReport.notes" :key="i">{{n}}</li></ul>
         <button type="button" class="link" @click="importReport=null">Fermer</button>
       </div>
-      <div v-if="DATA_ERRORS.length" class="errors"><b>{{DATA_ERRORS.length}} incohérence{{DATA_ERRORS.length>1?'s':''}} dans les données</b>
+      <div v-if="DATA_ERRORS.length" class="errors"><b>{{tn(DATA_ERRORS.length, '{n} incohérence dans les données', '{n} incohérences dans les données')}}</b>
         <ul><li v-for="(er,i) in DATA_ERRORS" :key="i">{{er}}</li></ul></div>
 
       <nav class="config-tabs">
-        <button v-for="t in CONFIG_TABS.filter(t => !t.hidden)" :key="t.id" type="button" :class="{on:ui.configTab===t.id}" @click="ui.configTab=t.id">
-          {{t.label}}<span v-if="t.id==='tricks' && tricksOn" class="tab-count">{{tricksOn}}</span></button>
+        <button v-for="tab in CONFIG_TABS.filter(x => !x.hidden)" :key="tab.id" type="button" :class="{on:ui.configTab===tab.id}" @click="ui.configTab=tab.id">
+          {{tab.label}}<span v-if="tab.id==='tricks' && tricksOn" class="tab-count">{{tricksOn}}</span></button>
       </nav>
 
       <div v-if="configCards.length" class="cgrid">
@@ -1610,7 +1623,7 @@ ${STREAM_TPL}
             <option v-for="(l,k) in TRICK_LEVELS" :key="k" :value="k">{{l}}</option></select>
           <select v-model="trickFilter.quest" class="sel"><option value="">Vanilla et MQ</option>
             <option value="VANILLA">Vanilla</option><option value="MQ">Master Quest</option></select>
-          <span class="muted">{{tricksOn}} astuce{{tricksOn>1?'s':''}} active{{tricksOn>1?'s':''}}</span>
+          <span class="muted">{{tn(tricksOn, '{n} astuce active', '{n} astuces actives')}}</span>
         </div>
         <div v-if="!trickGroups.length" class="empty">Aucune astuce ne correspond aux filtres.</div>
         <div class="cgrid">
@@ -1618,10 +1631,10 @@ ${STREAM_TPL}
             <h2>{{g.label}} <span class="muted">{{g.on}}/{{g.tricks.length}}</span></h2>
             <div class="trick-actions"><button type="button" class="link" @click="setTricks(g.tricks,true)">Tout cocher</button>
               <button type="button" class="link" @click="setTricks(g.tricks,false)">Tout décocher</button></div>
-            <label v-for="t in g.tricks" :key="t.key" class="trick" :title="'SoH : ' + t.name">
-              <input type="checkbox" v-model="s.tricks[t.key]"><span>{{t.label}}</span>
-              <span v-for="tag in t.tags" :key="tag" class="trick-tag" :class="'lv-'+tag.toLowerCase()">{{TRICK_LEVELS[tag]}}</span>
-              <span v-if="t.quest!=='BOTH'" class="trick-tag">{{t.quest==='MQ'?'MQ':'Vanilla'}}</span>
+            <label v-for="tk in g.tricks" :key="tk.key" class="trick" :title="'SoH : ' + tk.name">
+              <input type="checkbox" v-model="s.tricks[tk.key]"><span>{{tk.label}}</span>
+              <span v-for="tag in tk.tags" :key="tag" class="trick-tag" :class="'lv-'+tag.toLowerCase()">{{TRICK_LEVELS[tag]}}</span>
+              <span v-if="tk.quest!=='BOTH'" class="trick-tag">{{tk.quest==='MQ'?'MQ':'Vanilla'}}</span>
             </label>
           </section>
         </div>
@@ -1668,7 +1681,7 @@ ${STREAM_TPL}
         <template v-else-if="dockCheck">
           <span class="nd-sum" :title="dockCheck.c.soh">{{dockTarget === dockCheck.c.id ? 'Check choisi' : 'Check le plus proche'}} : <b>{{dockCheck.c.label}}</b> · {{CHECK_AREA[dockCheck.c.area].label}} ({{stepsLabel(dockCheck.steps)}})</span>
           <button type="button" class="btn nd-go" title="Ouvrir cette route dans le Routeur" @click="goToCheck(dockCheck.c)">Y aller</button>
-          <span class="nd-count">{{nextC.total}} faisable{{nextC.total > 1 ? 's' : ''}}</span>
+          <span class="nd-count">{{tn(nextC.total, '{n} faisable', '{n} faisables')}}</span>
         </template>
         <button type="button" class="nd-btn nd-chev" :title="ui.next.open ? 'Replier' : 'Déplier'" v-html="ICONS.caret" @click="ui.next.open = !ui.next.open"></button>
         <button type="button" class="nd-btn" title="Masquer ce bandeau (à réactiver dans la barre de gauche, page Routeur)" v-html="ICONS.close" @click="ui.next.enabled = false"></button>
@@ -1748,7 +1761,7 @@ ${ITEMS_TPL}${LOOT_TPL}    </div>
         <div class="body drift-modal">
           <p v-if="!driftList.length">Plus aucun écart : la partie notée correspond à la sauvegarde du jeu.</p>
           <template v-else>
-            <p>La partie notée ici diffère de la sauvegarde chargée dans le jeu sur <b>{{driftList.length}} point{{driftList.length > 1 ? 's' : ''}}</b>.
+            <p>{{tn(driftList.length, 'La partie notée ici diffère de la sauvegarde chargée dans le jeu sur {n} point.', 'La partie notée ici diffère de la sauvegarde chargée dans le jeu sur {n} points.')}}
               Causes possibles : modification à la main, check ramassé puis perdu sans sauvegarder (à refaire), données venues
               d'une autre sauvegarde, ou suivi désactivé dans les options.</p>
             <p class="drift-note">Ce qui est coché ci-dessous sera corrigé d'après le jeu ; le reste est gardé tel quel et ne sera plus signalé.
@@ -1767,7 +1780,7 @@ ${ITEMS_TPL}${LOOT_TPL}    </div>
           </template>
           <div class="mactions">
             <button type="button" class="btn" @click="modal=null">Plus tard</button>
-            <button v-if="driftList.length" type="button" class="btn primary" @click="driftApply">{{driftCount ? 'Corriger ' + driftCount + ' écart' + (driftCount > 1 ? 's' : '') : 'Tout garder tel quel'}}</button>
+            <button v-if="driftList.length" type="button" class="btn primary" @click="driftApply">{{driftCount ? tn(driftCount, 'Corriger {n} écart', 'Corriger {n} écarts') : 'Tout garder tel quel'}}</button>
           </div>
         </div>
       </template>
@@ -1816,8 +1829,8 @@ ${ITEMS_TPL}${LOOT_TPL}    </div>
           <div class="link-status" :class="link.status"><i></i><b>{{LINK_LABEL[link.status]}}</b>
             <span v-if="link.status==='game' && link.client">— {{link.client.name || 'joueur sans nom'}}, sauvegarde {{link.client.isSaveLoaded ? 'chargée' : 'non chargée'}}</span>
             <button v-if="link.status==='game'" type="button" class="btn" @click="linkRequestState">Relire la sauvegarde</button></div>
-          <div v-if="driftList.length && !link.foreign" class="msg ko link-drift">{{driftList.length}} écart{{driftList.length > 1 ? 's' : ''}}
-            avec la sauvegarde du jeu. <button type="button" class="btn" @click="openDrift">Voir</button></div>
+          <div v-if="driftList.length && !link.foreign" class="msg ko link-drift">{{tn(driftList.length, '{n} écart avec la sauvegarde du jeu.', '{n} écarts avec la sauvegarde du jeu.')}}
+            <button type="button" class="btn" @click="openDrift">Voir</button></div>
           <div v-if="link.status==='game' && link.foreign" class="msg ko link-foreign">Le jeu a chargé une autre sauvegarde que celle
             de la partie notée : ses checks, objets et entrées sont ignorés. Pour une nouvelle partie, remettez d'abord la partie
             à zéro ; sinon <button type="button" class="btn" @click="linkAdoptSave">Suivre cette sauvegarde</button></div>

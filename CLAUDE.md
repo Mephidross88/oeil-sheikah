@@ -14,11 +14,15 @@ et le mettre à jour quand une règle change.
   de `js/` **dans l'ordre listé ci-dessous** (scripts classiques, pas de modules ES : chaque fichier partage
   le même scope global de haut niveau, comme s'il s'agissait d'un seul fichier — un `const`/`function` déclaré
   dans un fichier est directement utilisable dans les suivants ; ne pas redéclarer un identifiant existant).
-  0. `js/i18n.js` : langue de l'interface — `LANG` ('fr' / 'en', localStorage `oeil-sheikah-lang`, sinon le navigateur),
-     `t(texte, paramètres)`, `tn(n, singulier, pluriel)` (aussi dans les gabarits : `globalProperties`), `tpl(gabarit)`
-     (gabarits traduits au chargement, appliqué aux composants dans `app.js`), `setLang`. Le français est la langue
-     source ; dictionnaire `data/i18n-en.js` (`window.I18N_EN`, texte français → anglais). Tout nouveau texte de
-     l'interface : en français, puis sa traduction dans `data/i18n-en.js` ; contrôle `node tools/i18n/check.mjs`.
+  0. `js/i18n.js` : langue de l'interface — `LANG` (localStorage `oeil-sheikah-lang`, sinon le navigateur), langues
+     `I18N_LANGS` (livrées : `data/i18n/<code>.js`, chargés avant, une ligne par langue dans `index.html` ; importées par
+     l'utilisateur : localStorage `oeil-sheikah-langs`, `importLang` / `removeLang`), `t(texte, paramètres)`,
+     `tn(n, singulier, pluriel)` (aussi dans les gabarits : `globalProperties`), `td(fr, nom anglais SoH)` (libellés de
+     données), `tWalk(objet, champs)` (tableaux de libellés), `tpl(gabarit)` (gabarits traduits au chargement, appliqué
+     aux composants dans `app.js`), `setLang`. Le français est la langue source ; repli : langue choisie, anglais,
+     français. Tout nouveau texte de l'interface : en français (par `t()` s'il est calculé en JS, `tn()` pour un pluriel ;
+     pas de variable de boucle nommée `t` dans les gabarits), puis sa traduction dans `data/i18n/en.js` ; contrôle
+     `node tools/i18n/check.mjs` (0 manquant attendu).
   1. `js/icons.js` : destructuration de l'API Vue globale, icônes SVG inline (`ICONS`), icônes de types de
      sortie personnalisables (`CUSTOM_ICONS`), libellés de types (`TYPE_LABEL`).
   2. `js/data.js` : transforme `window.AREAS_DATA` (fourni par `areas-data.js`) en structures internes
@@ -92,6 +96,7 @@ et le mettre à jour quand une règle change.
      `STREAM_TPL`) insérés par `${…}` dans le gabarit d'App (évalués par JS, pas par Vue) : la fenêtre de stream
      (`index.html?stream`, `STREAM_MODE` de `state.js` : relit le store via l'événement `storage`, ne sauvegarde pas, pas
      de relais ; widgets et éditeur dans `js/stream.js`) réutilise le panneau Objets.
+- `README.en.md` : le même mode d'emploi, en anglais (à tenir à jour avec `README.md`).
 - `README.md` : mode d'emploi pour les joueurs (lancer l'appli, auto-tracking, cartes, stream) — à tenir à jour quand une
   de ces étapes change.
 - `style.css` : styles, variables de thème dans `:root` (clair + sombre).

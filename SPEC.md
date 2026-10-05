@@ -19,16 +19,32 @@ Référence du rando : https://wiki.ootrandomizer.com/index.php?title=Entrance_R
 - Interface claire, graphique, en français ou en anglais, utilisable sur mobile.
 
 ## Langue
-Interface en français (langue source) ou en anglais (`js/i18n.js`, dictionnaire `data/i18n-en.js`).
-- Langue : choisie dans la Configuration (« Langue », en tête de page ; localStorage `oeil-sheikah-lang`, à part de la
-  partie), sinon celle du navigateur (français s'il est en français, sinon anglais). Changer de langue recharge la page ;
-  la fenêtre de stream se recharge aussi.
-- Traduction : dictionnaire « texte français → texte anglais ». Gabarits Vue traduits au chargement (`tpl` : textes
-  entre balises, attributs title / placeholder / aria-label / label / alt, chaînes des expressions qui ont une
-  traduction) ; textes calculés en JS par `t(texte, { paramètres })`, pluriels par `tn(n, singulier, pluriel)` (aussi
-  utilisables dans les gabarits). Texte sans traduction : affiché en français (et relevé dans `I18N_MISSING`).
-- Contrôle : `node tools/i18n/check.mjs` liste les textes sans traduction et les traductions inutilisées (`--js` : les
-  manquants au format du dictionnaire). À relancer après toute modification de l'interface.
+Interface en français (langue source) ou dans une autre langue : anglais livré, d'autres ajoutables sans toucher au
+code (`js/i18n.js`, dictionnaires `data/i18n/<code>.js`).
+- **Choix** : Configuration, en tête de page (« Langue » ; localStorage `oeil-sheikah-lang`, à part de la partie), sinon la
+  langue du navigateur si elle est disponible, sinon le français si le navigateur est en français, sinon l'anglais.
+  Changer de langue recharge la page ; la fenêtre de stream se recharge aussi.
+- **Langues** : le français, plus chaque langue enregistrée dans `window.I18N_LANGS[code] = { name, dict }` — livrée
+  (fichier `data/i18n/<code>.js`, une ligne `<script>` par langue dans `index.html`) ou **ajoutée par l'utilisateur**
+  (« Ajouter… » à côté du choix de la langue : fichier JSON `{ code, name, dict }`, gardé dans le navigateur, localStorage
+  `oeil-sheikah-langs` ; « Retirer » pour une langue importée, retour à la langue détectée). Une langue importée ne
+  remplace pas une langue livrée du même code. Refus motivé d'un fichier qui n'est pas une traduction.
+- **Dictionnaire** : texte français (clé exacte, espaces internes réduits) → traduction. Repli d'un texte sans
+  traduction : la langue choisie, puis l'anglais, puis le français.
+- **Interface** : gabarits Vue traduits au chargement (`tpl` : textes entre balises, attributs title / placeholder /
+  aria-label / label / alt, chaînes des expressions qui ont une traduction) ; textes calculés en JS par
+  `t(texte, { paramètres })` (« {nom} »), pluriels par `tn(n, singulier, pluriel)` (règles de la langue :
+  `Intl.PluralRules`), tous deux utilisables dans les gabarits ; tableaux de libellés traduits au chargement (`tWalk`).
+- **Données** (`td(texte français, nom anglais)`) : en anglais et dans les autres langues, les noms de Ship of Harkinian
+  sauf traduction du dictionnaire — zones et checks (noms du tracker de checks de SoH : `CHECKS_DATA.en`, nom court de
+  chaque check), sorties (noms du tracker d'entrées de SoH), options de la Configuration et leurs valeurs, astuces
+  (noms exacts de SoH), pierres à potins (nom SoH sans la zone), objets trouvés par l'auto-tracking
+  (`LINK_DATA.rgEn`, `item_list.cpp`). Objets du panneau, donjons, catégories… : par le dictionnaire.
+- **Contrôle** : `node tools/i18n/check.mjs [--lang=en]` liste les textes sans traduction (gabarits, appels `t` / `tn`,
+  libellés des données) et les traductions inutilisées (`--js` : les manquants au format du dictionnaire) ; à relancer
+  après toute modification de l'interface. `--template=<code> [--name=…] [--data]` : modèle JSON d'une nouvelle langue
+  (chaque texte français, valeur à remplir, anglais en référence ; `--data` : aussi les libellés des données), à
+  importer dans la Configuration ou à convertir en `data/i18n/<code>.js`.
 
 ## Progression globale (en tête de toutes les pages)
 Bande de deux cadres de progression (composant `ProgressCard`) au-dessus du titre de chaque page : **Checks** et,

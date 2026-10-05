@@ -81,9 +81,9 @@ function isUnlocked(e, ages, game){
   return true;
 }
 function lockedReason(e){
-  if (e.id === 'spawn_child') return "Débloqué quand l'âge enfant est accessible";
-  if (e.id === 'spawn_adult') return "Débloqué quand l'âge adulte est accessible";
-  if (e.shuffleTag === 'warp') return "Débloqué avec l'Ocarina et le chant appris";
+  if (e.id === 'spawn_child') return t('Débloqué quand l’âge enfant est accessible');
+  if (e.id === 'spawn_adult') return t('Débloqué quand l’âge adulte est accessible');
+  if (e.shuffleTag === 'warp') return t('Débloqué avec l’Ocarina et le chant appris');
   return '';
 }
 

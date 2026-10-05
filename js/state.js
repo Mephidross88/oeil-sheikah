@@ -183,8 +183,8 @@ const sohFullC = computed(() => computeSoh(store.settings, fullGame(store.settin
    reste faisable — par blocs (un groupe du panneau Objets, les objets d'un donjon, une check-list), puis objet par
    objet, puis palier ou nombre au plus bas. Un ensemble minimal parmi d'autres possibles.
    → { never } | { entrances } | { items:[{ label, src }], age } */
-const DUNGEON_FLAGS = [['map', 'carte'], ['compass', 'boussole'], ['bossKey', 'clé du boss'], ['keys', 'petites clés'],
-  ['soul', 'âme du boss'], ['ringGot', 'trousseau de clés']];
+const DUNGEON_FLAGS = [['map', t('carte')], ['compass', t('boussole')], ['bossKey', t('clé du boss')], ['keys', t('petites clés')],
+  ['soul', t('âme du boss')], ['ringGot', t('trousseau de clés')]];
 function whyLocked(checkId){
   const rc = 'RC_' + checkId, s = store.settings, links = linksC.value, cur = store.game;
   if (!sohFullC.value.checks[rc]) return { never:true };
@@ -201,7 +201,7 @@ function whyLocked(checkId){
   DUNGEONS.forEach(d => DUNGEON_FLAGS.forEach(([k, name]) => {
     const lo = num(cur.dungeons[d.id][k]), hi = num(g.dungeons[d.id][k]);
     if (hi > lo) dims.push({ block:'d' + d.id, obj:g.dungeons[d.id], key:k, bool:k !== 'keys', lo, hi,
-      label:v => d.title + ' : ' + (k === 'keys' ? v + ' petite' + (v > 1 ? 's' : '') + ' clé' + (v > 1 ? 's' : '') : name), src:() => null });
+      label:v => d.title + ' : ' + (k === 'keys' ? tn(v, '{n} petite clé', '{n} petites clés') : name), src:() => null });
   }));
   Object.entries(CHECKLISTS).forEach(([name, c]) => c.locations.forEach(l => {
     if (g.checklists[name][l.id] && !cur.checklists[name][l.id])
@@ -289,9 +289,9 @@ const itemActive = (it, v) => it.locked || (typeof v === 'boolean' ? v : v > 0);
 function setCount(path, key, max, v){ store.game[path][key] = Math.max(0, Math.min(max, Math.round(v) || 0)); }
 function itemTitle(path, it){
   const v = store.game[path][it.key];
-  if (it.locked) return `${it.label} (toujours possédé)`;
+  if (it.locked) return t('{item} (toujours possédé)', { item:it.label });
   if (it.kind === 'level') return `${it.label} — ${it.stages[v]}`;
-  if (it.kind === 'count' && it.goal) return `${it.label} : ${v} (requis ${it.goal(store.settings)}, total ${itemMax(it)})`;
+  if (it.kind === 'count' && it.goal) return t('{item} : {v} (requis {goal}, total {max})', { item:it.label, v, goal:it.goal(store.settings), max:itemMax(it) });
   if (it.kind === 'count') return `${it.label} : ${v}`;
   return it.label;
 }

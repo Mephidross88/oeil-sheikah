@@ -28,13 +28,14 @@ for (const m of z64.matchAll(/\/\*\s*(0x[0-9A-Fa-f]+)\s*\*\/\s*(GI_[A-Z0-9_]+)/g
 // item_list.cpp : nom français de chaque objet, et numéro d'objet du jeu (GI) des objets du jeu de base (MOD_NONE),
 // que le jeu envoie tel quel quand on les reçoit (GIVE_ITEM, modId 0).
 const itemList = fs.readFileSync(new URL('../soh-checks/src/item_list.cpp', import.meta.url), 'utf8');
-const rgFr = rg.map(() => null), giRg = {};
+const rgFr = rg.map(() => null), rgEn = rg.map(() => null), giRg = {};
 for (const line of itemList.split('\n')){
   // Text{ anglais, français?, allemand? } : sans français (âmes de haricot…), le nom anglais
   const m = line.match(/itemTable\[(RG_[A-Z0-9_]+)\]\s*=\s*Item\(\s*RG_[A-Z0-9_]+,\s*Text\{\s*"((?:[^"\\]|\\.)*)"(?:,\s*"((?:[^"\\]|\\.)*)")?[^}]*\},\s*\w+,\s*(\w+)/);
   if (!m || RG_NUM[m[1]] === undefined) continue;
   const n = RG_NUM[m[1]];
   rgFr[n] = m[3] || m[2];
+  rgEn[n] = m[2];
   const gi = /^0x/i.test(m[4]) ? parseInt(m[4], 16) : GI[m[4]];
   // premier objet trouvé pour un numéro (pas « Rien », ni les variantes « BUY_ » des boutiques)
   if (line.includes('MOD_NONE') && gi !== undefined && !(gi in giRg) && !/^RG_(BUY_|NONE$)/.test(m[1])) giRg[gi] = n;
@@ -60,7 +61,7 @@ const scenes = [...fs.readFileSync(new URL('../soh-checks/src/scene_table.h', im
 
 const out = `/* Auto-tracking (js/link.js) — FICHIER GÉNÉRÉ par tools/soh-link/gen_link_data.mjs depuis les sources de
    Ship of Harkinian 9.2.3 (commit cb71e22). randInf : { NOM: numéro de drapeau RandomizerInf } ; rg : noms des objets
-   RandomizerGet, par numéro ; rgFr : leur nom français (item_list.cpp) ; giRg : { numéro GetItemID: numéro RG } des
+   RandomizerGet, par numéro ; rgFr / rgEn : leur nom français / anglais (item_list.cpp) ; giRg : { numéro GetItemID: numéro RG } des
    objets du jeu de base (reçus avec modId 0) ; grottoLoad[i] : entrée (de la scène des grottes, parfois partagée)
    par laquelle on arrive dans la grotte i ; grottoReturn[i] : [entrée générique, x, y, z] de la sortie de la grotte i (entrée 0x700 + i, sortie 0x800 + i) ;
    scenes[n] : nom de la scène n (position en temps réel). */
@@ -68,6 +69,7 @@ window.LINK_DATA = {
   randInf:${JSON.stringify(randInf)},
   rg:${JSON.stringify(rg)},
   rgFr:${JSON.stringify(rgFr)},
+  rgEn:${JSON.stringify(rgEn)},
   giRg:${JSON.stringify(giRg)},
   grottoLoad:${JSON.stringify(grottoLoad)},
   grottoReturn:${JSON.stringify(grottoReturn)},

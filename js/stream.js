@@ -13,49 +13,49 @@ const STREAM_KEY = 'oeil-sheikah-stream';
    taille choisie (largeur et hauteur) ; auto : à la largeur choisie, hauteur selon le contenu (sans mise à l'échelle) ;
    init : options d'un nouveau widget ; cat : rubrique de la bibliothèque. */
 const STREAM_TYPES = {
-  items:{ label:'Objets (panneau)', cat:'Partie', base:426, base2:870, init:{ cols:2 } },
-  pick:{ label:'Objets à la carte', cat:'Partie', auto:true, w:540, init:{ keys:['kokiriEmerald', 'goronRuby', 'zoraSapphire', 'forestMedallion',
+  items:{ label:t('Objets (panneau)'), cat:t('Partie'), base:426, base2:870, init:{ cols:2 } },
+  pick:{ label:t('Objets à la carte'), cat:t('Partie'), auto:true, w:540, init:{ keys:['kokiriEmerald', 'goronRuby', 'zoraSapphire', 'forestMedallion',
     'fireMedallion', 'waterMedallion', 'spiritMedallion', 'shadowMedallion', 'lightMedallion'], cols:9, off:'dim', frame:true } },
-  dungeons:{ label:'Donjons', cat:'Partie', base:426 },
-  progress:{ label:'Progression', cat:'Partie', base:1100 },
-  loot:{ label:'Trouvailles', cat:'Partie', base:426 },
-  seed:{ label:'Seed', cat:'Partie', free:true, w:440, h:56, init:{ size:28, prefix:true } },
+  dungeons:{ label:t('Donjons'), cat:t('Partie'), base:426 },
+  progress:{ label:t('Progression'), cat:t('Partie'), base:1100 },
+  loot:{ label:t('Trouvailles'), cat:t('Partie'), base:426 },
+  seed:{ label:t('Seed'), cat:t('Partie'), free:true, w:440, h:56, init:{ size:28, prefix:true } },
   // en direct : dernière trouvaille, prochaine étape (bandeau « Où aller ? »), indices lus, position de Link
-  last:{ label:'Dernière trouvaille', cat:'En direct', free:true, w:520, h:110, init:{ what:'items', at:true, frame:true } },
-  next:{ label:'Prochaine étape', cat:'En direct', free:true, w:600, h:210, init:{ n:4, frame:true } },
-  hints:{ label:'Indices', cat:'En direct', free:true, w:420, h:300, init:{ woth:true, foolish:true, frame:true } },
-  where:{ label:'Position de Link', cat:'En direct', free:true, w:460, h:96, init:{ exit:true, age:true, frame:true } },
-  zonemap:{ label:'Carte (zone de Link)', cat:'Cartes', free:true, w:640, h:480 },
-  graph:{ label:'Connexions', cat:'Cartes', base:1000 },
+  last:{ label:t('Dernière trouvaille'), cat:t('En direct'), free:true, w:520, h:110, init:{ what:'items', at:true, frame:true } },
+  next:{ label:t('Prochaine étape'), cat:t('En direct'), free:true, w:600, h:210, init:{ n:4, frame:true } },
+  hints:{ label:t('Indices'), cat:t('En direct'), free:true, w:420, h:300, init:{ woth:true, foolish:true, frame:true } },
+  where:{ label:t('Position de Link'), cat:t('En direct'), free:true, w:460, h:96, init:{ exit:true, age:true, frame:true } },
+  zonemap:{ label:t('Carte (zone de Link)'), cat:t('Cartes'), free:true, w:640, h:480 },
+  graph:{ label:t('Connexions'), cat:t('Cartes'), base:1000 },
   // page Statistiques : tuiles (temps de jeu, checks faits, entrées trouvées), courbe des checks, chronologie
-  stattiles:{ label:'Compteurs', cat:'Statistiques', base:620, init:{ tiles:['play', 'checks', 'entr'], icons:true } },
-  gauge:{ label:'Jauge', cat:'Statistiques', free:true, w:600, h:64, init:{ metric:'checks', label:true } },
-  timer:{ label:'Temps de jeu', cat:'Statistiques', free:true, w:340, h:110, init:{ size:64, label:true } },
-  statcurve:{ label:'Courbe des checks', cat:'Statistiques', free:true, w:600, h:220, init:{ title:true } },
-  timeline:{ label:'Chronologie', cat:'Statistiques', free:true, w:520, h:360, init:{ filter:'all', n:8, at:true } },
-  game:{ label:'Espace vide (jeu)', cat:'Décor', free:true, w:960, h:540, init:{ frame:true } },
-  image:{ label:'Image', cat:'Décor', free:true, w:300, h:200, init:{ src:'', fit:'contain' } },
-  text:{ label:'Texte', cat:'Décor', free:true, w:500, h:60, init:{ text:'L’Œil Sheikah', size:32 } },
+  stattiles:{ label:t('Compteurs'), cat:t('Statistiques'), base:620, init:{ tiles:['play', 'checks', 'entr'], icons:true } },
+  gauge:{ label:t('Jauge'), cat:t('Statistiques'), free:true, w:600, h:64, init:{ metric:'checks', label:true } },
+  timer:{ label:t('Temps de jeu'), cat:t('Statistiques'), free:true, w:340, h:110, init:{ size:64, label:true } },
+  statcurve:{ label:t('Courbe des checks'), cat:t('Statistiques'), free:true, w:600, h:220, init:{ title:true } },
+  timeline:{ label:t('Chronologie'), cat:t('Statistiques'), free:true, w:520, h:360, init:{ filter:'all', n:8, at:true } },
+  game:{ label:t('Espace vide (jeu)'), cat:t('Décor'), free:true, w:960, h:540, init:{ frame:true } },
+  image:{ label:t('Image'), cat:t('Décor'), free:true, w:300, h:200, init:{ src:'', fit:'contain' } },
+  text:{ label:t('Texte'), cat:t('Décor'), free:true, w:500, h:60, init:{ text:'L’Œil Sheikah', size:32 } },
 };
 /* Compteurs (widgets Compteurs et Jauge). icon : image ; num : compteur « got / total » (jauge possible) ; shown : affiché
    seulement si (entrées mélangées, chasse à la Triforce…). Valeurs : useStream (swMetric). */
 const STREAM_REWARDS = ['kokiriEmerald', 'goronRuby', 'zoraSapphire', 'forestMedallion', 'fireMedallion', 'waterMedallion',
   'spiritMedallion', 'shadowMedallion', 'lightMedallion'];
 const STREAM_METRICS = {
-  play:{ label:'Temps de jeu', short:'temps de jeu' },
-  checks:{ label:'Checks faits', short:'checks faits', num:true },
-  left:{ label:'Checks restants', short:'checks restants' },
-  avail:{ label:'Checks faisables', short:'faisables maintenant' },
-  pct:{ label:'Progression des checks (%)', short:'des checks' },
-  entr:{ label:'Entrées trouvées', short:'entrées trouvées', num:true },
-  rewards:{ label:'Pierres et médaillons', short:'récompenses', icon:'icons/rewards/medallions/light.png', num:true },
-  skulls:{ label:"Skulltulas d'or", short:'Skulltulas', icon:'icons/rewards/skulltula.png', num:true },
-  hearts:{ label:'Cœurs', short:'cœurs', icon:'icons/statistics/heart_container.png' },
-  pieces:{ label:'Quarts de cœur', short:'quarts de cœur', icon:'icons/statistics/heart_piece.png', num:true },
-  containers:{ label:'Réceptacles de cœur', short:'réceptacles', icon:'icons/statistics/heart_container.png', num:true },
-  triforce:{ label:'Morceaux de Triforce', short:'Triforce', icon:'icons/rewards/triforce.png', num:true },
-  ice:{ label:'Pièges de glace', short:'pièges de glace', icon:'icons/loots/ice_trap.png' },
-  rupees:{ label:'Rubis trouvés', short:'rubis trouvés', icon:'icons/loots/rupee.png' },
+  play:{ label:t('Temps de jeu'), short:t('temps de jeu') },
+  checks:{ label:t('Checks faits'), short:t('checks faits'), num:true },
+  left:{ label:t('Checks restants'), short:t('checks restants') },
+  avail:{ label:t('Checks faisables'), short:t('faisables maintenant') },
+  pct:{ label:t('Progression des checks (%)'), short:t('des checks') },
+  entr:{ label:t('Entrées trouvées'), short:t('entrées trouvées'), num:true },
+  rewards:{ label:t('Pierres et médaillons'), short:t('récompenses'), icon:'icons/rewards/medallions/light.png', num:true },
+  skulls:{ label:t("Skulltulas d'or"), short:t('Skulltulas'), icon:'icons/rewards/skulltula.png', num:true },
+  hearts:{ label:t('Cœurs'), short:t('cœurs'), icon:'icons/statistics/heart_container.png' },
+  pieces:{ label:t('Quarts de cœur'), short:t('quarts de cœur'), icon:'icons/statistics/heart_piece.png', num:true },
+  containers:{ label:t('Réceptacles de cœur'), short:t('réceptacles'), icon:'icons/statistics/heart_container.png', num:true },
+  triforce:{ label:t('Morceaux de Triforce'), short:t('Triforce'), icon:'icons/rewards/triforce.png', num:true },
+  ice:{ label:t('Pièges de glace'), short:t('pièges de glace'), icon:'icons/loots/ice_trap.png' },
+  rupees:{ label:t('Rubis trouvés'), short:t('rubis trouvés'), icon:'icons/loots/rupee.png' },
 };
 // groupes d'objets proposés au widget Objets à la carte (catalogue du panneau Objets)
 const STREAM_ITEM_GROUPS = ITEM_GROUPS.map(g => ({ title:g.title, items:g.items.filter(it => !it.locked).map(it => ({ key:it.key, label:it.label })) }))
@@ -72,20 +72,20 @@ const streamWidgetsDefault = () => [   // pour un écran 1920 × 1080
    sur un widget qui a sa propre apparence. panel : fond des cadres (opacity en %), text, accent, line (bordure, border
    en px, 0 = aucune), radius (px), shadow, tshadow (contour du texte), font / title (polices : STREAM_FONTS).
    « app » : les couleurs de l'appli (thème clair ou sombre selon son réglage). */
-const STREAM_FONTS = { app:['Appli (Alegreya)', null, null], georgia:['Georgia', 'Georgia,serif', 'Georgia,serif'],
-  system:['Système', "'Segoe UI',system-ui,sans-serif", "'Segoe UI',system-ui,sans-serif"],
+const STREAM_FONTS = { app:[t('Appli (Alegreya)'), null, null], georgia:['Georgia', 'Georgia,serif', 'Georgia,serif'],
+  system:[t('Système'), "'Segoe UI',system-ui,sans-serif", "'Segoe UI',system-ui,sans-serif"],
   trebuchet:['Trebuchet', "'Trebuchet MS',sans-serif", "'Trebuchet MS',sans-serif"],
   mono:['Monospace', "Consolas,'Courier New',monospace", "Consolas,'Courier New',monospace"],
   impact:['Impact', "Impact,'Arial Black',sans-serif", "Impact,'Arial Black',sans-serif"] };
 const STREAM_THEME_BASE = { opacity:100, border:1, radius:14, shadow:true, tshadow:false, font:'app', title:'app' };
 const STREAM_THEMES = {
-  app:{ label:'Appli (suit son thème clair / sombre)' },
-  dark:{ label:'Appli sombre', panel:'#1f1810', text:'#ecdfc2', accent:'#c9962e', line:'#3c3018', bg:'#161009' },
-  light:{ label:'Appli clair', panel:'#faf5e6', text:'#3a2f1d', accent:'#c9962e', line:'#ddcfa9', bg:'#ece2c8' },
-  glass:{ label:'Verre fumé', panel:'#0b0b10', opacity:62, text:'#f4f4f6', accent:'#f2c94c', line:'#ffffff', border:0, radius:16, shadow:false, font:'system' },
-  sheikah:{ label:'Sheikah', panel:'#0a1824', opacity:88, text:'#dff4ff', accent:'#3fd0ff', line:'#1f5878', radius:6 },
-  hyrule:{ label:'Hyrule', panel:'#13251a', opacity:92, text:'#f3efd6', accent:'#d9b54a', line:'#3d6b48', radius:12 },
-  minimal:{ label:'Minimal (sans cadres)', panel:'#000000', opacity:0, text:'#ffffff', accent:'#ffd75e', line:'#000000', border:0, radius:0, shadow:false, tshadow:true },
+  app:{ label:t('Appli (suit son thème clair / sombre)') },
+  dark:{ label:t('Appli sombre'), panel:'#1f1810', text:'#ecdfc2', accent:'#c9962e', line:'#3c3018', bg:'#161009' },
+  light:{ label:t('Appli clair'), panel:'#faf5e6', text:'#3a2f1d', accent:'#c9962e', line:'#ddcfa9', bg:'#ece2c8' },
+  glass:{ label:t('Verre fumé'), panel:'#0b0b10', opacity:62, text:'#f4f4f6', accent:'#f2c94c', line:'#ffffff', border:0, radius:16, shadow:false, font:'system' },
+  sheikah:{ label:t('Sheikah'), panel:'#0a1824', opacity:88, text:'#dff4ff', accent:'#3fd0ff', line:'#1f5878', radius:6 },
+  hyrule:{ label:t('Hyrule'), panel:'#13251a', opacity:92, text:'#f3efd6', accent:'#d9b54a', line:'#3d6b48', radius:12 },
+  minimal:{ label:t('Minimal (sans cadres)'), panel:'#000000', opacity:0, text:'#ffffff', accent:'#ffd75e', line:'#000000', border:0, radius:0, shadow:false, tshadow:true },
 };
 // réglages complets d'un thème prédéfini (« app » : clair ou sombre selon l'appli)
 function streamThemeTokens(key, appDark){
@@ -146,7 +146,7 @@ const streamThemeFields = m => `
 
 // tailles de toile proposées (la toile est mise à l'échelle de la fenêtre, sauf « fit » à false : 100 %)
 const STREAM_CANVAS = [['1920x1080', 'Full HD — 1920 × 1080'], ['1280x720', 'HD — 1280 × 720'], ['2560x1440', 'QHD — 2560 × 1440'],
-  ['3840x2160', '4K — 3840 × 2160'], ['1080x1920', 'Vertical — 1080 × 1920'], ['custom', 'Personnalisée']];
+  ['3840x2160', '4K — 3840 × 2160'], ['1080x1920', t('Vertical — 1080 × 1920')], ['custom', t('Personnalisée')]];
 const streamProfile = (id, name) => ({ id, name, bg:'#00b140', color:'#00b140', canvas:{ w:1920, h:1080 }, fit:true,
   theme:'app', custom:streamThemeTokens('dark'), widgets:streamWidgetsDefault() });
 // disposition complétée (toile : 1920 × 1080 mise à l'échelle pour celles d'avant) et widgets nettoyés
@@ -159,7 +159,7 @@ function streamCleanProfile(p){
   p.widgets = streamCleanWidgets(p.widgets);
   return p;
 }
-const streamDefaults = () => ({ v:2, active:1, profiles:[streamProfile(1, 'Disposition 1')],
+const streamDefaults = () => ({ v:2, active:1, profiles:[streamProfile(1, t('Disposition {n}', { n:1 }))],
   ed:{ snap:true, grid:20, showGrid:true, side:'right' } });
 // widgets d'une disposition : types inconnus retirés (anciens blocs Prochaine étape et Où aller ; « map » = Connexions),
 // identifiants manquants complétés
@@ -184,7 +184,7 @@ function loadStream(){
       const at = (w, x, y, ww) => w.x === x && w.y === y && w.w === ww;
       const widgets = streamCleanWidgets(v.widgets)   // Progression et Trouvailles encore à leur toute première place
         .map(w => w.type === 'progress' && at(w, 620, 760, 420) ? { ...w, w:1280 } : w.type === 'loot' && at(w, 20, 760, 580) ? { ...w, x:100, y:850, w:420 } : w);
-      return { ...d, profiles:[{ ...streamProfile(1, 'Disposition 1'), bg:v.bg || '#00b140', color:v.color || '#00b140', widgets }] };
+      return { ...d, profiles:[{ ...streamProfile(1, t('Disposition {n}', { n:1 })), bg:v.bg || '#00b140', color:v.color || '#00b140', widgets }] };
     }
   } catch (e) {}
   return d;
@@ -205,8 +205,8 @@ function streamTemplate(parts){ return `
       <div v-if="w.type==='items'" class="sw-items" :class="{cols2:w.cols===2}">${parts.items}</div>
       <div v-else-if="w.type==='loot'" class="sw-items">${parts.loot}</div>
       <div v-else-if="w.type==='progress'" class="global-progress sw-progress">
-        <progress-card :stats="checkStats" unit="checks" title="Checks"></progress-card>
-        <progress-card v-if="stats.editable" :stats="stats" unit="sorties" title="Entrées"></progress-card></div>
+        <progress-card :stats="checkStats" :unit="t('checks')" title="Checks"></progress-card>
+        <progress-card v-if="stats.editable" :stats="stats" :unit="t('sorties')" title="Entrées"></progress-card></div>
       <entrance-graph v-else-if="w.type==='graph'"></entrance-graph>
       <div v-else-if="w.type==='stattiles'" class="rsum sw-stattiles">
         <div v-for="k in w.tiles.filter(swMetricShown)" :key="k" class="rstat">
@@ -311,13 +311,13 @@ function streamTemplate(parts){ return `
       <section class="swp-sec">
         <h4>Thème</h4>
         <select v-model="sp.theme" class="sel" aria-label="Thème de la disposition">
-          <option v-for="(t, k) in STREAM_THEMES" :key="k" :value="k">{{t.label}}</option><option value="custom">Personnalisé</option></select>
+          <option v-for="(th, k) in STREAM_THEMES" :key="k" :value="k">{{th.label}}</option><option value="custom">Personnalisé</option></select>
         <p v-if="swTheme.opacity > 0 && swTheme.opacity < 100 && swChroma" class="swp-note swp-warn">Fond des cadres semi-transparent sur un fond
           d'incrustation : il se teinte de la couleur du fond, que l'incrustation d'OBS ne rend pas transparente. Préférez un
           fond opaque (100 %) ou sans fond (0 %).</p>
         <template v-if="sp.theme === 'custom'">
           <label class="swp-row">Partir de <select class="sel swp-grow" value="" @change="swThemeFrom($event.target.value); $event.target.value = ''">
-            <option value="" disabled>un thème…</option><option v-for="(t, k) in STREAM_THEMES" :key="k" :value="k">{{t.label}}</option></select></label>
+            <option value="" disabled>un thème…</option><option v-for="(th, k) in STREAM_THEMES" :key="k" :value="k">{{th.label}}</option></select></label>
           ${streamThemeFields('sp.custom')}
         </template>
       </section>
@@ -325,7 +325,7 @@ function streamTemplate(parts){ return `
       <section class="swp-sec">
         <h4>Ajouter un widget</h4>
         <div v-for="c in STREAM_CATS" :key="c.cat" class="swp-lib"><span class="swp-cat">{{c.cat}}</span>
-          <button v-for="t in c.types" :key="t.key" type="button" class="swp-add" @click="swNew(t.key)">+ {{t.label}}</button></div>
+          <button v-for="ty in c.types" :key="ty.key" type="button" class="swp-add" @click="swNew(ty.key)">+ {{ty.label}}</button></div>
       </section>
 
       <section v-if="swSelW" class="swp-sec swp-sel">
@@ -471,7 +471,7 @@ function useStream(STREAM, app = {}){
     window.resizeTo(c.w + window.outerWidth - window.innerWidth, c.h + window.outerHeight - window.innerHeight);
     setTimeout(() => {
       swFitMsg.value = window.innerWidth === c.w && window.innerHeight === c.h ? ''
-        : `La fenêtre fait ${window.innerWidth} × ${window.innerHeight} : le navigateur ou l'écran limite sa taille (ouvrez-la depuis le bouton « Fenêtre de stream » de l'appli).`;
+        : t('La fenêtre fait {w} × {h} : le navigateur ou l’écran limite sa taille (ouvrez-la depuis le bouton « Fenêtre de stream » de l’appli).', { w:window.innerWidth, h:window.innerHeight });
     }, 400);
   }
   const swLayers = computed(() => [...sp.value.widgets].reverse());
@@ -629,10 +629,10 @@ function useStream(STREAM, app = {}){
   // dispositions (profils)
   const newProfileId = () => Math.max(0, ...ss.profiles.map(p => p.id)) + 1;
   const freeName = base => { let n = base, i = 2; while (ss.profiles.some(p => p.name === n)) n = base + ' ' + i++; return n; };
-  function swProfileNew(){ const id = newProfileId(); ss.profiles.push(streamProfile(id, freeName('Disposition ' + id))); ss.active = id; }
-  function swProfileDup(){ const id = newProfileId(); ss.profiles.push({ ...JSON.parse(JSON.stringify(sp.value)), id, name:freeName(sp.value.name + ' (copie)') }); ss.active = id; }
+  function swProfileNew(){ const id = newProfileId(); ss.profiles.push(streamProfile(id, freeName(t('Disposition {n}', { n:id })))); ss.active = id; }
+  function swProfileDup(){ const id = newProfileId(); ss.profiles.push({ ...JSON.parse(JSON.stringify(sp.value)), id, name:freeName(t('{name} (copie)', { name:sp.value.name })) }); ss.active = id; }
   function swProfileDel(){
-    if (ss.profiles.length < 2 || !confirm(`Supprimer la disposition « ${sp.value.name} » ?`)) return;
+    if (ss.profiles.length < 2 || !confirm(t('Supprimer la disposition « {name} » ?', { name:sp.value.name }))) return;
     const i = ss.profiles.indexOf(sp.value);
     ss.profiles.splice(i, 1);
     ss.active = ss.profiles[Math.max(0, i - 1)].id;
@@ -659,8 +659,8 @@ function useStream(STREAM, app = {}){
         ss.profiles.push(streamCleanProfile({ ...streamProfile(id, ''), bg:p.bg || '#00b140', color:p.color || '#00b140',
           canvas:p.canvas, fit:p.fit, theme:p.theme, custom:p.custom, name:freeName(p.name || f.name.replace(/\.json$/i, '')), widgets:p.widgets }));
         ss.active = id;
-        swMsg.value = { ok:true, text:'Disposition importée.' };
-      } catch (e){ swMsg.value = { ok:false, text:'Ce fichier n’est pas une disposition de stream.' }; }
+        swMsg.value = { ok:true, text:t('Disposition importée.') };
+      } catch (e){ swMsg.value = { ok:false, text:t('Ce fichier n’est pas une disposition de stream.') }; }
       setTimeout(() => { swMsg.value = null; }, 4000);
     };
     r.readAsText(f);

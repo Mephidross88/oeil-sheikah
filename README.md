@@ -1,5 +1,7 @@
 # L'Œil Sheikah
 
+*[English version](README.en.md)*
+
 Tracker et routeur pour le randomizer de **Ship of Harkinian 9.2.3** (Ocarina of Time) : objets, checks, entrées,
 indices des pierres à potins, et trajets vers ce qui est faisable. Tout se passe dans le navigateur, en français ou en
 anglais (Configuration › Langue).
@@ -66,6 +68,18 @@ Bouton « Fenêtre de stream » (barre de gauche) : une page à capturer dans OB
 (objets, progression, carte de la zone de Link, trouvailles, image, texte…). Touche **E** pour l'éditeur : bibliothèque
 de widgets, aimantation, calques, plusieurs dispositions (exportables). Elle suit la fenêtre principale, qui doit
 rester ouverte dans le même navigateur.
+
+## Langues
+
+L'interface est livrée en français et en anglais. Pour ajouter une autre langue sans toucher au code :
+
+```
+node tools/i18n/check.mjs --template=de --name=Deutsch > de.json
+```
+
+Remplissez chaque valeur vide de `de.json` (l'anglais est donné en référence), puis chargez-le dans **Configuration ›
+Langue › Ajouter…**. Les textes non traduits s'affichent en anglais. Pour la livrer avec l'appli, convertissez-la en
+`data/i18n/de.js` (même format que `data/i18n/en.js`) et ajoutez une ligne `<script>` dans `index.html`.
 
 ## Pour les curieux
 

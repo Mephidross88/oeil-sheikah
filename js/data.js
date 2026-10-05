@@ -9,8 +9,11 @@ const GV_RIVER = 'gerudo_valley::gv_to_lake', GV_RIVER_END = 'lake_hylia::oneway
 const GANON_TOWER_DOOR = 'ganons_castle::castle_to_tower', GANON_TOWER_ROOM = 'ganons_castle::tower_to_castle';
 const WARP_SONGS = { 'spawns::warp_pol':'prelude','spawns::warp_mof':'minuet','spawns::warp_bof':'bolero','spawns::warp_sow':'serenade','spawns::warp_nos':'nocturne','spawns::warp_ros':'requiem' };
 
-const AREAS = RAW.map(a => ({ id:a.id, name:a.name, exits:(a.exits||[]).map(e => ({
-  id:e.id, key:`${a.id}::${e.id}`, areaId:a.id, label:e.label, soh:e.soh || '', entr:e.entr ?? null, type:e.type, shuffleTag:e.shuffleTag,
+// langue (js/i18n.js) : nom de zone = celui du tracker de checks de SoH (même découpage), libellé de sortie = nom du
+// tracker d'entrées de SoH (soh), sauf traduction du dictionnaire
+const SOH_AREA_EN = Object.fromEntries((window.CHECKS_DATA?.areas || []).map(a => [a[0].toLowerCase(), a[2]]));
+const AREAS = RAW.map(a => ({ id:a.id, name:td(a.name, SOH_AREA_EN[a.id]), exits:(a.exits||[]).map(e => ({
+  id:e.id, key:`${a.id}::${e.id}`, areaId:a.id, label:td(e.label, e.soh), soh:e.soh || '', entr:e.entr ?? null, type:e.type, shuffleTag:e.shuffleTag,
   vanilla:(e.vanillaTargetExitId==null || e.vanillaTargetExitId==='null') ? null : e.vanillaTargetExitId,
   destOnly:!!e.destinationOnly, specialTag:e.specialTag||null,
   // cible dans la zone, ou « zone::sortie » pour un passage à pied vers une autre zone (fin de la course d'Igor…)
