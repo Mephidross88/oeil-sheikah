@@ -4,3 +4,4 @@ soh-packets.jsonl
 *.jsonl
 zscenes
 data/maps-data.js
+dist/

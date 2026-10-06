@@ -8,8 +8,12 @@ anglais (Configuration › Langue).
 
 ## Lancer l'appli
 
-Ouvrez `index.html` dans un navigateur récent (Chrome, Edge, Firefox). Rien à installer, rien à compiler : la partie
-est sauvegardée automatiquement dans le navigateur.
+**En ligne : https://mephidross88.github.io/oeil-sheikah/** — rien à installer, la partie est sauvegardée
+automatiquement dans le navigateur (Chrome, Edge ou Firefox récent).
+
+Ou téléchargez le dépôt (Code › Download ZIP) et ouvrez `index.html` : même appli, hors ligne, avec les cartes en plus
+(voir Cartes). Chaque version garde sa propre partie ; pour passer de l'une à l'autre : « Exporter ou importer la
+partie » (barre de gauche).
 
 Pour commencer une partie :
 1. **Configuration** › « Importer depuis un spoiler SoH… » : choisissez les options d'import (tirages du seed, prix des
@@ -34,14 +38,19 @@ En bas de l'écran, le bandeau **« Où aller ? »** montre le check faisable le
 
 ## Auto-tracking (facultatif)
 
-L'appli peut suivre votre partie en direct : checks faits, objets, entrées prises, position. Il faut
-[Node.js](https://nodejs.org) (version 18 ou plus).
+L'appli peut suivre votre partie en direct : checks faits, objets, entrées prises, position, grâce à un petit relais
+qui tourne sur votre ordinateur.
 
-1. Lancez le relais : double-clic sur `lancer-relais.bat` (ou `node tools/soh-link/relay.mjs`). Laissez la fenêtre
-   ouverte pendant que vous jouez.
-2. Dans Ship of Harkinian : menu **Réseau › Anchor**, hôte `127.0.0.1`, port `43383`, puis connectez-vous.
+1. Lancez le relais : téléchargez-le depuis la
+   [dernière version](https://github.com/Mephidross88/oeil-sheikah/releases/latest) (Windows :
+   `oeil-sheikah-relais-windows.exe` ; aussi pour Linux et macOS, mode d'emploi sur la page) et ouvrez-le. Laissez la
+   fenêtre ouverte pendant que vous jouez. Avec [Node.js](https://nodejs.org) (18 ou plus) et l'appli téléchargée, au
+   choix : double-clic sur `lancer-relais.bat` (ou `node tools/soh-link/relay.mjs`).
+2. Dans Ship of Harkinian : menu **Réseau › Anchor**, hôte `127.0.0.1`, port `43383`, Room ID au choix (pas « Global
+   Room »), puis Enable.
 3. Dans l'appli : bouton d'auto-tracking en bas de la barre de gauche, cochez « Activer l'auto-tracking ». Le voyant passe au vert
-   quand le jeu est connecté.
+   quand le jeu est connecté. Version en ligne : si le navigateur demande l'autorisation d'accéder
+   aux applications de cet appareil ou au réseau local, acceptez : c'est le relais.
 
 Le relais ne modifie jamais votre partie : il lit seulement ce que le jeu envoie. Options dans la fenêtre
 Auto-tracking : ce qu'il faut suivre, et **la position en temps réel** (la position de Link sur la Carte ; le jeu
@@ -52,7 +61,8 @@ a déjà montré (objet d'un check ramassé, boutiques vues, destination des ent
 
 ## Cartes (facultatif)
 
-Les cartes sont tirées de **votre propre ROM** d'Ocarina of Time ; elles ne sont pas fournies.
+Les cartes sont tirées de **votre propre ROM** d'Ocarina of Time ; elles ne sont pas fournies, ni dans la version en
+ligne. Avec l'appli téléchargée et [Node.js](https://nodejs.org) (18 ou plus) :
 
 ```
 node tools/soh-checks/fetch_sources.mjs

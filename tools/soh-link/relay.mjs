@@ -19,7 +19,8 @@
 // elle change). Le jeu affiche « L'Oeil Sheikah : Connected » à l'activation.
 //
 // Usage : node tools/soh-link/relay.mjs [--game=43383] [--web=43390] [--verbose] [--dump[=fichier.jsonl]] [--live]
-//   (sous Windows : double-clic sur lancer-relais.bat, à la racine du projet)
+//   (sous Windows : double-clic sur lancer-relais.bat, à la racine du projet ; ou l'exécutable autonome, sans Node.js,
+//   construit par tools/soh-link/build_relay.mjs et publié dans les releases GitHub)
 //   --dump : enregistre les paquets reçus du jeu (une ligne JSON par paquet, sans les mouvements) — pour le développement.
 import net from 'net';
 import http from 'http';
@@ -36,12 +37,25 @@ const GHOST_ID = 2;
 // paquets sans intérêt pour le suivi (sons, mouvements image par image : position et âge sont résumés à part)
 const DROP = new Set(['PLAYER_SFX', 'OCARINA_SFX', 'PLAYER_UPDATE']);
 
-const time = () => new Date().toLocaleTimeString('fr-FR');
+// messages en français si le système est en français, sinon en anglais
+const FR = /^fr\b/i.test(process.env.LANG || Intl.DateTimeFormat().resolvedOptions().locale || '');
+const m = (fr, en) => FR ? fr : en;
+const time = () => new Date().toLocaleTimeString(FR ? 'fr-FR' : 'en-GB');
 const log = (...a) => console.log(`[${time()}]`, ...a);
+// exécutable autonome (pas lancé par node ou bun) : la fenêtre se ferme à la sortie, on attend Entrée avant
+const STANDALONE = !/[\\/](node|bun)(\.exe)?$/i.test(process.execPath);
+function fatal(msg){
+  console.error('\n' + msg + '\n');
+  if (!STANDALONE || !process.stdin.isTTY) process.exit(1);
+  console.error(m('Appuyez sur Entrée pour fermer.', 'Press Enter to close.'));
+  process.stdin.once('data', () => process.exit(1));
+}
 
 let game = null, clientState = null, teamState = null, player = null;
 let live = !!args.live, liveLast = null, liveSent = 0;   // position en temps réel : option, dernière position transmise
 const web = new Set();
+console.log(m(`L'Œil Sheikah — relais d'auto-tracking (lecture seule). Gardez cette fenêtre ouverte pendant la partie.`,
+  `L'Œil Sheikah — auto-tracking relay (read-only). Keep this window open while you play.`));
 
 /* ---------- vers l'appli (SSE) ---------- */
 function broadcast(ev){
@@ -74,7 +88,7 @@ function ghostFollow(){
 function setLive(on){
   if (live === on) return;
   live = on; liveLast = null;
-  log(on ? 'Position en temps réel activée' : 'Position en temps réel désactivée');
+  log(on ? m('Position en temps réel activée', 'Real-time position on') : m('Position en temps réel désactivée', 'Real-time position off'));
   sendClients();
   broadcast({ type:'liveState', on });
 }
@@ -91,7 +105,8 @@ function onGamePacket(p){
   if (DUMP && type !== 'PLAYER_UPDATE' && type !== 'PLAYER_SFX' && type !== 'OCARINA_SFX') fs.appendFileSync(DUMP, JSON.stringify({ t:Date.now(), ...p }) + '\n');
   if (type === 'HANDSHAKE'){
     clientState = p.clientState || {};
-    log(`Jeu connecté (${clientState.name || 'sans nom'}, sauvegarde ${clientState.isSaveLoaded ? 'chargée' : 'non chargée'})`);
+    log(m(`Jeu connecté (${clientState.name || 'sans nom'}, sauvegarde ${clientState.isSaveLoaded ? 'chargée' : 'non chargée'})`,
+      `Game connected (${clientState.name || 'no name'}, save ${clientState.isSaveLoaded ? 'loaded' : 'not loaded'})`));
     sendClients();
     sendToGame({ type:'UPDATE_ROOM_STATE', state:{ ownerClientId:CLIENT_ID, pvpMode:0, showLocationsMode:0, teleportMode:0, syncItemsAndFlags:1 } });
     requestState();
@@ -110,7 +125,7 @@ function onGamePacket(p){
   if (type === 'REQUEST_TEAM_STATE'){ requestState(); return; }
   if (type === 'UPDATE_TEAM_STATE'){
     teamState = p.state || null;
-    log('Sauvegarde complète reçue');
+    log(m('Sauvegarde complète reçue', 'Full save received'));
     broadcast({ type:'packet', packet:p });
     return;
   }
@@ -137,7 +152,7 @@ function onGamePacket(p){
   }
   if (DROP.has(type)) return;
   if (type === 'GIVE_ITEM' || type === 'UPDATE_DUNGEON_ITEMS') requestStateSoon();
-  if (VERBOSE || type !== 'SET_FLAG' && type !== 'UNSET_FLAG') log('←', type, type === 'SET_CHECK_STATUS' ? `rc ${p.rc} statut ${p.status}` : type === 'ENTRANCE_DISCOVERED' ? `entrée ${p.entranceIndex}` : '');
+  if (VERBOSE || type !== 'SET_FLAG' && type !== 'UNSET_FLAG') log('←', type, type === 'SET_CHECK_STATUS' ? `rc ${p.rc} ${m('statut', 'status')} ${p.status}` : type === 'ENTRANCE_DISCOVERED' ? `${m('entrée', 'entrance')} ${p.entranceIndex}` : '');
   broadcast({ type:'packet', packet:p });
 }
 
@@ -154,23 +169,28 @@ net.createServer(sock => {
       const raw = buf.slice(0, i);
       buf = buf.slice(i + 1);
       if (!raw.trim()) continue;
-      try { onGamePacket(JSON.parse(raw)); } catch (e){ log('Paquet illisible :', e.message); }
+      try { onGamePacket(JSON.parse(raw)); } catch (e){ log(m('Paquet illisible :', 'Unreadable packet:'), e.message); }
     }
   });
   const gone = () => {
     if (game !== sock) return;
     game = null; clientState = null; player = null; liveLast = null;
-    log('Jeu déconnecté');
+    log(m('Jeu déconnecté', 'Game disconnected'));
     broadcast({ type:'game', connected:false });
   };
   sock.on('close', gone);
   sock.on('error', gone);
-}).listen(GAME_PORT, HOST, () => log(`En attente de SoH sur ${HOST}:${GAME_PORT} (Anchor : Host ${HOST}, Port ${GAME_PORT})`));
+}).on('error', e => fatal(busy(e, GAME_PORT)))
+  .listen(GAME_PORT, HOST, () => log(m(`En attente de SoH sur ${HOST}:${GAME_PORT} (menu Réseau > Anchor : Host ${HOST}, Port ${GAME_PORT})`,
+    `Waiting for SoH on ${HOST}:${GAME_PORT} (Network > Anchor menu: Host ${HOST}, Port ${GAME_PORT})`)));
 
 /* ---------- serveur HTTP pour l'appli ---------- */
+// appli ouverte depuis un fichier ou en ligne (GitHub Pages) : accès de toute origine, y compris d'un site public vers
+// cette adresse locale (Private Network Access de Chrome)
 http.createServer((req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Private-Network', 'true');
   if (req.method === 'OPTIONS'){ res.writeHead(204); res.end(); return; }
   if (req.url === '/events'){
     res.writeHead(200, { 'Content-Type':'text/event-stream; charset=utf-8', 'Cache-Control':'no-cache', Connection:'keep-alive' });
@@ -179,13 +199,22 @@ http.createServer((req, res) => {
     res.write(`data: ${JSON.stringify(hello())}\n\n`);
     const ka = setInterval(() => res.write(': ping\n\n'), 15000);
     // plus d'appli connectée : plus besoin du joueur fictif (l'appli le réactive à sa reconnexion)
-    req.on('close', () => { clearInterval(ka); web.delete(res); log('Appli déconnectée'); if (!web.size && !args.live) setLive(false); });
-    log('Appli connectée');
+    req.on('close', () => { clearInterval(ka); web.delete(res); log(m('Appli déconnectée', 'App disconnected')); if (!web.size && !args.live) setLive(false); });
+    log(m('Appli connectée', 'App connected'));
     return;
   }
   if (req.url === '/request-state' && req.method === 'POST'){ requestState(); res.writeHead(204); res.end(); return; }
   // position en temps réel : /live?on=1 ou /live?on=0
   if (req.url.startsWith('/live') && req.method === 'POST'){ setLive(/[?&]on=1/.test(req.url)); res.writeHead(204); res.end(); return; }
   res.writeHead(200, { 'Content-Type':'text/plain; charset=utf-8' });
-  res.end(`Relais L'Œil Sheikah — jeu ${game ? 'connecté' : 'non connecté'}. Flux : /events`);
-}).listen(WEB_PORT, HOST, () => log(`Appli : http://${HOST}:${WEB_PORT}/events`));
+  res.end(m(`Relais L'Œil Sheikah — jeu ${game ? 'connecté' : 'non connecté'}. Flux : /events`,
+    `L'Œil Sheikah relay — game ${game ? 'connected' : 'not connected'}. Stream: /events`));
+}).on('error', e => fatal(busy(e, WEB_PORT)))
+  .listen(WEB_PORT, HOST, () => log(m(`Appli : adresse du relais http://${HOST}:${WEB_PORT}`, `App: relay address http://${HOST}:${WEB_PORT}`)));
+
+function busy(e, port){
+  return e.code === 'EADDRINUSE'
+    ? m(`Le port ${port} est déjà utilisé : le relais tourne sans doute déjà (une autre fenêtre ?).`,
+        `Port ${port} is already in use: the relay is probably already running (another window?).`)
+    : m(`Erreur sur le port ${port} : ${e.message}`, `Error on port ${port}: ${e.message}`);
+}

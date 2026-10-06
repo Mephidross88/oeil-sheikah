@@ -18,6 +18,14 @@ Référence du rando : https://wiki.ootrandomizer.com/index.php?title=Entrance_R
 - Export / import de la partie par copier-coller (texte JSON) pour changer de navigateur.
 - Interface claire, graphique, en français ou en anglais, utilisable sur mobile.
 
+## Version en ligne
+L'appli est publiée sur GitHub Pages (https://mephidross88.github.io/oeil-sheikah/) par le workflow
+`.github/workflows/pages.yml` à chaque envoi sur `main` : seulement les fichiers de l'appli (`index.html`, `style.css`,
+`js/`, `data/` sans `maps-data.js`, `icons/`, `LICENSE`). Même appli qu'ouverte depuis un fichier (`file://`) ; partie,
+langue et dispositions de stream gardées dans le navigateur, à part pour chaque version (transfert : « Exporter ou
+importer la partie »). Différences (`APP_ONLINE` de `js/link.js`) : pas de cartes (tirées de la ROM du joueur, jamais
+publiées : la page Carte renvoie vers l'appli téléchargée) ; autorisation d'accès au relais local (voir Auto-tracking).
+
 ## Langue
 Interface en français (langue source) ou dans une autre langue : anglais livré, d'autres ajoutables sans toucher au
 code (`js/i18n.js`, dictionnaires `data/i18n/<code>.js`).
@@ -987,15 +995,23 @@ non notée est une impasse.
 
 ## Auto-tracking (en cours)
 Suivi en direct d'une partie de Ship of Harkinian, sans modifier le jeu.
-- **Relais** `tools/soh-link/relay.mjs` (Node, sans dépendance), lancé à la main pendant qu'on joue (sous Windows :
-  double-clic sur `lancer-relais.bat` à la racine, qui vérifie la présence de Node et transmet ses arguments ; fermer
-  la fenêtre l'arrête). L'appli se reconnecte seule si le relais est relancé (le relais demande un nouvel essai au bout de
+- **Relais** `tools/soh-link/relay.mjs` (Node, sans dépendance), lancé à la main pendant qu'on joue : exécutable
+  autonome sans Node.js (Windows, Linux, macOS ; compilé par Bun, `tools/soh-link/build_relay.mjs`, publié dans les
+  releases GitHub par le workflow `relay.yml` à l'envoi d'une étiquette `relais-v…`, notes `tools/soh-link/RELEASE.md` ;
+  lien « téléchargez-le » de la fenêtre Auto-tracking : dernière release), ou sous Windows double-clic sur
+  `lancer-relais.bat` à la racine, qui vérifie la présence de Node et transmet ses arguments ; fermer la fenêtre l'arrête.
+  Messages en français si le système est en français, sinon en anglais ; port déjà pris (relais déjà lancé) : message
+  clair, et l'exécutable attend Entrée avant de fermer sa fenêtre. L'appli se reconnecte seule si le relais est relancé (le relais demande un nouvel essai au bout de
   2 s ; si le navigateur abandonne, l'appli relance la connexion au bout de 5 s). SoH s'y connecte
   avec son mode multijoueur Anchor (menu Réseau > Anchor : Host `127.0.0.1`, port `43383`, Room ID au choix, pas la
   salle globale) : TCP, messages JSON séparés par un octet nul. Le relais répond à la poignée de main (liste des joueurs
   avec le jeu marqué `self`, état de salle avec `syncItemsAndFlags` activé, sans quoi le jeu n'envoie pas sa
   sauvegarde), demande la sauvegarde complète (`REQUEST_TEAM_STATE` → `UPDATE_TEAM_STATE`), et transmet les événements
-  à l'appli par un flux SSE (`http://127.0.0.1:43390/events` ; `POST /request-state` pour relire la sauvegarde).
+  à l'appli par un flux SSE (`http://127.0.0.1:43390/events` ; `POST /request-state` pour relire la sauvegarde ; accès de
+  toute origine, en-tête `Access-Control-Allow-Private-Network` compris).
+  **Appli en ligne** (GitHub Pages) : Chrome demande au joueur l'autorisation d'accéder aux adresses locales (permission
+  `loopback-network`, `local-network-access` sur les versions plus anciennes) ; refusée, la fenêtre Auto-tracking le dit
+  (« Le navigateur bloque l'accès au relais pour ce site », `link.blocked`).
   **Lecture seule** : il n'envoie au jeu que `ALL_CLIENT_STATE`, `UPDATE_ROOM_STATE` et `REQUEST_TEAM_STATE`, jamais
   d'objet, de drapeau ni d'état d'équipe (qu'un vrai serveur Anchor peut appliquer à la sauvegarde). Mouvements du
   joueur résumés (scène, entrée d'arrivée, âge, seulement quand ils changent) ; `--dump` enregistre les paquets reçus.

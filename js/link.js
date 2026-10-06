@@ -3,6 +3,11 @@
    SSE : connexion du jeu, position, checks faits, entrées découvertes, sauvegarde complète. Ce fichier gère la connexion
    (store.ui.link : activé, adresse du relais) et l'état affiché (link) ; l'application des événements à la partie
    (checks, objets, entrées) vient ensuite (linkApply). Lecture seule : rien n'est jamais renvoyé au jeu. */
+// appli ouverte en ligne (GitHub Pages) plutôt que depuis un fichier ; page de téléchargement du relais autonome
+// (exécutables construits par tools/soh-link/build_relay.mjs, publiés par le workflow relay.yml)
+const APP_ONLINE = /^https?:$/.test(globalThis.location?.protocol);
+const APP_REPO = 'https://github.com/Mephidross88/oeil-sheikah';
+const RELAY_DL = APP_REPO + '/releases/latest';
 const link = reactive({
   status:'off',      // off | connecting (relais injoignable, nouvelle tentative auto) | relay (relais OK) | game (jeu connecté)
   client:null,       // dernier état du jeu (nom, sauvegarde chargée, scène…)
@@ -13,6 +18,7 @@ const link = reactive({
   foreign:false,     // le jeu a chargé une autre sauvegarde que celle de la partie notée : ses événements sont ignorés
   drift:null,        // écart avec la dernière sauvegarde complète (linkDrift) : lignes à corriger ou à garder
   live:null,         // position de Link en temps réel (option ui.link.live) : { scene, x, y, z, rot, age, at }
+  blocked:false,     // appli en ligne : le navigateur refuse l'accès au relais local (autorisation refusée par le joueur)
   lastAt:null, log:[],
 });
 let linkSource = null;
@@ -27,15 +33,28 @@ function linkStart(){
   let es;
   try { es = new EventSource(store.ui.link.url.replace(/\/+$/, '') + '/events'); } catch (e){ linkLog('Adresse du relais invalide'); return; }
   linkSource = es;
+  es.onopen = () => { link.blocked = false; };
   es.onmessage = ev => { let m; try { m = JSON.parse(ev.data); } catch (e){ return; } linkHandle(m); };
   es.onerror = () => {
     if (link.status !== 'connecting') linkLog(t('Relais injoignable, nouvelle tentative…'));
     link.status = 'connecting';
+    linkCheckBlocked();
     // le navigateur réessaie seul après une coupure, mais abandonne sur une réponse anormale : on relance alors
     if (es.readyState === 2 && linkSource === es){ clearTimeout(linkRetry); linkRetry = setTimeout(() => { if (store.ui.link.enabled && linkSource === es) linkStart(); }, 5000); }
   };
 }
 let linkRetry = null;
+// Appli en ligne (site public) : Chrome demande au joueur l'autorisation d'accéder aux adresses locales, dont le relais
+// (permission « loopback-network », « local-network-access » avant Chrome 145 environ) ; refusée, le relais reste injoignable
+// sans autre indice : on le dit dans la fenêtre Auto-tracking.
+function linkCheckBlocked(){
+  if (!APP_ONLINE || !navigator.permissions) return;
+  const ask = n => navigator.permissions.query({ name:n }).then(r => r.state, () => null);
+  Promise.all(['loopback-network', 'local-network-access'].map(ask)).then(st => {
+    const on = st.find(x => x) || null;
+    link.blocked = on === 'denied' && link.status === 'connecting';
+  });
+}
 function linkStop(){
   clearTimeout(linkRetry);
   if (linkSource){ linkSource.close(); linkSource = null; }

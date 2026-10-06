@@ -8,8 +8,11 @@ gossip stone hints, and routes to whatever is doable. Everything runs in your br
 
 ## Running the app
 
-Open `index.html` in a recent browser (Chrome, Edge, Firefox). Nothing to install, nothing to build: your game is
-saved automatically in the browser.
+**Online: https://mephidross88.github.io/oeil-sheikah/** — nothing to install, your game is saved automatically in
+the browser (recent Chrome, Edge or Firefox).
+
+Or download the repository (Code › Download ZIP) and open `index.html`: same app, offline, plus the maps (see Maps).
+Each copy keeps its own game; to move from one to the other: “Export or import the game” (left bar).
 
 To start a game:
 1. **Settings** › “Import from a SoH spoiler…”: pick the import options (seed draws, shop prices, hidden spoiler for
@@ -34,14 +37,19 @@ At the bottom of the screen, the **“Where to?”** bar shows the closest doabl
 
 ## Auto-tracking (optional)
 
-The app can follow your game live: checks done, items, entrances taken, position. You need
-[Node.js](https://nodejs.org) (version 18 or later).
+The app can follow your game live: checks done, items, entrances taken, position, through a small relay running on
+your computer.
 
-1. Start the relay: double-click `lancer-relais.bat` (or run `node tools/soh-link/relay.mjs`). Keep the window open
-   while you play.
-2. In Ship of Harkinian: **Network › Anchor** menu, host `127.0.0.1`, port `43383`, then connect.
+1. Start the relay: download it from the
+   [latest release](https://github.com/Mephidross88/oeil-sheikah/releases/latest) (Windows:
+   `oeil-sheikah-relais-windows.exe`; also for Linux and macOS, instructions on that page) and open it. Keep its window
+   open while you play. With [Node.js](https://nodejs.org) (18 or later) and the downloaded app, you can instead
+   double-click `lancer-relais.bat` (or run `node tools/soh-link/relay.mjs`).
+2. In Ship of Harkinian: **Network › Anchor** menu, host `127.0.0.1`, port `43383`, any Room ID (not “Global Room”),
+   then Enable.
 3. In the app: auto-tracking button at the bottom of the left bar, check “Enable auto-tracking”. The light turns green
-   when the game is connected.
+   when the game is connected. Online version: if the browser asks for permission to access apps on
+   this device or on your local network, allow it: that is the relay.
 
 The relay never changes your game: it only reads what the game sends. Options in the Auto-tracking window: what to
 track, and **real-time position** (Link’s position on the Map; the game then shows an invisible player
@@ -52,7 +60,8 @@ Your seed’s spoiler log can also be kept “hidden”: the app only uses it to
 
 ## Maps (optional)
 
-Maps are extracted from **your own Ocarina of Time ROM**; they are not provided.
+Maps are extracted from **your own Ocarina of Time ROM**; they are not provided, not even online. With the downloaded
+app and [Node.js](https://nodejs.org) (18 or later):
 
 ```
 node tools/soh-checks/fetch_sources.mjs

@@ -1121,7 +1121,7 @@ const App = {
       r.onload = () => { langMsg.value = importLang(r.result); };
       r.readAsText(f);
     }
-    return { LANG, LANGS, I18N_LANGS, setLang, removeLang, pickLang, langMsg, store, ui, s, views, navGroups, link, LINK_LABEL, linkRequestState, linkAdoptSave, driftSel, driftList, driftGroups, openDrift, driftCount, driftAll, driftApply, driftVal, driftIcon, driftLabel, linkAsks, linkAnswer, askFrom, askLabel, canSplit, splitOn, shown, paneOf, swapPanes, openSide, closeSide, navOpen, itemsOpen, modal, tip, tipData, backup, stats, missingSpawns, visibleAreas,
+    return { LANG, LANGS, I18N_LANGS, setLang, removeLang, pickLang, langMsg, store, ui, s, views, navGroups, link, LINK_LABEL, APP_ONLINE, APP_REPO, RELAY_DL, linkRequestState, linkAdoptSave, driftSel, driftList, driftGroups, openDrift, driftCount, driftAll, driftApply, driftVal, driftIcon, driftLabel, linkAsks, linkAnswer, askFrom, askLabel, canSplit, splitOn, shown, paneOf, swapPanes, openSide, closeSide, navOpen, itemsOpen, modal, tip, tipData, backup, stats, missingSpawns, visibleAreas,
       ICONS, ITEMS_PAGE, ITEM_BY_KEY, DUNGEONS, DUNGEON_BY_ID, CHECKLISTS, AREA, EXIT, DATA_ERRORS,
       iconKey, exitIcon, areaName, toggleArea, setAll, jump, go, showTip, hideTip, toggleTip, setMapping, clearMapping,
       checkAreasC, checkList, hereCheckArea, checkStats, toggleCheckArea, PRICE_TYPES, priceEdit, setPrice, priceOver, priceTitle, focusEl, lastCheck, toggleCheck, toggleExcluded, undoCheck, foundInfo, seenInfo, loadSpoilerFile, linkClearSpoiler, linkSpoilerOk, goToCheck, goToZone, why, openWhy, nextC, stepsLabel, goMsg, setAllChecks, jumpCheck, setCheck, setExcluded, CHECK_AREA,
@@ -1542,7 +1542,9 @@ ${STREAM_TPL}
         <button type="button" title="Fermer ce panneau" v-html="ICONS.close" @click="closeSide"></button></div>
       <div class="page-head"><h1>Carte</h1><p class="lede">Où se trouve chaque sortie, zone par zone, sur le terrain du jeu vu de dessus (nord en haut).</p></div>
       <div v-if="!MAPS_OK" class="warn-box"><span class="warn-box-ic" v-html="ICONS.warn"></span>
-        <div><b>Cartes non générées.</b> Elles se fabriquent depuis votre propre cartouche : <code>node tools/soh-maps/extract_maps.mjs &lt;ROM .z64&gt; [--mq=&lt;ROM Master Quest .z64&gt;]</code>
+        <div v-if="APP_ONLINE"><b>Cartes absentes de la version en ligne.</b> Elles se fabriquent depuis votre propre
+          cartouche, avec <a :href="APP_REPO" target="_blank" rel="noopener">l'appli téléchargée</a> (voir son mode d'emploi).</div>
+        <div v-else><b>Cartes non générées.</b> Elles se fabriquent depuis votre propre cartouche : <code>node tools/soh-maps/extract_maps.mjs &lt;ROM .z64&gt; [--mq=&lt;ROM Master Quest .z64&gt;]</code>
           (compressée ou non ; la ROM Master Quest, facultative, donne les cartes des donjons Master Quest), qui écrit
           <code>data/maps-data.js</code>. Rechargez ensuite la page.</div></div>
       <template v-else>
@@ -1829,11 +1831,16 @@ ${ITEMS_TPL}${LOOT_TPL}    </div>
           <p style="margin-top:0">Suit votre partie de Ship of Harkinian en direct, via un petit relais local qui se fait passer pour un
             serveur Anchor. Le relais est en lecture seule : il ne modifie jamais votre partie.</p>
           <ol class="link-steps">
-            <li>Lancez le relais : <code>node tools/soh-link/relay.mjs</code> (dans le dossier de L'Œil Sheikah).</li>
+            <li>Lancez le relais : <a :href="RELAY_DL" target="_blank" rel="noopener">téléchargez-le</a> (Windows, Linux, macOS)
+              et ouvrez-le ; gardez sa fenêtre ouverte pendant la partie. Avec Node.js, vous pouvez aussi lancer
+              <code>node tools/soh-link/relay.mjs</code> (dans le dossier de L'Œil Sheikah).</li>
             <li>Dans SoH, menu Réseau &gt; Anchor : Host <code>127.0.0.1</code>, port <code>43383</code>, Room ID au choix (pas « Global Room »), puis Enable.</li>
-            <li>Activez l'auto-tracking ci-dessous.</li>
+            <li>Activez l'auto-tracking ci-dessous.<template v-if="APP_ONLINE"> Si le navigateur demande l'autorisation d'accéder
+              aux applications de cet appareil ou au réseau local, acceptez : c'est le relais, sur votre ordinateur.</template></li>
           </ol>
           <label class="check link-on"><input type="checkbox" v-model="ui.link.enabled">Activer l'auto-tracking</label>
+          <div v-if="ui.link.enabled && link.blocked" class="msg ko">Le navigateur bloque l'accès au relais pour ce site.
+            Autorisez-le dans les paramètres du site (icône à gauche de l'adresse), puis rechargez la page.</div>
           <div class="link-opts"><span>Suivre :</span>
             <label class="check"><input type="checkbox" v-model="ui.link.checks">les checks faits</label>
             <label class="check"><input type="checkbox" v-model="ui.link.items">les objets</label>

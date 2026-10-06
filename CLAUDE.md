@@ -82,7 +82,10 @@ et le mettre à jour quand une règle change.
      et positions de retour des grottes), **fichier généré** par `tools/soh-link/gen_link_data.mjs`. Relais :
      `tools/soh-link/relay.mjs` (faux serveur Anchor en lecture seule ; position en temps réel `link.live` par un second
      joueur fictif, option `ui.link.live` ; tests sur d'autres ports, `--game=… --web=…`),
-     lancé sous Windows par `lancer-relais.bat` (racine, fins de ligne CRLF imposées par `.gitattributes`).
+     lancé sous Windows par `lancer-relais.bat` (racine, fins de ligne CRLF imposées par `.gitattributes`), ou exécutable
+     autonome sans Node.js (`tools/soh-link/build_relay.mjs`, Bun ; publié par le workflow `.github/workflows/relay.yml`,
+     notes `tools/soh-link/RELEASE.md`). `APP_ONLINE` (appli servie en http(s), GitHub Pages), `RELAY_DL` (téléchargement
+     du relais), `link.blocked` (accès au relais local refusé par le navigateur).
   9. `js/components.js` : composants Vue réutilisables (`TypeIcon`, `Seg`, `DestPicker`, `ItemTile`,
      `ProgressCard` — cadre de progression des pages Checks et Entrées, `EntranceGraph` — page Connexions : graphe des
      entrées connues, positions des zones `GRAPH_POS`, `ZoneMap` — page Carte : terrain vu de dessus et repères des
@@ -138,7 +141,9 @@ et le mettre à jour quand une règle change.
   convention de nommage et comment personnaliser un chemin par objet (`icon`/`icons` dans `ITEM_GROUPS`).
 
 ## Contraintes
-- Pas d'outil de build, pas de modules ES, pas de dépendance hors CDN. Doit marcher en `file://`.
+- Pas d'outil de build, pas de modules ES, pas de dépendance hors CDN. Doit marcher en `file://` et en ligne (GitHub
+  Pages, `.github/workflows/pages.yml` : publie à chaque envoi sur `main` les fichiers de l'appli ; un nouveau fichier
+  chargé par `index.html` hors de `js/`, `data/`, `icons/` doit y être ajouté).
   La séparation en plusieurs fichiers dans `js/` reste de simples `<script>` classiques : ne jamais y
   introduire `import`/`export`, ni changer l'ordre de chargement dans `index.html` sans vérifier les
   dépendances (un fichier ne peut utiliser que ce qui est déclaré dans un fichier chargé avant lui).
