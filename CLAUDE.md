@@ -95,11 +95,19 @@ et le mettre à jour quand une règle change.
      (profils) et leur migration (`loadStream`, clé `oeil-sheikah-stream`), gabarit (`streamTemplate(parts)`, appelé par
      `app.js` avec `ITEMS_TPL` / `LOOT_TPL`) et éditeur (`useStream(STREAM_MODE)` dans le setup d'App : panneau latéral,
      aimantation, calques, annuler / rétablir, export / import).
-  10. `js/app.js` : le composant racine `App` (template complet, dont le panneau Objets et ses modales de
-     pointage) + `createApp(...).mount('#app')`. Fragments de gabarit partagés en constantes (`ITEMS_TPL`, `LOOT_TPL`,
-     `STREAM_TPL`) insérés par `${…}` dans le gabarit d'App (évalués par JS, pas par Vue) : la fenêtre de stream
-     (`index.html?stream`, `STREAM_MODE` de `state.js` : relit le store via l'événement `storage`, ne sauvegarde pas, pas
-     de relais ; widgets et éditeur dans `js/stream.js`) réutilise le panneau Objets.
+  9c. `js/pages/*.js` : une page (ou partie d'écran) par fichier — `items` (panneau Objets, fenêtres d'échange et de
+     check-lists ; fragments `DUNGEONS_TPL` / `ITEMS_TPL` / `LOOT_TPL`, repris par la fenêtre de stream), `entrances`,
+     `router`, `checks`, `dock` (bandeau « Où aller ? »), `tracking` (fenêtres de l'auto-tracking), `map` (avant
+     `config` : `MAPS_BUILD_TPL` y sert aussi), `config`, `stats`, `graph`, `hints`. Chacun : gabarits en constantes
+     `…_TPL` (insérés par `${…}` dans celui d'App, évalués par JS au chargement) et logique en `use…(ctx)` : reçoit dans
+     `ctx` les noms des pages assemblées avant elle (`const { … } = ctx`), renvoie les siens ; un appel vers une page
+     assemblée après passe par `ctx` (« défini plus loin »). Nouveau nom d'une page utilisé par une autre : l'ajouter à
+     son `return` et à la déstructuration de l'autre (ordre d'assemblage dans `App.setup`).
+  10. `js/app.js` : la coque — `useShell` (navigation, panneaux côte à côte, thème, fenêtre ouverte), `useShellEnd`
+     (sauvegarde, remise à zéro, fenêtre de stream), le composant racine `App` (assemble les pages dans `setup`, gabarit
+     de la coque avec les `…_TPL` des pages) + `createApp(...).mount('#app')`. La fenêtre de stream (`index.html?stream`,
+     `STREAM_MODE` de `state.js` : relit le store via l'événement `storage`, ne sauvegarde pas, pas de relais ; widgets et
+     éditeur dans `js/stream.js`) réutilise le panneau Objets.
 - `README.en.md` : le même mode d'emploi, en anglais (à tenir à jour avec `README.md`).
 - `README.md` : mode d'emploi pour les joueurs (lancer l'appli, auto-tracking, cartes, stream) — à tenir à jour quand une
   de ces étapes change.
@@ -150,7 +158,8 @@ et le mettre à jour quand une règle change.
   convention de nommage et comment personnaliser un chemin par objet (`icon`/`icons` dans `ITEM_GROUPS`).
 
 - `.github/workflows/` : `pages.yml` (appli en ligne), `relay.yml` (exécutables du relais), `checks.yml` (à chaque
-  envoi : syntaxe de tous les scripts, `tools/i18n/check.mjs --strict`, `tools/soh-link/replay_packets.mjs` ; le rejeu
+  envoi : syntaxe de tous les scripts, noms non définis `tools/lint/no_undef.mjs` (ESLint installé à part, voir son en-tête),
+  `tools/i18n/check.mjs --strict`, `tools/soh-link/replay_packets.mjs` ; le rejeu
   des spoilers reste à lancer à la main). Actions tierces épinglées par leur commit ; Vue chargé avec son empreinte
   (`integrity` dans `index.html`, à recalculer en changeant de version).
 

@@ -137,7 +137,7 @@ l'utilisateur ; ne pas se fier à la branche `develop`, qui a d'autres options).
   demande, les tirages du seed et les prix ci-dessous), jamais l'emplacement des objets. Signale les options ou valeurs inconnues et une version autre que 9.2.3 ;
   les options ignorées volontairement passent en silence. Résumé « N options, M astuces ».
   **Fenêtre d'import** (bouton « Importer depuis un spoiler SoH… » de la Configuration, ou proposée d'elle-même, voir
-  ci-dessous) : ce qui est lu, puis « Importer aussi » — une ligne par option (`IMPORT_OPTS` dans `js/app.js`) avec un
+  ci-dessous) : ce qui est lu, puis « Importer aussi » — une ligne par option (`IMPORT_OPTS` dans `js/pages/config.js`) avec un
   interrupteur Non / Oui comme les réglages et son explication (badge « peut spoiler » pour les tirages) : tirages du
   seed (`ui.importQuests`), prix (`ui.importPrices`), spoiler caché pour l'auto-tracking (`ui.importLinkSpoiler`),
   mémorisées — puis le fichier, à choisir ou à glisser dans la zone prévue ; « Importer » (actif une fois un fichier
@@ -313,7 +313,7 @@ visuel il apparaît — `ITEMS_PAGE` ne redéfinit aucune métadonnée, il ne fa
 carte distincte (`.panel-card`) qui se détache sur le fond du panneau. Règle visuelle commune : une icône est
 grisée tant que l'objet n'est pas trouvé (tuile d'objet, case de donjon non cochée, compteur à 0) et en
 couleur sinon ; un compteur « obtenus/total » (petites clés, échanges, clés des portes, haricots) passe en
-doré une fois complet (`counterClass` dans `js/app.js`).
+doré une fois complet (`counterClass` dans `js/pages/items.js`).
 
 > **Catalogue orienté Ship of Harkinian.** Le contenu du panneau Objets (objets, donjons, check-lists) est celui
 > du randomizer de Ship of Harkinian ; l'inventaire noté est lu tel quel par la logique SoH (Checks, Entrées).

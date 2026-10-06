@@ -1,7 +1,7 @@
 // Contrôle des traductions (data/i18n/<code>.js) : textes de l'interface sans traduction, et traductions qui ne servent
 // plus ; modèle de traduction pour une nouvelle langue. Sources lues sans être exécutées :
-//  - gabarits (chaînes `…` contenant des balises) de js/*.js, passés au traducteur tpl() de js/i18n.js ;
-//  - appels t('…'), tn(n, '…', '…') et td('…', …) de js/*.js ;
+//  - gabarits (chaînes `…` contenant des balises) de js/*.js et js/pages/*.js, passés au traducteur tpl() de js/i18n.js ;
+//  - appels t('…'), tn(n, '…', '…') et td('…', …) de ces fichiers ;
 //  - libellés des données traduits à l'exécution (DYNAMIC ci-dessous : fichiers chargés dans un bac à sable).
 // Usage :
 //   node tools/i18n/check.mjs [--lang=en] [--missing] [--unused] [--js] [--strict]
@@ -32,7 +32,7 @@ const ui = new Set(), data = new Set();
 
 // 1. gabarits et appels t() / tn() / td() des fichiers js/
 const lit = s => s.replace(/\\'/g, "'");
-for (const f of fs.readdirSync(path.join(ROOT, 'js')).filter(f => f.endsWith('.js')).map(f => 'js/' + f)){
+for (const f of ['js', 'js/pages'].flatMap(d => fs.readdirSync(path.join(ROOT, d)).filter(f => f.endsWith('.js')).map(f => d + '/' + f))){
   const src = read(f);
   for (const m of src.matchAll(/`([^`]*)`/g)){
     const body = m[1].replace(/\$\{[^}]*\}/g, ' ');
