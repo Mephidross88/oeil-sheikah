@@ -149,7 +149,7 @@ const SOH = {
   285:['HC Boulder Crawlspace', 'Passage sous le rocher'], 286:['HC Storms Grotto Entry', 'Entrée de la grotte des tempêtes'],
   287:['HC Great Fairy Fountain', 'Fontaine de la Grande Fée (Château d\'Hyrule)'], 288:['HC Storms Grotto', 'Grotte des tempêtes'],
   289:['OGC Behind Pillar', 'Derrière le pilier'], 290:['OGC Rainbow Bridge Exit', 'Pont arc-en-ciel'],
-  291:['OGC Great Fairy Fountain', 'Fontaine de la Grande Fée (Château de Ganon)'], 292:['Inside Ganon\'s Castle Entrance', 'Entrée du Château de Ganon'],
+  291:['OGC Great Fairy Fountain', 'Fontaine de la Grande Fée (extérieur du Château de Ganon)'], 292:['Inside Ganon\'s Castle Entrance', 'Entrée du Château de Ganon'],
   293:['Ganon\'s Tower Entrance', 'Entrée de la Tour de Ganon'], 294:['Inside Ganon\'s Castle', 'Intérieur du Château de Ganon'],
 };
 // Destinations sans entrée de départ propre (arrivées seules) : nom de destination SoH.

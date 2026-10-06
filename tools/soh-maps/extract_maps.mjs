@@ -285,10 +285,18 @@ function autoLevels(floors){
   return peaks.map((k, i) => ({ n:(i + 1) + 'F', min:i ? Math.round((peaks[i - 1] + k) / 2) : -99999 })).reverse();
 }
 const ACTOR_EN_OWL = 0x014D;
+// Entrées en quatre variantes de suite (enfant jour, enfant nuit, adulte jour, adulte nuit) ; le château d'Hyrule adulte est
+// une autre scène (extérieur du Château de Ganon) : sorties « OGC … » de SoH, variante adulte jour (+2)
+const ADULT_LAYER = key => /^OGC /.test(EXITS[key]?.soh || '');
+// numéros d'entrée inutilisés que SoH réemploie (entrance.cpp) : sortie de la fontaine de la Grande Fée de l'extérieur du
+// Château de Ganon (ENTR_POTION_SHOP_KAKARIKO_1) → sortie de fontaine du château, comme dans le jeu de base
+const REPURPOSED = { 0x3E8:0x340 };
 function arrivalPos(key){
-  const n = ARRIVAL[key];
+  let n = ARRIVAL[key];
   if (n == null) return null;
   if (n >= 0x800 && n < 0x800 + GROTTO_RETURN.length){ const g = GROTTO_RETURN[n - 0x800]; return { scene:g.scene, x:g.x, y:g.y, z:g.z }; }
+  n = REPURPOSED[n] ?? n;
+  if (ADULT_LAYER(key) && ENTR[n + 2]?.scene === 'SCENE_OUTSIDE_GANONS_CASTLE') n += 2;
   const t = ENTR[n];
   if (!t || !MAPPED.has(t.scene)) return t ? { scene:t.scene } : null;
   const s = readScene(t.scene), sp = s.spawns[s.entrances[t.spawn] ?? t.spawn];

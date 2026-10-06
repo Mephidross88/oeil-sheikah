@@ -31,7 +31,9 @@ export const FULL = {
   'Freed All Carpenters': 'Charpentiers libérés (Carte Gerudo)', '1 Torch Carpenter': 'Charpentier de la cellule à 1 torche',
   'Dead End Carpenter': 'Charpentier du cul-de-sac', 'Double Cell Carpenter': 'Charpentier de la double cellule',
   'Steep Slope Carpenter': 'Charpentier de la pente raide', 'Carpet Salesman': 'Marchand de tapis',
-  'Great Fairy Reward': 'Récompense de la Grande Fée', 'OGC Great Fairy Reward': 'Récompense de la Grande Fée (Château de Ganon)',
+  'Great Fairy Reward': 'Récompense de la Grande Fée', 'OGC Great Fairy Reward': 'Récompense de la Grande Fée (extérieur du Château de Ganon)',
+  // OGC (Outside Ganon's Castle) : le château d'Hyrule adulte, à ne pas confondre avec le donjon (Château de Ganon)
+  'OGC GS': 'Skulltula de l\'extérieur du Château de Ganon', 'HC OGC GS': 'Skulltula de l\'extérieur du Château de Ganon',
   'Sheik at Colossus': 'Sheik au Colosse', 'Song from Royal Family\'s Tomb': 'Chant de la tombe royale',
   // Bourg, château, temple du temps
   'Treasure Chest Game Reward': 'Récompense de la chasse au trésor', 'Bombchu Bowling First Prize': 'Bowling Teigneux : 1er prix',
@@ -177,7 +179,7 @@ export const W = {
   Epona:P('Epona'), "Epona's":P('Epona'), Goron:P('Goron'), Zora:P('Zora'), "Zora's":P('Zora'), Zoras:P('Zora'), Deku:P('Mojo'),
   Kokiri:P('Kokiri'), Gerudo:P('Gerudo'), Hylia:P('Hylia'), Hyrule:P('Hyrule'), Kakariko:N('village'), Kak:N('village'),
   Colossus:N('Colosse'), Jabu:P('Jabu-Jabu'), GC:N('Village Goron'), KF:N('Forêt Kokiri','f'), HC:N('Château d\'Hyrule'), SFM:N('Bosquet Sacré'),
-  ToT:N('Temple du Temps'), OGC:N('Château de Ganon'), CE:P('entrée du château'), HBA:P('archerie montée'), Flare:P('Flare'), Dancer:P('Danseur'),
+  ToT:N('Temple du Temps'), OGC:N('extérieur du Château de Ganon'), CE:P('entrée du château'), HBA:P('archerie montée'), Flare:P('Flare'), Dancer:P('Danseur'),
   Queen:P('Reine'), King:P('Roi'), Phantom:P('Spectral'), Scarecrow:N('épouvantail'), GS:N('Skulltula','f'), End:N('fin','f'), Skull:P('Skull'), Poe2:P('Esprit'),
   // adjectifs
   Big:A('grand',{pre:1}), Small:A('petit',{pre:1}), Great:A('grand',{pre:1}), Giant:A('géant'), Mini:A('mini'), Hidden:A('caché'), Invisible:A('invisible'),

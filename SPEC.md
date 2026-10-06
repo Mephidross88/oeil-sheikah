@@ -909,7 +909,9 @@ du jeu vu de dessus (nord en haut).
   (Chambre des Sages) au piédestal de l'Épée de Légende.
 - Affichage : zone choisie (`ui.map.area`, sinon celle de la position ; menu groupé par région — Forêt, Plaine et
   château, Cocorico, Montagne du Péril, Zoras, Lac Hylia, Désert Gerudo —, chaque donjon avec sa région), onglets si elle
-  a plusieurs scènes ; sol en
+  a plusieurs scènes (ex. Château d'Hyrule : « Château (enfant) » et « Extérieur du Château de Ganon (adulte) », une autre
+  scène du jeu — sorties « OGC … » de SoH placées avec la variante adulte de leur entrée, dont la sortie de la fontaine de
+  la Grande Fée, numéro d'entrée 0x3E8 réemployé par SoH pour la sortie de fontaine du château 0x340) ; sol en
   10 teintes par tranches de hauteur réparties selon le terrain présent (quantiles), murs en traits sombres ; un repère
   par position (une porte et l'intérieur derrière partagent un repère), forme et couleur par type — intérieur : porte
   (arceau), changement de zone : flèche vers l'extérieur de la zone (à l'opposé de l'orientation de Link quand il

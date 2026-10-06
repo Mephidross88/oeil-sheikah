@@ -5025,7 +5025,7 @@ window.AREAS_DATA = [
       },
       {
         "id": "adultgreatfairy_to_castle",
-        "label": "Fontaine de la Grande Fée (Château de Ganon)",
+        "label": "Fontaine de la Grande Fée (extérieur du Château de Ganon)",
         "soh": "OGC Great Fairy Fountain",
         "entr": 1000,
         "type": "interior",

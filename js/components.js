@@ -286,7 +286,7 @@ if (MAPS) for (const [key, p] of Object.entries(MAPS.exits)){
 for (const a of Object.keys(MAP_SCENES)) MAP_SCENES[a] = Object.entries(MAP_SCENES[a])
   .sort((x, y) => (MAPS.scenes[x[0]]?.kind === 'boss') - (MAPS.scenes[y[0]]?.kind === 'boss') || y[1] - x[1]).map(x => x[0]);
 const MAP_SCENE_LABEL = { MARKET_ENTRANCE_DAY:t('Entrée du bourg'), MARKET_DAY:t('Place du marché'), TEMPLE_OF_TIME_EXTERIOR_DAY:t('Parvis du temple'),
-  BACK_ALLEY_DAY:t('Ruelle'), HYRULE_CASTLE:t('Château (enfant)'), OUTSIDE_GANONS_CASTLE:t('Château de Ganon (adulte)'),
+  BACK_ALLEY_DAY:t('Ruelle'), HYRULE_CASTLE:t('Château (enfant)'), OUTSIDE_GANONS_CASTLE:t('Extérieur du Château de Ganon (adulte)'),
   INSIDE_GANONS_CASTLE:t('Château'), GANONS_TOWER:t('Tour'), TEMPLE_OF_TIME:t('Temple du Temps') };
 const mapSceneLabel = (name, both) => {
   const s = MAPS.scenes[name], base = name.replace(/_MQ$/, '');
