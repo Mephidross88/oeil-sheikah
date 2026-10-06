@@ -73,7 +73,7 @@ else watch(store, () => {
 
 /* Positions de checks placées à la main sur la Carte (mode « Placer les checks »), gardées à part de la partie (POS_KEY) :
    { id: { scene: scène affichée (« …_MQ » : Master Quest), x, y, z } } ; exportées en positions-manuelles.json pour
-   tools/soh-maps/extract_maps.mjs. */
+   tools/soh-maps/gen_maps_recipe.mjs. */
 const POS_KEY = 'oeil-sheikah-positions';
 const mapEdits = reactive((() => { try { return JSON.parse(localStorage.getItem(POS_KEY)) || {}; } catch (e) { return {}; } })());
 if (!STREAM_MODE) watch(mapEdits, () => { try { localStorage.setItem(POS_KEY, JSON.stringify(mapEdits)); } catch (e) {} }, { deep:true });

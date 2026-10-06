@@ -2,7 +2,7 @@
 // même port) qui déclare au jeu un second joueur, « Capture », toujours dans la même scène que Link. Le jeu n'envoie la
 // position de Link (PLAYER_UPDATE, à chaque image) qu'aux autres joueurs de sa scène : il l'envoie alors en continu. À
 // chaque check ramassé (SET_CHECK_STATUS, statut « ramassé »), la position de Link à ce moment est notée dans
-// tools/soh-maps/positions.json (versionné), que extract_maps.mjs reprend pour les checks sans position.
+// tools/soh-maps/positions.json (versionné), que gen_maps_recipe.mjs reprend (data/maps-recipe.js) pour les checks sans position.
 // Outil lancé à la main, jamais chargé par l'appli. Aucune dépendance (Node 18+).
 //
 // Usage : node tools/soh-maps/capture_positions.mjs [--game=43383] [--all] [--list] [--v | --mq] [--out=fichier.json]

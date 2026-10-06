@@ -118,16 +118,24 @@ et le mettre à jour quand une règle change.
   notées et, à chaque sphère, les régions atteintes par le Routeur à celles de la logique, voir SPEC.md > Logique Ship of
   Harkinian ; à relancer après toute modification de `js/logic.js`, de la
   conversion, des règles d'entrées ou de `areas-data.js`).
-- `tools/soh-maps/extract_maps.mjs` : cartes de la page Carte depuis la ROM de l'utilisateur (compressée ou non, décompressée
-  par l'outil ; `--mq=` ROM Master Quest pour les donjons MQ ; hors dépôt) — scènes d'OoT (points d'apparition, liste des entrées, collision, acteurs des salles, toutes versions) + tables
-  des entrées, scènes et acteurs de SoH et définitions des checks (`tools/soh-checks/src`), logique (`logic-data.js`) :
+- `js/maps-extract.js` : calcul des cartes de la page Carte depuis la ROM de l'utilisateur (`extractMaps`, script
+  classique **chargé à la demande**, pas par `index.html` : par l'appli quand le joueur fabrique ses cartes, `mapsBuild`
+  de `components.js`, et par `extract_maps.mjs`), avec `data/maps-recipe.js` (`window.MAPS_RECIPE`, **fichier généré**
+  par `tools/soh-maps/gen_maps_recipe.mjs` depuis les sources de SoH et les positions notées, versionné, sans rien de la
+  ROM ; à relancer après une montée de version de SoH ou une modification de `positions*.json`). Cartes du navigateur :
+  IndexedDB, lues avant le montage de l'appli (`mapsReady` / `mapsInit` de `components.js`, `MAPS_INFO`), `MAPS_VER` à
+  augmenter quand le calcul change.
+- `tools/soh-maps/extract_maps.mjs` : la même fabrication en ligne de commande (`js/maps-extract.js` dans un bac à sable),
+  depuis la ROM de l'utilisateur (compressée ou non ; `--mq=` ROM Master Quest pour les donjons MQ ; hors dépôt) — scènes d'OoT (points d'apparition, liste des entrées, collision, acteurs des salles, toutes versions) + tables
+  des entrées, scènes et acteurs de SoH et définitions des checks (`data/maps-recipe.js`), logique (`logic-data.js`) :
   sol, position des sorties, des checks et des pierres d'extérieur et des donjons (étages : `z_map_data.c` de SoH), lieu
   des autres (intérieur, grotte, donjon), positions placées à la main (`tools/soh-maps/positions-manuelles.json`, exporté par
   la Carte) ou notées en jouant (`tools/soh-maps/positions.json`, versionnés ; ce dernier écrit par
   `tools/soh-maps/capture_positions.mjs` / `lancer-capture.bat` : faux serveur Anchor qui déclare un second joueur pour
   recevoir la position de Link) →
   `data/maps-data.js`, **généré et non versionné** (chargé par `index.html`,
-  absent par défaut : la page Carte l'explique).
+  absent par défaut : la page Carte propose alors de fabriquer les cartes dans le navigateur ; s'il est présent, il passe
+  avant elles).
 - `tools/soh-link/replay_packets.mjs` : test de l'auto-tracking — rejoue une partie enregistrée par le relais
   (`tools/soh-link/fixtures/session.json` : paquets allégés et spoiler de la seed ; `--make-fixture` le refabrique depuis
   un `relay.mjs --dump`) et vérifie entrées notées, questions, objets trouvés et positions ; à relancer après toute

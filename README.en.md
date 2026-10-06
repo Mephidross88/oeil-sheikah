@@ -60,16 +60,17 @@ Your seed’s spoiler log can also be kept “hidden”: the app only uses it to
 
 ## Maps (optional)
 
-Maps are extracted from **your own Ocarina of Time ROM**; they are not provided, not even online. With the downloaded
-app and [Node.js](https://nodejs.org) (18 or later):
+Maps are extracted from **your own Ocarina of Time ROM**; they are not provided. On the **Map** page (or Settings ›
+Router and map): choose your ROM (N64 or GameCube, compressed or not) and, for the Master Quest dungeons, the Master Quest
+ROM, then “Build the maps”. The ROM is read in the browser, nothing is uploaded; the maps are kept in this browser (build
+them again in another browser, or between the online and the downloaded app).
+
+With the downloaded app and [Node.js](https://nodejs.org) (18 or later), you can also build them from the command line
+(file `data/maps-data.js`, which takes precedence over the browser maps):
 
 ```
-node tools/soh-checks/fetch_sources.mjs
 node tools/soh-maps/extract_maps.mjs <rom.z64> [--mq=<Master Quest rom.z64>]
 ```
-
-The first command downloads the needed SoH sources (once). The ROM can be compressed or not (N64 or GameCube); the
-optional Master Quest ROM provides the Master Quest dungeon maps. Then reload the page.
 
 ## Stream window
 

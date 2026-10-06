@@ -23,8 +23,8 @@ L'appli est publiée sur GitHub Pages (https://mephidross88.github.io/oeil-sheik
 `.github/workflows/pages.yml` à chaque envoi sur `main` : seulement les fichiers de l'appli (`index.html`, `style.css`,
 `js/`, `data/` sans `maps-data.js`, `icons/`, `LICENSE`). Même appli qu'ouverte depuis un fichier (`file://`) ; partie,
 langue et dispositions de stream gardées dans le navigateur, à part pour chaque version (transfert : « Exporter ou
-importer la partie »). Différences (`APP_ONLINE` de `js/link.js`) : pas de cartes (tirées de la ROM du joueur, jamais
-publiées : la page Carte renvoie vers l'appli téléchargée) ; autorisation d'accès au relais local (voir Auto-tracking).
+importer la partie », cartes à refaire). Cartes : fabriquées sur la page Carte depuis la ROM du joueur, gardées dans le
+navigateur (voir Carte). Différence (`APP_ONLINE` de `js/link.js`) : autorisation d'accès au relais local (voir Auto-tracking).
 
 ## Langue
 Interface en français (langue source) ou dans une autre langue : anglais livré, d'autres ajoutables sans toucher au
@@ -854,10 +854,22 @@ id = nom de la pierre dans le spoiler de SoH, zone de la page Checks, libellé f
 ## Carte
 Page « Carte » (`ui.view` = `map`, composant `ZoneMap` de `components.js`) : où se trouve chaque sortie, sur le terrain
 du jeu vu de dessus (nord en haut).
-- Données : `data/maps-data.js` (`window.MAPS_DATA`), **généré** depuis la ROM de l'utilisateur (N64 ou GameCube,
-  compressée ou non : l'outil décompresse les fichiers Yaz0 et trouve seul la table des scènes ; `--mq=` : ROM Master
-  Quest, facultative) par `tools/soh-maps/extract_maps.mjs` et **non versionné** (la géométrie vient de la cartouche). Sans ce fichier, la
-  page explique comment le produire. Scènes d'extérieur des zones (23, dont l'entrée du bourg, la place, le parvis du
+- Données (`window.MAPS_DATA`) : tirées de la ROM de l'utilisateur (N64 ou GameCube, compressée ou non : fichiers Yaz0
+  décompressés, table des scènes trouvée seule ; ROM Master Quest facultative), **jamais versionnées ni publiées** (la
+  géométrie vient de la cartouche). Calcul : `js/maps-extract.js` (`extractMaps`), avec `data/maps-recipe.js` (tiré des
+  sources de SoH par `tools/soh-maps/gen_maps_recipe.mjs`, versionné : scènes, entrées, grottes, étages, acteurs,
+  définition des checks, positions notées). Deux façons, même résultat :
+  - **Dans l'appli** : page Carte sans cartes (« Pas encore de cartes ») ou Configuration › Routeur et carte › Cartes
+    (« Fabriquer… » / « Refaire… ») : fichier de la ROM et de la ROM Master Quest (choix ou glisser-déposer), « Fabriquer
+    les cartes » (barre d'étapes) ; la ROM est lue dans le navigateur (rien n'est envoyé), `maps-extract.js` et
+    `maps-recipe.js` sont chargés à ce moment-là. Cartes gardées dans le navigateur (IndexedDB `oeil-sheikah`, magasin
+    `maps` : JSON, date, ROM, Master Quest, version du calcul `MAPS_VER`), lues avant l'affichage de l'appli
+    (`mapsReady`) ; la page se recharge (et la fenêtre de stream). Erreurs : pas une ROM d'Ocarina of Time (fichier
+    nommé), version non reconnue, navigateur qui refuse de les garder. Configuration : d'où viennent les cartes (date,
+    ROM, Master Quest compris), « Supprimer » (avec confirmation). Cartes d'une version précédente du calcul : à refaire
+    (message sur la page Carte).
+  - **En ligne de commande** : `tools/soh-maps/extract_maps.mjs <ROM> [--mq=<ROM Master Quest>]` → `data/maps-data.js`
+    (non versionné, chargé par `index.html`) : passe avant les cartes du navigateur. Scènes d'extérieur des zones (23, dont l'entrée du bourg, la place, le parvis du
   temple, la ruelle, et le château enfant et adulte) : sols et pentes de la collision (normale vers le haut, même raide :
   toits, rampes, falaises, sinon des trous noirs vus de dessus) en triangles avec leur hauteur, et murs (polygones
   verticaux d'au moins 60 unités de haut et de long, tracés selon leur étendue vue de dessus : les pans fins feraient des
@@ -895,7 +907,7 @@ du jeu vu de dessus (nord en haut).
   position de Link à chaque image (il ne l'envoie qu'aux autres joueurs de sa scène). Check ramassé (statut « ramassé ») :
   position de Link à ce moment, notée dans `tools/soh-maps/positions.json` (versionné : coordonnées seulement), pour les
   checks sans position (`--all` : tous ; `--list` : ceux qui restent, par zone ; `--v` / `--mq` : donjons vanilla / Master
-  Quest seulement, checks communs compris). `extract_maps.mjs` la reprend pour les
+  Quest seulement, checks communs compris). `gen_maps_recipe.mjs` la reprend (`maps-recipe.js`) pour les
   checks sans position (scène d'extérieur ou de donjon ; donjon Master Quest : check MQ dans la scène « …_MQ », check
   commun dans les deux versions).
 - **Placer les checks à la main** (bouton « ✎ Placer les checks » au-dessus de la carte, affiché seulement avec l'option
@@ -904,8 +916,8 @@ du jeu vu de dessus (nord en haut).
   ou plusieurs checks puis cliquer sur la carte les y place (hauteur : sol de l'étage affiché sous le clic) ; « déplacer »,
   « retirer » ; carrés dorés sur la carte. Donjons : les deux versions (vanilla, Master Quest) en onglets, quelle que soit
   la version du donjon. Gardées dans localStorage `oeil-sheikah-positions` (à part de la partie) ;
-  « Exporter » télécharge `positions-manuelles.json`, à déposer dans `tools/soh-maps/` (versionné) : `extract_maps.mjs`
-  le reprend comme `positions.json` (et l'emporte sur lui). Checks sans lieu dans le monde : Poche de Link à la maison de Link, Cadeau de Rauru
+  « Exporter » télécharge `positions-manuelles.json`, à déposer dans `tools/soh-maps/` (versionné) : `gen_maps_recipe.mjs`
+  le reprend comme `positions.json` (et l'emporte sur lui), puis cartes à refaire. Checks sans lieu dans le monde : Poche de Link à la maison de Link, Cadeau de Rauru
   (Chambre des Sages) au piédestal de l'Épée de Légende.
 - Affichage : zone choisie (`ui.map.area`, sinon celle de la position ; menu groupé par région — Forêt, Plaine et
   château, Cocorico, Montagne du Péril, Zoras, Lac Hylia, Désert Gerudo —, chaque donjon avec sa région), onglets si elle

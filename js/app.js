@@ -151,6 +151,31 @@ const LOOT_TPL = `
 `;
 // Fenêtre de stream
 const STREAM_TPL = streamTemplate({ items:ITEMS_TPL, loot:LOOT_TPL, dungeons:DUNGEONS_TPL });   // fenêtre de stream (js/stream.js)
+// Fabrication des cartes depuis la ROM du joueur (page Carte sans cartes, Configuration › Carte) : mapsBuild de components.js
+const MAPS_BUILD_TPL = `
+        <div class="maps-build">
+          <p>Les cartes se fabriquent depuis votre propre ROM d'Ocarina of Time (N64 ou GameCube, compressée ou non :
+            .z64, .n64, .v64). Elle est lue ici, dans le navigateur : rien n'est envoyé. Les cartes sont ensuite gardées dans ce
+            navigateur.</p>
+          <label class="si-drop" :class="{has:mapsJob.main}" @dragover.prevent @drop.prevent="mapsJob.main = $event.dataTransfer.files[0] || mapsJob.main">
+            <input type="file" accept=".z64,.n64,.v64,.rom,.bin" hidden :disabled="mapsJob.busy" @change="mapsJob.main = $event.target.files[0] || null">
+            <span class="si-ic" v-html="ICONS.file"></span>
+            <span v-if="mapsJob.main" class="si-txt"><b>{{mapsJob.main.name}}</b><small>ROM d'Ocarina of Time</small></span>
+            <span v-else class="si-txt"><b>Choisir la ROM d'Ocarina of Time…</b><small>ou la glisser ici</small></span>
+          </label>
+          <label class="si-drop" :class="{has:mapsJob.mq}" @dragover.prevent @drop.prevent="mapsJob.mq = $event.dataTransfer.files[0] || mapsJob.mq">
+            <input type="file" accept=".z64,.n64,.v64,.rom,.bin" hidden :disabled="mapsJob.busy" @change="mapsJob.mq = $event.target.files[0] || null">
+            <span class="si-ic" v-html="ICONS.file"></span>
+            <span v-if="mapsJob.mq" class="si-txt"><b>{{mapsJob.mq.name}}</b><small>ROM Master Quest</small></span>
+            <span v-else class="si-txt"><b>ROM Master Quest (facultative)…</b><small>pour les cartes des donjons Master Quest</small></span>
+          </label>
+          <div class="maps-build-go"><button type="button" class="btn primary" :disabled="!mapsJob.main || mapsJob.busy" @click="mapsMake">Fabriquer les cartes</button>
+            <div v-if="mapsJob.busy" class="maps-progress"><div class="bar"><i :style="{width:Math.round(mapsJob.part * 100) + '%'}"></i></div>
+              <span>{{MAPS_STEPS[mapsJob.step] || ''}}</span></div></div>
+          <div v-if="mapsJob.err" class="msg ko">{{mapsJob.err}}</div>
+          <p v-if="!APP_ONLINE" class="maps-cli">Ou en ligne de commande, avec Node.js : <code>node tools/soh-maps/extract_maps.mjs &lt;ROM&gt; [--mq=&lt;ROM Master Quest&gt;]</code>
+            (fichier <code>data/maps-data.js</code>, qui passe avant les cartes du navigateur).</p>
+        </div>`;
 
 const App = {
   components:{ TypeIcon, Seg, DestPicker, ItemTile, ProgressCard, EntranceGraph, ZoneMap },
@@ -1068,6 +1093,39 @@ const App = {
     /* Carte (js/components.js, ZoneMap) : zone affichée (choisie, sinon celle de la position) et sortie à mettre en
        évidence (« Voir sur la carte ») */
     const MAPS_OK = !!window.MAPS_DATA;
+    // fabrication des cartes depuis la ROM du joueur (mapsBuild de components.js) : fichiers choisis, étape, erreur ; open :
+    // formulaire ouvert dans la Configuration. Fabriquées : la page se recharge.
+    const mapsJob = reactive({ main:null, mq:null, busy:false, step:'', part:0, err:'', open:false });
+    const MAPS_STEPS = { read:t('Lecture des fichiers…'), rom:t('Décompression de la ROM…'), mq:t('Décompression de la ROM Master Quest…'),
+      exits:t('Position des sorties…'), checks:t('Position des checks…'), mqChecks:t('Donjons Master Quest…'), floors:t('Sol des scènes…'),
+      done:t('Enregistrement…'), save:t('Enregistrement…') };
+    async function mapsMake(){
+      if (!mapsJob.main || mapsJob.busy) return;
+      Object.assign(mapsJob, { busy:true, err:'', step:'read', part:0 });
+      try {
+        await mapsBuild(mapsJob.main, mapsJob.mq, (k, part) => { mapsJob.step = k; mapsJob.part = part; });
+        location.reload();
+      } catch (e){
+        // (pas une ROM reconnue : la ROM Master Quest si l'erreur vient de sa lecture)
+        const file = (mapsJob.step === 'mq' ? mapsJob.mq : mapsJob.main)?.name || '';
+        mapsJob.err = e.message === 'not-oot' ? t('{file} : ce n’est pas une ROM d’Ocarina of Time.', { file })
+          : e.message === 'no-scene-table' ? t('{file} : version de la ROM non reconnue.', { file })
+          : e.message === 'idb' ? t('Ce navigateur refuse de garder les cartes (navigation privée ?).')
+          : t('Échec de la fabrication des cartes : {err}', { err:e.message });
+        mapsJob.busy = false;
+        console.error(e);
+      }
+    }
+    async function mapsRemove(){
+      if (!confirm(t('Supprimer les cartes gardées dans ce navigateur ?'))) return;
+      try { await mapsForget(); } catch (e){ console.error(e); }
+      location.reload();
+    }
+    const fmtDay = ms => new Date(ms).toLocaleDateString(LANG === 'fr' ? 'fr-FR' : LANG, { day:'numeric', month:'long', year:'numeric' });
+    const mapsSourceText = MAPS_INFO.source === 'file' ? t('Fichier data/maps-data.js (outil en ligne de commande) : il passe avant les cartes du navigateur.')
+      : MAPS_INFO.source === 'browser' ? t('Fabriquées dans ce navigateur le {date} depuis {rom}.', { date:fmtDay(MAPS_INFO.at), rom:MAPS_INFO.rom || '?' })
+        + (MAPS_INFO.mq ? ' ' + t('Donjons Master Quest compris.') : '')
+      : t('Pas encore de cartes : choisissez votre ROM d’Ocarina of Time pour les fabriquer.');
     const mapAreas = AREAS.filter(a => MAP_SCENES[a.id]);
     // menu des zones de la Carte : par région, chaque donjon avec la région où il se trouve
     const MAP_REGIONS = [
@@ -1121,7 +1179,7 @@ const App = {
       r.onload = () => { langMsg.value = importLang(r.result); };
       r.readAsText(f);
     }
-    return { LANG, LANGS, I18N_LANGS, setLang, removeLang, pickLang, langMsg, store, ui, s, views, navGroups, link, LINK_LABEL, APP_ONLINE, APP_REPO, RELAY_DL, linkRequestState, linkAdoptSave, driftSel, driftList, driftGroups, openDrift, driftCount, driftAll, driftApply, driftVal, driftIcon, driftLabel, linkAsks, linkAnswer, askFrom, askLabel, canSplit, splitOn, shown, paneOf, swapPanes, openSide, closeSide, navOpen, itemsOpen, modal, tip, tipData, backup, stats, missingSpawns, visibleAreas,
+    return { LANG, LANGS, I18N_LANGS, setLang, removeLang, pickLang, langMsg, store, ui, s, views, navGroups, link, LINK_LABEL, APP_ONLINE, RELAY_DL, linkRequestState, linkAdoptSave, driftSel, driftList, driftGroups, openDrift, driftCount, driftAll, driftApply, driftVal, driftIcon, driftLabel, linkAsks, linkAnswer, askFrom, askLabel, canSplit, splitOn, shown, paneOf, swapPanes, openSide, closeSide, navOpen, itemsOpen, modal, tip, tipData, backup, stats, missingSpawns, visibleAreas,
       ICONS, ITEMS_PAGE, ITEM_BY_KEY, DUNGEONS, DUNGEON_BY_ID, CHECKLISTS, AREA, EXIT, DATA_ERRORS,
       iconKey, exitIcon, areaName, toggleArea, setAll, jump, go, showTip, hideTip, toggleTip, setMapping, clearMapping,
       checkAreasC, checkList, hereCheckArea, checkStats, toggleCheckArea, PRICE_TYPES, priceEdit, setPrice, priceOver, priceTitle, focusEl, lastCheck, toggleCheck, toggleExcluded, undoCheck, foundInfo, seenInfo, loadSpoilerFile, linkClearSpoiler, linkSpoilerOk, goToCheck, goToZone, why, openWhy, nextC, stepsLabel, goMsg, setAllChecks, jumpCheck, setCheck, setExcluded, CHECK_AREA,
@@ -1132,7 +1190,7 @@ const App = {
       itemVisible, tierLabel, iconSrc, checklistModal, openChecklist, setChecklist, checklistStats,
       tradeModal, openTrade, tradeStats, counterClass,
       TRIALS, trialStatus, cycleTrial, setDungeonFlag, addDungeonKeys, dungeonQuest, dungeonMaxKeys, cycleDungeonQuest, questLabel, questClass, questTitle, keysLabel, dungeonKeyRing, setKeyRing, dungeonKeysDone, keysTitle, brokenIcons,
-      setTheme, startHere, prevStart, backToPrev, liveStart, myPos, startAtMe, goExit, pickAreas, pickExits, zoneExcludeMode, zoneExclude, hintGroups, hintEdit, hintsC, setHintRead, GOSSIP_STONES, HINT_TYPES, CHECK_AREAS, MAP_SCENES, MAPS_OK, mapAreas, mapGroups, followArea, mapFocus, mapArea, openMap, mapHere, mapHereTick, mapStart, mapGoal, fmtDur, stFilter, statsC, statsRows, playNow, ...streamCtx, openStream, dockCheck, dockRoute, dockTarget, pickDock, dockFollowsRouter, dockAuto, go, swap, route, edgeLabel, edgeIcon, WARP_SONGS, ageLabel, openBackup, copyBackup, importBackup, resetAll, declineSpoiler, savedAt, TYPE_LABEL };
+      setTheme, startHere, prevStart, backToPrev, liveStart, myPos, startAtMe, goExit, pickAreas, pickExits, zoneExcludeMode, zoneExclude, hintGroups, hintEdit, hintsC, setHintRead, GOSSIP_STONES, HINT_TYPES, CHECK_AREAS, MAP_SCENES, MAPS_OK, MAPS_INFO, mapsJob, MAPS_STEPS, mapsMake, mapsRemove, mapsSourceText, mapAreas, mapGroups, followArea, mapFocus, mapArea, openMap, mapHere, mapHereTick, mapStart, mapGoal, fmtDur, stFilter, statsC, statsRows, playNow, ...streamCtx, openStream, dockCheck, dockRoute, dockTarget, pickDock, dockFollowsRouter, dockAuto, go, swap, route, edgeLabel, edgeIcon, WARP_SONGS, ageLabel, openBackup, copyBackup, importBackup, resetAll, declineSpoiler, savedAt, TYPE_LABEL };
   },
   template:`
 ${STREAM_TPL}
@@ -1541,13 +1599,10 @@ ${STREAM_TPL}
         <button type="button" title="Échanger les deux panneaux" v-html="ICONS.swapH" @click="swapPanes"></button>
         <button type="button" title="Fermer ce panneau" v-html="ICONS.close" @click="closeSide"></button></div>
       <div class="page-head"><h1>Carte</h1><p class="lede">Où se trouve chaque sortie, zone par zone, sur le terrain du jeu vu de dessus (nord en haut).</p></div>
-      <div v-if="!MAPS_OK" class="warn-box"><span class="warn-box-ic" v-html="ICONS.warn"></span>
-        <div v-if="APP_ONLINE"><b>Cartes absentes de la version en ligne.</b> Elles se fabriquent depuis votre propre
-          cartouche, avec <a :href="APP_REPO" target="_blank" rel="noopener">l'appli téléchargée</a> (voir son mode d'emploi).</div>
-        <div v-else><b>Cartes non générées.</b> Elles se fabriquent depuis votre propre cartouche : <code>node tools/soh-maps/extract_maps.mjs &lt;ROM .z64&gt; [--mq=&lt;ROM Master Quest .z64&gt;]</code>
-          (compressée ou non ; la ROM Master Quest, facultative, donne les cartes des donjons Master Quest), qui écrit
-          <code>data/maps-data.js</code>. Rechargez ensuite la page.</div></div>
+      <div v-if="!MAPS_OK" class="panel-card maps-none"><h3>Pas encore de cartes</h3>${MAPS_BUILD_TPL}</div>
       <template v-else>
+        <div v-if="MAPS_INFO.old" class="msg ko maps-old">Ces cartes ont été fabriquées avec une version précédente de l'appli :
+          refaites-les (Configuration › Carte) pour profiter des corrections.</div>
         <div class="zmap-bar"><label class="field"><span class="lbl">Zone</span>
           <select class="sel" v-model="mapArea"><optgroup v-for="g in mapGroups" :key="g.label" :label="g.label">
             <option v-for="a in g.areas" :key="a.id" :value="a.id">{{a.name}}</option></optgroup></select></label>
@@ -1669,6 +1724,12 @@ ${STREAM_TPL}
           </div>
         </section>
         <section class="cblock"><h2>Carte</h2>
+          <div class="copt">
+            <div><div class="t">Cartes</div><div class="h">{{mapsSourceText}}</div></div>
+            <div class="maps-acts"><button v-if="MAPS_INFO.source !== 'file'" type="button" class="btn" @click="mapsJob.open = !mapsJob.open">{{MAPS_OK ? 'Refaire…' : 'Fabriquer…'}}</button>
+              <button v-if="MAPS_INFO.source === 'browser'" type="button" class="btn" @click="mapsRemove">Supprimer</button></div>
+          </div>
+          <div v-if="mapsJob.open && MAPS_INFO.source !== 'file'">${MAPS_BUILD_TPL}</div>
           <div class="copt" title="Pour placer à la main un check sans position et exporter les positions (positions-manuelles.json, pour tools/soh-maps). Tous les checks ont déjà une position : utile seulement pour en corriger une.">
             <div><div class="t">Outil « Placer les checks »</div></div>
             <seg v-model="ui.map.editTool" :options="[[false,'Non'],[true,'Oui']]"></seg>
@@ -1940,6 +2001,6 @@ ${ITEMS_TPL}${LOOT_TPL}    </div>
 const app = createApp(App);
 app.config.globalProperties.t = t;
 app.config.globalProperties.tn = tn;
-app.mount('#app');
+mapsReady.then(() => app.mount('#app'));   // (cartes du navigateur lues avant : js/components.js)
 document.addEventListener('click', ev => { /* ferme l'infobulle en tactile */ if (!ev.target.closest('.globe')) { const t = document.querySelector('.tip'); if (t) window.dispatchEvent(new Event('scroll')); } });
 window.__PF = { I18N_MISSING, store, effC, linksC, reachC, agesC, routeC, shortest, candidatesFor, setMapping, EXIT, sohC, sohFullC, computeSoh, entranceLinks, L, SOH };

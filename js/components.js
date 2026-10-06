@@ -263,28 +263,92 @@ const EntranceGraph = {
   </div>`,
 };
 
+/* ---------- Cartes : fichier, ou fabriquées dans l'appli et gardées dans le navigateur ----------
+   window.MAPS_DATA : fichier data/maps-data.js (tools/soh-maps/extract_maps.mjs, non versionné), sinon les cartes
+   fabriquées sur la page Carte depuis la ROM du joueur (js/maps-extract.js, chargé à la demande) et gardées dans ce
+   navigateur (IndexedDB « oeil-sheikah », magasin « maps », clé « data » : { json, at, mq, rom, ver }). Lues avant
+   l'affichage de l'appli (mapsReady, attendu par app.js) ; fabriquées ou supprimées : la page se recharge, et les autres
+   fenêtres (stream) aussi (localStorage MAPS_STAMP). MAPS_VER : à augmenter quand le calcul change (cartes à refaire). */
+const MAPS_VER = 1, MAPS_STAMP = 'oeil-sheikah-maps-stamp';
+const MAPS_INFO = { source:null, at:null, mq:false, rom:'', old:false };   // source : 'file' | 'browser' | null
+function mapsIdb(op, value){
+  return new Promise((ok, ko) => {
+    if (!window.indexedDB) return ko(new Error('indexedDB'));
+    const req = indexedDB.open('oeil-sheikah', 1);
+    req.onupgradeneeded = () => req.result.createObjectStore('maps');
+    req.onerror = () => ko(req.error);
+    req.onsuccess = () => {
+      const db = req.result, tx = db.transaction('maps', op === 'get' ? 'readonly' : 'readwrite'), st = tx.objectStore('maps');
+      const r = op === 'get' ? st.get('data') : op === 'put' ? st.put(value, 'data') : st.delete('data');
+      tx.oncomplete = () => { db.close(); ok(r.result); };
+      tx.onerror = tx.onabort = () => { db.close(); ko(tx.error || new Error('indexedDB')); };
+    };
+  });
+}
+window.addEventListener('storage', ev => { if (ev.key === MAPS_STAMP) location.reload(); });
+const loadScript = src => new Promise((ok, ko) => {
+  const s = document.createElement('script');
+  s.src = src; s.onload = ok; s.onerror = () => ko(new Error(src));
+  document.head.appendChild(s);
+});
+// Fabrique les cartes depuis les fichiers de ROM choisis (File ; mq facultatif) et les garde dans le navigateur, puis
+// recharge la page. progress(étape, part 0..1). Erreurs : MAPS_ERR (pas une ROM d'OoT, version non reconnue), 'idb'.
+async function mapsBuild(mainFile, mqFile, progress){
+  if (typeof extractMaps === 'undefined') await Promise.all([loadScript('data/maps-recipe.js'), loadScript('js/maps-extract.js')]);
+  const bytes = async f => new Uint8Array(await f.arrayBuffer());
+  progress('read', 0);
+  const main = await bytes(mainFile), mq = mqFile ? await bytes(mqFile) : null;
+  const { data, stats } = await extractMaps({ main, mq, recipe:window.MAPS_RECIPE, areas:window.AREAS_DATA, checks:window.CHECKS_DATA.checks,
+    logic:window.SOH_LOGIC, progress, warn:m => console.warn(m) });
+  progress('save', 1);
+  try { await mapsIdb('put', { json:JSON.stringify(data), at:Date.now(), mq:!!mq, rom:mainFile.name, ver:MAPS_VER }); }
+  catch (e){ throw new Error('idb'); }
+  try { localStorage.setItem(MAPS_STAMP, String(Date.now())); } catch (e){}
+  return stats;
+}
+async function mapsForget(){
+  await mapsIdb('delete');
+  try { localStorage.setItem(MAPS_STAMP, String(Date.now())); } catch (e){}
+}
+
 /* ---------- Carte d'une zone ----------
-   Sol vu de dessus (collision du jeu : data/maps-data.js, généré depuis la ROM de l'utilisateur par
-   tools/soh-maps/extract_maps.mjs, non versionné) et une repère par sortie (point d'apparition de l'entrée qui y fait
+   Sol vu de dessus (collision du jeu : cartes ci-dessus) et une repère par sortie (point d'apparition de l'entrée qui y fait
    arriver ; intérieur : à sa porte ; grotte : point de retour ; hibou : position du hibou). Les sorties au même endroit
    (une porte et l'intérieur derrière) partagent un repère. Mis en évidence : position (auto-tracking, sinon départ du
    Routeur), arrivée du Routeur, prochaine sortie à prendre. Clic sur un repère : en faire le départ ou l'arrivée.
    Donjons : scène du donjon (version Master Quest « …_MQ » selon la version du donjon, si la ROM MQ a été fournie ; les
    deux si elle est inconnue) et salle du boss ; étages du jeu (levels : on est à l'étage i au-dessus de sa hauteur min),
    un à la fois, avec le nombre de checks à faire par étage ; repères placés selon leur hauteur. */
-const MAPS = window.MAPS_DATA || null;
+let MAPS = null;
 const MAP_BANDS = 10;   // tranches de hauteur (une teinte et un tracé chacune)
-// scènes de chaque zone, de la plus fournie en sorties à la moins fournie
+// scènes de chaque zone, de la plus fournie en sorties à la moins fournie (mapsInit, une fois les cartes lues)
 const MAP_SCENES = {};
-if (MAPS) for (const [key, p] of Object.entries(MAPS.exits)){
-  const a = EXIT[key]?.areaId;
-  if (!a) continue;
-  const m = MAP_SCENES[a] = MAP_SCENES[a] || {};
-  m[p[0]] = (m[p[0]] || 0) + 1;
+function mapsInit(){
+  MAPS = window.MAPS_DATA || null;
+  if (!MAPS) return;
+  for (const [key, p] of Object.entries(MAPS.exits)){
+    const a = EXIT[key]?.areaId;
+    if (!a) continue;
+    const m = MAP_SCENES[a] = MAP_SCENES[a] || {};
+    m[p[0]] = (m[p[0]] || 0) + 1;
+  }
+  // (donjon d'abord, salle du boss ensuite)
+  for (const a of Object.keys(MAP_SCENES)) MAP_SCENES[a] = Object.entries(MAP_SCENES[a])
+    .sort((x, y) => (MAPS.scenes[x[0]]?.kind === 'boss') - (MAPS.scenes[y[0]]?.kind === 'boss') || y[1] - x[1]).map(x => x[0]);
 }
-// (donjon d'abord, salle du boss ensuite)
-for (const a of Object.keys(MAP_SCENES)) MAP_SCENES[a] = Object.entries(MAP_SCENES[a])
-  .sort((x, y) => (MAPS.scenes[x[0]]?.kind === 'boss') - (MAPS.scenes[y[0]]?.kind === 'boss') || y[1] - x[1]).map(x => x[0]);
+// cartes lues avant l'affichage (voir plus haut)
+const mapsReady = (async () => {
+  if (window.MAPS_DATA) MAPS_INFO.source = 'file';
+  else try {
+    // (lecture refusée ou bloquée : appli sans cartes, au plus 4 s d'attente)
+    const e = await Promise.race([mapsIdb('get'), new Promise(r => setTimeout(r, 4000))]);
+    if (e && e.json){
+      window.MAPS_DATA = JSON.parse(e.json);
+      Object.assign(MAPS_INFO, { source:'browser', at:e.at, mq:!!e.mq, rom:e.rom || '', old:e.ver !== MAPS_VER });
+    }
+  } catch (err){ console.warn('Cartes du navigateur illisibles :', err); }
+  mapsInit();
+})();
 const MAP_SCENE_LABEL = { MARKET_ENTRANCE_DAY:t('Entrée du bourg'), MARKET_DAY:t('Place du marché'), TEMPLE_OF_TIME_EXTERIOR_DAY:t('Parvis du temple'),
   BACK_ALLEY_DAY:t('Ruelle'), HYRULE_CASTLE:t('Château (enfant)'), OUTSIDE_GANONS_CASTLE:t('Extérieur du Château de Ganon (adulte)'),
   INSIDE_GANONS_CASTLE:t('Château'), GANONS_TOWER:t('Tour'), TEMPLE_OF_TIME:t('Temple du Temps') };
@@ -669,7 +733,7 @@ const ZoneMap = {
     <div v-if="!compact" class="zmap-top"><div v-if="scenes.length > 1" class="zmap-tabs"><button v-for="s in scenes" :key="s" type="button" :class="{on:s===cur}" @click="setScene(s)">{{mapSceneLabel(s, bothVersions)}}</button></div>
       <button v-if="editTool" type="button" class="btn zmap-edit-btn" :class="{on:edit}" @click="edit = !edit; pick = {}" title="Placer à la main les checks qui n'ont pas de position">✎ Placer les checks</button></div>
     <div v-if="!compact && mqMissing" class="zmap-note">Ce donjon est en version Master Quest : carte vanilla affichée (salles identiques, checks
-      absents). Pour la carte Master Quest, régénérer les cartes avec la ROM Master Quest (option --mq de tools/soh-maps/extract_maps.mjs).</div>
+      absents). Pour la carte Master Quest, refaire les cartes avec la ROM Master Quest (Configuration › Routeur et carte).</div>
     <div v-else-if="!compact && quest === '' && bothVersions" class="zmap-note">Version du donjon inconnue : cartes vanilla et Master Quest.</div>
     <div v-else-if="!compact && edit && bothVersions" class="zmap-note">Mode « Placer les checks » : cartes vanilla et Master Quest, quelle que soit la version du donjon.</div>
     <div v-if="!geo" class="zmap-empty">Pas de carte pour cette zone (intérieur).</div>

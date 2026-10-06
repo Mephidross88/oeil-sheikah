@@ -1327,6 +1327,19 @@ select.sel:hover{border-color:var(--gold)}
 .si-txt b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .si-txt small{color:var(--muted);font-size:13px}
 .si-clash{margin-top:14px}
+/* fabrication des cartes depuis la ROM (page Carte, Configuration) */
+.maps-none{max-width:760px;padding:18px 20px}
+.maps-none h3{margin:0 0 6px}
+.maps-build{display:flex;flex-direction:column;gap:10px;max-width:760px}
+.maps-build > p{margin:0;color:var(--muted)}
+.maps-build-go{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px}
+.maps-progress{display:flex;align-items:center;gap:10px;flex:1 1 220px;min-width:0;font-size:14px;color:var(--muted)}
+.maps-progress .bar{flex:1;height:8px;border-radius:999px;background:var(--surface-2);overflow:hidden;min-width:80px}
+.maps-progress .bar i{display:block;height:100%;background:var(--ocarina);transition:width .2s}
+.maps-cli{font-size:13px}
+.maps-cli code{word-break:break-all}
+.maps-acts{display:flex;gap:8px;flex-wrap:wrap}
+.maps-old{margin:0 0 10px}
 .si-clash p{margin:0}
 .si-clash p b{display:inline;margin:0;font-size:inherit;font-variant-numeric:tabular-nums}
 .si-clash-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}

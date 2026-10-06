@@ -61,16 +61,18 @@ a déjà montré (objet d'un check ramassé, boutiques vues, destination des ent
 
 ## Cartes (facultatif)
 
-Les cartes sont tirées de **votre propre ROM** d'Ocarina of Time ; elles ne sont pas fournies, ni dans la version en
-ligne. Avec l'appli téléchargée et [Node.js](https://nodejs.org) (18 ou plus) :
+Les cartes sont tirées de **votre propre ROM** d'Ocarina of Time ; elles ne sont pas fournies. Page **Carte** (ou
+Configuration › Routeur et carte) : choisissez votre ROM (N64 ou GameCube, compressée ou non) et, si vous voulez les
+donjons Master Quest, la ROM Master Quest, puis « Fabriquer les cartes ». La ROM est lue dans le navigateur, rien n'est
+envoyé ; les cartes sont gardées dans ce navigateur (à refaire dans un autre navigateur, ou entre la version en ligne et
+la version téléchargée).
+
+Avec l'appli téléchargée et [Node.js](https://nodejs.org) (18 ou plus), on peut aussi les fabriquer en ligne de commande
+(fichier `data/maps-data.js`, qui passe avant les cartes du navigateur) :
 
 ```
-node tools/soh-checks/fetch_sources.mjs
 node tools/soh-maps/extract_maps.mjs <rom.z64> [--mq=<rom Master Quest.z64>]
 ```
-
-La première commande télécharge les sources de SoH utiles (une fois). La ROM peut être compressée ou non (N64 ou
-GameCube) ; la ROM Master Quest, facultative, donne les cartes des donjons Master Quest. Rechargez ensuite la page.
 
 ## Fenêtre de stream
 
