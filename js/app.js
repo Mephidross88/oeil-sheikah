@@ -1032,9 +1032,9 @@ const App = {
     function onKey(ev){ if (ev.key === 'Escape'){ modal.value = null; hideTip(); } }
     window.addEventListener('keydown', onKey);
 
-    const savedAt = computed(() => lastSaved.value ? lastSaved.value.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit', second:'2-digit' }) : null);
+    const savedAt = computed(() => lastSaved.value ? lastSaved.value.toLocaleTimeString(LANG === 'fr' ? 'fr-FR' : LANG, { hour:'2-digit', minute:'2-digit', second:'2-digit' }) : null);
 
-    const LINK_LABEL = { off:t('Auto-tracking désactivé'), connecting:t('Relais introuvable'), relay:t('Relais prêt, jeu non connecté'), game:t('Jeu connecté') };
+    const LINK_LABEL = { off:t('Auto-tracking désactivé'), connecting:t('Relais introuvable'), busy:t('Relais déjà utilisé par une autre page'), relay:t('Relais prêt, jeu non connecté'), game:t('Jeu connecté') };
     // Question de l'auto-tracking : entrée découverte à destination ambiguë
     const exitName = k => k && EXIT[k] ? areaName(k) + ' · ' + EXIT[k].label : '?';
     const askFrom = q => exitName(EXIT_BY_ENTR[q.d]?.key);
@@ -1179,18 +1179,18 @@ const App = {
       r.onload = () => { langMsg.value = importLang(r.result); };
       r.readAsText(f);
     }
-    return { LANG, LANGS, I18N_LANGS, setLang, removeLang, pickLang, langMsg, store, ui, s, views, navGroups, link, LINK_LABEL, APP_ONLINE, RELAY_DL, linkRequestState, linkAdoptSave, driftSel, driftList, driftGroups, openDrift, driftCount, driftAll, driftApply, driftVal, driftIcon, driftLabel, linkAsks, linkAnswer, askFrom, askLabel, canSplit, splitOn, shown, paneOf, swapPanes, openSide, closeSide, navOpen, itemsOpen, modal, tip, tipData, backup, stats, missingSpawns, visibleAreas,
-      ICONS, ITEMS_PAGE, ITEM_BY_KEY, DUNGEONS, DUNGEON_BY_ID, CHECKLISTS, AREA, EXIT, DATA_ERRORS,
+    return { LANG, LANGS, I18N_LANGS, setLang, removeLang, pickLang, langMsg, store, ui, s, navGroups, link, LINK_LABEL, APP_ONLINE, RELAY_DL, linkRequestState, linkAdoptSave, driftSel, driftList, driftGroups, openDrift, driftCount, driftAll, driftApply, driftVal, driftIcon, driftLabel, linkAsks, linkAnswer, askFrom, askLabel, canSplit, splitOn, shown, paneOf, swapPanes, openSide, closeSide, navOpen, itemsOpen, modal, tip, tipData, backup, stats, missingSpawns, visibleAreas,
+      ICONS, ITEMS_PAGE, ITEM_BY_KEY, DUNGEON_BY_ID, CHECKLISTS, EXIT, DATA_ERRORS,
       iconKey, exitIcon, areaName, toggleArea, setAll, jump, go, showTip, hideTip, toggleTip, setMapping, clearMapping,
-      checkAreasC, checkList, hereCheckArea, checkStats, toggleCheckArea, PRICE_TYPES, priceEdit, setPrice, priceOver, priceTitle, focusEl, lastCheck, toggleCheck, toggleExcluded, undoCheck, foundInfo, seenInfo, loadSpoilerFile, linkClearSpoiler, linkSpoilerOk, goToCheck, goToZone, why, openWhy, nextC, stepsLabel, goMsg, setAllChecks, jumpCheck, setCheck, setExcluded, CHECK_AREA,
-      CHECK_CATS, CHECK_CAT, catCounts, toggleCat, zoneTitle, soloCat, allCats, CHECK_AGES, ageLabelShort, ageKnown, checkGroups,
+      checkList, checkStats, toggleCheckArea, PRICE_TYPES, priceEdit, setPrice, priceOver, priceTitle, focusEl, lastCheck, toggleCheck, toggleExcluded, undoCheck, foundInfo, seenInfo, loadSpoilerFile, linkClearSpoiler, linkSpoilerOk, goToCheck, goToZone, why, openWhy, nextC, stepsLabel, goMsg, setAllChecks, jumpCheck, CHECK_AREA,
+      CHECK_CATS, CHECK_CAT, catCounts, toggleCat, zoneTitle, soloCat, allCats, CHECK_AGES, ageKnown, checkGroups,
       lg, canNow, timeOf, checkLogicTitle, CHILD, ADULT,
       panelSkills, panelChecklists, cells, dungeonRows, skeletonShown, atStart, visibleKeys,
       CONFIG_TABS, TRICK_LEVELS, decoupled, configCards, trickFilter, tricksOn, trickGroups, setTricks, importReport, IMPORT_OPTS, importFile, importDrag, openImport, pickImport, dropImport, runImport, importClash, resetThenImport, seedLabel,
       itemVisible, tierLabel, iconSrc, checklistModal, openChecklist, setChecklist, checklistStats,
       tradeModal, openTrade, tradeStats, counterClass,
-      TRIALS, trialStatus, cycleTrial, setDungeonFlag, addDungeonKeys, dungeonQuest, dungeonMaxKeys, cycleDungeonQuest, questLabel, questClass, questTitle, keysLabel, dungeonKeyRing, setKeyRing, dungeonKeysDone, keysTitle, brokenIcons,
-      setTheme, startHere, prevStart, backToPrev, liveStart, myPos, startAtMe, goExit, pickAreas, pickExits, zoneExcludeMode, zoneExclude, hintGroups, hintEdit, hintsC, setHintRead, GOSSIP_STONES, HINT_TYPES, CHECK_AREAS, MAP_SCENES, MAPS_OK, MAPS_INFO, mapsJob, MAPS_STEPS, mapsMake, mapsRemove, mapsSourceText, mapAreas, mapGroups, followArea, mapFocus, mapArea, openMap, mapHere, mapHereTick, mapStart, mapGoal, fmtDur, stFilter, statsC, statsRows, playNow, ...streamCtx, openStream, dockCheck, dockRoute, dockTarget, pickDock, dockFollowsRouter, dockAuto, go, swap, route, edgeLabel, edgeIcon, WARP_SONGS, ageLabel, openBackup, copyBackup, importBackup, resetAll, declineSpoiler, savedAt, TYPE_LABEL };
+      TRIALS, trialStatus, cycleTrial, setDungeonFlag, addDungeonKeys, cycleDungeonQuest, questLabel, questClass, questTitle, keysLabel, dungeonKeyRing, setKeyRing, dungeonKeysDone, keysTitle, brokenIcons,
+      setTheme, startHere, prevStart, backToPrev, liveStart, myPos, startAtMe, goExit, pickAreas, pickExits, zoneExcludeMode, zoneExclude, hintGroups, hintEdit, hintsC, setHintRead, GOSSIP_STONES, HINT_TYPES, CHECK_AREAS, MAP_SCENES, MAPS_OK, MAPS_INFO, mapsJob, MAPS_STEPS, mapsMake, mapsRemove, mapsSourceText, mapGroups, followArea, mapFocus, mapArea, openMap, mapHere, mapHereTick, mapStart, mapGoal, fmtDur, stFilter, statsC, statsRows, playNow, ...streamCtx, openStream, dockCheck, dockRoute, dockTarget, pickDock, dockFollowsRouter, dockAuto, swap, route, edgeLabel, edgeIcon, WARP_SONGS, ageLabel, openBackup, copyBackup, importBackup, resetAll, declineSpoiler, savedAt, saveError };
   },
   template:`
 ${STREAM_TPL}
@@ -1259,7 +1259,8 @@ ${STREAM_TPL}
 
     <div class="side-foot">
       <div class="side-foot-row">
-        <div class="saved" v-if="savedAt"><i></i>Enregistré à {{savedAt}}</div>
+        <div class="saved ko" v-if="saveError" title="Le navigateur refuse d'enregistrer (place insuffisante, navigation privée ?) : exportez la partie (Exporter ou importer la partie) pour ne pas la perdre."><i></i>Partie non enregistrée !</div>
+        <div class="saved" v-else-if="savedAt"><i></i>Enregistré à {{savedAt}}</div>
         <div class="saved" v-else><i></i>Sauvegarde automatique active</div>
         <div class="theme-sw" role="group" aria-label="Thème">
           <button type="button" :class="{on:ui.theme==='light'}" :aria-pressed="ui.theme==='light'" v-html="ICONS.sun" @click="setTheme('light')"

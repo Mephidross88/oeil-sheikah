@@ -10,7 +10,7 @@ et le mettre à jour quand une règle change.
 
 ## Fichiers
 - `index.html` : squelette, charge Vue 3 (CDN jsDelivr, build global), puis `data/areas-data.js`, `data/checks-data.js`
-  et `data/logic-data.js` (et les autres données, dont `data/i18n-en.js`), puis les fichiers
+  et `data/logic-data.js` (et les autres données, dont les langues `data/i18n/<code>.js` et `data/maps-data.js`, sauf en ligne), puis les fichiers
   de `js/` **dans l'ordre listé ci-dessous** (scripts classiques, pas de modules ES : chaque fichier partage
   le même scope global de haut niveau, comme s'il s'agissait d'un seul fichier — un `const`/`function` déclaré
   dans un fichier est directement utilisable dans les suivants ; ne pas redéclarer un identifiant existant).
@@ -22,7 +22,8 @@ et le mettre à jour quand une règle change.
      aux composants dans `app.js`), `setLang`. Le français est la langue source ; repli : langue choisie, anglais,
      français. Tout nouveau texte de l'interface : en français (par `t()` s'il est calculé en JS, `tn()` pour un pluriel ;
      pas de variable de boucle nommée `t` dans les gabarits), puis sa traduction dans `data/i18n/en.js` ; contrôle
-     `node tools/i18n/check.mjs` (0 manquant attendu).
+     `node tools/i18n/check.mjs` (0 manquant attendu ; `--strict` : échec sinon). Une traduction n'est jamais insérée
+     telle quelle dans un gabarit (`escTplText` / `escTplExpr` de `tpl`) : les langues importées viennent de n'importe qui.
   1. `js/icons.js` : destructuration de l'API Vue globale, icônes SVG inline (`ICONS`), icônes de types de
      sortie personnalisables (`CUSTOM_ICONS`), libellés de types (`TYPE_LABEL`).
   2. `js/data.js` : transforme `window.AREAS_DATA` (fourni par `areas-data.js`) en structures internes
@@ -85,7 +86,7 @@ et le mettre à jour quand une règle change.
      lancé sous Windows par `lancer-relais.bat` (racine, fins de ligne CRLF imposées par `.gitattributes`), ou exécutable
      autonome sans Node.js (`tools/soh-link/build_relay.mjs`, Bun ; publié par le workflow `.github/workflows/relay.yml`,
      notes `tools/soh-link/RELEASE.md`). `APP_ONLINE` (appli servie en http(s), GitHub Pages), `RELAY_DL` (téléchargement
-     du relais), `link.blocked` (accès au relais local refusé par le navigateur).
+     du relais), `link.blocked` (accès au relais local refusé par le navigateur), `linkToken` (jeton de la connexion, exigé par les commandes du relais ; une seule page connectée à la fois, sinon état `busy`).
   9. `js/components.js` : composants Vue réutilisables (`TypeIcon`, `Seg`, `DestPicker`, `ItemTile`,
      `ProgressCard` — cadre de progression des pages Checks et Entrées, `EntranceGraph` — page Connexions : graphe des
      entrées connues, positions des zones `GRAPH_POS`, `ZoneMap` — page Carte : terrain vu de dessus et repères des
@@ -147,6 +148,11 @@ et le mettre à jour quand une règle change.
   d'âge du Routeur), `icons/items/` (convention par défaut du panneau
   Objets) et `icons/rewards/...` (chemins personnalisés d'exemple) — voir SPEC.md > Panneau Objets pour la
   convention de nommage et comment personnaliser un chemin par objet (`icon`/`icons` dans `ITEM_GROUPS`).
+
+- `.github/workflows/` : `pages.yml` (appli en ligne), `relay.yml` (exécutables du relais), `checks.yml` (à chaque
+  envoi : syntaxe de tous les scripts, `tools/i18n/check.mjs --strict`, `tools/soh-link/replay_packets.mjs` ; le rejeu
+  des spoilers reste à lancer à la main). Actions tierces épinglées par leur commit ; Vue chargé avec son empreinte
+  (`integrity` dans `index.html`, à recalculer en changeant de version).
 
 ## Contraintes
 - Pas d'outil de build, pas de modules ES, pas de dépendance hors CDN. Doit marcher en `file://` et en ligne (GitHub

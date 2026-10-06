@@ -35,7 +35,6 @@ const bossRoomNoted = (e, s) => !!e.specialTag && isDecoupled(s) && s.bossEntran
 // (on ressort devant la porte) et Tour de Ganon ; jamais vers une salle de boss (sa sortie est calculée).
 const coupledSide = e => isTwoWay(e) || isBossDoor(e) || e.key === GANON_TOWER_ROOM;
 const isCoupledPair = (a, b) => coupledSide(a) && coupledSide(b) && !(isBossDoor(a) && isBossDoor(b));
-const POOL_LABEL = { overworld:'extérieurs', interior:'intérieurs', grotto:'grottes', dungeon:'donjons', boss:'salles de boss', oneway:'destinations' };
 
 // Correspondance avec les réglages d'entrées de Ship of Harkinian (js/config.js). « Points d'apparition » couvre à la
 // fois le spawn enfant et adulte. La rivière de la Vallée Gerudo (sens unique) n'est mélangée avec l'overworld qu'en

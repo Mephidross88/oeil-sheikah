@@ -4,7 +4,7 @@
 //  - appels t('…'), tn(n, '…', '…') et td('…', …) de js/*.js ;
 //  - libellés des données traduits à l'exécution (DYNAMIC ci-dessous : fichiers chargés dans un bac à sable).
 // Usage :
-//   node tools/i18n/check.mjs [--lang=en] [--missing] [--unused] [--js]
+//   node tools/i18n/check.mjs [--lang=en] [--missing] [--unused] [--js] [--strict]
 //       résumé + textes sans traduction + traductions inutilisées ; --js : les manquants au format du dictionnaire
 //   node tools/i18n/check.mjs --template=de [--name=Deutsch] [--data]
 //       modèle de traduction (JSON { code, name, dict }) à remplir puis importer dans la Configuration, ou à convertir
@@ -110,3 +110,5 @@ if (all || opt.missing){ console.log(`\n# Sans traduction (${missing.length})`);
 if (all || opt.unused){ console.log(`\n# Traductions inutilisées (${unused.length})`); unused.forEach(k => console.log('  ' + k)); }
 console.log(`\n[${LANG}] ${Object.keys(DICT).length} traductions ; interface : ${ui.size} textes, ${missing.length} sans traduction ; `
   + `données : ${data.size} libellés (${[...data].filter(k => k in DICT).length} traduits, les autres en anglais SoH) ; ${unused.length} traductions inutilisées.`);
+// --strict (vérifications automatiques) : échec s'il manque une traduction ou s'il en reste d'inutiles
+if (opt.strict && (missing.length || unused.length)) process.exit(1);

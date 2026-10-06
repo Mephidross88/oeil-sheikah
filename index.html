@@ -11,13 +11,15 @@
 </head>
 <body>
 <div id="app" v-cloak></div>
-<script src="https://cdn.jsdelivr.net/npm/vue@3.4.38/dist/vue.global.prod.js"></script>
+<!-- Vue : version fixée, empreinte vérifiée par le navigateur (à recalculer en changeant de version : sha384 du fichier) -->
+<script src="https://cdn.jsdelivr.net/npm/vue@3.4.38/dist/vue.global.prod.js" integrity="sha384-Z9a2xA0EIaURxthVmeQmPrgSC05eG8Lch8X4Y2+lXpTg9wcxPj2m3QNurDl5hLiS" crossorigin="anonymous"></script>
 <script src="data/areas-data.js"></script>
 <script src="data/checks-data.js"></script>
 <script src="data/logic-data.js"></script>
 <script src="data/link-data.js"></script>
-<!-- cartes des zones : généré depuis la ROM de l'utilisateur (tools/soh-maps/extract_maps.mjs), absent par défaut -->
-<script src="data/maps-data.js"></script>
+<!-- cartes des zones : généré depuis la ROM de l'utilisateur (tools/soh-maps/extract_maps.mjs), absent par défaut ; jamais
+     publié, donc pas demandé en ligne (GitHub Pages : cartes fabriquées dans l'appli) -->
+<script>if (!/\.github\.io$/.test(location.hostname)) document.write('<script src="data/maps-data.js"><\/script>');</script>
 <!-- langues livrées (data/i18n/<code>.js) : ajouter ici une ligne par langue -->
 <script src="data/i18n/en.js"></script>
 <script src="js/i18n.js"></script>

@@ -60,6 +60,8 @@ function load(){
 const store = reactive(load());
 if (store.ui.map.checks === 'todo') store.ui.map.checks = 'filters';   // ancien réglage « À faire »
 const lastSaved = ref(null);
+// échec de l'enregistrement (place insuffisante, navigation privée…) : signalé dans le panneau de gauche
+const saveError = ref(false);
 // Fenêtre de stream (index.html?stream) : la partie vient de la fenêtre principale (événement « storage » à chaque
 // sauvegarde de celle-ci) ; elle ne sauvegarde rien elle-même.
 const STREAM_MODE = typeof location !== 'undefined' && /[?&]stream(&|=|$)/.test(location.search);
@@ -68,7 +70,8 @@ if (STREAM_MODE) window.addEventListener('storage', ev => {
   try { const fresh = merge(defaults(), JSON.parse(ev.newValue)); for (const k of Object.keys(fresh)) store[k] = fresh[k]; } catch (e) {}
 });
 else watch(store, () => {
-  try { localStorage.setItem(STORE_KEY, JSON.stringify(store)); lastSaved.value = new Date(); } catch (e) {}
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(store)); lastSaved.value = new Date(); saveError.value = false; }
+  catch (e){ if (!saveError.value) console.error('Partie non enregistrée :', e); saveError.value = true; }
 }, { deep:true });
 
 /* Positions de checks placées à la main sur la Carte (mode « Placer les checks »), gardées à part de la partie (POS_KEY) :

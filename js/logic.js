@@ -12,7 +12,6 @@
    - haricots plantés : seulement « Haricots déjà plantés » + haricots au départ ;
    - version de donjon inconnue : les branches Vanilla et MQ sont toutes deux explorées. */
 const SOH = window.SOH_LOGIC;
-const SOH_REGION_KEYS = Object.keys(SOH.regions);
 // États d'accès d'une région (bits) : enfant de jour / de nuit, adulte de jour / de nuit.
 const CD = 1, CN = 2, AD = 4, AN = 8, CHILD = CD | CN, ADULT = AD | AN;
 const AGE_TIMES = [[CD, true, true], [CN, true, false], [AD, false, true], [AN, false, false]];   // [bit, enfant, jour]

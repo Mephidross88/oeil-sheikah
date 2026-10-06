@@ -19,12 +19,14 @@
 // elle change). Le jeu affiche « L'Oeil Sheikah : Connected » à l'activation.
 //
 // Usage : node tools/soh-link/relay.mjs [--game=43383] [--web=43390] [--verbose] [--dump[=fichier.jsonl]] [--live]
+//   [--origin=https://…[,…]]   (adresse d'une copie de l'appli hébergée ailleurs ; voir le serveur HTTP plus bas)
 //   (sous Windows : double-clic sur lancer-relais.bat, à la racine du projet ; ou l'exécutable autonome, sans Node.js,
 //   construit par tools/soh-link/build_relay.mjs et publié dans les releases GitHub)
 //   --dump : enregistre les paquets reçus du jeu (une ligne JSON par paquet, sans les mouvements) — pour le développement.
 import net from 'net';
 import http from 'http';
 import fs from 'fs';
+import crypto from 'crypto';
 
 const args = Object.fromEntries(process.argv.slice(2).map(a => { const [k, v] = a.replace(/^--/, '').split('='); return [k, v ?? true]; }));
 const HOST = '127.0.0.1', GAME_PORT = +(args.game || 43383), WEB_PORT = +(args.web || 43390), VERBOSE = !!args.verbose;
@@ -53,16 +55,17 @@ function fatal(msg){
 
 let game = null, clientState = null, teamState = null, player = null;
 let live = !!args.live, liveLast = null, liveSent = 0;   // position en temps réel : option, dernière position transmise
-const web = new Set();
+// une seule page de l'appli à la fois (la première garde la place ; les autres reçoivent « busy » et réessaient) ; son jeton,
+// donné dans hello, est exigé par les commandes (POST /live, /request-state)
+let client = null;   // { res, token, origin }
 console.log(m(`L'Œil Sheikah — relais d'auto-tracking (lecture seule). Gardez cette fenêtre ouverte pendant la partie.`,
   `L'Œil Sheikah — auto-tracking relay (read-only). Keep this window open while you play.`));
 
 /* ---------- vers l'appli (SSE) ---------- */
 function broadcast(ev){
-  const data = `data: ${JSON.stringify(ev)}\n\n`;
-  for (const res of web) res.write(data);
+  if (client) client.res.write(`data: ${JSON.stringify(ev)}\n\n`);
 }
-const hello = () => ({ type:'hello', game:!!game, clientState, player, teamState, live });
+const hello = () => ({ type:'hello', token:client?.token, game:!!game, clientState, player, teamState, live });
 
 /* ---------- vers le jeu (lecture seule) ---------- */
 function sendToGame(payload){
@@ -164,6 +167,8 @@ net.createServer(sock => {
   let buf = '';
   sock.on('data', chunk => {
     buf += chunk;
+    // (message sans fin au-delà de 16 Mo : abandonné ; une sauvegarde complète en fait moins de 1)
+    if (buf.length > 16e6 && buf.indexOf('\0') < 0){ log(m('Paquet trop long ignoré', 'Oversized packet dropped')); buf = ''; return; }
     let i;
     while ((i = buf.indexOf('\0')) >= 0){
       const raw = buf.slice(0, i);
@@ -184,28 +189,51 @@ net.createServer(sock => {
   .listen(GAME_PORT, HOST, () => log(m(`En attente de SoH sur ${HOST}:${GAME_PORT} (menu Réseau > Anchor : Host ${HOST}, Port ${GAME_PORT})`,
     `Waiting for SoH on ${HOST}:${GAME_PORT} (Network > Anchor menu: Host ${HOST}, Port ${GAME_PORT})`)));
 
-/* ---------- serveur HTTP pour l'appli ---------- */
-// appli ouverte depuis un fichier ou en ligne (GitHub Pages) : accès de toute origine, y compris d'un site public vers
-// cette adresse locale (Private Network Access de Chrome)
+/* ---------- serveur HTTP pour l'appli ----------
+   Seulement l'appli : ouverte depuis un fichier (origine « file:// » pour Chrome, « null » pour Firefox), en ligne (GitHub Pages), servie en local (localhost,
+   127.0.0.1), ou à une adresse donnée par --origin=https://…[,…] (copie de l'appli hébergée ailleurs). Les autres pages
+   ouvertes dans le navigateur sont refusées (elles pourraient sinon lire la partie ou activer le joueur fictif). Accès
+   d'un site public vers cette adresse locale : en-tête Private Network Access de Chrome. */
+const ORIGINS = new Set(['https://mephidross88.github.io', ...String(args.origin === true ? '' : args.origin || '').split(',').map(o => o.trim().replace(/\/+$/, '')).filter(Boolean)]);
+const originOk = o => o == null || o === 'null' || o === 'file://' || ORIGINS.has(o) || /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(o);
+const refused = new Set();
+const where = o => o === 'null' || o === 'file://' ? m('fichier local', 'local file') : o || m('sans origine', 'no origin');
 http.createServer((req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  const origin = req.headers.origin;
+  if (!originOk(origin)){
+    if (!refused.has(origin)){ refused.add(origin); log(m(`Accès refusé à ${origin} (pas l'appli ; sinon : --origin=${origin})`, `Access denied to ${origin} (not the app; otherwise: --origin=${origin})`)); }
+    res.writeHead(403); res.end(); return;
+  }
+  if (origin){ res.setHeader('Access-Control-Allow-Origin', origin); res.setHeader('Vary', 'Origin'); }
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Private-Network', 'true');
   if (req.method === 'OPTIONS'){ res.writeHead(204); res.end(); return; }
   if (req.url === '/events'){
     res.writeHead(200, { 'Content-Type':'text/event-stream; charset=utf-8', 'Cache-Control':'no-cache', Connection:'keep-alive' });
-    web.add(res);
+    if (client){
+      // place prise : « busy », puis fermeture (la page réessaie dans 5 s ; refus noté une fois par page connectée)
+      if (!client.refusedLogged++) log(m(`Connexion refusée à ${where(origin)} : l'appli est déjà connectée (${where(client.origin)})`,
+        `Connection refused to ${where(origin)}: the app is already connected (${where(client.origin)})`));
+      res.end(`retry: 5000\n\ndata: ${JSON.stringify({ type:'busy' })}\n\n`);
+      return;
+    }
+    client = { res, token:crypto.randomBytes(16).toString('hex'), origin:origin || '', refusedLogged:0 };
     res.write('retry: 2000\n\n');   // reconnexion de l'appli 2 s après une coupure (relais relancé)
     res.write(`data: ${JSON.stringify(hello())}\n\n`);
     const ka = setInterval(() => res.write(': ping\n\n'), 15000);
     // plus d'appli connectée : plus besoin du joueur fictif (l'appli le réactive à sa reconnexion)
-    req.on('close', () => { clearInterval(ka); web.delete(res); log(m('Appli déconnectée', 'App disconnected')); if (!web.size && !args.live) setLive(false); });
-    log(m('Appli connectée', 'App connected'));
+    req.on('close', () => { clearInterval(ka); if (client?.res === res) client = null; log(m('Appli déconnectée', 'App disconnected')); if (!args.live) setLive(false); });
+    log(m(`Appli connectée (${where(origin)})`, `App connected (${where(origin)})`));
     return;
   }
-  if (req.url === '/request-state' && req.method === 'POST'){ requestState(); res.writeHead(204); res.end(); return; }
-  // position en temps réel : /live?on=1 ou /live?on=0
-  if (req.url.startsWith('/live') && req.method === 'POST'){ setLive(/[?&]on=1/.test(req.url)); res.writeHead(204); res.end(); return; }
+  // commandes : seulement la page connectée (jeton de son hello)
+  if (req.method === 'POST' && (req.url.startsWith('/request-state') || req.url.startsWith('/live'))){
+    const q = new URL(req.url, 'http://relais').searchParams;
+    if (!client || q.get('token') !== client.token){ res.writeHead(403); res.end(); return; }
+    if (req.url.startsWith('/request-state')) requestState();
+    else setLive(q.get('on') === '1');   // position en temps réel : /live?on=1 ou /live?on=0
+    res.writeHead(204); res.end(); return;
+  }
   res.writeHead(200, { 'Content-Type':'text/plain; charset=utf-8' });
   res.end(m(`Relais L'Œil Sheikah — jeu ${game ? 'connecté' : 'non connecté'}. Flux : /events`,
     `L'Œil Sheikah relay — game ${game ? 'connected' : 'not connected'}. Stream: /events`));

@@ -36,7 +36,10 @@ code (`js/i18n.js`, dictionnaires `data/i18n/<code>.js`).
   (fichier `data/i18n/<code>.js`, une ligne `<script>` par langue dans `index.html`) ou **ajoutée par l'utilisateur**
   (« Ajouter… » à côté du choix de la langue : fichier JSON `{ code, name, dict }`, gardé dans le navigateur, localStorage
   `oeil-sheikah-langs` ; « Retirer » pour une langue importée, retour à la langue détectée). Une langue importée ne
-  remplace pas une langue livrée du même code. Refus motivé d'un fichier qui n'est pas une traduction.
+  remplace pas une langue livrée du même code. Refus motivé d'un fichier qui n'est pas une traduction. **Sécurité** : une
+  langue importée vient de n'importe qui ; ses traductions ne sont que du texte (seules les valeurs texte sont gardées),
+  échappées à l'insertion dans les gabarits (`escTplText` : balisage, guillemets et accolades en entités, entités déjà
+  écrites gardées ; `escTplExpr` dans les chaînes des expressions) — jamais de balisage ni de code exécuté.
 - **Dictionnaire** : texte français (clé exacte, espaces internes réduits) → traduction. Repli d'un texte sans
   traduction : la langue choisie, puis l'anglais, puis le français.
 - **Interface** : gabarits Vue traduits au chargement (`tpl` : textes entre balises, attributs title / placeholder /
@@ -78,7 +81,9 @@ la page correspondante, souligné quand on y est. Côte à côte, empilés sur m
   (`ui.navFolded`) : menu (nom au survol), sélecteur de thème, icône « en direct » de l'auto-tracking teintée selon son
   état (clic : fenêtre Auto-tracking) ; options des pages, export et remise à zéro masqués
   jusqu'à ce qu'on la déplie (bouton ›).
-- Pied du panneau : état de la sauvegarde, sélecteur de thème (soleil = clair, lune = sombre ; recliquer l'icône
+- Pied du panneau : état de la sauvegarde (heure du dernier enregistrement ; si le navigateur refuse d'enregistrer —
+  place insuffisante, navigation privée — « Partie non enregistrée ! » en rouge, visible même barre réduite, avec le
+  conseil d'exporter la partie ; `saveError` de `state.js`), sélecteur de thème (soleil = clair, lune = sombre ; recliquer l'icône
   allumée revient à « auto », qui suit le système ; `ui.theme` : `auto` / `light` / `dark`, sauvegardé, appliqué par
   l'attribut `data-theme` de `<html>`), export/import de la partie, remise à zéro.
 - Dans Entrées uniquement : tout déplier / tout replier, navigation rapide vers les zones, et filtres :
@@ -1021,8 +1026,15 @@ Suivi en direct d'une partie de Ship of Harkinian, sans modifier le jeu.
   salle globale) : TCP, messages JSON séparés par un octet nul. Le relais répond à la poignée de main (liste des joueurs
   avec le jeu marqué `self`, état de salle avec `syncItemsAndFlags` activé, sans quoi le jeu n'envoie pas sa
   sauvegarde), demande la sauvegarde complète (`REQUEST_TEAM_STATE` → `UPDATE_TEAM_STATE`), et transmet les événements
-  à l'appli par un flux SSE (`http://127.0.0.1:43390/events` ; `POST /request-state` pour relire la sauvegarde ; accès de
-  toute origine, en-tête `Access-Control-Allow-Private-Network` compris).
+  à l'appli par un flux SSE (`http://127.0.0.1:43390/events` ; `POST /request-state` pour relire la sauvegarde). **Accès
+  réservé à l'appli** : fichier local, `https://mephidross88.github.io`, `localhost` / `127.0.0.1`, et les
+  adresses données par `--origin=https://…[,…]` (copie hébergée ailleurs) ; les autres pages du navigateur sont refusées
+  (403, notées une fois dans la fenêtre du relais) ; en-tête `Access-Control-Allow-Private-Network`. Paquet du jeu de
+  plus de 16 Mo sans fin : abandonné. Origine « file:// » (Chrome) ou « null » (Firefox) pour l'appli ouverte depuis un
+  fichier. **Une seule page à la fois** : la première connectée garde la place (son origine est notée dans la fenêtre du
+  relais) ; une autre reçoit `busy` et réessaie toutes les 5 s (appli : état « Relais déjà utilisé par une autre page »,
+  voyant rouge — autre onglet de l'appli, ou page indésirable). **Jeton** : donné à la page connectée dans `hello`, exigé
+  par les commandes (`POST /live`, `/request-state` : `?token=…`), sinon 403 ; nouveau jeton à chaque connexion.
   **Appli en ligne** (GitHub Pages) : Chrome demande au joueur l'autorisation d'accéder aux adresses locales (permission
   `loopback-network`, `local-network-access` sur les versions plus anciennes) ; refusée, la fenêtre Auto-tracking le dit
   (« Le navigateur bloque l'accès au relais pour ce site », `link.blocked`).

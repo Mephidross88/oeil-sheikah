@@ -21,6 +21,6 @@ for (const os of want){
   for (const [target, out] of TARGETS[os]){
     console.log('→ dist/' + out);
     execFileSync('bun', ['build', '--compile', '--minify', '--target=' + target, 'tools/soh-link/relay.mjs', '--outfile', 'dist/' + out],
-      { cwd:ROOT, stdio:'inherit', shell:process.platform === 'win32' });
+      { cwd:ROOT, stdio:'inherit' });
   }
 }

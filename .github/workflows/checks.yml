@@ -1,0 +1,23 @@
+# Vérifications automatiques à chaque envoi (et proposition de modification) : syntaxe de tous les scripts, traductions
+# complètes (tools/i18n/check.mjs), rejeu de l'auto-tracking (tools/soh-link/replay_packets.mjs). Le rejeu des spoilers
+# (tools/soh-logic/replay_spoilers.mjs) reste à lancer à la main : les spoilers ne sont pas dans le dépôt.
+name: Vérifications
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - name: Syntaxe
+        run: for f in js/*.js data/*.js data/i18n/*.js tools/*/*.mjs; do node --check "$f" || exit 1; done
+      - name: Traductions
+        run: node tools/i18n/check.mjs --strict
+      - name: Auto-tracking (rejeu d'une partie)
+        run: node tools/soh-link/replay_packets.mjs

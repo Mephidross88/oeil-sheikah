@@ -9,7 +9,8 @@ const APP_ONLINE = /^https?:$/.test(globalThis.location?.protocol);
 const APP_REPO = 'https://github.com/Mephidross88/oeil-sheikah';
 const RELAY_DL = APP_REPO + '/releases/latest';
 const link = reactive({
-  status:'off',      // off | connecting (relais injoignable, nouvelle tentative auto) | relay (relais OK) | game (jeu connecté)
+  status:'off',      // off | connecting (relais injoignable, nouvelle tentative auto) | busy (relais déjà utilisé par une autre
+                     // page, nouvelle tentative auto) | relay (relais OK) | game (jeu connecté)
   client:null,       // dernier état du jeu (nom, sauvegarde chargée, scène…)
   player:null,       // position brute : scène, entrée d'arrivée, âge
   position:null,     // position reconnue : { key (sortie où l'on est apparu), age }
@@ -22,6 +23,9 @@ const link = reactive({
   lastAt:null, log:[],
 });
 let linkSource = null;
+// jeton de la connexion, donné par le relais (hello) : exigé par ses commandes (POST /live, /request-state)
+let linkToken = '';
+const linkPost = path => fetch(store.ui.link.url.replace(/\/+$/, '') + path + (path.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(linkToken), { method:'POST' });
 
 function linkLog(text){
   link.log.unshift({ t:new Date().toLocaleTimeString('fr-FR'), text });
@@ -36,6 +40,8 @@ function linkStart(){
   es.onopen = () => { link.blocked = false; };
   es.onmessage = ev => { let m; try { m = JSON.parse(ev.data); } catch (e){ return; } linkHandle(m); };
   es.onerror = () => {
+    // (relais occupé : il ferme aussitôt la connexion, le navigateur réessaie ; l'état « occupé » reste affiché)
+    if (link.status === 'busy' && es.readyState !== 2) return;
     if (link.status !== 'connecting') linkLog(t('Relais injoignable, nouvelle tentative…'));
     link.status = 'connecting';
     linkCheckBlocked();
@@ -58,7 +64,7 @@ function linkCheckBlocked(){
 function linkStop(){
   clearTimeout(linkRetry);
   if (linkSource){ linkSource.close(); linkSource = null; }
-  link.status = 'off'; link.client = null; link.player = null; link.live = null;
+  link.status = 'off'; link.client = null; link.player = null; link.live = null; linkToken = '';
 }
 /* Position en temps réel (option ui.link.live) : le relais déclare au jeu un second joueur fictif, ce qui lui fait envoyer
    la position de Link (voir relay.mjs) ; l'appli dit au relais si l'option est active, à chaque connexion et à chaque
@@ -69,11 +75,11 @@ const SCENE_DRAWN = { MARKET_ENTRANCE_NIGHT:'MARKET_ENTRANCE_DAY', MARKET_ENTRAN
   TEMPLE_OF_TIME_EXTERIOR_RUINS:'TEMPLE_OF_TIME_EXTERIOR_DAY' };
 function linkSyncLive(){
   if (!linkSource) return;
-  fetch(store.ui.link.url.replace(/\/+$/, '') + '/live?on=' + (store.ui.link.live ? 1 : 0), { method:'POST' }).catch(() => {});
+  linkPost('/live?on=' + (store.ui.link.live ? 1 : 0)).catch(() => {});
   if (!store.ui.link.live) link.live = null;
 }
 function linkRequestState(){
-  fetch(store.ui.link.url.replace(/\/+$/, '') + '/request-state', { method:'POST' }).catch(() => linkLog(t('Relais injoignable')));
+  linkPost('/request-state').catch(() => linkLog(t('Relais injoignable')));
 }
 
 // Noms des objets du jeu de base reçus le plus souvent (GetItemID), pour le journal.
@@ -114,8 +120,15 @@ function linkAdoptSave(){
 }
 function linkHandle(m){
   link.lastAt = Date.now();
+  // relais déjà utilisé par une autre page (autre onglet de l'appli… ou page indésirable) : il réessaie seul
+  if (m.type === 'busy'){
+    if (link.status !== 'busy') linkLog(t('Relais déjà utilisé par une autre page, nouvelle tentative…'));
+    link.status = 'busy';
+    return;
+  }
   if (m.type === 'hello'){
     linkLog(t('Relais connecté'));
+    linkToken = m.token || '';
     linkCatchup = true;
     link.status = m.game ? 'game' : 'relay';
     link.client = m.clientState || null; link.player = m.player || null;

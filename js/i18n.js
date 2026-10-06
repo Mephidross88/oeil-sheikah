@@ -14,15 +14,23 @@
      le nom anglais (noms de SoH), sinon le français.
    - tpl(gabarit) : gabarit Vue traduit au chargement — textes entre balises, attributs fixes (title, placeholder,
      aria-label, label, alt), et chaînes entre apostrophes des expressions ({{ }}, attributs liés) qui ont une traduction.
+     Une traduction n'est jamais du balisage ni du code (langues importées : fichiers de n'importe qui) : échappée selon
+     l'endroit (escTplText, escTplExpr) ; seules les entités HTML (&gt;…) passent telles quelles.
    En français, tout est renvoyé tel quel. Textes sans traduction : I18N_MISSING (contrôle : tools/i18n/check.mjs). */
 const LANG_KEY = 'oeil-sheikah-lang', LANGS_KEY = 'oeil-sheikah-langs';
+// dictionnaire importé : seulement des textes (clé et traduction), sans clé réservée
+function i18nCleanDict(d){
+  const out = Object.create(null);
+  if (d && typeof d === 'object') for (const [k, v] of Object.entries(d)) if (typeof v === 'string' && k !== '__proto__') out[k] = v;
+  return out;
+}
 window.I18N_LANGS = window.I18N_LANGS || {};
 // langues importées par l'utilisateur (ne remplacent pas une langue livrée du même code)
 (() => {
   try {
     const extra = JSON.parse(localStorage.getItem(LANGS_KEY) || '{}');
     for (const [code, l] of Object.entries(extra))
-      if (!I18N_LANGS[code] && l && l.dict) I18N_LANGS[code] = { name:l.name || code, dict:l.dict, imported:true };
+      if (!I18N_LANGS[code] && l && l.dict) I18N_LANGS[code] = { name:String(l.name || code), dict:i18nCleanDict(l.dict), imported:true };
   } catch (e) {}
 })();
 const LANGS = [['fr', 'Français'], ...Object.entries(I18N_LANGS).map(([code, l]) => [code, l.name || code])];
@@ -80,11 +88,11 @@ function importLang(json){
   let l;
   try { l = JSON.parse(json); } catch (e) { return t('Fichier illisible : ce n’est pas un JSON valide.'); }
   const code = String(l?.code || '').toLowerCase();
-  if (!/^[a-z]{2,3}(-[a-z0-9]{2,8})?$/.test(code) || !l.dict || typeof l.dict !== 'object') return t('Ce fichier n’est pas une traduction (code de langue et dictionnaire attendus).');
+  if (!/^[a-z]{2,3}(-[a-z0-9]{2,8})?$/.test(code) || !l.dict || typeof l.dict !== 'object' || Array.isArray(l.dict)) return t('Ce fichier n’est pas une traduction (code de langue et dictionnaire attendus).');
   if (code === 'fr' || (I18N_LANGS[code] && !I18N_LANGS[code].imported)) return t('Cette langue est déjà livrée avec l’appli.');
   try {
     const extra = JSON.parse(localStorage.getItem(LANGS_KEY) || '{}');
-    extra[code] = { name:String(l.name || code), dict:l.dict };
+    extra[code] = { name:String(l.name || code).slice(0, 60), dict:i18nCleanDict(l.dict) };
     localStorage.setItem(LANGS_KEY, JSON.stringify(extra));
   } catch (e) { return t('Impossible de garder cette langue dans le navigateur (place insuffisante ?).'); }
   setLang(code);
@@ -97,6 +105,14 @@ function removeLang(code){
 }
 
 const I18N_LETTER = /[A-Za-zÀ-ÿŒœ]/;
+// traduction placée dans le texte ou un attribut fixe d'un gabarit : caractères de balisage, guillemets et accolades
+// (interpolations Vue) en entités ; les entités déjà écrites (&gt;, &#123;…) sont gardées
+const escTplText = v => String(v).replace(/&(?!#?\w+;)/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;').replace(/\{/g, '&#123;').replace(/\}/g, '&#125;');
+// traduction placée dans une chaîne entre apostrophes d'une expression (attribut lié ou {{ }}) : rien qui ferme la chaîne,
+// l'attribut ou l'interpolation (échappements \x.. de JavaScript)
+const escTplExpr = v => String(v).replace(/\\/g, '\\\\').replace(/'/g, "\\'")
+  .replace(/["{}<>]/g, c => '\\x' + c.charCodeAt(0).toString(16)).replace(/\r?\n|\u2028|\u2029/g, ' ');
 function tpl(html){
   if (!I18N) return html;
   // texte (espaces autour gardés) ; seulement s'il a une traduction
@@ -106,7 +122,7 @@ function tpl(html){
     const v = i18nGet(k);
     if (v == null) return s;
     const lead = s.match(/^\s*/)[0], tail = s.match(/\s*$/)[0];
-    return lead + v + tail;
+    return lead + escTplText(v) + tail;
   };
   // chaînes entre apostrophes d'une expression : traduites si un dictionnaire les connaît (les autres sont des clés)
   const trExpr = e => e.replace(/'((?:[^'\\]|\\.)*)'/g, (m, lit) => {
@@ -114,7 +130,7 @@ function tpl(html){
     let v; for (const d of I18N_CHAIN){ if (d[lit] != null && d[lit] !== ''){ v = d[lit]; break; } }
     // texte sans traduction relevé (pas les identifiants, clés ni listes de classes : minuscules ASCII, chiffres, - _ : espace)
     if (I18N[lit] == null && !/^[a-z0-9_:.,()%\/#-]*$/.test(lit) && !/^[a-z0-9_ -]*\d/.test(lit) && !/^[a-z0-9_ ,.()-]*[()-]$|[()]/.test(lit) && !/^[A-Z][A-Z0-9_]+$/.test(lit) && !/^[a-z]+[A-Z]\w*$/.test(lit) && !/^[A-Z][0-9 ]*$/.test(lit) && !/^[a-z]+:\w+$/.test(lit)) I18N_MISSING.add(lit);
-    return v != null ? "'" + String(v).replace(/\\/g, '\\\\').replace(/'/g, "\\'") + "'" : m;
+    return v != null ? "'" + escTplExpr(v) + "'" : m;
   });
   // interpolations et valeurs d'attributs traduites puis mises de côté (leurs « > » et « < » ne sont pas des balises),
   // puis textes entre balises, puis remise en place
