@@ -924,6 +924,23 @@ du jeu vu de dessus (nord en haut).
   « Exporter » télécharge `positions-manuelles.json`, à déposer dans `tools/soh-maps/` (versionné) : `gen_maps_recipe.mjs`
   le reprend comme `positions.json` (et l'emporte sur lui), puis cartes à refaire. Checks sans lieu dans le monde : Poche de Link à la maison de Link, Cadeau de Rauru
   (Chambre des Sages) au piédestal de l'Épée de Légende.
+- **Intérieurs et grottes** (maisons, boutiques, fontaines, tombes, moulin, poste de garde, étang de pêche, Repaire des
+  Voleurs…) : une carte chacun (`MAPS.scenes`, `kind:'inside'` ; scène partagée par des lieux de salles différentes —
+  grottes, Repaire, bâtiments du ranch… — une carte par salle, « SCÈNE#salle », sol attribué à la salle du point
+  d'apparition le plus proche ; lieux de même disposition — Grandes Fées, fontaines, grottes de même sorte — : une carte
+  commune, checks du lieu seulement). `MAPS.inside` : position de chaque sortie située dans un intérieur (point
+  d'apparition ; grotte : entrée de la grotte à l'aller, `grottoLoad` de la recette). Checks : position dans l'intérieur
+  (acteurs de la salle du lieu ; coffre d'une grotte générique : En_Torch, qui le fait apparaître ; herbes, ruches,
+  poissons numérotés : n-ième acteur du genre), et toujours à la porte sur la carte de la zone. Âge (`MAPS.checkLayer` :
+  'c' / 'a') d'après les couches du jeu où figure l'acteur (enfant jour / nuit, adulte jour / nuit ; couche sans en-tête :
+  celle de l'adulte de jour pour l'adulte de nuit, sinon la principale) — poste de garde : jarres d'enfant, d'adulte.
+  Ouverture : depuis la porte (fenêtre d'un repère de sortie : « Voir l'intérieur », vers la destination notée de la
+  sortie ; repère des checks d'un lieu : idem), ou d'elle-même quand Link y est (position en temps réel : sa dernière
+  entrée si elle y mène, sinon la carte de cette scène qui contient sa position ; la Carte prend alors la zone de la porte
+  par laquelle il est entré, selon les entrées notées). Vue d'un intérieur : « ← Zone » (retour ; Link encore dedans : la
+  carte ne le suit plus jusqu'à ce qu'il change de lieu), nom du lieu, Enfant / Adulte s'il a des checks d'un seul âge
+  (par défaut l'âge de Link, sinon celui du départ du Routeur), ses sorties (Partir d'ici / Y aller), ses checks et
+  pierres, sa liste « sans position » (articles des boutiques, fées, récompenses…).
 - Affichage : zone choisie (`ui.map.area`, sinon celle de la position ; menu groupé par région — Forêt, Plaine et
   château, Cocorico, Montagne du Péril, Zoras, Lac Hylia, Désert Gerudo —, chaque donjon avec sa région), onglets si elle
   a plusieurs scènes (ex. Château d'Hyrule : « Château (enfant) » et « Extérieur du Château de Ganon (adulte) », une autre

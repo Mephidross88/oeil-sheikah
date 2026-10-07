@@ -33,6 +33,10 @@ const grottoSrc = src('randomizer_grotto.c');
 const grottoTable = grottoSrc.slice(grottoSrc.indexOf('grottoReturnTable'), grottoSrc.indexOf('};', grottoSrc.indexOf('grottoReturnTable')));
 const grottoReturn = [...grottoTable.matchAll(/\.entranceIndex\s*=\s*(ENTR_\w+)[^}]*?\.pos\s*=\s*\{\s*\.x\s*=\s*(-?[\d.]+)f,\s*\.y\s*=\s*(-?[\d.]+)f,\s*\.z\s*=\s*(-?[\d.]+)f/g)]
   .map(m => [scenes[entr[entrIdx[m[1]]][0]], +m[2], +m[3], +m[4]]);
+// grottes, à l'aller : entrée de la grotte i (sortie 0x700 + i) = numéro d'entrée (scène des grottes et salle)
+const loadTable = grottoSrc.slice(grottoSrc.indexOf('grottoLoadTable'), grottoSrc.indexOf('};', grottoSrc.indexOf('grottoLoadTable')));
+const grottoLoad = [...loadTable.matchAll(/\.entranceIndex\s*=\s*(ENTR_\w+)/g)].map(m => entrIdx[m[1]]);
+if (grottoLoad.length !== grottoReturn.length || grottoLoad.some(n => n == null)) throw new Error('table des grottes (aller) illisible');
 // étages des dix donjons de la carte du menu pause (sFloorCoordY = hauteur au-dessus de laquelle on est à cet étage,
 // sFloorID = nom ; donjon i = scène i)
 const levels = {};
@@ -65,10 +69,11 @@ for (const f of fs.readdirSync(SRC).filter(f => /^(location_list|fishsanity|Shuf
 const manual = {};
 for (const f of ['positions.json', 'positions-manuelles.json']){ const p = path.join(HERE, f); if (fs.existsSync(p)) Object.assign(manual, JSON.parse(fs.readFileSync(p, 'utf8'))); }
 
-const recipe = { scenes, entr, grottoReturn, levels, actors, objects, loc, manual };
+const recipe = { scenes, entr, grottoReturn, grottoLoad, levels, actors, objects, loc, manual };
 const out = `/* Fabrication des cartes (page Carte) — FICHIER GÉNÉRÉ par tools/soh-maps/gen_maps_recipe.mjs depuis les sources de
    Ship of Harkinian (aucune donnée de la ROM) ; lu par js/maps-extract.js. scenes : scènes de SoH (index = numéro) ;
-   entr[numéro d'entrée] : [scène, point d'apparition] ; grottoReturn[i] : [scène, x, y, z] (sortie 0x800 + i) ; levels :
+   entr[numéro d'entrée] : [scène, point d'apparition] ; grottoReturn[i] : [scène, x, y, z] (sortie 0x800 + i) ;
+   grottoLoad[i] : numéro de l'entrée de la grotte i (sortie 0x700 + i) ; levels :
    { scène: [{ n, min }] } ; actors / objects : numéros ; loc : { RC: [genre, scène, acteur, [x, z] ou null, paramètres,
    version] } ; manual : positions notées en jouant ou placées sur la Carte { id: { scene, x, y, z } }. */
 window.MAPS_RECIPE = ${JSON.stringify(recipe)};

@@ -30,7 +30,7 @@ Pour commencer une partie :
 | **Routeur** | Le trajet le plus court entre deux endroits, avec les entrées que vous avez notées. |
 | **Entrées** | Où mène chaque entrée (entrées mélangées). |
 | **Indices** | Les pierres à potins lues et ce qu'elles disent (voie du héros, zones futiles…). |
-| **Carte** | Chaque zone vue de dessus : sorties, checks, pierres à potins, étages des donjons. |
+| **Carte** | Chaque zone vue de dessus : sorties, checks, pierres à potins, étages des donjons ; intérieurs et grottes depuis leur porte. |
 | **Connexions** | Le graphe des zones reliées par les entrées connues. |
 | **Statistiques** | Chronologie de la partie et temps de jeu. |
 

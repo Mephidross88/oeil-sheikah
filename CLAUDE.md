@@ -137,8 +137,9 @@ et le mettre à jour quand une règle change.
 - `tools/soh-maps/extract_maps.mjs` : la même fabrication en ligne de commande (`js/maps-extract.js` dans un bac à sable),
   depuis la ROM de l'utilisateur (compressée ou non ; `--mq=` ROM Master Quest pour les donjons MQ ; hors dépôt) — scènes d'OoT (points d'apparition, liste des entrées, collision, acteurs des salles, toutes versions) + tables
   des entrées, scènes et acteurs de SoH et définitions des checks (`data/maps-recipe.js`), logique (`logic-data.js`) :
-  sol, position des sorties, des checks et des pierres d'extérieur et des donjons (étages : `z_map_data.c` de SoH), lieu
-  des autres (intérieur, grotte, donjon), positions placées à la main (`tools/soh-maps/positions-manuelles.json`, exporté par
+  sol, position des sorties, des checks et des pierres d'extérieur, des donjons (étages : `z_map_data.c` de SoH) et des
+  intérieurs et grottes (`inside` : sorties dans un intérieur ; une carte par salle pour les scènes partagées ; âge des
+  checks `checkLayer`), lieu des checks d'intérieur, de grotte, de donjon (porte sur la carte de la zone), positions placées à la main (`tools/soh-maps/positions-manuelles.json`, exporté par
   la Carte) ou notées en jouant (`tools/soh-maps/positions.json`, versionnés ; ce dernier écrit par
   `tools/soh-maps/capture_positions.mjs` / `lancer-capture.bat` : faux serveur Anchor qui déclare un second joueur pour
   recevoir la position de Link) →

@@ -269,7 +269,7 @@ const EntranceGraph = {
    navigateur (IndexedDB « oeil-sheikah », magasin « maps », clé « data » : { json, at, mq, rom, ver }). Lues avant
    l'affichage de l'appli (mapsReady, attendu par app.js) ; fabriquées ou supprimées : la page se recharge, et les autres
    fenêtres (stream) aussi (localStorage MAPS_STAMP). MAPS_VER : à augmenter quand le calcul change (cartes à refaire). */
-const MAPS_VER = 1, MAPS_STAMP = 'oeil-sheikah-maps-stamp';
+const MAPS_VER = 2, MAPS_STAMP = 'oeil-sheikah-maps-stamp';
 const MAPS_INFO = { source:null, at:null, mq:false, rom:'', old:false };   // source : 'file' | 'browser' | null
 function mapsIdb(op, value){
   return new Promise((ok, ko) => {
@@ -358,6 +358,18 @@ const mapSceneLabel = (name, both) => {
   return both && s?.kind === 'dungeon' ? label + (s.mq ? ' (Master Quest)' : ' (vanilla)') : label;
 };
 // étage d'une hauteur (index dans levels ; null : scène sans étages ou hauteur inconnue)
+/* Intérieurs (MAPS.inside : sortie située dans un intérieur ou une grotte → [carte, x, z, hauteur]) : un intérieur réunit
+   les sorties de même carte et de même zone (maison d'Impa et sa porte de derrière, salles du Repaire des Voleurs) ; une
+   grotte reste seule (une même salle sert à plusieurs grottes). → { key, map, keys, area } */
+function insideInfo(k){
+  const p = MAPS?.inside?.[k], e = EXIT[k];
+  if (!p || !e) return null;
+  const keys = e.type === 'grotto' ? [k]
+    : Object.keys(MAPS.inside).filter(x => MAPS.inside[x][0] === p[0] && EXIT[x]?.areaId === e.areaId && EXIT[x].type !== 'grotto');
+  return { key:k, map:p[0], keys, area:e.areaId };
+}
+// scène du jeu d'une carte (« GROTTOS#3 » → GROTTOS)
+const mapBase = name => String(name).replace(/#\d+$/, '').replace(/_MQ$/, '');
 const mapLevelOf = (levels, y) => { if (!levels || y == null) return null; const i = levels.findIndex(l => y > l.min); return i < 0 ? levels.length - 1 : i; };
 // Flèches de changement de zone dont le point d'apparition trompe : cap à la main (degrés, 0 = nord, 90 = est…)
 const EXIT_ARROW = { 'market::market_to_templeplaza':90, 'hyrule_castle::castle_to_market':180, 'goron_city::gc_to_lw':157.5 };
@@ -403,7 +415,10 @@ const ZoneMap = {
   props:['area', 'focus', 'compact', 'hereTick'],   // focus : sortie à mettre en évidence (« Voir sur la carte ») ; compact : carte seule (stream)
   emits:['start', 'goal', 'go-check'],
   data:() => ({ scene:null, level:null, sel:null, hover:null, view:null, drag:null, maxH:null, csel:null, showOff:false,
-    edit:false, pick:{} }),   // edit : mode « Placer les checks » ; pick : checks cochés, à placer au prochain clic
+    edit:false, pick:{},   // edit : mode « Placer les checks » ; pick : checks cochés, à placer au prochain clic
+    // intérieur affiché : ouvert depuis sa porte (insideSel : une de ses sorties), sinon celui où est Link (position en temps
+    // réel) — sauf si on en est sorti (insideLeft) ; âge des checks affichés (intérieur à checks d'enfant et d'adulte)
+    insideSel:null, insideLeft:null, insideAge:null }),
   computed:{
     // version du donjon (MQ, Vanilla, '' : inconnue) ; scènes : version Master Quest selon elle (les deux si inconnue)
     quest(){ const a = CHECK_AREA[String(this.area).toUpperCase()]; return a && a.dungeon ? areaQuest(a.id) : null; },
@@ -419,13 +434,42 @@ const ZoneMap = {
     bothVersions(){ return this.scenes.some(n => MAPS.scenes[n]?.mq) && this.scenes.some(n => MAPS.scenes[n]?.kind === 'dungeon' && !MAPS.scenes[n].mq); },
     // donjon Master Quest sans carte Master Quest (ROM MQ non fournie) : carte vanilla, prévenir
     mqMissing(){ return this.quest === 'MQ' && MAPS.scenes[this.cur]?.kind === 'dungeon' && !MAPS.scenes[this.cur].mq; },
-    cur(){ return this.scenes.includes(this.scene) ? this.scene : this.liveScene || this.scenes[0]; },
+    cur(){ return this.inside ? this.inside.map : this.scenes.includes(this.scene) ? this.scene : this.liveScene || this.scenes[0]; },
+    /* Intérieur où est Link (position en temps réel dans une scène d'intérieur) : sa dernière entrée si elle y mène, sinon
+       la sortie d'une carte de cette scène qui contient sa position */
+    liveInsideKey(){
+      if (!this.liveOn || !MAPS.inside) return null;
+      const L = link.live, cand = Object.keys(MAPS.inside).filter(k => mapBase(MAPS.inside[k][0]) === L.scene);
+      if (!cand.length) return null;
+      if (cand.includes(link.position?.key)) return link.position.key;
+      const inMap = k => { const b = MAPS.scenes[MAPS.inside[k][0]]?.bounds; return b && L.x >= b[0] && L.x <= b[2] && L.z >= b[1] && L.z <= b[3]; };
+      return cand.find(inMap) || cand[0];
+    },
+    inside(){
+      const k = this.insideSel || (this.liveInsideKey && this.liveInsideKey !== this.insideLeft ? this.liveInsideKey : null);
+      return k && MAPS.scenes[MAPS.inside?.[k]?.[0]] ? insideInfo(k) : null;
+    },
+    insideTitle(){
+      const i = this.inside;
+      return i ? EXIT[i.key].label + (i.area !== this.area ? ' (' + AREA[i.area].name + ')' : '') : '';
+    },
+    // checks de l'intérieur (ses lieux) : avec un âge propre (couches du jeu), choix Enfant / Adulte
+    insideHasAges(){
+      const i = this.inside;
+      return !!i && Object.keys(MAPS.checkLayer || {}).some(id => MAPS.checks[id]?.[0] === i.map && i.keys.includes(MAPS.places[id]));
+    },
+    insideAgeCur(){
+      if (this.insideAge) return this.insideAge;
+      if (this.liveOn && link.live.age != null) return link.live.age === 1 ? 'c' : 'a';   // (âge du jeu : 0 adulte, 1 enfant)
+      return store.ui.router.fromAge === 'adult' ? 'a' : 'c';
+    },
     /* Position en temps réel (link.live) : scène de Link parmi celles de la zone (version Master Quest comprise), repère
        orienté dans la direction où il regarde ; la carte suit sa scène et son étage tant qu'on n'en choisit pas d'autre. */
     liveOn(){ return !!(store.ui.link.live && link.live); },
     liveScene(){ return this.liveOn ? this.scenes.find(s => s.replace(/_MQ$/, '') === link.live.scene) || null : null; },
     liveMark(){
-      if (!this.liveOn || this.liveScene !== this.cur || !this.onLevel(link.live.y)) return null;
+      const here = this.inside ? mapBase(this.cur) === link.live?.scene : this.liveScene === this.cur;
+      if (!this.liveOn || !here || !this.onLevel(link.live.y)) return null;
       return { x:link.live.x, z:link.live.z, deg:-link.live.rot * 360 / 65536 };
     },
     isMq(){ return !!MAPS.scenes[this.cur]?.mq; },
@@ -453,16 +497,17 @@ const ZoneMap = {
     },
     // repères : sorties de la zone dans cette scène (et à cet étage), regroupées par position
     marks(){
-      const groups = new Map();
-      for (const [key, p] of Object.entries(this.exitsHere)){
-        if (p[0] !== this.cur || EXIT[key]?.areaId !== this.area || !this.onLevel(p[3])) continue;
+      // (intérieur : ses sorties, à leur point d'apparition)
+      const groups = new Map(), src = this.inside ? Object.fromEntries(this.inside.keys.map(k => [k, MAPS.inside[k]])) : this.exitsHere;
+      for (const [key, p] of Object.entries(src)){
+        if (p[0] !== this.cur || (!this.inside && EXIT[key]?.areaId !== this.area) || !this.onLevel(p[3])) continue;
         const id = p[1] + ',' + p[2], g = groups.get(id) || { id, x:p[1], z:p[2], keys:[] };
         g.keys.push(key); groups.set(id, g);
       }
       /* changement de zone : flèche vers l'extérieur de la zone — à l'opposé de l'orientation de Link quand il apparaît à
          la sortie (exitRot ; 0 = vers le sud, z croissant) ; à défaut, du centre de la scène vers le repère ; arrondie au
          huitième de tour */
-      const ex = this.exitsHere, b = MAPS.scenes[this.cur].bounds, cx = (b[0] + b[2]) / 2, cz = (b[1] + b[3]) / 2, q = Math.PI / 4;
+      const ex = src, b = MAPS.scenes[this.cur].bounds, cx = (b[0] + b[2]) / 2, cz = (b[1] + b[3]) / 2, q = Math.PI / 4;
       const angOf = g => {
         const fix = g.keys.find(k => k in EXIT_ARROW);
         if (fix) return (EXIT_ARROW[fix] - 90) * Math.PI / 180;
@@ -536,6 +581,7 @@ const ZoneMap = {
     checkMarks(){
       const out = [], groups = new Map();
       for (const x of this.checkList){
+        if (this.inside && !this.insideShows(x.c.id)) continue;
         const at = this.checkAt(x.c.id);
         if (at){ if (this.onLevel(at[3])) out.push({ t:'c', id:'c:' + x.c.id, x:at[1], z:at[2], ...x }); continue; }
         // check placé dans une autre scène d'extérieur : pas ici ; sinon (intérieur, grotte, donjon) à la porte de son lieu
@@ -560,16 +606,24 @@ const ZoneMap = {
       return GOSSIP_STONES.map(s => {
         // dans cette scène (version Master Quest ou vanilla), à l'étage affiché ; sinon à la porte de son lieu
         const here = [MAPS.checksMq?.[s.rc], MAPS.checks[s.rc]].find(q => q && q[0] === this.cur);
-        if (here) return this.onLevel(here[3]) ? { t:'s', id:'s:' + s.id, x:here[1], z:here[2], s, inside:false, read:!!store.game.hints[s.id] } : null;
-        const p = MAPS.checks[s.rc], place = !p && MAPS.places[s.rc], door = place && this.doors[place];
+        if (here) return this.onLevel(here[3]) && (!this.inside || this.insideShows(s.rc)) ? { t:'s', id:'s:' + s.id, x:here[1], z:here[2], s, inside:false, read:!!store.game.hints[s.id] } : null;
+        // (pierre d'une grotte : à la porte de son lieu sur la carte de la zone)
+        const p = MAPS.checks[s.rc], place = (!p || MAPS.scenes[p[0]]?.kind === 'inside') && MAPS.places[s.rc], door = place && this.doors[place];
         return door && door[0] === this.cur ? { t:'s', id:'s:' + s.id, x:door[1], z:door[2], s, inside:true, read:!!store.game.hints[s.id] } : null;
       }).filter(Boolean);
+    },
+    // checks de l'intérieur affiché sans position (articles des boutiques, fées des fontaines, récompenses…)
+    insideOff(){
+      const i = this.inside;
+      return i ? this.checkList.filter(x => i.keys.includes(MAPS.places[x.c.id]) && MAPS.checks[x.c.id]?.[0] !== this.cur && this.insideShows(x.c.id)) : [];
     },
     // checks de la zone sans repère : sans position connue, ou derrière une entrée pas encore notée
     offList(){
       const area = String(this.area).toUpperCase(), noPos = [], hidden = [];
       for (const x of this.checkList){
-        if (x.c.area !== area || MAPS.checks[x.c.id] || MAPS.checksMq?.[x.c.id] || mapEdits[x.c.id]) continue;
+        // (position dans un intérieur : compte comme à sa porte)
+        const pos = MAPS.checks[x.c.id];
+        if (x.c.area !== area || pos && MAPS.scenes[pos[0]]?.kind !== 'inside' || MAPS.checksMq?.[x.c.id] || mapEdits[x.c.id]) continue;
         const place = MAPS.places[x.c.id];
         // donjon : sa carte montre l'intérieur, un check sans position y est « sans position »
         if (!place || CHECK_AREA[area]?.dungeon) noPos.push(x); else if (!this.doors[place]) hidden.push(x);
@@ -619,7 +673,10 @@ const ZoneMap = {
       const at = mq && this.scenes.includes(mq[0]) ? mq : p;
       this.scene = at[0]; this.level = mapLevelOf(MAPS.scenes[at[0]]?.levels, at[3]); this.sel = at[1] + ',' + at[2];
     } },
-    area(){ this.scene = null; this.level = null; this.sel = null; this.view = null; },
+    area(){ this.scene = null; this.level = null; this.sel = null; this.view = null; this.insideSel = null; },
+    // Link entre dans un autre intérieur : la carte le suit de nouveau
+    liveInsideKey(k){ if (k !== this.insideLeft) this.insideLeft = null; },
+    inside(i, old){ if ((i && i.key) !== (old && old.key)){ this.sel = null; this.csel = null; this.view = null; } },
     hereTick(){ this.scene = null; this.level = null; this.view = null; },   // « Ma position » : onglet et étage de Link
     cur(){ this.view = null; },
     lvl(){ this.view = null; this.csel = null; },
@@ -627,6 +684,16 @@ const ZoneMap = {
   },
   methods:{
     has(m, k){ return !!k && m.keys.includes(k); },
+    // intérieur vers lequel mène une sortie (sa destination notée ; sortie située dans un intérieur : le sien)
+    insideTarget(k){ const t = MAPS.inside?.[k] ? k : effC.value[k]; return t && MAPS.inside?.[t] && MAPS.scenes[MAPS.inside[t][0]] ? t : null; },
+    enterInside(k){ this.insideSel = k; this.insideLeft = null; this.insideAge = null; },
+    leaveInside(){ this.insideLeft = this.liveInsideKey; this.insideSel = null; this.insideAge = null; },
+    // check ou pierre de l'intérieur affiché : de ses lieux (carte partagée par plusieurs grottes…) et de l'âge choisi
+    insideShows(id){
+      const i = this.inside, place = MAPS.places[id], layer = MAPS.checkLayer?.[id];
+      if (place && !i.keys.includes(place)) return false;
+      return !(this.insideHasAges && layer && layer !== this.insideAgeCur);
+    },
     /* Repère de sortie, forme selon le type (les checks restent des ronds) : intérieur — porte (arceau) ; changement de
        zone — flèche orientée (ang : vers l'extérieur de la zone) ; grotte — rond percé ; donjon — écusson ; hibou — tête à
        deux oreilles. Éléments SVG (texte), aussi pour la légende. */
@@ -696,7 +763,7 @@ const ZoneMap = {
     setScene(s){ this.scene = s; this.level = null; this.sel = null; },
     dest(k){ const t = effC.value[k]; return t && EXIT[t] ? AREA[EXIT[t].areaId].name + ' · ' + EXIT[t].label : null; },
     title(m){ return m.keys.map(k => EXIT[k].label + (this.dest(k) ? ' → ' + this.dest(k) : '')).join('\n'); },
-    pick(m){ this.sel = this.sel === m.id ? null : m.id; this.csel = null; },
+    pickMark(m){ this.sel = this.sel === m.id ? null : m.id; this.csel = null; },   // (pas « pick » : nom de la donnée du mode « Placer les checks »)
     cpick(m){ this.csel = this.csel === m.id ? null : m.id; this.sel = null; },
     toggleCheck(c){ setCheck(c.id, !store.game.checks[c.id]); },
     placeName(p){ return EXIT[p] ? (EXIT[p].areaId !== this.area ? AREA[EXIT[p].areaId].name + ' · ' : '') + EXIT[p].label : p; },
@@ -730,13 +797,17 @@ const ZoneMap = {
     },
   },
   template:`<div class="zmap" :class="{compact}">
-    <div v-if="!compact" class="zmap-top"><div v-if="scenes.length > 1" class="zmap-tabs"><button v-for="s in scenes" :key="s" type="button" :class="{on:s===cur}" @click="setScene(s)">{{mapSceneLabel(s, bothVersions)}}</button></div>
-      <button v-if="editTool" type="button" class="btn zmap-edit-btn" :class="{on:edit}" @click="edit = !edit; pick = {}" title="Placer à la main les checks qui n'ont pas de position">✎ Placer les checks</button></div>
+    <div v-if="!compact" class="zmap-top">
+      <template v-if="inside"><button type="button" class="btn zmap-back" @click="leaveInside" :title="t('Retour à la carte de {zone}', {zone:AREA[area].name})">← {{AREA[area].name}}</button>
+        <b class="zmap-in-title">{{insideTitle}}</b>
+        <div v-if="insideHasAges" class="zmap-tabs" title="Checks d'enfant ou d'adulte (le jeu ne place pas les mêmes)"><button type="button" :class="{on:insideAgeCur==='c'}" @click="insideAge='c'">Enfant</button><button type="button" :class="{on:insideAgeCur==='a'}" @click="insideAge='a'">Adulte</button></div></template>
+      <div v-else-if="scenes.length > 1" class="zmap-tabs"><button v-for="s in scenes" :key="s" type="button" :class="{on:s===cur}" @click="setScene(s)">{{mapSceneLabel(s, bothVersions)}}</button></div>
+      <button v-if="editTool && !inside" type="button" class="btn zmap-edit-btn" :class="{on:edit}" @click="edit = !edit; pick = {}" title="Placer à la main les checks qui n'ont pas de position">✎ Placer les checks</button></div>
     <div v-if="!compact && mqMissing" class="zmap-note">Ce donjon est en version Master Quest : carte vanilla affichée (salles identiques, checks
       absents). Pour la carte Master Quest, refaire les cartes avec la ROM Master Quest (Configuration › Routeur et carte).</div>
     <div v-else-if="!compact && quest === '' && bothVersions" class="zmap-note">Version du donjon inconnue : cartes vanilla et Master Quest.</div>
     <div v-else-if="!compact && edit && bothVersions" class="zmap-note">Mode « Placer les checks » : cartes vanilla et Master Quest, quelle que soit la version du donjon.</div>
-    <div v-if="!geo" class="zmap-empty">Pas de carte pour cette zone (intérieur).</div>
+    <div v-if="!geo" class="zmap-empty">Pas de carte pour cette zone.</div>
     <div v-else class="zmap-body" :class="{editing:edit}"><div class="zmap-frame">
       <div v-if="levels && !compact" class="zmap-levels"><button v-for="(l,i) in levels" :key="i" type="button" :class="{on:i===lvl, here:i===hereLevel}" @click="level=i"
         :title="t('Étage {n}', {n:l.n}) + (levelTodo[i] ? ' — ' + tn(levelTodo[i], '{n} check à faire', '{n} checks à faire') : '') + (i===hereLevel ? ' — vous êtes ici' : '')">{{l.n}}<i v-if="levelTodo[i]">{{levelTodo[i]}}</i></button></div>
@@ -762,7 +833,7 @@ const ZoneMap = {
           <title>Pierre à potins : {{m.s.label}}{{m.read ? ' (lue)' : ''}}</title>
         </g>
         <g v-for="m in marks" :key="m.id" class="zm" :class="['t-' + m.type, {here:has(m, here), live:liveOn, goal:has(m, goal), next:has(m, next), sel:sel===m.id, locked:!m.reach}]"
-          @pointerdown.stop @click.stop="pick(m)" @mouseenter="hover=m.id" @mouseleave="hover=null">
+          @pointerdown.stop @click.stop="pickMark(m)" @mouseenter="hover=m.id" @mouseleave="hover=null">
           <circle v-if="has(m, here) || has(m, goal) || has(m, next)" class="zm-ring" :cx="m.x" :cy="m.z" :r="unit * 2.6"></circle>
           <g v-html="markSvg(m.type, m.x, m.z, unit * (sel===m.id || hover===m.id ? 1.7 : 1.3), m.ang)"></g>
           <text v-if="!m.known" class="zm-q" :x="m.x" :y="m.z" :font-size="unit * (sel===m.id || hover===m.id ? 2 : 1.6)">?</text>
@@ -784,6 +855,7 @@ const ZoneMap = {
         </template>
         <template v-else-if="cselMark.t === 'p'">
           <div class="zp-name"><b>{{placeName(cselMark.place)}}</b><small>{{cselMark.todo}} à faire sur {{cselMark.list.length}}</small></div>
+          <div v-if="insideTarget(cselMark.place)" class="zp-btns"><button type="button" class="btn" @click="enterInside(insideTarget(cselMark.place))">Voir l’intérieur</button></div>
           <ul class="zp-list"><li v-for="x in cselMark.list" :key="x.c.id" :class="{done:x.done, now:x.now}">
             <button type="button" class="zp-tick" :title="x.done ? 'Remettre à faire' : 'Marquer fait'" v-html="x.done ? ICONS.check : ICONS.circleO" @click="toggleCheck(x.c)"></button>
             <span>{{x.c.label}}</span></li></ul>
@@ -795,10 +867,11 @@ const ZoneMap = {
         </template>
       </div>
       <div v-if="selMark && !compact" class="zmap-pop">
-        <div v-for="k in selMark.keys" :key="k" class="zp-row">
+        <div v-for="(k, i) in selMark.keys" :key="k" class="zp-row">
           <div class="zp-name"><b>{{EXIT[k].label}}</b><small v-if="dest(k)">→ {{dest(k)}}</small><small v-else class="zp-unk">destination inconnue</small></div>
           <div class="zp-btns"><button type="button" class="btn" @click="$emit('start', k)">Partir d’ici</button>
-            <button type="button" class="btn" @click="$emit('goal', k)">Y aller</button></div>
+            <button type="button" class="btn" @click="$emit('goal', k)">Y aller</button>
+            <button v-if="!inside && insideTarget(k) && !selMark.keys.slice(0, i).some(j => insideTarget(j) === insideTarget(k))" type="button" class="btn" @click="enterInside(insideTarget(k))">Voir l’intérieur</button></div>
         </div>
       </div>
     </div>
@@ -820,7 +893,12 @@ const ZoneMap = {
             <button type="button" class="linklike" @click="unplace(x.c.id)">retirer</button></div></div>
       </div>
     </div></div>
-    <div v-if="!compact && (offList.noPos.length || offList.hidden.length)" class="zmap-off">
+    <div v-if="!compact && inside && insideOff.length" class="zmap-off">
+      <button type="button" class="link" @click="showOff = !showOff">{{tn(insideOff.length, '{n} check sans position dans ce lieu', '{n} checks sans position dans ce lieu')}}</button>
+      <ul v-if="showOff"><li v-for="x in insideOff" :key="x.c.id" :class="{done:x.done, now:x.now}">
+        <button type="button" class="zp-tick" v-html="x.done ? ICONS.check : ICONS.circleO" @click="toggleCheck(x.c)"></button><span>{{x.c.label}}</span></li></ul>
+    </div>
+    <div v-else-if="!compact && !inside && (offList.noPos.length || offList.hidden.length)" class="zmap-off">
       <button type="button" class="link" @click="showOff = !showOff">{{offList.noPos.length ? tn(offList.noPos.length, '{n} check sans position', '{n} checks sans position') : ''}}{{offList.noPos.length && offList.hidden.length ? ' · ' : ''}}{{offList.hidden.length ? tn(offList.hidden.length, '{n} derrière une entrée pas encore notée', '{n} derrière des entrées pas encore notées') : ''}}</button>
       <ul v-if="showOff"><li v-for="x in [...offList.noPos, ...offList.hidden]" :key="x.c.id" :class="{done:x.done, now:x.now}">
         <button type="button" class="zp-tick" v-html="x.done ? ICONS.check : ICONS.circleO" @click="toggleCheck(x.c)"></button><span>{{x.c.label}}</span></li></ul>
@@ -832,10 +910,10 @@ const ZoneMap = {
       <span><svg class="lg-mark zm t-interior" viewBox="-1.45 -1.45 2.9 2.9"><g v-html="markSvg('interior', 0, 0, 1)"></g><text class="zm-q" x="0" y="0" font-size="1.6">?</text></svg>destination inconnue</span>
       <span><svg class="lg-mark zm t-interior locked" viewBox="-1.45 -1.45 2.9 2.9" v-html="markSvg('interior', 0, 0, 1)"></svg>pas encore accessible</span></div>
     <div v-if="!compact" class="zmap-legend"><b>Repères</b><span v-if="liveOn"><i class="lg-link"></i>Link (temps réel)</span><span><i class="lg-here" :class="{live:liveOn}"></i>{{liveOn ? 'dernière entrée' : 'vous êtes ici'}}</span><span><i class="lg-next"></i>prochaine sortie</span><span><i class="lg-goal"></i>arrivée du Routeur</span>
-      <span><i class="lg-ground"></i>terrain : du plus bas (foncé) au plus haut (clair)</span><span>Clic sur un repère : partir d’ici ou y aller.</span></div>
+      <span><i class="lg-ground"></i>terrain : du plus bas (foncé) au plus haut (clair)</span><span>Clic sur un repère : partir d’ici, y aller ou voir l’intérieur.</span></div>
   </div>`,
   mounted(){ this.$nextTick(this.fitHeight); this.onResize = () => this.fitHeight(); window.addEventListener('resize', this.onResize); },
   updated(){ if (!this.maxH) this.$nextTick(this.fitHeight); },
   unmounted(){ window.removeEventListener('resize', this.onResize); },
-  setup(){ return { EXIT, mapSceneLabel, CHECK_CAT, ICONS, MAPS, mapEdits, link }; },
+  setup(){ return { EXIT, AREA, mapSceneLabel, CHECK_CAT, ICONS, MAPS, mapEdits, link }; },
 };

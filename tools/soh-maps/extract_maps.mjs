@@ -55,8 +55,9 @@ window.MAPS_DATA = ${JSON.stringify(data)};
 const file = path.join(APP, 'data/maps-data.js');
 fs.writeFileSync(file, out);
 if (stats.mq) console.log(`Master Quest : ${stats.exitsMq} sorties, ${stats.checksMq} checks placés`);
+console.log(`Intérieurs et grottes : ${stats.insideMaps} cartes, ${stats.insideExits} sorties, ${stats.insideChecks} checks placés`);
 if (stats.manual) console.log(`${stats.manual} checks placés d'après positions.json (notés en jouant)`);
 console.log(`${stats.scenes} scènes (${stats.triangles} triangles de sol), ${stats.exits} sorties placées, écrit dans ${file} (${Math.round(out.length / 1024)} Ko)`);
-console.log(`Checks : ${stats.checks} placés en extérieur, ${stats.places} rattachés à leur lieu (intérieur, grotte, donjon), ${Object.values(stats.unplaced).flat().length} sans position :`,
+console.log(`Checks : ${stats.checks} placés, ${stats.places} rattachés à leur lieu (intérieur, grotte, donjon), ${Object.values(stats.unplaced).flat().length} sans position :`,
   Object.entries(stats.unplaced).map(([k, l]) => k + ' ' + l.length).join(', '));
 console.log('Sorties sans position (hors scènes d\'extérieur) :', Object.entries(stats.missingByArea).map(([a, l]) => a + ' ' + l.length).join(', '));

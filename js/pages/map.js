@@ -111,6 +111,10 @@ function useMapPage(ctx){
     const L = ui.link.live && link.live, live = L && mapAreas.find(a => MAP_SCENES[a.id].includes(L.scene));
     if (live) return live.id;
     const k = link.position?.key || ui.router.fromExit;
+    // (dans un intérieur : la zone de la porte par laquelle on y est entré, selon les entrées notées ; la carte de la zone
+    // montre alors l'intérieur où est Link)
+    const door = k && window.MAPS_DATA?.inside?.[k] && (incC.value[k] || []).find(x => EXIT[x] && !window.MAPS_DATA.inside[x] && MAP_SCENES[EXIT[x].areaId]);
+    if (door) return EXIT[door].areaId;
     return k && EXIT[k] && MAP_SCENES[EXIT[k].areaId] ? EXIT[k].areaId : mapAreas[0]?.id;
   });
   const mapArea = computed({

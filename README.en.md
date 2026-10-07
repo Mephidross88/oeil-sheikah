@@ -29,7 +29,7 @@ To start a game:
 | **Router** | The shortest route between two places, using the entrances you have noted. |
 | **Entrances** | Where each entrance leads (shuffled entrances). |
 | **Hints** | The gossip stones you have read and what they say (Way of the Hero, foolish areas…). |
-| **Map** | Each area seen from above: exits, checks, gossip stones, dungeon floors. |
+| **Map** | Each area seen from above: exits, checks, gossip stones, dungeon floors; interiors and grottos from their door. |
 | **Connections** | The graph of areas linked by known entrances. |
 | **Statistics** | Game timeline and play time. |
 

@@ -203,28 +203,37 @@ async function extractMaps({ main, mq, recipe, areas, checks:CHECKS_RAW, logic:L
     const next = Math.min(b.length, ...Object.values(cmds).map(v => v.addr).filter(a => a > (cmds[0x06]?.addr ?? Infinity)));
     const entrances = [];
     if (cmds[0x06]) for (let o = cmds[0x06].addr; o + 1 < next && entrances.length < 64; o += 2){ const sp = u8(o); if (sp >= spawns.length) break; entrances.push(sp); }
+    // (salle de chaque entrée de la liste : octet suivant)
+    const entranceRooms = entrances.map((_, i) => u8(cmds[0x06].addr + i * 2 + 1));
     // collision de la scène
     const { bounds, floors, walls, wallsY } = collision(b, cmds[0x03].addr);
     // acteurs des salles, toutes versions (commande 0x04 : salles { début, fin } ; dans chaque salle, en-tête principal et
     // en-têtes alternatifs — commande 0x18 : enfant / adulte, jour / nuit… — puis commande 0x01 : liste d'acteurs)
-    // → [id, x, y, z, paramètres, rotation x, y, z], sans doublon
-    const actors = [], seen = new Set();
+    // → [id, x, y, z, paramètres, rotation x, y, z, salle, couches], sans doublon ; couches : bits des couches où il figure
+    // (0 enfant jour, 1 enfant nuit, 2 adulte jour, 3 adulte nuit, au-delà : cinématiques). Couche sans en-tête à elle : le
+    // jeu prend celui de l'adulte de jour pour l'adulte de nuit, sinon l'en-tête principal (z_scene.c)
+    const actors = [], seen = new Map();
     if (cmds[0x04]) for (let r = 0; r < cmds[0x04].n; r++){
       const rs = u32(cmds[0x04].addr + r * 8), re = u32(cmds[0x04].addr + r * 8 + 4), rb = rom.subarray(rs, re);
-      const headers = [0];
+      const headers = [[0, 0]];
       for (let o = 0; o < 0x200 && o + 8 <= rb.length; o += 8){
         if (rb.readUInt8(o) === 0x18){ const a = rb.readUInt32BE(o + 4) & 0xFFFFFF;
-          for (let i = 0; i < 20 && a + i * 4 + 4 <= rb.length; i++){ const h = rb.readUInt32BE(a + i * 4); if (h && h >>> 24 === 3 && (h & 0xFFFFFF) < rb.length) headers.push(h & 0xFFFFFF); } }
+          for (let i = 0; i < 20 && a + i * 4 + 4 <= rb.length; i++){ const h = rb.readUInt32BE(a + i * 4); if (h && h >>> 24 === 3 && (h & 0xFFFFFF) < rb.length) headers.push([h & 0xFFFFFF, i + 1]); } }
         if (rb.readUInt8(o) === 0x14) break;
       }
-      for (const h of headers) for (let o = h; o < h + 0x200 && o + 8 <= rb.length; o += 8){
+      const alt = Object.fromEntries(headers.slice(1).map(([h, l]) => [l, h]));
+      const usedBy = l => alt[l] ?? (l === 3 ? alt[2] : undefined) ?? 0;
+      const maskOf = (h, layer) => { let m = layer >= 4 ? 1 << layer : 0; for (let l = 0; l < 4; l++) if (usedBy(l) === h) m |= 1 << l; return m; };
+      for (const [h, layer] of headers) for (let o = h; o < h + 0x200 && o + 8 <= rb.length; o += 8){
         const c = rb.readUInt8(o), w = rb.readUInt32BE(o + 4);
         if (c === 0x01 && w >>> 24 === 3 && (w & 0xFFFFFF) + rb.readUInt8(o + 1) * 16 <= rb.length){
           const a = w & 0xFFFFFF;
           for (let i = 0; i < rb.readUInt8(o + 1); i++){
             const q = a + i * 16, act = [rb.readUInt16BE(q), rb.readInt16BE(q + 2), rb.readInt16BE(q + 4), rb.readInt16BE(q + 6), rb.readUInt16BE(q + 14),
               rb.readInt16BE(q + 8), rb.readInt16BE(q + 10), rb.readInt16BE(q + 12)];
-            if (!seen.has(act.join())){ seen.add(act.join()); actors.push(act); }
+            const k = act.join(), was = seen.get(k);
+            if (was){ was[9] |= maskOf(h, layer); continue; }
+            act.push(r, maskOf(h, layer)); seen.set(k, act); actors.push(act);
           }
         }
         if (c === 0x14) break;
@@ -242,7 +251,7 @@ async function extractMaps({ main, mq, recipe, areas, checks:CHECKS_RAW, logic:L
       const c = collision(ob, ch, [act[1], act[2], act[3], act[5], act[6], act[7]]);
       floors.push(...c.floors); walls.push(...c.walls); wallsY.push(...c.wallsY);
     }
-    return (sceneCache[name] = { id, spawns, entrances, actors, bounds:[bounds[0], bounds[2], bounds[3], bounds[5]], yRange:[bounds[1], bounds[4]], floors, walls, wallsY });
+    return (sceneCache[name] = { id, spawns, entrances, entranceRooms, actors, bounds:[bounds[0], bounds[2], bounds[3], bounds[5]], yRange:[bounds[1], bounds[4]], floors, walls, wallsY });
   }; };
   const readSceneMain = sceneReader(MAIN), readSceneMq = MQ && sceneReader(MQ);
   let RD = readSceneMain;
@@ -321,6 +330,46 @@ async function extractMaps({ main, mq, recipe, areas, checks:CHECKS_RAW, logic:L
     if (!p.door && p.rot != null) exitRot[key] = p.rot;
   }
 
+  /* ---------- Intérieurs et grottes ----------
+     Une carte par intérieur (maison, boutique, fontaine, Repaire des Voleurs…), ouverte depuis sa porte sur la carte de la
+     zone. Sortie située dans un intérieur : point d'apparition de l'entrée qui y fait arriver (grotte : entrée de la grotte
+     à l'aller, recipe.grottoLoad). Scène partagée par des lieux de salles différentes (grottes : une salle par sorte de
+     grotte, en grille) : une carte par salle (« SCÈNE#salle »), sol attribué à la salle du point d'apparition le plus
+     proche ; sinon une carte pour la scène (lieux de même disposition : Grandes Fées, fontaines, stand de tir…). */
+  await step('inside', 0.4);
+  const INSIDE = new Set(['GROTTOS', 'FAIRYS_FOUNTAIN', 'MARKET_GUARD_HOUSE', 'FISHING_POND', 'THIEVES_HIDEOUT', 'WINDMILL_AND_DAMPES_GRAVE',
+    'GRAVE_WITH_FAIRYS_FOUNTAIN', 'BAZAAR', 'KOKIRI_SHOP', 'GORON_SHOP', 'ZORA_SHOP', 'POTION_SHOP_KAKARIKO', 'POTION_SHOP_MARKET', 'BOMBCHU_SHOP',
+    'LAKESIDE_LABORATORY', 'LON_LON_BUILDINGS', 'HOUSE_OF_SKULLTULA', 'MIDOS_HOUSE', 'SARIAS_HOUSE', 'BACK_ALLEY_HOUSE', 'GREAT_FAIRYS_FOUNTAIN_MAGIC',
+    'GREAT_FAIRYS_FOUNTAIN_SPELLS', 'ROYAL_FAMILYS_TOMB', 'KNOW_IT_ALL_BROS_HOUSE', 'TWINS_HOUSE', 'LINKS_HOUSE', 'DOG_LADY_HOUSE', 'STABLE',
+    'IMPAS_HOUSE', 'SHOOTING_GALLERY', 'BOMBCHU_BOWLING_ALLEY', 'POTION_SHOP_GRANNY', 'TREASURE_BOX_SHOP', 'REDEAD_GRAVE',
+    'KAKARIKO_CENTER_GUEST_HOUSE', 'HAPPY_MASK_SHOP', 'CARPENTERS_TENT', 'GRAVEKEEPERS_HUT'].map(n => 'SCENE_' + n));
+  function insideArrival(key){
+    let n = ARRIVAL[key];
+    if (n == null) return null;
+    if (n >= 0x700 && n < 0x700 + (recipe.grottoLoad || []).length) n = recipe.grottoLoad[n - 0x700];
+    else if (n >= 0x800) return null;
+    n = REPURPOSED[n] ?? n;
+    const t = ENTR[n];
+    if (!t || !INSIDE.has(t.scene)) return null;
+    const s = readScene(t.scene), sp = s.spawns[s.entrances[t.spawn] ?? t.spawn];
+    return sp ? { scene:t.scene, x:sp[0], y:sp[1], z:sp[2], room:s.entranceRooms[t.spawn] ?? 0 } : null;
+  }
+  const insideAt = {};
+  for (const key of Object.keys(EXITS)){ const a = insideArrival(key); if (a) insideAt[key] = a; }
+  // scènes coupées par salle : lieux de salles différentes ; repères des salles : points d'apparition de la liste des entrées
+  const SPLIT = {};
+  for (const sc of INSIDE){
+    const rooms = new Set(Object.values(insideAt).filter(a => a.scene === sc).map(a => a.room));
+    if (rooms.size < 2) continue;
+    const s = readScene(sc);
+    SPLIT[sc] = s.entrances.map((sp, i) => s.spawns[sp] && [s.spawns[sp][0], s.spawns[sp][2], s.entranceRooms[i]]).filter(Boolean);
+  }
+  const roomAt = (sc, x, z) => { let best = null, d = Infinity; for (const [ax, az, r] of SPLIT[sc]){ const e = (x - ax) ** 2 + (z - az) ** 2; if (e < d){ d = e; best = r; } } return best; };
+  // carte d'un point d'une scène : la scène, ou sa salle (scène coupée) ; nom sans « SCENE_ »
+  const mapKeyOf = (sc, x, z) => { const n = sc.replace('SCENE_', ''); return SPLIT[sc] ? n + '#' + roomAt(sc, x, z) : n; };
+  const inside = {};
+  for (const [key, a] of Object.entries(insideAt)) inside[key] = [mapKeyOf(a.scene, a.x, a.z), Math.round(a.x), Math.round(a.z), Math.round(a.y)];
+
   /* ---------- Position de chaque check ----------
      Définitions des checks de SoH (recipe.loc) : genre, scène, acteur, paramètres.
      Scène d'extérieur : position de l'acteur (position x, z donnée par SoH pour jarres, caisses, herbes, arbres… ;
@@ -331,16 +380,21 @@ async function extractMaps({ main, mq, recipe, areas, checks:CHECKS_RAW, logic:L
      entrées notées. */
   await step('checks', 0.5);
   const sceneActorsOf = (scene, id) => readScene(scene).actors.filter(a => a[0] === id);
-  const P = a => a && [a[1], a[3], a[2]];   // x, z, hauteur
+  const P = a => a && [a[1], a[3], a[2], a[9]];   // x, z, hauteur, couches de l'acteur
   let LOCATE_MQ = false;
   function locate(rc, depth = 0){
-    const l = LOC[rc];
-    if (!l || !MAPPED.has(l.scene) && !/^RC_TOT_\w+GOSSIP_STONE/.test(rc) || depth > 3) return null;
+    // (poisson d'une grotte : sans scène dans SoH)
+    const l = LOC[rc]?.kind === 'GrottoFish' ? { ...LOC[rc], scene:'SCENE_GROTTOS' } : LOC[rc];
+    if (!l || !MAPPED.has(l.scene) && !INSIDE.has(l.scene) && !/^RC_TOT_\w+GOSSIP_STONE/.test(rc) || depth > 3) return null;
     if (DUNGEON.has(l.scene) && (l.quest === 'MQ') !== LOCATE_MQ && l.quest !== 'BOTH') return null;   // version de la ROM lue
+    // scène coupée par salle (grottes) : acteurs de la salle du lieu du check seulement — une même salle sert à plusieurs
+    // grottes, dont SoH distingue les coffres par d'autres paramètres que ceux de la ROM
+    const room = SPLIT[l.scene] ? insideAt[placeOf(rc)]?.room : undefined;
+    const actorsOf = (sc, id) => sceneActorsOf(sc, id).filter(a => room === undefined || a[8] === room);
     if (l.two){
       // position donnée par SoH ; hauteur : acteur des salles à cette position
       const a = readScene(l.scene).actors.find(a => Math.abs(a[1] - l.two[0]) <= 2 && Math.abs(a[3] - l.two[1]) <= 2);
-      return [l.scene, ...l.two, a ? a[2] : null];
+      return [l.scene, ...l.two, a ? a[2] : null, a ? a[9] : undefined];
     }
     // fée qu'on fait apparaître à une pierre à potins : position de la pierre
     if (l.kind === 'StoneFairy'){
@@ -354,10 +408,10 @@ async function extractMaps({ main, mq, recipe, areas, checks:CHECKS_RAW, logic:L
         const i = ['LEFTMOST', 'LEFT_CENTER', 'RIGHT_CENTER', 'RIGHTMOST'].findIndex(k => rc === `RC_TOT_${k}_GOSSIP_STONE`);
         return st[i] ? [sc, ...P(st[i])] : null;
       }
-      const st = sceneActorsOf(l.scene, ACTORS.ACTOR_EN_GS), hit = st.find(a => a[4] === l.params);
+      const st = actorsOf(l.scene, ACTORS.ACTOR_EN_GS), hit = st.find(a => a[4] === l.params);
       if (hit) return [l.scene, ...P(hit)];
-      // seule pierre d'un donjon (Caverne Dodongo Master Quest : autres paramètres que dans SoH)
-      if (DUNGEON.has(l.scene) && st.length === 1) return [l.scene, ...P(st[0])];
+      // seule pierre d'un donjon (Caverne Dodongo Master Quest : autres paramètres que dans SoH) ou de la salle d'une grotte
+      if ((DUNGEON.has(l.scene) || room !== undefined) && st.length === 1) return [l.scene, ...P(st[0])];
       // Fontaine Zora (sans paramètres ; versions enfant et adulte) : pierres dédoublonnées par position ; celle de Jabu-Jabu
       // est la plus proche de l'entrée de Jabu-Jabu, celle de la fée la plus proche de la fontaine de la Grande Fée
       const near = (key, list) => { const q = pos[key]; return q && [...list].sort((a, b) => Math.hypot(a[1] - q[1], a[3] - q[2]) - Math.hypot(b[1] - q[1], b[3] - q[2]))[0]; };
@@ -368,9 +422,9 @@ async function extractMaps({ main, mq, recipe, areas, checks:CHECKS_RAW, logic:L
     if (l.kind === 'GSToken'){
       // Skulltula : acteur Skulltula de même numéro de symbole (octet de poids faible) ; celles des carrés de terre
       // n'apparaissent qu'avec des insectes : position du carré de terre
-      const sw = sceneActorsOf(l.scene, ACTORS.ACTOR_EN_SW).find(a => (a[4] & 0xFF) === (l.params & 0xFF));
+      const sw = actorsOf(l.scene, ACTORS.ACTOR_EN_SW).find(a => (a[4] & 0xFF) === (l.params & 0xFF));
       if (sw) return [l.scene, ...P(sw)];
-      const soil = sceneActorsOf(l.scene, ACTORS.ACTOR_OBJ_MAKEKINSUTA);
+      const soil = actorsOf(l.scene, ACTORS.ACTOR_OBJ_MAKEKINSUTA);
       // (seul carré de la scène : seulement pour une Skulltula de carré de terre — celle d'une caisse du Cratère n'y est pas)
       const hit = soil.find(a => (a[4] & 0xFF) === (l.params & 0xFF)) || (soil.length === 1 && /BEAN_PATCH/.test(rc) ? soil[0] : null);
       return hit ? [l.scene, ...P(hit)] : null;
@@ -379,15 +433,23 @@ async function extractMaps({ main, mq, recipe, areas, checks:CHECKS_RAW, logic:L
       // fées des carrés de terre : la Skulltula du carré de terre homonyme, sinon le seul carré de terre (haricot) de la scène
       const gs = Object.keys(LOC).find(k => LOC[k].kind === 'GSToken' && LOC[k].scene === l.scene && /BEAN_PATCH/.test(k)
         && rc.replace(/_BEAN_SPROUT_FAIRY_\d+$/, '').replace(/^RC_/, '').split('_').slice(1).every(w => k.includes(w)));
-      const beans = sceneActorsOf(l.scene, ACTORS.ACTOR_OBJ_BEAN);
+      const beans = actorsOf(l.scene, ACTORS.ACTOR_OBJ_BEAN);
       return (gs && locate(gs, depth + 1)) || (beans.length === 1 ? [l.scene, ...P(beans[0])] : null);
     }
     // pestes Mojo marchandes des donjons : cachées dans la salle (En_Shopnuts), elles deviennent En_Dns une fois découvertes
     const id = ACTORS[l.actor === 'ACTOR_EN_DNS' && DUNGEON.has(l.scene) ? 'ACTOR_EN_SHOPNUTS' : l.actor];
     // (seul acteur de ce type dans la scène : pris faute de mieux, sauf objets posés — En_Item00 — dont beaucoup naissent en
     // jeu : quart de cœur des fouilles d'Igor…)
-    const same = id == null ? [] : sceneActorsOf(l.scene, id), hit = same.find(a => a[4] === l.params) || (same.length === 1 && l.actor !== 'ACTOR_EN_ITEM00' ? same[0] : null);
+    const same = id == null ? [] : actorsOf(l.scene, id), hit = same.find(a => a[4] === l.params) || (same.length === 1 && l.actor !== 'ACTOR_EN_ITEM00' ? same[0] : null);
     if (hit) return [l.scene, ...P(hit)];
+    // salle de grotte, sans acteur ni position dans SoH (herbes, jarres… numérotées) : n-ième acteur de ce genre dans la salle
+    // (ruches sans numéro : gauche, droite ; coffre d'une grotte générique : créé par En_Torch avec le contenu de la grotte)
+    const kindActor = l.kind === 'Chest' ? 'ACTOR_EN_TORCH' : l.params == null && l.actor
+      || { Grass:'ACTOR_EN_KUSA', Pot:'ACTOR_OBJ_TSUBO', Beehive:'ACTOR_OBJ_COMB', GrottoFish:'ACTOR_EN_FISH' }[l.kind];
+    if (room !== undefined && kindActor && (!l.actor || l.params == null || l.kind === 'Chest')){
+      const list = actorsOf(l.scene, ACTORS[kindActor]), n = /_RIGHT$/.test(rc) ? 2 : +(rc.match(/_(\d+)$/) || [])[1] || 1;
+      if (list[n - 1] && (l.kind !== 'Chest' || list.length === 1)) return [l.scene, ...P(list[n - 1])];
+    }
     // coffre de la clé du boss de la Forêt : apparaît avec le couloir tordu 1 (Bg_Mori_Hineri), à (+147, −245, −453) de lui
     if (l.actor === 'ACTOR_EN_BOX' && l.params === 0x27EE){
       const h = readScene(l.scene).actors.find(a => ACTOR_NAME[a[0]] === 'ACTOR_BG_MORI_HINERI' && !(a[4] & 0xC000));
@@ -422,11 +484,15 @@ async function extractMaps({ main, mq, recipe, areas, checks:CHECKS_RAW, logic:L
     return null;
   }
   const checkPos = {}, checkPlace = {}, unplaced = {};
-  const posOf = at => [at[0].replace('SCENE_', ''), Math.round(at[1]), Math.round(at[2])].concat(at[3] != null ? [Math.round(at[3])] : []);
+  const posOf = at => [mapKeyOf('SCENE_' + at[0].replace('SCENE_', ''), at[1], at[2]), Math.round(at[1]), Math.round(at[2])].concat(at[3] != null ? [Math.round(at[3])] : []);
+  // âge d'un check d'après les couches de son acteur (poste de garde du Bourg : jarres d'enfant, jarres d'adulte…) : 'c' enfant
+  // seulement, 'a' adulte seulement
+  const checkLayer = {};
+  const noteLayer = (id, at) => { const m = at && at[4]; if (!m) return; const c = m & 3, a = m & 12; if (c && !a) checkLayer[id] = 'c'; else if (a && !c) checkLayer[id] = 'a'; };
   for (const row of CHECKS_RAW){
     const id = row[0], rc = 'RC_' + id, l = LOC[rc];
     const at = locate(rc);
-    if (at) checkPos[id] = posOf(at);
+    if (at){ checkPos[id] = posOf(at); noteLayer(id, at); }
     if (at && OUTDOOR.has(at[0])) continue;
     // hors extérieur (et donjons aussi, pour leur porte) : le lieu
     if (l && !OUTDOOR.has(l.scene)){ const p = placeOf(rc); if (p){ checkPlace[id] = p; continue; } }
@@ -438,7 +504,8 @@ async function extractMaps({ main, mq, recipe, areas, checks:CHECKS_RAW, logic:L
   for (const rc of Object.keys(LOC).filter(k => LOC[k].kind === 'HintStone')){
     const at = locate(rc), id = rc.slice(3);
     if (at) checkPos[id] = posOf(at);
-    else { const p = !OUTDOOR.has(LOC[rc].scene) && placeOf(rc); if (p) checkPlace[id] = p; else (unplaced.HintStone = unplaced.HintStone || []).push(id); }
+    // (pierre d'une grotte : aussi à la porte de son lieu, sur la carte de la zone)
+    if (!at || INSIDE.has(LOC[rc].scene)){ const p = !OUTDOOR.has(LOC[rc].scene) && placeOf(rc); if (p) checkPlace[id] = p; else if (!at) (unplaced.HintStone = unplaced.HintStone || []).push(id); }
   }
   // entrée d'un donjon : sortie où l'on apparaît en y entrant depuis l'extérieur (lieu des sorties situées dans le donjon)
   const areaEntry = {};
@@ -482,8 +549,8 @@ async function extractMaps({ main, mq, recipe, areas, checks:CHECKS_RAW, logic:L
   const QUEST = Object.fromEntries(CHECKS_RAW.map(r => [r[0], r[3]]));
   let nManual = 0;
   for (const [id, m] of Object.entries(MANUAL)){
-    if (!(id in QUEST) || !MAPPED.has('SCENE_' + m.scene) || m.x == null) continue;
-    const at = [m.scene, m.x, m.z, m.y], mqScene = MQ_SCENES.includes('SCENE_' + m.scene) && readSceneMq;
+    if (!(id in QUEST) || !MAPPED.has('SCENE_' + m.scene) && !INSIDE.has('SCENE_' + m.scene) || m.x == null) continue;
+    const at = [mapKeyOf('SCENE_' + m.scene, m.x, m.z), m.x, m.z, m.y], mqScene = MQ_SCENES.includes('SCENE_' + m.scene) && readSceneMq;
     if (mqScene && QUEST[id] === 'M'){ if (!checksMq[id]){ checksMq[id] = [m.scene + '_MQ', m.x, m.z, m.y]; nManual++; } continue; }
     if (!checkPos[id]){ checkPos[id] = at; nManual++; }
     if (mqScene && QUEST[id] === 'B' && !checksMq[id]) checksMq[id] = [m.scene + '_MQ', m.x, m.z, m.y];
@@ -509,13 +576,29 @@ async function extractMaps({ main, mq, recipe, areas, checks:CHECKS_RAW, logic:L
     scenes[name.replace('SCENE_', '') + '_MQ'] = { bounds:s.bounds, y:s.yRange, floors:s.floors.flat(), walls:s.walls.flat(), wallsY:s.wallsY.flat(),
       kind:'dungeon', mq:1, ...(LEVELS[name] ? { levels:LEVELS[name] } : {}) };
   }
+  // intérieurs : une carte par scène, ou par salle (scène coupée)
+  for (const sc of INSIDE){
+    const s = readScene(sc), name = sc.replace('SCENE_', '');
+    if (!SPLIT[sc]){ scenes[name] = { bounds:s.bounds, y:s.yRange, floors:s.floors.flat(), walls:s.walls.flat(), kind:'inside' }; continue; }
+    const by = {}, get = r => by[r] = by[r] || { floors:[], walls:[] };
+    for (const f of s.floors) get(roomAt(sc, (f[0] + f[2] + f[4]) / 3, (f[1] + f[3] + f[5]) / 3)).floors.push(f);
+    for (const w of s.walls) get(roomAt(sc, (w[0] + w[2]) / 2, (w[1] + w[3]) / 2)).walls.push(w);
+    for (const [r, g] of Object.entries(by)){
+      if (!g.floors.length) continue;
+      const xs = g.floors.flatMap(f => [f[0], f[2], f[4]]), zs = g.floors.flatMap(f => [f[1], f[3], f[5]]), ys = g.floors.map(f => f[6]);
+      scenes[name + '#' + r] = { bounds:[Math.min(...xs), Math.min(...zs), Math.max(...xs), Math.max(...zs)], y:[Math.min(...ys), Math.max(...ys)],
+        floors:g.floors.flat(), walls:g.walls.flat(), kind:'inside' };
+    }
+  }
   await step('done', 1);
-  const data = { scenes, exits:pos, exitRot, checks:checkPos, places:checkPlace, areaEntry, exitsMq, checksMq };
+  const data = { scenes, exits:pos, exitRot, checks:checkPos, places:checkPlace, areaEntry, exitsMq, checksMq, inside, checkLayer };
   const missingByArea = {};
   for (const k of missing) (missingByArea[EXITS[k].areaId] = missingByArea[EXITS[k].areaId] || []).push(EXITS[k].label);
   return { data, stats:{ scenes:Object.keys(scenes).length, triangles:Object.values(scenes).reduce((n, s) => n + s.floors.length / 7, 0),
     exits:Object.keys(pos).length, checks:Object.keys(checkPos).length, places:Object.keys(checkPlace).length, mq:!!readSceneMq,
-    exitsMq:Object.keys(exitsMq).length, checksMq:Object.keys(checksMq).length, manual:nManual, unplaced, missingByArea } };
+    exitsMq:Object.keys(exitsMq).length, checksMq:Object.keys(checksMq).length, manual:nManual, unplaced, missingByArea,
+    insideMaps:Object.values(scenes).filter(s => s.kind === 'inside').length, insideExits:Object.keys(inside).length,
+    insideChecks:Object.values(checkPos).filter(p => scenes[p[0]]?.kind === 'inside').length } };
 }
 // erreurs reconnues (messages de l'appli et de l'outil) : pas une ROM d'Ocarina of Time ; table des scènes introuvable
 const MAPS_ERR = { NOT_OOT:'not-oot', NO_TABLE:'no-scene-table' };
