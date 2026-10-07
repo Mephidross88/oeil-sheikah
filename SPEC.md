@@ -941,6 +941,10 @@ du jeu vu de dessus (nord en haut).
   carte ne le suit plus jusqu'à ce qu'il change de lieu), nom du lieu, Enfant / Adulte s'il a des checks d'un seul âge
   (par défaut l'âge de Link, sinon celui du départ du Routeur), ses sorties (Partir d'ici / Y aller), ses checks et
   pierres, sa liste « sans position » (articles des boutiques, fées, récompenses…).
+- **Double-clic sur un repère de sortie** (option Configuration › Routeur et carte › « Double-clic sur une sortie »,
+  `ui.map.dblNav`, activée par défaut) : la carte de sa destination notée — l'intérieur où elle mène, sinon la carte de la
+  zone d'arrivée, sortie d'arrivée sélectionnée (sortie d'un intérieur : retour à la zone où elle mène) ; rien si la
+  destination est inconnue. On navigue ainsi de carte en carte en suivant les entrées notées.
 - Affichage : zone choisie (`ui.map.area`, sinon celle de la position ; menu groupé par région — Forêt, Plaine et
   château, Cocorico, Montagne du Péril, Zoras, Lac Hylia, Désert Gerudo —, chaque donjon avec sa région), onglets si elle
   a plusieurs scènes (ex. Château d'Hyrule : « Château (enfant) » et « Extérieur du Château de Ganon (adulte) », une autre

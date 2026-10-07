@@ -83,6 +83,10 @@ const CONFIG_TPL = `
               <button v-if="MAPS_INFO.source === 'browser'" type="button" class="btn" @click="mapsRemove">Supprimer</button></div>
           </div>
           <div v-if="mapsJob.open && MAPS_INFO.source !== 'file'">${MAPS_BUILD_TPL}</div>
+          <div class="copt">
+            <div><div class="t">Double-clic sur une sortie</div><div class="h">Affiche la carte de sa destination notée : l’intérieur où elle mène, ou la zone d’arrivée.</div></div>
+            <seg v-model="ui.map.dblNav" :options="[[false,'Non'],[true,'Oui']]"></seg>
+          </div>
           <div class="copt" title="Pour placer à la main un check sans position et exporter les positions (positions-manuelles.json, pour tools/soh-maps). Tous les checks ont déjà une position : utile seulement pour en corriger une.">
             <div><div class="t">Outil « Placer les checks »</div></div>
             <seg v-model="ui.map.editTool" :options="[[false,'Non'],[true,'Oui']]"></seg>

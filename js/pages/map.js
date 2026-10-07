@@ -46,7 +46,7 @@ const MAP_TPL = `
           <div class="field" title="Comme la page Checks : ses filtres (catégories, âge, checks faits masqués, seulement les faisables, recherche). Tous : tous les checks mélangés et non exclus, faits compris. Les checks non mélangés et exclus n’apparaissent jamais."><span class="lbl">Checks</span>
             <seg v-model="ui.map.checks" :options="[['filters','Comme la page Checks'],['all','Tous'],['off','Aucun']]"></seg></div>
           <div class="field"><span class="lbl">Pierres à potins</span><seg v-model="ui.map.stones" :options="[[true,'Affichées'],[false,'Masquées']]"></seg></div></div>
-        <zone-map :here-tick="mapHereTick" :area="mapArea" :focus="mapFocus" @start="mapStart" @goal="mapGoal" @go-check="goToCheck"></zone-map>
+        <zone-map :here-tick="mapHereTick" :area="mapArea" :focus="mapFocus" @start="mapStart" @goal="mapGoal" @go-check="goToCheck" @goto="mapGoto"></zone-map>
       </template>
     </section>
 `;
@@ -123,9 +123,14 @@ function useMapPage(ctx){
   });
   function openMap(key){
     if (!key || !EXIT[key]) return;
+    mapGoto(key);
+    go('map');
+  }
+  // carte de la zone d'une sortie, sortie mise en évidence (double-clic sur un repère : sa destination)
+  function mapGoto(key){
+    if (!key || !EXIT[key]) return;
     ui.map.area = EXIT[key].areaId; mapFocus.value = null;
     nextTick(() => { mapFocus.value = key; });
-    go('map');
   }
   // « Ma position » : zone de Link, et (même zone déjà affichée) son onglet et son étage — mapHereTick prévient la carte
   const mapHereTick = ref(0);
@@ -133,5 +138,5 @@ function useMapPage(ctx){
   const mapStart = key => setStart(key, ui.router.fromAge);
   function mapGoal(key){ const r = ui.router; r.toArea = EXIT[key].areaId; nextTick(() => { r.toExit = key; }); }
   return { mapsJob, MAPS_STEPS, mapsMake, mapsRemove, fmtDay, mapsSourceText, MAP_REGIONS, mapGroups,
-    mapFocus, followArea, mapArea, openMap, mapHereTick, mapHere, mapStart, mapGoal };
+    mapFocus, followArea, mapArea, openMap, mapGoto, mapHereTick, mapHere, mapStart, mapGoal };
 }

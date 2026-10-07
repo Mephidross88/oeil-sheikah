@@ -413,7 +413,7 @@ function mapScene(name, li){
 }
 const ZoneMap = {
   props:['area', 'focus', 'compact', 'hereTick'],   // focus : sortie à mettre en évidence (« Voir sur la carte ») ; compact : carte seule (stream)
-  emits:['start', 'goal', 'go-check'],
+  emits:['start', 'goal', 'go-check', 'goto'],   // goto : afficher la carte de la zone d'une sortie (double-clic)
   data:() => ({ scene:null, level:null, sel:null, hover:null, view:null, drag:null, maxH:null, csel:null, showOff:false,
     edit:false, pick:{},   // edit : mode « Placer les checks » ; pick : checks cochés, à placer au prochain clic
     // intérieur affiché : ouvert depuis sa porte (insideSel : une de ses sorties), sinon celui où est Link (position en temps
@@ -687,6 +687,17 @@ const ZoneMap = {
     // intérieur vers lequel mène une sortie (sa destination notée ; sortie située dans un intérieur : le sien)
     insideTarget(k){ const t = MAPS.inside?.[k] ? k : effC.value[k]; return t && MAPS.inside?.[t] && MAPS.scenes[MAPS.inside[t][0]] ? t : null; },
     enterInside(k){ this.insideSel = k; this.insideLeft = null; this.insideAge = null; },
+    /* Double-clic sur un repère de sortie (option ui.map.dblNav) : la carte de sa destination notée — l'intérieur où elle
+       mène, sinon la zone d'arrivée (sortie d'arrivée mise en évidence) ; rien si la destination est inconnue */
+    follow(m){
+      if (!store.ui.map.dblNav) return;
+      const k = m.keys.find(k => effC.value[k]), t = k && effC.value[k];
+      if (!t || !EXIT[t]) return;
+      this.sel = null; this.csel = null;
+      if (MAPS.inside?.[t] && MAPS.scenes[MAPS.inside[t][0]]){ this.enterInside(t); return; }
+      this.insideLeft = this.liveInsideKey; this.insideSel = null;
+      this.$emit('goto', t);
+    },
     leaveInside(){ this.insideLeft = this.liveInsideKey; this.insideSel = null; this.insideAge = null; },
     // check ou pierre de l'intérieur affiché : de ses lieux (carte partagée par plusieurs grottes…) et de l'âge choisi
     insideShows(id){
@@ -833,7 +844,7 @@ const ZoneMap = {
           <title>Pierre à potins : {{m.s.label}}{{m.read ? ' (lue)' : ''}}</title>
         </g>
         <g v-for="m in marks" :key="m.id" class="zm" :class="['t-' + m.type, {here:has(m, here), live:liveOn, goal:has(m, goal), next:has(m, next), sel:sel===m.id, locked:!m.reach}]"
-          @pointerdown.stop @click.stop="pickMark(m)" @mouseenter="hover=m.id" @mouseleave="hover=null">
+          @pointerdown.stop @click.stop="pickMark(m)" @dblclick.stop="follow(m)" @mouseenter="hover=m.id" @mouseleave="hover=null">
           <circle v-if="has(m, here) || has(m, goal) || has(m, next)" class="zm-ring" :cx="m.x" :cy="m.z" :r="unit * 2.6"></circle>
           <g v-html="markSvg(m.type, m.x, m.z, unit * (sel===m.id || hover===m.id ? 1.7 : 1.3), m.ang)"></g>
           <text v-if="!m.known" class="zm-q" :x="m.x" :y="m.z" :font-size="unit * (sel===m.id || hover===m.id ? 2 : 1.6)">?</text>
@@ -910,10 +921,10 @@ const ZoneMap = {
       <span><svg class="lg-mark zm t-interior" viewBox="-1.45 -1.45 2.9 2.9"><g v-html="markSvg('interior', 0, 0, 1)"></g><text class="zm-q" x="0" y="0" font-size="1.6">?</text></svg>destination inconnue</span>
       <span><svg class="lg-mark zm t-interior locked" viewBox="-1.45 -1.45 2.9 2.9" v-html="markSvg('interior', 0, 0, 1)"></svg>pas encore accessible</span></div>
     <div v-if="!compact" class="zmap-legend"><b>Repères</b><span v-if="liveOn"><i class="lg-link"></i>Link (temps réel)</span><span><i class="lg-here" :class="{live:liveOn}"></i>{{liveOn ? 'dernière entrée' : 'vous êtes ici'}}</span><span><i class="lg-next"></i>prochaine sortie</span><span><i class="lg-goal"></i>arrivée du Routeur</span>
-      <span><i class="lg-ground"></i>terrain : du plus bas (foncé) au plus haut (clair)</span><span>Clic sur un repère : partir d’ici, y aller ou voir l’intérieur.</span></div>
+      <span><i class="lg-ground"></i>terrain : du plus bas (foncé) au plus haut (clair)</span><span>Clic sur un repère : partir d’ici, y aller ou voir l’intérieur.</span><span v-if="store.ui.map.dblNav">Double-clic : sa destination.</span></div>
   </div>`,
   mounted(){ this.$nextTick(this.fitHeight); this.onResize = () => this.fitHeight(); window.addEventListener('resize', this.onResize); },
   updated(){ if (!this.maxH) this.$nextTick(this.fitHeight); },
   unmounted(){ window.removeEventListener('resize', this.onResize); },
-  setup(){ return { EXIT, AREA, mapSceneLabel, CHECK_CAT, ICONS, MAPS, mapEdits, link }; },
+  setup(){ return { EXIT, AREA, mapSceneLabel, CHECK_CAT, ICONS, MAPS, mapEdits, link, store }; },
 };
