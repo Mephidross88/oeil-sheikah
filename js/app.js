@@ -30,6 +30,9 @@ function useShell(ctx){
   const SPLIT_MIN = 1500, winW = ref(window.innerWidth);
   window.addEventListener('resize', () => { winW.value = window.innerWidth; });
   const canSplit = computed(() => winW.value >= SPLIT_MIN);
+  // écran moyen (901 à 1399 px) : panneau Objets en tiroir (onglet sur le bord droit), la page garde sa largeur
+  const itemsDrawer = computed(() => winW.value > 900 && winW.value < 1400);
+  watch(itemsDrawer, on => { if (!on) itemsOpen.value = false; });
   const splitOn = computed(() => !!ui.split && ui.split !== ui.view && canSplit.value && views.some(v => v.id === ui.split));
   const shown = v => ui.view === v || (splitOn.value && ui.split === v);
   const paneOf = v => splitOn.value && ui.split === v ? 'side' : 'main';
@@ -60,7 +63,7 @@ function useShell(ctx){
     window.scrollTo({ top:0 });
   }
   return { navOpen, itemsOpen, modal, tip, backup, ui, s, setTheme, views, navGroups, SPLIT_MIN, winW,
-    canSplit, splitOn, shown, paneOf, swapPanes, openSide, closeSide, MAPS_OK, mapAreas, toggleArea, setAll,
+    canSplit, itemsDrawer, splitOn, shown, paneOf, swapPanes, openSide, closeSide, MAPS_OK, mapAreas, toggleArea, setAll,
     jump, go };
 }
 
@@ -129,7 +132,7 @@ const App = {
   },
   template:`
 ${STREAM_TPL}
-<div v-if="!STREAM" class="shell" :class="{'nav-open':navOpen, split:splitOn, 'items-folded':ui.itemsFolded, 'nav-folded':ui.navFolded}">
+<div v-if="!STREAM" class="shell" :class="{'nav-open':navOpen, split:splitOn, 'items-folded':ui.itemsFolded, 'items-drawer':itemsDrawer, 'nav-folded':ui.navFolded}">
   <header class="topbar">
     <button @click="navOpen=!navOpen" aria-label="Menu" v-html="ICONS.menu"></button>
     <span class="brand-mark" v-html="ICONS.eye"></span><span>L'Œil Sheikah</span>

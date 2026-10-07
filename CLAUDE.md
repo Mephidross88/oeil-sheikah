@@ -213,7 +213,7 @@ et le mettre à jour quand une règle change.
 - Coûts du Routeur réglables dans `store.costs` (dont `walk` : coût estimé par région SoH traversée sans coût connu).
 - Thème : `store.ui.theme` (`auto` suit le système, `light`/`dark` posent `data-theme` sur `<html>`).
 - Mise en page : `ui.view` (panneau principal), `ui.split` (page du second panneau, côte à côte si l'écran fait au moins
-  1500 px ; `shown(v)` / `paneOf(v)` dans `App`), `ui.itemsFolded` (panneau Objets replié), `ui.navFolded` (barre de gauche réduite à des icônes), `ui.next.open` (bandeau « Où aller maintenant ? » déplié). Chaque page du template est
+  1500 px ; `shown(v)` / `paneOf(v)` dans `App`), `ui.itemsFolded` (panneau Objets replié ; entre 901 et 1399 px : tiroir, `itemsDrawer`), `ui.navFolded` (barre de gauche réduite à des icônes), `ui.next.open` (bandeau « Où aller maintenant ? » déplié). Chaque page du template est
   une `<section class="pane">` ; ne pas réutiliser la classe `side` (barre latérale) ailleurs.
 
 ## Débogage

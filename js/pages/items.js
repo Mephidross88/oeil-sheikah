@@ -154,9 +154,9 @@ const LOOT_TPL = `
 
 const ITEMS_PANEL_TPL = `
   <aside class="side side-right" :class="{open:itemsOpen}">
-    <button type="button" class="items-fold" :class="{folded:ui.itemsFolded}" @click="ui.itemsFolded=!ui.itemsFolded"
-      :title="ui.itemsFolded ? 'Afficher le panneau Objets' : 'Replier le panneau Objets'" :aria-expanded="!ui.itemsFolded">
-      <span v-html="ui.itemsFolded ? ICONS.bag : ICONS.chevron"></span><span v-if="ui.itemsFolded" class="if-label">Objets</span></button>
+    <button type="button" class="items-fold" :class="{folded:ui.itemsFolded || itemsDrawer}" @click="itemsDrawer ? itemsOpen = true : ui.itemsFolded = !ui.itemsFolded"
+      :title="ui.itemsFolded || itemsDrawer ? 'Afficher le panneau Objets' : 'Replier le panneau Objets'" :aria-expanded="itemsDrawer ? itemsOpen : !ui.itemsFolded">
+      <span v-html="ui.itemsFolded || itemsDrawer ? ICONS.bag : ICONS.chevron"></span><span v-if="ui.itemsFolded || itemsDrawer" class="if-label">Objets</span></button>
     <div class="side-right-head">
       <button @click="itemsOpen=false" aria-label="Fermer" v-html="ICONS.close"></button>
     </div>

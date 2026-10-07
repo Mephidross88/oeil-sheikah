@@ -77,6 +77,11 @@ la page correspondante, souligné quand on y est. Côte à côte, empilés sur m
   second panneau revient quand l'écran s'élargit).
 - **Panneau Objets repliable** (écran large) : bouton en haut du panneau, qui le réduit à une fine colonne
   « Objets » pour le rouvrir (`ui.itemsFolded`) ; utile en côte à côte.
+- **Écran moyen** (901 à 1399 px de large) : le panneau Objets devient un tiroir — onglet « Objets » sur le bord droit, qui
+  l'ouvre par-dessus la page (fermé par ✕ ou un clic à côté) ; la page garde sa largeur (`itemsDrawer` de `useShell`).
+  En dessous de 901 px : mise en page mobile (barre de gauche et panneau Objets en tiroirs, bouton du haut).
+- **Page Checks, zone étroite** (côte à côte, petit écran : carte de zone de moins de 640 px) : en-tête sur plusieurs
+  lignes — nom et boutons, compteurs par catégorie, progression.
 - **Barre de gauche réduite** (écran large) : bouton ‹ à côté du titre, qui la réduit à une colonne d'icônes
   (`ui.navFolded`) : menu (nom au survol), sélecteur de thème, icône « en direct » de l'auto-tracking teintée selon son
   état (clic : fenêtre Auto-tracking) ; options des pages, export et remise à zéro masqués

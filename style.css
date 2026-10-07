@@ -194,6 +194,14 @@ svg{display:block}
 .items-fold.folded{align-self:center;margin:0}
 .items-fold.folded svg{transform:none;width:22px;height:22px}
 .if-label{writing-mode:vertical-rl;font-size:13px;letter-spacing:.04em}
+/* écran moyen (901 à 1399 px, .items-drawer) : panneau Objets en tiroir par-dessus la page, ouvert par son onglet */
+.shell.items-drawer{--right:52px}
+.shell.items-drawer .side-right:not(.open) .side-right-body{display:none}
+.shell.items-drawer .side-right.open{position:fixed;top:0;right:0;bottom:0;height:auto;width:min(470px,92vw);z-index:31;box-shadow:-12px 0 40px rgba(0,0,0,.35)}
+.shell.items-drawer .side-right.open .side-right-body{display:block}
+.shell.items-drawer .side-right.open .items-fold{display:none}
+.shell.items-drawer .side-right.open .side-right-head{display:flex}
+.shell.items-drawer .side-right.open ~ .scrim{display:block;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:28}
 /* côte à côte : la zone centrale ne défile plus, chaque panneau défile seul */
 .shell.split .main{height:100vh;display:flex;flex-direction:column;overflow:hidden;padding-bottom:0}
 .shell.split .global-progress{flex:none}
@@ -948,7 +956,15 @@ html.stream-mode,html.stream-mode body{background:transparent;overflow:hidden}
 .cat-all{font-size:13px;color:var(--muted);margin-left:4px}
 .cat-fallback{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;background:var(--cc);color:#fff;font-size:11px;font-weight:800;flex:none}
 /* En-tête de zone : restants par catégorie */
-.zone-cats{display:flex;flex-wrap:wrap;gap:4px 10px;margin-left:8px;min-width:0}
+.zone-cats{display:flex;flex-wrap:wrap;gap:4px 10px;margin-left:8px;min-width:0;flex:1 1 150px}
+/* zone étroite (côte à côte, petit écran) : nom et boutons, puis les catégories, puis la progression */
+.check-area{container-type:inline-size}
+@container (max-width: 640px){
+  .area-head{flex-wrap:wrap;row-gap:8px}
+  .area-head h2{flex:1 1 auto;min-width:0}
+  .area-head .zone-cats{order:5;flex:1 1 100%;margin-left:30px}
+  .area-head .zone-prog{order:6;margin-left:30px}
+}
 .zc{display:inline-flex;align-items:center;gap:3px;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
 .zc img,.zc .cat-fallback{width:18px;height:18px}
 /* Ligne de check : icône de catégorie, libellé, âge, coche */
